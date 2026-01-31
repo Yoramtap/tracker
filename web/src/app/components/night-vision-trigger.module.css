@@ -1,0 +1,30 @@
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 40;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 88%, var(--ink) 12%);
+  color: var(--ink);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  box-shadow: 0 12px 30px rgba(34, 26, 20, 0.12);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.visible {
+  opacity: 0.92;
+  transform: translateY(0);
+}
+
+@media (max-width: 720px) {
+  .toast {
+    right: 16px;
+    left: 16px;
+    text-align: center;
+  }
+}
