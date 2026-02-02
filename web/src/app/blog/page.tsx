@@ -1,9 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import styles from "./page.module.css";
 import { posts } from "./posts";
-
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function BlogIndexPage() {
   return (
@@ -22,20 +19,16 @@ export default function BlogIndexPage() {
         </Link>
       </header>
 
-      <section className={styles.grid}>
+      <section className={styles.cards}>
         {[...posts].reverse().map((post) => (
           <Link key={post.title} className={styles.card} href={`/blog/${post.slug}`}>
-            <div className={styles.thumbnail}>
-              <Image src={`${basePath}${post.image}`} alt="" width={240} height={240} />
-            </div>
-            <p className={styles.meta}>
+            <p className={styles.cardMeta}>
               <span>{post.category}</span>
-              <span>{post.author}</span>
               <span>{post.date}</span>
             </p>
-            <h2>{post.title}</h2>
-            <p className={styles.excerpt}>{post.summary}</p>
-            <span className={styles.cardLink}>read the note</span>
+            <h3>{post.title}</h3>
+            <p className={styles.cardExcerpt}>{post.summary}</p>
+            <span className={styles.cardLink}>Read the note</span>
           </Link>
         ))}
       </section>

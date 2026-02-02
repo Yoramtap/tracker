@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import styles from "./page.module.css";
@@ -9,8 +8,6 @@ export const dynamicParams = false;
 export function generateStaticParams() {
   return posts.map((post) => ({ slug: post.slug }));
 }
-
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 type Params = {
   params: Promise<{
@@ -39,10 +36,6 @@ export default async function BlogPostPage({ params }: Params) {
         </p>
         <h1>{post.title}</h1>
       </header>
-
-      <div className={styles.hero}>
-        <Image src={`${basePath}${post.image}`} alt="" width={520} height={360} />
-      </div>
 
       <section className={styles.body}>
         <h2>What shipped</h2>

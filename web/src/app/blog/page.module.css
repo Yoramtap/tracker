@@ -1,6 +1,11 @@
 .page {
   min-height: 100vh;
-  background: radial-gradient(circle at top, #fdf8f1 0%, #f6f0e7 55%, #efe4d6 100%);
+  background: radial-gradient(
+    circle at top,
+    var(--bg-gradient-start) 0%,
+    var(--bg-gradient-mid) 55%,
+    var(--bg-gradient-end) 100%
+  );
   padding: 96px 6vw 72px;
   color: var(--ink);
 }
@@ -41,24 +46,25 @@
   border-bottom: 1px solid var(--ink);
 }
 
-.grid {
+.cards {
   max-width: 1120px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 28px;
+  grid-template-columns: repeat(3, minmax(240px, 1fr));
+  gap: 24px;
 }
 
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 24px;
-  padding: 22px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  min-height: 360px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  gap: 12px;
+  min-height: 220px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  animation: fadeUp 0.8s ease both;
   position: relative;
   cursor: pointer;
 }
@@ -68,33 +74,21 @@
   box-shadow: 0 18px 40px rgba(61, 47, 37, 0.12);
 }
 
-.thumbnail {
-  border-radius: 18px;
-  overflow: hidden;
-  background: #f4ede4;
-  border: 1px solid var(--line);
+.cardMeta {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
-}
-
-.meta {
-  display: flex;
-  flex-wrap: wrap;
   gap: 12px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-soft);
 }
 
-.card h2 {
+.card h3 {
   font-size: 1.35rem;
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
-.excerpt {
+.cardExcerpt {
   color: var(--ink-soft);
   line-height: 1.7;
 }
@@ -127,16 +121,29 @@
     margin-bottom: 40px;
   }
 
-  .grid {
-    gap: 30px;
-  }
-
   .card {
-    padding: 24px;
+    padding: 22px;
   }
 
-  .meta {
+  .cardMeta {
     font-size: 0.85rem;
     letter-spacing: 0.12em;
+  }
+}
+
+@media (max-width: 900px) {
+  .cards {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

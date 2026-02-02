@@ -30,11 +30,20 @@ export default function Home() {
           </div>
           <div className={styles.heroImageWrap}>
             <Image
-              src={`${basePath}/images/hero-food.svg`}
+              src={`${basePath}/images/hero-day.png`}
               alt=""
-              width={560}
-              height={620}
+              width={640}
+              height={426}
               priority
+              className={styles.heroImageDay}
+            />
+            <Image
+              src={`${basePath}/images/hero-night.png`}
+              alt=""
+              width={640}
+              height={426}
+              priority
+              className={styles.heroImageNight}
             />
           </div>
         </section>

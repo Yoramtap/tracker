@@ -48,7 +48,7 @@
   padding: 16px 18px;
   border-radius: 20px;
   border: 1px dashed var(--line);
-  background: #f9f3ec;
+  background: var(--surface-contrast);
   opacity: 0;
   transform: translateY(10px);
   animation: stepIn 0.5s ease forwards;
@@ -60,7 +60,7 @@
   height: 36px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: #f4e8dc;
+  background: var(--surface-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -103,15 +103,15 @@
 @keyframes pulse {
   0% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(185, 122, 82, 0.35);
+    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.35);
   }
   70% {
     transform: scale(1.1);
-    box-shadow: 0 0 0 10px rgba(185, 122, 82, 0);
+    box-shadow: 0 0 0 10px rgba(var(--accent-rgb), 0);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(185, 122, 82, 0);
+    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0);
   }
 }
 

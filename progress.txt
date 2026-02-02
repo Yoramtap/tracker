@@ -1,3 +1,6 @@
 # Ralph Progress Log
 Started: Sat Jan 31 17:07:12 CET 2026
 ---
+Feb 2, 2026 - US-001: Added Night Vision trigger with toast cue and verified in browser.
+Feb 2, 2026 - US-002: Applied Night Vision palette across global tokens and key layouts.
+Feb 2, 2026 - US-003: Persisted Night Vision mode in localStorage and restored on load.

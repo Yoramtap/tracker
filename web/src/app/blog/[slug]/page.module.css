@@ -1,7 +1,12 @@
 .page {
   min-height: 100vh;
   padding: 96px 6vw 72px;
-  background: radial-gradient(circle at top, #fdf8f1 0%, #f6f0e7 55%, #efe4d6 100%);
+  background: radial-gradient(
+    circle at top,
+    var(--bg-gradient-start) 0%,
+    var(--bg-gradient-mid) 55%,
+    var(--bg-gradient-end) 100%
+  );
   color: var(--ink);
 }
 
@@ -33,17 +38,6 @@
 .header h1 {
   font-size: clamp(2.2rem, 4vw, 3.2rem);
   line-height: 1.15;
-}
-
-.hero {
-  max-width: 860px;
-  margin: 0 auto 40px;
-  padding: 20px;
-  border-radius: 28px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  display: flex;
-  justify-content: center;
 }
 
 .body {

@@ -7,6 +7,7 @@ type Mode = "on" | "off";
 
 const BUFFER_LENGTH = 5;
 const TOAST_DURATION_MS = 2200;
+const STORAGE_KEY = "night-vision-mode";
 
 export default function NightVisionTrigger({
   children,
@@ -16,8 +17,21 @@ export default function NightVisionTrigger({
   const bufferRef = useRef("");
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [mode, setMode] = useState<Mode>("off");
-  const [toast, setToast] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastTick, setToastTick] = useState(0);
   const [isToastVisible, setIsToastVisible] = useState(false);
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setToastTick((prev) => prev + 1);
+  };
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored === "on" || stored === "off") {
+      setMode(stored);
+    }
+  }, []);
 
   useEffect(() => {
     const updateHtmlAttribute = () => {
@@ -25,6 +39,7 @@ export default function NightVisionTrigger({
     };
 
     updateHtmlAttribute();
+    window.localStorage.setItem(STORAGE_KEY, mode);
 
     return () => {
       document.documentElement.removeAttribute("data-night-vision");
@@ -40,13 +55,18 @@ export default function NightVisionTrigger({
       bufferRef.current = `${bufferRef.current}${key}`.slice(-BUFFER_LENGTH);
 
       if (bufferRef.current.endsWith("night")) {
-        setMode((prev) => (prev === "on" ? "off" : "on"));
+        setMode((prev) => {
+          const next = prev === "on" ? "off" : "on";
+          showToast(next === "on" ? "Night Vision on" : "Night Vision off");
+          return next;
+        });
         bufferRef.current = "";
         return;
       }
 
       if (bufferRef.current.endsWith("day")) {
         setMode("off");
+        showToast("Night Vision off");
         bufferRef.current = "";
       }
     };
@@ -56,7 +76,7 @@ export default function NightVisionTrigger({
   }, []);
 
   useEffect(() => {
-    if (!toast) return;
+    if (!toastMessage) return;
 
     setIsToastVisible(true);
 
@@ -74,11 +94,7 @@ export default function NightVisionTrigger({
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [toast]);
-
-  useEffect(() => {
-    setToast(mode === "on" ? "Night Vision on" : "Night Vision off");
-  }, [mode]);
+  }, [toastMessage, toastTick]);
 
   return (
     <>
@@ -88,7 +104,7 @@ export default function NightVisionTrigger({
         role="status"
         aria-live="polite"
       >
-        {toast}
+        {toastMessage}
       </div>
     </>
   );

@@ -7,10 +7,35 @@
 :root {
   --background: #f6f0e7;
   --surface: #fbf7f2;
+  --surface-muted: #f4ede4;
+  --surface-contrast: #f9f3ec;
   --ink: #2f241d;
   --ink-soft: #5a4c41;
   --accent: #b97a52;
+  --accent-rgb: 185, 122, 82;
   --line: #e6d8c9;
+  --bg-gradient-start: #fdf8f1;
+  --bg-gradient-mid: #f6f0e7;
+  --bg-gradient-end: #efe4d6;
+  --glow-1: rgba(185, 122, 82, 0.08);
+  --glow-2: rgba(94, 119, 84, 0.1);
+}
+
+html[data-night-vision="on"] {
+  --background: #0f1a16;
+  --surface: #15231e;
+  --surface-muted: #13211c;
+  --surface-contrast: #1b2c25;
+  --ink: #d8f2e3;
+  --ink-soft: #9fc7b4;
+  --accent: #6bcf9a;
+  --accent-rgb: 107, 207, 154;
+  --line: #214033;
+  --bg-gradient-start: #0c1512;
+  --bg-gradient-mid: #0f1a16;
+  --bg-gradient-end: #12201a;
+  --glow-1: rgba(107, 207, 154, 0.08);
+  --glow-2: rgba(34, 84, 64, 0.18);
 }
 
 html,

@@ -344,9 +344,81 @@ export const posts: BlogPost[] = [
     ],
   },
   {
+    slug: "night-vision-trigger",
+    title: "Night Vision trigger",
+    summary:
+      "Added a hidden typing trigger for Night Vision mode with a subtle toast cue.",
+    excerpt:
+      "Added a hidden typing trigger for Night Vision mode with a subtle toast cue.",
+    date: "Feb 2, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-3.svg",
+    whatShipped:
+      "Added a global key listener that toggles Night Vision when users type “night,” plus a “day” off switch and toast confirmation.",
+    implemented:
+      "Implemented a client-side trigger that tracks a short key buffer, toggles the mode, and surfaces a brief toast each time it changes.",
+    files: [
+      "web/src/app/layout.tsx",
+      "web/src/app/components/night-vision-trigger.tsx",
+      "web/src/app/components/night-vision-trigger.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "Global key listeners should ignore modifier keys to avoid hijacking shortcuts.",
+      "Short rolling buffers keep secret triggers responsive without storing long histories.",
+      "Toast confirmations help make hidden state changes feel intentional.",
+    ],
+  },
   {
+    slug: "night-vision-theme",
+    title: "Night Vision theme pass",
+    summary:
+      "Extended the Night Vision palette so gradients, surfaces, and accents shift with the mode.",
+    excerpt:
+      "Extended the Night Vision palette so gradients, surfaces, and accents shift with the mode.",
+    date: "Feb 2, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-2.svg",
+    whatShipped:
+      "Mapped background gradients, surfaces, and accent tokens to the Night Vision palette so the full page responds.",
+    implemented:
+      "Introduced theme-aware CSS variables and replaced hard-coded light colors across key layouts.",
+    files: [
+      "web/src/app/globals.css",
+      "web/src/app/page.module.css",
+      "web/src/app/blog/page.module.css",
+      "web/src/app/blog/[slug]/page.module.css",
+      "web/src/app/components/build-loop.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "Global tokens prevent partial theme switches when mode changes.",
+      "Gradients and glows need theme-aware variables, not hex literals.",
+      "Match card layouts across pages by sharing layout constraints.",
+    ],
+  },
   {
-  {
-  {
-  {
+    slug: "night-vision-persistence",
+    title: "Night Vision persistence",
+    summary:
+      "Saved the Night Vision state in localStorage and restored it on load.",
+    excerpt:
+      "Saved the Night Vision state in localStorage and restored it on load.",
+    date: "Feb 2, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-1.svg",
+    whatShipped:
+      "Persisted the Night Vision state so reloads keep the theme active without retyping the trigger.",
+    implemented:
+      "Stored the mode in localStorage and read it on mount before applying the HTML data attribute.",
+    files: ["web/src/app/components/night-vision-trigger.tsx", "prd.json"],
+    learnings: [
+      "Initialize theme state from storage before writing DOM attributes.",
+      "Persist small UI toggles in localStorage for predictable reloads.",
+      "Keep storage keys scoped and explicit for easy migration later.",
+    ],
+  },
 ];
