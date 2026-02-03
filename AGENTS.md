@@ -130,7 +130,7 @@ Ralph is an autonomous AI agent loop that runs Codex repeatedly until all PRD it
 - Memory persists via git history, `progress.txt`, and `prd.json`
 - Stories should be small enough to complete in one context window
 - Always update AGENTS.md with discovered patterns for future iterations
-- This repo uses `skills/` for agent skills; PRDs are generated via `scripts/prd.sh`
+- Skills are installed globally in `~/.codex/skills`; PRDs are generated via `scripts/prd.sh`
 - To remove a PRD from the homepage PRD card list, move `tasks/prd-*.md` into `archive/`
 - Lint forbids `require()` imports in `web/src/app/prds/data.ts`; use static ES imports
 - Avoid synchronous `setState` inside effects; initialize state outside the effect or update in event handlers
@@ -139,6 +139,6 @@ Ralph is an autonomous AI agent loop that runs Codex repeatedly until all PRD it
 
 ### Available skills
 
-- agent-browser: Automates browser interactions for web testing, form filling, screenshots, and data extraction. (file: /Users/yoramtap/Documents/AI/codex-loop/skills/agent-browser/SKILL.md)
-- vercel-react-best-practices: React and Next.js performance optimization guidelines from Vercel Engineering. (file: /Users/yoramtap/Documents/AI/codex-loop/skills/vercel-react-best-practices/SKILL.md)
-- web-design-guidelines: Review UI code for Web Interface Guidelines compliance. (file: /Users/yoramtap/Documents/AI/codex-loop/skills/web-design-guidelines/SKILL.md)
+- agent-browser: Automates browser interactions for web testing, form filling, screenshots, and data extraction. (file: /Users/yoramtap/.codex/skills/agent-browser/SKILL.md)
+- vercel-react-best-practices: React and Next.js performance optimization guidelines from Vercel Engineering. (file: /Users/yoramtap/.codex/skills/vercel-react-best-practices/SKILL.md)
+- web-design-guidelines: Review UI code for Web Interface Guidelines compliance. (file: /Users/yoramtap/.codex/skills/web-design-guidelines/SKILL.md)
