@@ -32,8 +32,8 @@
         "Typecheck passes"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Inserted BuildLoop component between How we build and Principles sections. Lint and typecheck passed on Feb 3, 2026. Browser verification attempted with agent-browser; screenshot captured but scroll/eval commands failed to start daemon, so manual verification recommended."
     },
     {
       "id": "US-003",

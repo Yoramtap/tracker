@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BuildLoop from "../components/build-loop";
 import styles from "./page.module.css";
 
 export default function ManifestoPage() {
@@ -50,6 +51,8 @@ export default function ManifestoPage() {
           </li>
         </ol>
       </section>
+
+      <BuildLoop />
 
       <section className={styles.section}>
         <h2>Principles</h2>

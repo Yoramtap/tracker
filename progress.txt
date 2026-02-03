@@ -8,3 +8,11 @@ Started: Tue Feb  3 20:07:43 CET 2026
 - **Learnings for future iterations:**
   - Keep new content pages aligned with blog/prds layout patterns for consistent typography and spacing.
 ---
+## 2026-02-03 20:21 CET - US-002
+- Placed the build loop component on the manifesto page between the "How we build" and "Principles" sections.
+- Verified lint and typecheck.
+- Files changed: web/src/app/manifesto/page.tsx, prd.json, progress.txt
+- **Learnings for future iterations:**
+  - The build loop component starts hidden until it intersects the viewport; it appears after scrolling into view.
+  - agent-browser opened the page and captured a screenshot, but some commands failed with daemon startup errors; manual scroll verification may be needed if this persists.
+---
