@@ -1,34 +1,30 @@
 {
-  "project": "PRD Library",
-  "branchName": "codex/prd-library",
-  "description": "Add a PRD library so readers can browse the PRDs that guided each feature, with a /prds index, detail pages that render markdown, and a home page teaser section.",
+  "project": "PRD–Story Links",
+  "branchName": "codex/prd-story-links",
+  "description": "Show how build notes (stories) relate to their PRDs by listing related stories on PRD pages, showing story counts on PRD cards, and linking back to the PRD from each build note.",
   "userStories": [
     {
       "id": "US-001",
-      "title": "PRD Index Page",
-      "description": "As a reader, I want to browse PRDs so I can understand how features were planned.",
+      "title": "PRD Detail Related Stories",
+      "description": "As a reader, I want to see the stories related to a PRD so I can understand what shipped from the plan.",
       "acceptanceCriteria": [
-        "A new /prds page lists PRDs as cards",
-        "Each PRD card shows title, date, and a short summary",
-        "Cards match the visual style of blog note cards",
-        "PRDs are sourced from tasks/prd-*.md files",
-        "Keyboard navigation (j/k/arrow keys + enter) works on PRD cards",
+        "PRD detail pages include a “Related stories” section",
+        "The section lists build notes associated with that PRD",
+        "Each related story links to its build note page",
         "Verify in browser using agent-browser skill",
         "Typecheck passes"
       ],
       "priority": 1,
       "passes": true,
-      "notes": "Verified in browser on Feb 3, 2026."
+      "notes": "Verified in browser on Feb 3, 2026. Mapped all existing stories to PRDs."
     },
     {
       "id": "US-002",
-      "title": "PRD Detail Page",
-      "description": "As a reader, I want to open a PRD so I can read the full spec.",
+      "title": "PRD Card Story Count",
+      "description": "As a reader, I want to see how many stories are linked to a PRD so I can gauge its scope quickly.",
       "acceptanceCriteria": [
-        "Each PRD has a detail page at /prds/[slug]",
-        "The page renders the PRD markdown content",
-        "The layout follows the blog post style (header, meta, body)",
-        "The page links back to /prds",
+        "PRD index cards show a story count",
+        "Count is derived from the PRD → story mapping",
         "Verify in browser using agent-browser skill",
         "Typecheck passes"
       ],
@@ -38,12 +34,11 @@
     },
     {
       "id": "US-003",
-      "title": "Home Page PRD Section",
-      "description": "As a reader, I want to discover PRDs from the home page so I can explore the planning artifacts.",
+      "title": "Build Note Link Back to PRD",
+      "description": "As a reader, I want to navigate from a build note to its PRD so I can see the original plan.",
       "acceptanceCriteria": [
-        "The home page includes a PRD section with three cards matching the blog teaser style",
-        "Each card shows title, date, and short summary",
-        "The section links to /prds",
+        "Each build note can link back to its PRD",
+        "Link appears in the build note header metadata area",
         "Verify in browser using agent-browser skill",
         "Typecheck passes"
       ],

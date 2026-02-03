@@ -68,6 +68,11 @@ function PostLayout({ post, previousPost, nextPost }: PostLayoutProps) {
           <span>{post.category}</span>
           <span>{post.author}</span>
           <span>{post.date}</span>
+          {post.prdSlug ? (
+            <Link className={styles.prdLink} href={`/prds/${post.prdSlug}`}>
+              PRD
+            </Link>
+          ) : null}
         </p>
         <h1>{post.title}</h1>
       </header>

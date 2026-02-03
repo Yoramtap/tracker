@@ -7,6 +7,7 @@ export type BlogPost = {
   category: string;
   author: string;
   image: string;
+  prdSlug?: string;
   whatShipped: string;
   implemented: string;
   files: string[];
@@ -17,6 +18,7 @@ export const posts: BlogPost[] = [
   {
     slug: "us-001-home-page",
     title: "Home page",
+    prdSlug: "modern-food-blog",
     summary:
       "Replaced the default Next.js home page with a rustic hero, featured posts, a social block, and footer.",
     excerpt:
@@ -52,6 +54,7 @@ export const posts: BlogPost[] = [
   {
     slug: "us-002-blog-index",
     title: "Blog index page",
+    prdSlug: "modern-food-blog",
     summary:
       "Added the blog index page with post cards, meta line, gradient thumbnails, and an “older posts” link.",
     excerpt:
@@ -78,6 +81,7 @@ export const posts: BlogPost[] = [
   {
     slug: "us-003-blog-post",
     title: "Blog post page",
+    prdSlug: "modern-food-blog",
     summary:
       "Added blog post pages that render per-entry content with hero image, structured sections, and a back-to-blog link.",
     excerpt:
@@ -106,6 +110,7 @@ export const posts: BlogPost[] = [
   {
     slug: "build-notes-data-model",
     title: "Build notes data model",
+    prdSlug: "build-notes-restructure",
     summary:
       "Added build-note specific fields to the post model and removed recipe wording from sample entries.",
     excerpt:
@@ -128,6 +133,7 @@ export const posts: BlogPost[] = [
   {
     slug: "build-notes-ui-content",
     title: "Build notes in UI",
+    prdSlug: "build-notes-restructure",
     summary:
       "Updated home, index, and post pages to use build-note fields and consistent build-log labels.",
     excerpt:
@@ -155,6 +161,7 @@ export const posts: BlogPost[] = [
   {
     slug: "build-notes-copy-pass",
     title: "Build notes copy pass",
+    prdSlug: "build-notes-restructure",
     summary:
       "Removed lingering recipe language and aligned metadata with build-log terminology.",
     excerpt:
@@ -177,6 +184,7 @@ export const posts: BlogPost[] = [
   {
     slug: "build-notes-links-fix",
     title: "Build notes links fix",
+    prdSlug: "build-notes-restructure",
     summary:
       "Resolved 404s on note pages by awaiting dynamic route params in the blog post page.",
     excerpt:
@@ -199,6 +207,7 @@ export const posts: BlogPost[] = [
   {
     slug: "build-notes-card-clicks",
     title: "Build notes card clicks",
+    prdSlug: "build-notes-restructure",
     summary:
       "Made the full cards clickable on the home and blog index views instead of just the tiny text link.",
     excerpt:
@@ -226,6 +235,7 @@ export const posts: BlogPost[] = [
   {
     slug: "mobile-usability-polish",
     title: "Mobile usability polish",
+    prdSlug: "mobile-usability-polish",
     summary:
       "Improved mobile spacing, tap targets, and readability across the home, index, and post pages.",
     excerpt:
@@ -252,6 +262,7 @@ export const posts: BlogPost[] = [
   {
     slug: "ralph-quality-gates",
     title: "Ralph quality gates",
+    prdSlug: "ralph-loop-solid",
     summary:
       "Replaced the no-op typecheck with real checks and added lint/test scripts to gate Ralph iterations.",
     excerpt:
@@ -280,6 +291,7 @@ export const posts: BlogPost[] = [
   {
     slug: "ralph-git-hygiene",
     title: "Ralph git hygiene",
+    prdSlug: "ralph-loop-solid",
     summary:
       "Added strict mode and preflight checks to keep Ralph off dirty trees and the wrong branch.",
     excerpt:
@@ -302,6 +314,7 @@ export const posts: BlogPost[] = [
   {
     slug: "ralph-codex-failfast",
     title: "Ralph Codex fail-fast",
+    prdSlug: "ralph-loop-solid",
     summary:
       "Added retry-and-abort behavior so Codex failures don’t cascade through the loop.",
     excerpt:
@@ -324,6 +337,7 @@ export const posts: BlogPost[] = [
   {
     slug: "ralph-strict-shell",
     title: "Ralph strict shell mode",
+    prdSlug: "ralph-loop-solid",
     summary:
       "Locked Ralph into strict shell mode and documented how to guard non-fatal commands.",
     excerpt:
@@ -346,6 +360,7 @@ export const posts: BlogPost[] = [
   {
     slug: "night-vision-trigger",
     title: "Night Vision trigger",
+    prdSlug: "night-vision-mode",
     summary:
       "Added a hidden typing trigger for Night Vision mode with a subtle toast cue.",
     excerpt:
@@ -373,6 +388,7 @@ export const posts: BlogPost[] = [
   {
     slug: "night-vision-theme",
     title: "Night Vision theme pass",
+    prdSlug: "night-vision-mode",
     summary:
       "Extended the Night Vision palette so gradients, surfaces, and accents shift with the mode.",
     excerpt:
@@ -402,6 +418,7 @@ export const posts: BlogPost[] = [
   {
     slug: "night-vision-persistence",
     title: "Night Vision persistence",
+    prdSlug: "night-vision-mode",
     summary:
       "Saved the Night Vision state in localStorage and restored it on load.",
     excerpt:
@@ -424,6 +441,7 @@ export const posts: BlogPost[] = [
   {
     slug: "quiet-navigation-keyboard",
     title: "Quiet navigation: keyboard focus",
+    prdSlug: "quiet-nav",
     summary:
       "Added keyboard navigation for build notes cards on the landing page and blog index.",
     excerpt:
@@ -453,6 +471,7 @@ export const posts: BlogPost[] = [
   {
     slug: "quiet-navigation-post-links",
     title: "Quiet navigation: post links",
+    prdSlug: "quiet-nav",
     summary:
       "Added previous/next links on post pages with matching keyboard navigation.",
     excerpt:
@@ -482,6 +501,7 @@ export const posts: BlogPost[] = [
   {
     slug: "prd-library-index",
     title: "PRD library: index page",
+    prdSlug: "prd-library",
     summary:
       "Added a /prds index that lists PRDs as cards with keyboard navigation.",
     excerpt:
@@ -509,6 +529,7 @@ export const posts: BlogPost[] = [
   {
     slug: "prd-library-detail",
     title: "PRD library: detail pages",
+    prdSlug: "prd-library",
     summary:
       "Added PRD detail pages that render the markdown specs in a blog-style layout.",
     excerpt:
@@ -537,6 +558,7 @@ export const posts: BlogPost[] = [
   {
     slug: "prd-library-home",
     title: "PRD library: home teaser",
+    prdSlug: "prd-library",
     summary:
       "Added a PRD teaser section on the home page with three recent specs.",
     excerpt:
@@ -558,6 +580,111 @@ export const posts: BlogPost[] = [
       "Shared card components make new sections quick to add.",
       "Keeping PRD data server-side prevents content drift.",
       "Teaser sections work best when they mirror existing grid patterns.",
+    ],
+  },
+  {
+    slug: "prd-story-links-related",
+    title: "PRD story links: related list",
+    prdSlug: "prd-story-links",
+    summary:
+      "Linked PRDs to their build notes with a related stories section on PRD pages.",
+    excerpt:
+      "Linked PRDs to their build notes with a related stories section on PRD pages.",
+    date: "Feb 3, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-5.svg",
+    whatShipped:
+      "Added a related stories block to PRD detail pages, populated from explicit PRD → story mappings.",
+    implemented:
+      "Extended blog post metadata with PRD slugs, then rendered related story links on PRD detail pages.",
+    files: [
+      "web/src/app/blog/posts.ts",
+      "web/src/app/prds/data.ts",
+      "web/src/app/prds/[slug]/page.tsx",
+      "web/src/app/prds/[slug]/page.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "Manual PRD mappings prevent accidental cross-linking.",
+      "Related lists are easiest to scan when titles and dates are aligned.",
+      "PRD pages benefit from a clear path back to shipped stories.",
+    ],
+  },
+  {
+    slug: "prd-story-links-mapping",
+    title: "PRD story links: full mapping",
+    summary:
+      "Mapped every existing build note to its originating PRD for complete linkage.",
+    excerpt:
+      "Mapped every existing build note to its originating PRD for complete linkage.",
+    date: "Feb 3, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-6.svg",
+    whatShipped:
+      "Completed the manual PRD mapping so every build note now links back to its PRD.",
+    implemented:
+      "Applied PRD slugs across all existing build notes to guarantee accurate related-story lists.",
+    files: ["web/src/app/blog/posts.ts", "prd.json"],
+    learnings: [
+      "Full PRD coverage makes the library more trustworthy.",
+      "Explicit mappings prevent accidental grouping by similar titles.",
+      "Keeping mappings near the stories makes review straightforward.",
+    ],
+  },
+  {
+    slug: "prd-story-links-counts",
+    title: "PRD story links: story counts",
+    summary:
+      "Added a story count to each PRD card to show scope at a glance.",
+    excerpt:
+      "Added a story count to each PRD card to show scope at a glance.",
+    date: "Feb 3, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-1.svg",
+    whatShipped:
+      "Displayed the number of related stories on each PRD card in the PRD index.",
+    implemented:
+      "Computed story counts from PRD mappings and surfaced them in the PRD card meta line.",
+    files: [
+      "web/src/app/prds/data.ts",
+      "web/src/app/prds/page.tsx",
+      "web/src/app/prds/page.module.css",
+      "web/src/app/components/keyboard-card-grid.tsx",
+      "prd.json",
+    ],
+    learnings: [
+      "Small metadata cues help readers judge scope quickly.",
+      "Counts are most readable when aligned to the right of the meta row.",
+      "Shared card components make PRD enhancements easy to propagate.",
+    ],
+  },
+  {
+    slug: "prd-story-links-backlink",
+    title: "PRD story links: backlink",
+    summary:
+      "Added a PRD backlink on build note pages to jump back to the spec.",
+    excerpt:
+      "Added a PRD backlink on build note pages to jump back to the spec.",
+    date: "Feb 3, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-2.svg",
+    whatShipped:
+      "Surfaced a PRD link in the build note meta line to enable story → PRD navigation.",
+    implemented:
+      "Rendered a PRD link for mapped stories in the blog header metadata area.",
+    files: [
+      "web/src/app/blog/[slug]/page.tsx",
+      "web/src/app/blog/[slug]/page.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "Meta-line links keep navigation discoverable without adding UI clutter.",
+      "Backlinks close the loop between plan and execution.",
+      "Reusing existing meta styling keeps the layout calm.",
     ],
   },
 ];

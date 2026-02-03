@@ -10,6 +10,7 @@ type CardItem = {
   summary: string;
   category: string;
   date: string;
+  storyCount?: number;
 };
 
 type CardClassNames = {
@@ -19,6 +20,7 @@ type CardClassNames = {
   excerpt: string;
   link: string;
   focused: string;
+  count?: string;
 };
 
 type KeyboardCardGridProps = {
@@ -112,6 +114,9 @@ export default function KeyboardCardGrid({
             <p className={classNames.meta}>
               <span>{post.category}</span>
               <span>{post.date}</span>
+              {typeof post.storyCount === "number" && classNames.count ? (
+                <span className={classNames.count}>{post.storyCount} stories</span>
+              ) : null}
             </p>
             <h3>{post.title}</h3>
             <p className={classNames.excerpt}>{post.summary}</p>

@@ -9,3 +9,8 @@ Feb 2, 2026 - US-002 (Quiet Navigation): Added previous/next nav with keyboard s
 Feb 3, 2026 - US-001 (PRD Library): Added /prds index with PRD cards and keyboard nav.
 Feb 3, 2026 - US-002 (PRD Library): Added PRD detail pages rendering markdown.
 Feb 3, 2026 - US-003 (PRD Library): Added PRD teaser section on the home page.
+Feb 3, 2026 - US-001 (PRD–Story Links): Added related story list to PRD detail pages.
+Feb 3, 2026 - US-001 (PRD–Story Links): Mapped existing build notes to PRDs.
+Feb 3, 2026 - US-002 (PRD–Story Links): Added story counts to PRD cards.
+Feb 3, 2026 - US-002 (PRD–Story Links): Added story counts to home PRD cards.
+Feb 3, 2026 - US-003 (PRD–Story Links): Added PRD link on build note pages.

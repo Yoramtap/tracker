@@ -32,6 +32,7 @@ export default function PrdsPage() {
           excerpt: styles.cardExcerpt,
           link: styles.cardLink,
           focused: styles.cardFocused,
+          count: styles.cardCount,
         }}
         linkLabel="Read the PRD"
         backspaceHref="/"

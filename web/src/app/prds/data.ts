@@ -7,12 +7,17 @@ export type PrdEntry = {
   summary: string;
   date: string;
   content?: string;
+  relatedStories?: {
+    slug: string;
+    title: string;
+    date: string;
+  }[];
 };
 
 export type PrdCard = Pick<
   PrdEntry,
   "slug" | "title" | "summary" | "date"
-> & { category: string };
+> & { category: string; storyCount: number };
 
 const TASKS_DIR = path.resolve(process.cwd(), "..", "tasks");
 
@@ -78,20 +83,33 @@ export const getPrdEntry = (slug: string): PrdEntry | null => {
   if (!fs.existsSync(filePath)) return null;
   const content = fs.readFileSync(filePath, "utf-8");
   const stat = fs.statSync(filePath);
+  const { posts } = require("../blog/posts");
+  const relatedStories = posts
+    .filter((post: { prdSlug?: string }) => post.prdSlug === slug)
+    .map((post: { slug: string; title: string; date: string }) => ({
+      slug: post.slug,
+      title: post.title,
+      date: post.date,
+    }));
   return {
     slug,
     title: getTitleFromMarkdown(content),
     summary: getSummaryFromMarkdown(content),
     date: formatDate(stat.mtime),
     content,
+    relatedStories,
   };
 };
 
-export const getPrdCards = (): PrdCard[] =>
-  getPrdEntries().map((entry) => ({
+export const getPrdCards = (): PrdCard[] => {
+  const { posts } = require("../blog/posts");
+  return getPrdEntries().map((entry) => ({
     slug: entry.slug,
     title: entry.title,
     summary: entry.summary,
     date: entry.date,
     category: "PRD",
+    storyCount: posts.filter((post: { prdSlug?: string }) => post.prdSlug === entry.slug)
+      .length,
   }));
+};

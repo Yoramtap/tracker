@@ -92,6 +92,7 @@ export default function Home() {
               excerpt: styles.cardExcerpt,
               link: styles.cardLink,
               focused: styles.cardFocused,
+              count: styles.cardCount,
             }}
             linkLabel="Read the PRD"
           />

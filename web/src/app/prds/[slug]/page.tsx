@@ -38,6 +38,22 @@ export default async function PrdPage({ params }: Params) {
       </header>
 
       <section className={styles.body}>{renderMarkdown(prd.content)}</section>
+
+      {prd.relatedStories && prd.relatedStories.length > 0 && (
+        <section className={styles.related}>
+          <h2>Related stories</h2>
+          <ul className={styles.relatedList}>
+            {prd.relatedStories.map((story) => (
+              <li key={story.slug} className={styles.relatedItem}>
+                <Link className={styles.relatedLink} href={`/blog/${story.slug}`}>
+                  <span>{story.title}</span>
+                  <span className={styles.relatedMeta}>{story.date}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }
