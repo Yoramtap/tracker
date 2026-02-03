@@ -1,35 +1,55 @@
 {
-  "project": "PRD-First Home Page Ordering",
-  "branchName": "ralph/prd-first-homepage-ordering",
-  "description": "Reorder the home page sections so PRDs appear above build notes, without changing card content or styling.",
+  "project": "Manifesto Page",
+  "branchName": "ralph/manifesto-page",
+  "description": "Create a manifesto page that explains the builder + agent identity and the PRD → stories → build notes workflow, with the build loop placed intentionally and a primary nav link to access it.",
   "userStories": [
     {
       "id": "US-001",
-      "title": "Move PRD section above build notes",
-      "description": "As a reader, I want to see PRDs before build notes so I can browse by specs first.",
+      "title": "Add manifesto page",
+      "description": "As a reader, I want a manifesto page that explains the builder + agent home so I understand the purpose and tone of the blog.",
       "acceptanceCriteria": [
-        "The PRD section appears above the build notes section on the home page",
-        "PRD cards remain unchanged in content and styling",
+        "A new page exists at /manifesto with clear builder + agent framing",
+        "The page includes a short vision paragraph and a concise “How we build” section (PRD → stories → build notes)",
+        "Content is readable on desktop and mobile with existing site typography",
+        "Lint passes",
         "Verify in browser using agent-browser skill",
         "Typecheck passes"
       ],
       "priority": 1,
-      "passes": true,
-      "notes": "Reordered home page sections; lint/typecheck clean. Verified in browser on Feb 3, 2026."
+      "passes": false,
+      "notes": ""
     },
     {
       "id": "US-002",
-      "title": "Keep build notes below PRDs",
-      "description": "As a reader, I want to still see recent build notes after PRDs so I can scan the latest updates.",
+      "title": "Place build loop element on manifesto page",
+      "description": "As a reader, I want the build loop element presented within the manifesto page so the workflow feels grounded in the narrative.",
       "acceptanceCriteria": [
-        "The build notes section appears below the PRD section on the home page",
-        "Build note cards remain unchanged in content and styling",
+        "The existing build loop element appears on the manifesto page without a full redesign",
+        "Placement supports the manifesto narrative (e.g., near “How we build”)",
+        "The build loop element’s visual style remains consistent with the rest of the site",
+        "Lint passes",
         "Verify in browser using agent-browser skill",
         "Typecheck passes"
       ],
       "priority": 2,
-      "passes": true,
-      "notes": "Build notes remain below PRDs after reorder; no content changes. Verified on Feb 3, 2026."
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Add primary navigation link to manifesto",
+      "description": "As a reader, I want to access the manifesto from the main navigation so I can find it easily.",
+      "acceptanceCriteria": [
+        "A “Manifesto” link appears in the primary navigation",
+        "The link routes to /manifesto",
+        "Navigation styling remains consistent with existing patterns",
+        "Lint passes",
+        "Verify in browser using agent-browser skill",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
     }
   ]
 }
