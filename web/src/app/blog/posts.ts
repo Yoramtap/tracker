@@ -802,4 +802,84 @@ export const posts: BlogPost[] = [
       "Lightweight cards fit the blog rhythm without visual clutter.",
     ],
   },
+  {
+    slug: "manifesto-page",
+    title: "Manifesto page foundation",
+    prdSlug: "manifesto-page",
+    prdTitle: "Manifesto Page",
+    summary: "Added the manifesto page with vision, process, and principles.",
+    excerpt: "Added the manifesto page with vision, process, and principles.",
+    date: "Feb 3, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-1.svg",
+    whatShipped:
+      "Introduced the /manifesto page with builder + agent framing, a “How We Build” section, and guiding principles.",
+    implemented:
+      "Created the manifesto route and styles using existing typography patterns to keep the page calm and readable.",
+    files: [
+      "web/src/app/manifesto/page.tsx",
+      "web/src/app/manifesto/page.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "Manifesto content reads best when it mirrors the blog’s existing layout rhythm.",
+      "Short, focused sections make the narrative easier to scan.",
+      "Keeping typography consistent preserves the workshop tone.",
+    ],
+  },
+  {
+    slug: "manifesto-build-loop",
+    title: "Manifesto build loop placement",
+    prdSlug: "manifesto-page",
+    prdTitle: "Manifesto Page",
+    summary: "Placed the build loop inside the manifesto narrative.",
+    excerpt: "Placed the build loop inside the manifesto narrative.",
+    date: "Feb 3, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-2.svg",
+    whatShipped:
+      "Embedded the build loop component between the process and principles sections.",
+    implemented:
+      "Inserted the existing BuildLoop component on the manifesto page and tuned spacing to match the page width.",
+    files: [
+      "web/src/app/manifesto/page.tsx",
+      "web/src/app/manifesto/page.module.css",
+      "web/src/app/components/build-loop.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "The build loop feels more intentional when it sits inside the narrative flow.",
+      "Consistent section width keeps the page visually anchored.",
+      "Minor spacing tweaks can fix layout drift without redesign.",
+    ],
+  },
+  {
+    slug: "manifesto-primary-nav",
+    title: "Manifesto in primary navigation",
+    prdSlug: "manifesto-page",
+    prdTitle: "Manifesto Page",
+    summary: "Added a global nav with a Manifesto link.",
+    excerpt: "Added a global nav with a Manifesto link.",
+    date: "Feb 3, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-3.svg",
+    whatShipped:
+      "Added a site-wide primary navigation bar with a Manifesto link.",
+    implemented:
+      "Created a PrimaryNav component and mounted it in the root layout to expose Manifesto, PRDs, and Build notes.",
+    files: [
+      "web/src/app/components/primary-nav.tsx",
+      "web/src/app/components/primary-nav.module.css",
+      "web/src/app/layout.tsx",
+      "prd.json",
+    ],
+    learnings: [
+      "Global nav clarifies the site’s top-level paths without adding clutter.",
+      "Keeping nav typography understated preserves the calm tone.",
+      "Mounting nav in layout avoids per-page duplication.",
+    ],
+  },
 ];
