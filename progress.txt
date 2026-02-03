@@ -1,29 +1,12 @@
 # Ralph Progress Log
+Started: Tue Feb  3 21:27:53 CET 2026
+---
 ## Codebase Patterns
-- Primary navigation lives in `web/src/app/components/primary-nav.tsx` and is mounted in `web/src/app/layout.tsx`.
-
-Started: Tue Feb  3 20:07:43 CET 2026
----
-## 2026-02-03 20:15 CET - US-001
-- Added /manifesto page with vision, how-we-build steps, and principles content using existing typography.
-- Added manifesto page styles with section layout and step cards.
-- Files changed: web/src/app/manifesto/page.tsx, web/src/app/manifesto/page.module.css, prd.json, progress.txt
+- Run `npm run build` in `web/` to perform the Next.js TypeScript typecheck.
+## Tue Feb  3 21:30:42 CET 2026 - US-001
+- Added the `/relay` route with a basic introduction page and wired it into the primary navigation.
+- Files changed: `web/src/app/components/primary-nav.tsx`, `web/src/app/relay/page.tsx`, `web/src/app/relay/page.module.css`, `prd.json`, `progress.txt`.
 - **Learnings for future iterations:**
-  - Keep new content pages aligned with blog/prds layout patterns for consistent typography and spacing.
----
-## 2026-02-03 20:21 CET - US-002
-- Placed the build loop component on the manifesto page between the "How we build" and "Principles" sections.
-- Verified lint and typecheck.
-- Files changed: web/src/app/manifesto/page.tsx, prd.json, progress.txt
-- **Learnings for future iterations:**
-  - The build loop component starts hidden until it intersects the viewport; it appears after scrolling into view.
-  - agent-browser opened the page and captured a screenshot, but some commands failed with daemon startup errors; manual scroll verification may be needed if this persists.
----
-## 2026-02-03 20:27 CET - US-003
-- Added a site-wide primary navigation header with a Manifesto link.
-- Verified the Manifesto link via agent-browser; captured /tmp/manifesto-nav.png.
-- Files changed: web/src/app/components/primary-nav.tsx, web/src/app/components/primary-nav.module.css, web/src/app/layout.tsx, prd.json, progress.txt
-- **Learnings for future iterations:**
-  - The primary nav is now global via `web/src/app/layout.tsx`; update `web/src/app/components/primary-nav.tsx` for nav changes.
-  - agent-browser can open the page, but `agent-browser close` may fail with a daemon startup error.
+  - Next.js build in `web/` runs the TypeScript check.
+  - Relay page verified via agent-browser; screenshot saved at `/tmp/relay-page.png`.
 ---

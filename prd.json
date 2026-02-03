@@ -1,55 +1,68 @@
 {
-  "project": "Manifesto Page",
-  "branchName": "ralph/manifesto-page",
-  "description": "Create a manifesto page that explains the builder + agent identity and the PRD → stories → build notes workflow, with the build loop placed intentionally and a primary nav link to access it.",
+  "project": "Relay Introduction",
+  "branchName": "ralph/relay-introduction",
+  "description": "Add a dedicated Relay page with a hero block, short bio, mission, how-I-can-help bullets, and a playful Q&A to introduce Relay as the blog’s resident assistant.",
   "userStories": [
     {
       "id": "US-001",
-      "title": "Add manifesto page",
-      "description": "As a reader, I want a manifesto page that explains the builder + agent home so I understand the purpose and tone of the blog.",
+      "title": "Add Relay page route",
+      "description": "As a reader, I want a dedicated Relay page so I can learn who Relay is.",
       "acceptanceCriteria": [
-        "A new page exists at /manifesto with clear builder + agent framing",
-        "The page includes a short vision paragraph and a concise “How we build” section (PRD → stories → build notes)",
-        "Content is readable on desktop and mobile with existing site typography",
-        "Lint passes",
-        "Verify in browser using agent-browser skill",
-        "Typecheck passes"
+        "A new page/route exists for Relay (e.g., /relay or a route consistent with the site’s routing)",
+        "The page is reachable from the site’s navigation or another clear entry point",
+        "The page renders without errors",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
       ],
       "priority": 1,
       "passes": true,
-      "notes": "Implemented /manifesto page content and styling. Lint and typecheck passed on Feb 3, 2026. Browser verification pending."
+      "notes": ""
     },
     {
       "id": "US-002",
-      "title": "Place build loop element on manifesto page",
-      "description": "As a reader, I want the build loop element presented within the manifesto page so the workflow feels grounded in the narrative.",
+      "title": "Create Relay hero block",
+      "description": "As a reader, I want a hero section that introduces Relay at a glance so I immediately understand the page’s purpose.",
       "acceptanceCriteria": [
-        "The existing build loop element appears on the manifesto page without a full redesign",
-        "Placement supports the manifesto narrative (e.g., near “How we build”)",
-        "The build loop element’s visual style remains consistent with the rest of the site",
-        "Lint passes",
-        "Verify in browser using agent-browser skill",
-        "Typecheck passes"
+        "Hero block includes Relay name, a short subtitle/tagline, and a brief intro sentence",
+        "Hero block is visually prominent at the top of the page",
+        "Hero block includes a CTA or jump link to the “How I can help” section",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
       ],
       "priority": 2,
-      "passes": true,
-      "notes": "Inserted BuildLoop component between How we build and Principles sections. Lint and typecheck passed on Feb 3, 2026. Browser verification attempted with agent-browser; screenshot captured but scroll/eval commands failed to start daemon, so manual verification recommended."
+      "passes": false,
+      "notes": ""
     },
     {
       "id": "US-003",
-      "title": "Add primary navigation link to manifesto",
-      "description": "As a reader, I want to access the manifesto from the main navigation so I can find it easily.",
+      "title": "Add bio, mission, and help bullets",
+      "description": "As a reader, I want a short bio and a clear list of ways Relay can help so I know what to expect.",
       "acceptanceCriteria": [
-        "A “Manifesto” link appears in the primary navigation",
-        "The link routes to /manifesto",
-        "Navigation styling remains consistent with existing patterns",
-        "Lint passes",
-        "Verify in browser using agent-browser skill",
-        "Typecheck passes"
+        "Bio is 2–4 sentences and introduces Relay’s role",
+        "Mission statement is a single concise sentence",
+        "“How I can help” section contains 3–5 bullet items",
+        "Tone is playful and witty while remaining clear",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
       ],
       "priority": 3,
-      "passes": true,
-      "notes": "Added a PrimaryNav component with a Manifesto link in the site-wide header. Lint and typecheck passed on Feb 3, 2026. Verified in browser with agent-browser; screenshot saved to /tmp/manifesto-nav.png (daemon close command still failing)."
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Add Relay Q&A section",
+      "description": "As a reader, I want a short Q&A so I can quickly understand Relay’s personality and boundaries.",
+      "acceptanceCriteria": [
+        "Q&A includes 3–5 questions with short answers",
+        "At least one Q&A addresses what Relay does NOT do",
+        "Tone matches the playful, witty style of the page",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
     }
   ]
 }

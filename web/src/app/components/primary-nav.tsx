@@ -15,6 +15,9 @@ export default function PrimaryNav() {
           <Link className={styles.link} href="/prds">
             PRDs
           </Link>
+          <Link className={styles.link} href="/relay">
+            Relay
+          </Link>
           <Link className={styles.link} href="/blog">
             Build notes
           </Link>
