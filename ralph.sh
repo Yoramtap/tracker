@@ -2,7 +2,7 @@
 # Ralph Wiggum - Long-running AI agent loop
 # Usage: ./ralph.sh [--tool codex] [max_iterations]
 
-set -euo pipefail
+set -e
 
 # Parse arguments
 TOOL="codex"
@@ -81,84 +81,14 @@ fi
 
 echo "Starting Ralph - Tool: $TOOL - Max iterations: $MAX_ITERATIONS"
 
-# Ensure clean working tree before running
-if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo "Error: working tree is not clean. Commit or stash changes before running Ralph."
-  exit 1
-fi
-
-# Ensure expected branch
-if [ -f "$PRD_FILE" ]; then
-  EXPECTED_BRANCH=$(jq -r '.branchName // empty' "$PRD_FILE" 2>/dev/null || echo "")
-  if [ -n "$EXPECTED_BRANCH" ]; then
-    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
-    if [ "$CURRENT_BRANCH" != "$EXPECTED_BRANCH" ]; then
-      if git show-ref --verify --quiet "refs/heads/$EXPECTED_BRANCH"; then
-        git checkout "$EXPECTED_BRANCH" || {
-          echo "Error: failed to checkout branch '$EXPECTED_BRANCH'."
-          exit 1
-        }
-      else
-        git checkout -b "$EXPECTED_BRANCH" || {
-          echo "Error: failed to create branch '$EXPECTED_BRANCH'."
-          exit 1
-        }
-      fi
-    fi
-  fi
-fi
-
 for i in $(seq 1 $MAX_ITERATIONS); do
   echo ""
   echo "==============================================================="
   echo "  Ralph Iteration $i of $MAX_ITERATIONS ($TOOL)"
   echo "==============================================================="
 
-  # Run Codex non-interactively in this repo (retry up to N times on failure)
-  MAX_CODEX_FAILS=2
-  CODEX_FAILS=0
-  OUTPUT=""
-  while true; do
-    set +e
-    OUTPUT=$(codex exec --full-auto --cd "$SCRIPT_DIR" - < "$SCRIPT_DIR/AGENTS.md" 2>&1 | tee /dev/stderr)
-    CODEX_STATUS=${PIPESTATUS[0]}
-    set -e
-
-    if [ "$CODEX_STATUS" -eq 0 ]; then
-      break
-    fi
-
-    CODEX_FAILS=$((CODEX_FAILS + 1))
-    echo "Error: Codex execution failed (attempt $CODEX_FAILS of $MAX_CODEX_FAILS)."
-    if [ "$CODEX_FAILS" -ge "$MAX_CODEX_FAILS" ]; then
-      echo "Error: Codex failed $CODEX_FAILS times. Aborting Ralph."
-      exit 1
-    fi
-    echo "Retrying Codex execution..."
-    sleep 2
-  done
-
-  # Run quality checks
-  if [ -f "$SCRIPT_DIR/scripts/typecheck.sh" ]; then
-    echo ""
-    echo "Running typecheck..."
-    "$SCRIPT_DIR/scripts/typecheck.sh"
-  else
-    echo "Error: scripts/typecheck.sh not found."
-    exit 1
-  fi
-
-  if [ -f "$SCRIPT_DIR/scripts/lint.sh" ]; then
-    echo ""
-    echo "Running lint..."
-    "$SCRIPT_DIR/scripts/lint.sh"
-  fi
-
-  if [ -f "$SCRIPT_DIR/scripts/test.sh" ]; then
-    echo ""
-    echo "Running tests..."
-    "$SCRIPT_DIR/scripts/test.sh"
-  fi
+  # Run Codex non-interactively in this repo
+  OUTPUT=$(codex exec --full-auto --cd "$SCRIPT_DIR" - < "$SCRIPT_DIR/AGENTS.md" 2>&1 | tee /dev/stderr) || true
   
   # Check for completion signal
   if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then

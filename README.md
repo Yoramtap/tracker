@@ -15,9 +15,8 @@ cd codex-loop
 - `jq` (`brew install jq` on macOS)
 
 3. Run the workflow
+Use the `prd` skill to generate a PRD in `tasks/`, then use the `ralph` skill to convert it to `prd.json`. Finally:
 ```bash
-./scripts/prd.sh "Describe the feature you want"
-./scripts/convert-prd.sh tasks/prd-[feature-name].md
 ./ralph.sh [max_iterations]
 ```
 
@@ -25,7 +24,7 @@ Ralph is an autonomous AI agent loop that runs AI coding tools like [Codex CLI](
 
 This repo was made Codex-ready by Yoram Tap.
 
-**Codex PRD flow:** This repo uses `scripts/prd.sh` and `workflows/prd.md` for PRD generation. Skills are installed globally in `~/.codex/skills` (not in this repo).
+**Codex PRD flow:** Use the `prd` skill (with `workflows/prd.md`) to generate PRDs in `tasks/`, and the `ralph` skill (with `workflows/ralph.md`) to convert them to `prd.json`. Skills are installed globally in `~/.codex/skills` (not in this repo).
 For terminal runs, answer the interactive questions. For chat/non-interactive runs, pass `--answers "1A, 2B, 3A"` to generate the PRD in one shot.
 
 Based on [Geoffrey Huntley's Ralph pattern](https://ghuntley.com/ralph/).
@@ -65,23 +64,11 @@ Use this repo directly with Codex:
 
 ### 1. Create a PRD
 
-Use the Codex helper to generate a detailed requirements document:
-
-```bash
-./scripts/prd.sh "Describe the feature you want"
-```
-
-Answer the clarifying questions. The PRD is saved to `tasks/prd-[feature-name].md`.
+Use the `prd` skill to generate a detailed requirements document. The PRD is saved to `tasks/prd-[feature-name].md`.
 
 ### 2. Convert PRD to Ralph format
 
-Convert the markdown PRD to `prd.json`:
-
-```bash
-./scripts/convert-prd.sh tasks/prd-[feature-name].md
-```
-
-This creates `prd.json` with user stories structured for autonomous execution.
+Use the `ralph` skill to convert the markdown PRD to `prd.json`.
 
 ### 3. Run Ralph
 
@@ -92,14 +79,12 @@ This creates `prd.json` with user stories structured for autonomous execution.
 Default is 10 iterations.
 
 Ralph will:
-1. Create a feature branch (from PRD `branchName`)
-2. Pick the highest priority story where `passes: false`
-3. Implement that single story
-4. Run quality checks (typecheck, tests)
-5. Commit if checks pass
-6. Update `prd.json` to mark story as `passes: true`
-7. Append learnings to `progress.txt`
-8. Repeat until all stories pass or max iterations reached
+1. Pick the highest priority story where `passes: false`
+2. Implement that single story
+3. Commit if checks pass
+4. Update `prd.json` to mark story as `passes: true`
+5. Append learnings to `progress.txt`
+6. Repeat until all stories pass or max iterations reached
 
 ## Key Files
 
@@ -109,8 +94,6 @@ Ralph will:
 | `AGENTS.md` | Prompt template for Codex |
 | `workflows/prd.md` | Codex prompt for generating PRDs |
 | `workflows/ralph.md` | Codex prompt for converting PRDs to prd.json |
-| `scripts/prd.sh` | Run the Codex PRD generator |
-| `scripts/convert-prd.sh` | Convert a PRD to prd.json with Codex |
 | `prd.json` | User stories with `passes` status (the task list) |
 | `prd.json.example` | Example PRD format for reference |
 | `progress.txt` | Append-only learnings for future iterations |

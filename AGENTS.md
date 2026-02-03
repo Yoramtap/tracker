@@ -11,7 +11,7 @@ You are an autonomous coding agent working on a software project.
 3. Check you're on the correct branch from PRD `branchName`. If not, check it out or create from main.
 4. Pick the **highest priority** user story where `passes: false`
 5. Implement that single user story
-6. Run quality checks (run `./scripts/typecheck.sh`, plus any lint/test your project requires)
+6. Run quality checks (typecheck, plus any lint/test your project requires)
 7. Update AGENTS.md files if you discover reusable patterns (see below)
 8. If checks pass, commit ALL changes with message: `feat: [Story ID] - [Story Title]`
 9. Update the PRD to set `passes: true` for the completed story
@@ -106,12 +106,8 @@ Ralph is an autonomous AI agent loop that runs Codex repeatedly until all PRD it
 ## Commands
 
 ```bash
-# Create a PRD with Codex
-./scripts/prd.sh "Describe the feature you want"
-
-# Convert a PRD to prd.json
-./scripts/convert-prd.sh tasks/prd-[feature-name].md
-
+# Create a PRD with the `prd` skill (saves to tasks/)
+# Convert a PRD to prd.json with the `ralph` skill
 # Run Ralph
 ./ralph.sh [max_iterations]
 ```
@@ -121,8 +117,6 @@ Ralph is an autonomous AI agent loop that runs Codex repeatedly until all PRD it
 - `ralph.sh` - The bash loop that spawns fresh AI instances (supports `--tool amp`, `--tool claude`, or `--tool codex`)
 - `workflows/prd.md` - Codex PRD generator prompt
 - `workflows/ralph.md` - Codex PRD → prd.json converter prompt
-- `scripts/prd.sh` - Run the Codex PRD generator
-- `scripts/convert-prd.sh` - Convert a PRD to prd.json with Codex
 - `prd.json.example` - Example PRD format
 
 ## Patterns
