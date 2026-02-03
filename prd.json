@@ -10,7 +10,7 @@
       "acceptanceCriteria": [
         "The PRD section appears above the build notes section on the home page",
         "PRD cards remain unchanged in content and styling",
-        "Verify in browser using dev-browser skill",
+        "Verify in browser using agent-browser skill",
         "Typecheck passes"
       ],
       "priority": 1,
@@ -24,7 +24,7 @@
       "acceptanceCriteria": [
         "The build notes section appears below the PRD section on the home page",
         "Build note cards remain unchanged in content and styling",
-        "Verify in browser using dev-browser skill",
+        "Verify in browser using agent-browser skill",
         "Typecheck passes"
       ],
       "priority": 2,

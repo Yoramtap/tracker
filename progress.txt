@@ -1,4 +1,8 @@
 # Ralph Progress Log
+## Codebase Patterns
+- Lint forbids synchronous setState calls inside effects; initialize state outside effects or update in event handlers.
+- Prefer static ES imports over `require()` in `web/src/app/prds/data.ts`.
+- Move `tasks/prd-*.md` into `archive/` to remove a PRD from the homepage PRD card list.
 Started: Tue Feb  3 12:21:34 CET 2026
 ---
 ## 2026-02-03 13:40 CET - US-001

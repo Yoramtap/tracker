@@ -88,6 +88,7 @@ For any story that changes UI, verify it works in the browser if you have browse
 3. Take a screenshot if helpful for the progress log
 
 If no browser tools are available, note in your progress report that manual browser verification is needed.
+Prefer the `agent-browser` skill when available.
 
 ### Stop Condition
 

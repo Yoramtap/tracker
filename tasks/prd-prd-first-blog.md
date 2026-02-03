@@ -19,7 +19,7 @@ The blog should highlight PRDs as the primary artifact that drives each set of b
 - [ ] Build notes remain visible below the PRD section.
 - [ ] The “Explore” CTA on the home page links to the PRD section first.
 - [ ] Typecheck/lint passes
-- [ ] Verify in browser using dev-browser skill
+- [ ] Verify in browser using agent-browser skill
 
 ### US-002: Related Stories at Top of PRD Page
 **Description:** As a reader, I want related stories to appear right after the PRD header so I can see what shipped at a glance.
@@ -28,7 +28,7 @@ The blog should highlight PRDs as the primary artifact that drives each set of b
 - [ ] PRD detail pages show “Related stories” directly under the PRD header.
 - [ ] Each related story includes title and date with a link to the build note.
 - [ ] Typecheck/lint passes
-- [ ] Verify in browser using dev-browser skill
+- [ ] Verify in browser using agent-browser skill
 
 ### US-003: PRD Card on Build Notes
 **Description:** As a reader, I want build notes to show their PRD so I can jump back to the plan.
@@ -37,7 +37,7 @@ The blog should highlight PRDs as the primary artifact that drives each set of b
 - [ ] Build note pages show a “Related PRD” card near the top of the page.
 - [ ] The card includes PRD title and link.
 - [ ] Typecheck/lint passes
-- [ ] Verify in browser using dev-browser skill
+- [ ] Verify in browser using agent-browser skill
 
 ## 4. Functional Requirements
 1. Blog index renders a PRD section ahead of build notes.

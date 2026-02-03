@@ -20,7 +20,7 @@ Readers currently browse the blog sequentially or by scrolling, which makes it h
 - [ ] Tag chips are visible without hovering.
 - [ ] Tag list is pulled from existing post metadata or a static config.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using agent-browser skill.
 
 ### US-002: Add a tag filter bar on the blog index
 **Description:** As a reader, I want to filter the blog index by a topic tag so I can quickly find posts I care about.
@@ -31,7 +31,7 @@ Readers currently browse the blog sequentially or by scrolling, which makes it h
 - [ ] A visible “All” option clears the filter.
 - [ ] The currently selected tag is visually distinct.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using agent-browser skill.
 
 ### US-003: Empty state for filtered results
 **Description:** As a reader, I want to see a helpful message when a tag filter returns no posts so I understand there are no matches.
@@ -40,7 +40,7 @@ Readers currently browse the blog sequentially or by scrolling, which makes it h
 - [ ] When no posts match the selected tag, show an empty state message.
 - [ ] Empty state includes a control to clear the filter.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using agent-browser skill.
 
 ## Functional Requirements
 

@@ -20,7 +20,7 @@ We already write a PRD for each feature, but those documents aren’t visible on
 - [ ] PRDs are sourced from `tasks/prd-*.md` files.
 - [ ] Keyboard navigation (j/k/arrow keys + enter) works on PRD cards.
 - [ ] Typecheck/lint passes
-- [ ] Verify in browser using dev-browser skill
+- [ ] Verify in browser using agent-browser skill
 
 ### US-002: PRD Detail Page
 **Description:** As a reader, I want to open a PRD so I can read the full spec.
@@ -31,7 +31,7 @@ We already write a PRD for each feature, but those documents aren’t visible on
 - [ ] The layout follows the blog post style (header, meta, body).
 - [ ] The page links back to `/prds`.
 - [ ] Typecheck/lint passes
-- [ ] Verify in browser using dev-browser skill
+- [ ] Verify in browser using agent-browser skill
 
 ### US-003: Home Page Link
 **Description:** As a reader, I want to discover PRDs from the home page so I can explore the planning artifacts.
@@ -41,7 +41,7 @@ We already write a PRD for each feature, but those documents aren’t visible on
 - [ ] Each card shows title, date, and short summary.
 - [ ] The section links to `/prds`.
 - [ ] Typecheck/lint passes
-- [ ] Verify in browser using dev-browser skill
+- [ ] Verify in browser using agent-browser skill
 
 ## 4. Functional Requirements
 1. Read PRDs from `tasks/prd-*.md` and derive title/summary/date metadata.

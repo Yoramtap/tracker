@@ -18,7 +18,7 @@ We currently ship build notes for every story and now have a PRD library. Reader
 - [ ] The section lists build notes associated with that PRD.
 - [ ] Each related story links to its build note page.
 - [ ] Typecheck/lint passes
-- [ ] Verify in browser using dev-browser skill
+- [ ] Verify in browser using agent-browser skill
 
 ### US-002: PRD Card Story Count
 **Description:** As a reader, I want to see how many stories are linked to a PRD so I can gauge its scope quickly.
@@ -27,7 +27,7 @@ We currently ship build notes for every story and now have a PRD library. Reader
 - [ ] PRD index cards show a story count.
 - [ ] Count is derived from the PRD → story mapping.
 - [ ] Typecheck/lint passes
-- [ ] Verify in browser using dev-browser skill
+- [ ] Verify in browser using agent-browser skill
 
 ### US-003: Build Note Link Back to PRD
 **Description:** As a reader, I want to navigate from a build note to its PRD so I can see the original plan.
@@ -36,7 +36,7 @@ We currently ship build notes for every story and now have a PRD library. Reader
 - [ ] Each build note can link back to its PRD.
 - [ ] Link appears in the build note header metadata area.
 - [ ] Typecheck/lint passes
-- [ ] Verify in browser using dev-browser skill
+- [ ] Verify in browser using agent-browser skill
 
 ## 4. Functional Requirements
 1. Maintain a manual mapping between PRDs and build notes in `web/src/app/blog/posts.ts`.

@@ -19,7 +19,7 @@ The home page currently emphasizes build notes first, with PRDs below. Readers s
 - [ ] The PRD section appears above the build notes section on the home page.
 - [ ] PRD cards remain unchanged in content and styling.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using agent-browser skill.
 
 ### US-002: Keep build notes below PRDs with no content changes
 **Description:** As a reader, I want to still see recent build notes after PRDs so I can scan the latest updates.
@@ -28,7 +28,7 @@ The home page currently emphasizes build notes first, with PRDs below. Readers s
 - [ ] The build notes section appears below the PRD section on the home page.
 - [ ] Build note cards remain unchanged in content and styling.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using agent-browser skill.
 
 ## Functional Requirements
 
