@@ -1,12 +1,13 @@
 #!/bin/bash
 # Ralph Wiggum - Long-running AI agent loop
-# Usage: ./ralph.sh [--tool codex] [max_iterations]
+# Usage: ./ralph.sh [--tool codex] [--with-browser] [max_iterations]
 
 set -e
 
 # Parse arguments
 TOOL="codex"
-MAX_ITERATIONS=10
+MAX_ITERATIONS=1
+ENABLE_BROWSER_VERIFICATION=0
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -16,6 +17,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --tool=*)
       TOOL="${1#*=}"
+      shift
+      ;;
+    --with-browser|--browser)
+      ENABLE_BROWSER_VERIFICATION=1
       shift
       ;;
     *)
@@ -77,6 +82,12 @@ if [ ! -f "$PROGRESS_FILE" ]; then
   echo "# Ralph Progress Log" > "$PROGRESS_FILE"
   echo "Started: $(date)" >> "$PROGRESS_FILE"
   echo "---" >> "$PROGRESS_FILE"
+fi
+
+if [ "$ENABLE_BROWSER_VERIFICATION" -eq 1 ]; then
+  export SKIP_BROWSER_VERIFICATION=0
+else
+  export SKIP_BROWSER_VERIFICATION=1
 fi
 
 echo "Starting Ralph - Tool: $TOOL - Max iterations: $MAX_ITERATIONS"

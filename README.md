@@ -19,6 +19,7 @@ Use the `prd` skill to generate a PRD in `tasks/`, then use the `ralph` skill to
 ```bash
 ./ralph.sh [max_iterations]
 ```
+Use `--with-browser` to enable browser verification (default is off).
 
 Ralph is an autonomous AI agent loop that runs AI coding tools like [Codex CLI](https://github.com/openai/codex) repeatedly until all PRD items are complete. Each iteration is a fresh instance with clean context. Memory persists via git history, `progress.txt`, and `prd.json`.
 
@@ -59,6 +60,7 @@ Use this repo directly with Codex:
 ```bash
 ./ralph.sh [max_iterations]
 ```
+Use `--with-browser` to enable browser verification (default is off).
 
 ## Workflow
 
@@ -75,8 +77,9 @@ Use the `ralph` skill to convert the markdown PRD to `prd.json`.
 ```bash
 ./ralph.sh [max_iterations]
 ```
+Use `--with-browser` to enable browser verification (default is off).
 
-Default is 10 iterations.
+Default is 1 iteration.
 
 Ralph will:
 1. Pick the highest priority story where `passes: false`

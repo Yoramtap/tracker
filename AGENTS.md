@@ -45,3 +45,8 @@ npm run dev
 - Memory persists via git history, `progress.txt`, and `prd.json`
 - Stories should be small enough to complete in one context window
 - Always update AGENTS.md with discovered patterns for future iterations
+
+## Browser Verification
+
+- If `SKIP_BROWSER_VERIFICATION=1`, skip browser checks and note that manual verification is required.
+- When enabled, prefer using the `agent-browser` skill for UI verification.
