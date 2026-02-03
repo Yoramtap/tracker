@@ -9,14 +9,14 @@ export default function PrimaryNav() {
           The Build Notes Kitchen
         </Link>
         <nav className={styles.links} aria-label="Primary">
+          <Link className={styles.link} href="/relay">
+            Relay
+          </Link>
           <Link className={styles.link} href="/manifesto">
             Manifesto
           </Link>
           <Link className={styles.link} href="/prds">
             PRDs
-          </Link>
-          <Link className={styles.link} href="/relay">
-            Relay
           </Link>
           <Link className={styles.link} href="/blog">
             Build notes

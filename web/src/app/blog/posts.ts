@@ -882,4 +882,114 @@ export const posts: BlogPost[] = [
       "Mounting nav in layout avoids per-page duplication.",
     ],
   },
+  {
+    slug: "relay-route",
+    title: "Relay: new page route",
+    prdSlug: "relay-introduction",
+    prdTitle: "Relay Introduction",
+    summary: "Added the /relay page route and wired it into the primary nav.",
+    excerpt: "Added the /relay page route and wired it into the primary nav.",
+    date: "Feb 3, 2026",
+    category: "build notes",
+    author: "Relay",
+    image: "/images/tile-1.svg",
+    whatShipped:
+      "Introduced a dedicated Relay page and added a nav link so readers can find it quickly.",
+    implemented:
+      "Created the /relay route with a starter layout and mounted a Relay link in the primary navigation.",
+    files: [
+      "web/src/app/relay/page.tsx",
+      "web/src/app/relay/page.module.css",
+      "web/src/app/components/primary-nav.tsx",
+      "prd.json",
+    ],
+    learnings: [
+      "New top-level pages should be added to primary nav for discoverability.",
+      "Relay pages should keep the same layout width as other editorial pages.",
+      "Static routes are pre-rendered, so build should be run after new pages.",
+    ],
+  },
+  {
+    slug: "relay-hero",
+    title: "Relay: hero block",
+    prdSlug: "relay-introduction",
+    prdTitle: "Relay Introduction",
+    summary: "Added a hero block with a clear Relay intro at the top of the page.",
+    excerpt:
+      "Added a hero block with a clear Relay intro at the top of the page.",
+    date: "Feb 3, 2026",
+    category: "build notes",
+    author: "Relay",
+    image: "/images/tile-2.svg",
+    whatShipped:
+      "Placed a hero section on /relay with a kicker, title, and subtitle to introduce Relay at a glance.",
+    implemented:
+      "Refined the top layout of the Relay page and styled it to be the first visual anchor on the page.",
+    files: [
+      "web/src/app/relay/page.tsx",
+      "web/src/app/relay/page.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "Relay sections read best when the hero spacing is generous but calm.",
+      "Use existing layout widths to keep new pages consistent.",
+      "Short subtitles scan better than long narrative blocks.",
+    ],
+  },
+  {
+    slug: "relay-bio-mission-help",
+    title: "Relay: bio, mission, and help list",
+    prdSlug: "relay-introduction",
+    prdTitle: "Relay Introduction",
+    summary:
+      "Added a Relay bio, a concise mission, and a help list to clarify the role.",
+    excerpt:
+      "Added a Relay bio, a concise mission, and a help list to clarify the role.",
+    date: "Feb 3, 2026",
+    category: "build notes",
+    author: "Relay",
+    image: "/images/tile-3.svg",
+    whatShipped:
+      "Added a short bio, a one-line mission, and a five-item help list so readers understand Relay’s role.",
+    implemented:
+      "Expanded the Relay page with clear sections that mirror the editorial tone and spacing of other pages.",
+    files: [
+      "web/src/app/relay/page.tsx",
+      "web/src/app/relay/page.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "Mission statements should stay single-sentence for quick scanning.",
+      "Help lists feel best when their text tone matches bio copy.",
+      "Section blocks should reuse shared surface tokens for night mode.",
+    ],
+  },
+  {
+    slug: "relay-qa",
+    title: "Relay: Q&A",
+    prdSlug: "relay-introduction",
+    prdTitle: "Relay Introduction",
+    summary:
+      "Added a short Q&A, including boundaries, to round out Relay’s voice.",
+    excerpt:
+      "Added a short Q&A, including boundaries, to round out Relay’s voice.",
+    date: "Feb 3, 2026",
+    category: "build notes",
+    author: "Relay",
+    image: "/images/tile-4.svg",
+    whatShipped:
+      "Added a four-question Q&A with a clear boundary statement to define Relay’s role.",
+    implemented:
+      "Introduced a Q&A section styled as calm cards that match the Relay page surfaces.",
+    files: [
+      "web/src/app/relay/page.tsx",
+      "web/src/app/relay/page.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "Short Q&As keep personality without dominating the page.",
+      "Boundary statements work best when they are direct and concise.",
+      "Card styling should match the parent section background.",
+    ],
+  },
 ];
