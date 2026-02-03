@@ -1,31 +1,32 @@
 {
-  "project": "PRD–Story Links",
-  "branchName": "codex/prd-story-links",
-  "description": "Show how build notes (stories) relate to their PRDs by listing related stories on PRD pages, showing story counts on PRD cards, and linking back to the PRD from each build note.",
+  "project": "PRD-First Blog",
+  "branchName": "ralph/prd-first-blog",
+  "description": "Make PRDs the primary focus on the blog index, show related stories directly under PRD headers, and surface a related PRD card on build note pages.",
   "userStories": [
     {
       "id": "US-001",
-      "title": "PRD Detail Related Stories",
-      "description": "As a reader, I want to see the stories related to a PRD so I can understand what shipped from the plan.",
+      "title": "PRD-First Blog Index",
+      "description": "As a reader, I want to see PRDs first on the blog index so I understand the planning before the notes.",
       "acceptanceCriteria": [
-        "PRD detail pages include a “Related stories” section",
-        "The section lists build notes associated with that PRD",
-        "Each related story links to its build note page",
-        "Verify in browser using agent-browser skill",
+        "The blog index (/blog) shows a PRD section above build notes",
+        "PRD section uses the existing PRD card style and includes story counts",
+        "Build notes remain visible below the PRD section",
+        "The “Explore” CTA on the home page links to the PRD section first",
+        "Verify in browser using dev-browser skill",
         "Typecheck passes"
       ],
       "priority": 1,
       "passes": true,
-      "notes": "Verified in browser on Feb 3, 2026. Mapped all existing stories to PRDs."
+      "notes": "Verified in browser on Feb 3, 2026."
     },
     {
       "id": "US-002",
-      "title": "PRD Card Story Count",
-      "description": "As a reader, I want to see how many stories are linked to a PRD so I can gauge its scope quickly.",
+      "title": "Related Stories at Top of PRD Page",
+      "description": "As a reader, I want related stories to appear right after the PRD header so I can see what shipped at a glance.",
       "acceptanceCriteria": [
-        "PRD index cards show a story count",
-        "Count is derived from the PRD → story mapping",
-        "Verify in browser using agent-browser skill",
+        "PRD detail pages show “Related stories” directly under the PRD header",
+        "Each related story includes title and date with a link to the build note",
+        "Verify in browser using dev-browser skill",
         "Typecheck passes"
       ],
       "priority": 2,
@@ -34,12 +35,12 @@
     },
     {
       "id": "US-003",
-      "title": "Build Note Link Back to PRD",
-      "description": "As a reader, I want to navigate from a build note to its PRD so I can see the original plan.",
+      "title": "PRD Card on Build Notes",
+      "description": "As a reader, I want build notes to show their PRD so I can jump back to the plan.",
       "acceptanceCriteria": [
-        "Each build note can link back to its PRD",
-        "Link appears in the build note header metadata area",
-        "Verify in browser using agent-browser skill",
+        "Build note pages show a “Related PRD” card near the top of the page",
+        "The card includes PRD title and link",
+        "Verify in browser using dev-browser skill",
         "Typecheck passes"
       ],
       "priority": 3,

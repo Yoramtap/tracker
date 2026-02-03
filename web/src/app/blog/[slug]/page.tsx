@@ -65,7 +65,7 @@ function PostLayout({ post, previousPost, nextPost }: PostLayoutProps) {
           back to blog
         </Link>
         <p className={styles.meta}>
-          <span>{post.category}</span>
+          <span>story</span>
           <span>{post.author}</span>
           <span>{post.date}</span>
           {post.prdSlug ? (
@@ -78,6 +78,12 @@ function PostLayout({ post, previousPost, nextPost }: PostLayoutProps) {
       </header>
 
       <section className={styles.body}>
+        {post.prdSlug && post.prdTitle ? (
+          <Link className={styles.relatedPrd} href={`/prds/${post.prdSlug}`}>
+            <span className={styles.relatedPrdLabel}>Related PRD</span>
+            <span className={styles.relatedPrdTitle}>{post.prdTitle}</span>
+          </Link>
+        ) : null}
         <h2>What shipped</h2>
         <p>{post.whatShipped}</p>
 

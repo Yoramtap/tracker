@@ -75,7 +75,7 @@
 
 .related {
   max-width: 720px;
-  margin: 0 auto 64px;
+  margin: 0 auto 36px;
   display: flex;
   flex-direction: column;
   gap: 16px;

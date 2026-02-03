@@ -1,16 +1,6 @@
 # Ralph Progress Log
-Started: Sat Jan 31 17:07:12 CET 2026
+Started: Tue Feb  3 12:21:34 CET 2026
 ---
-Feb 2, 2026 - US-001: Added Night Vision trigger with toast cue and verified in browser.
-Feb 2, 2026 - US-002: Applied Night Vision palette across global tokens and key layouts.
-Feb 2, 2026 - US-003: Persisted Night Vision mode in localStorage and restored on load.
-Feb 2, 2026 - US-001 (Quiet Navigation): Added keyboard navigation for landing and blog cards.
-Feb 2, 2026 - US-002 (Quiet Navigation): Added previous/next nav with keyboard shortcuts on posts.
-Feb 3, 2026 - US-001 (PRD Library): Added /prds index with PRD cards and keyboard nav.
-Feb 3, 2026 - US-002 (PRD Library): Added PRD detail pages rendering markdown.
-Feb 3, 2026 - US-003 (PRD Library): Added PRD teaser section on the home page.
-Feb 3, 2026 - US-001 (PRD–Story Links): Added related story list to PRD detail pages.
-Feb 3, 2026 - US-001 (PRD–Story Links): Mapped existing build notes to PRDs.
-Feb 3, 2026 - US-002 (PRD–Story Links): Added story counts to PRD cards.
-Feb 3, 2026 - US-002 (PRD–Story Links): Added story counts to home PRD cards.
-Feb 3, 2026 - US-003 (PRD–Story Links): Added PRD link on build note pages.
+Feb 3, 2026 - US-001 (PRD-First Blog): Added PRD-first blog index sections and CTA anchor.
+Feb 3, 2026 - US-002 (PRD-First Blog): Moved related stories to top of PRD pages.
+Feb 3, 2026 - US-003 (PRD-First Blog): Added related PRD card to build notes.

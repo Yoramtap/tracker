@@ -37,8 +37,6 @@ export default async function PrdPage({ params }: Params) {
         <h1>{prd.title}</h1>
       </header>
 
-      <section className={styles.body}>{renderMarkdown(prd.content)}</section>
-
       {prd.relatedStories && prd.relatedStories.length > 0 && (
         <section className={styles.related}>
           <h2>Related stories</h2>
@@ -54,6 +52,8 @@ export default async function PrdPage({ params }: Params) {
           </ul>
         </section>
       )}
+
+      <section className={styles.body}>{renderMarkdown(prd.content)}</section>
     </div>
   );
 }

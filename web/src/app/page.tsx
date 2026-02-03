@@ -22,7 +22,7 @@ export default function Home() {
               notes, and the final ship.
             </p>
             <div className={styles.heroCtas}>
-              <Link className={styles.primaryCta} href="/blog">
+              <Link className={styles.primaryCta} href="/blog#prds">
                 Explore the blog
               </Link>
             </div>
@@ -59,7 +59,10 @@ export default function Home() {
             </Link>
           </div>
           <KeyboardCardGrid
-            items={posts.slice(-3).reverse()}
+            items={posts.slice(-3).reverse().map((post) => ({
+              ...post,
+              category: "story",
+            }))}
             classNames={{
               grid: styles.cards,
               card: styles.card,
