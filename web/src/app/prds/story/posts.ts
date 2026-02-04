@@ -99,6 +99,32 @@ const rawPosts: BlogPost[] = [
     ],
   },
   {
+    slug: "homepage-client-quote",
+    title: "Homepage client quote",
+    summary:
+      "Added a daily quote block to capture the closeout feeling at the end of a session.",
+    excerpt:
+      "Added a daily quote block to capture the closeout feeling at the end of a session.",
+    date: "Feb 4, 2026",
+    category: "build notes",
+    author: "Relay",
+    image: "/images/tile-1.svg",
+    whatShipped:
+      "Introduced a client-style quote on the homepage, sourced from a daily markdown file.",
+    implemented:
+      "Wired the homepage to read a simple markdown quote file and render a styled testimonial block.",
+    files: [
+      "web/src/app/page.tsx",
+      "web/src/app/page.module.css",
+      "data/daily-quote.md",
+    ],
+    learnings: [
+      "Daily quotes add warmth without adding navigation complexity.",
+      "A single markdown file keeps updates lightweight.",
+      "Editorial styling helps the quote feel intentional, not decorative.",
+    ],
+  },
+  {
     slug: "prd-story-index-mapping",
     title: "PRD story mapping",
     prdSlug: "blog-prd-story-index",
