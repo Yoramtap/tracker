@@ -45,15 +45,6 @@ export default function Home() {
         </section>
 
         <section className={styles.featured} id="prds">
-          <div className={styles.sectionHeader}>
-            <div>
-              <p className={styles.sectionKicker}>prds</p>
-              <h2>Specs we shipped</h2>
-            </div>
-            <Link className={styles.sectionLink} href="/prds">
-              View all PRDs
-            </Link>
-          </div>
           <ul className={styles.notesList}>
             {prds.map((prd) => (
               <li key={prd.slug} className={styles.notesItem}>

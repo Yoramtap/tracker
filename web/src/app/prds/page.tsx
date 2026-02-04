@@ -1,5 +1,5 @@
+import Link from "next/link";
 import styles from "./page.module.css";
-import KeyboardCardGrid from "../components/keyboard-card-grid";
 import { getPrdCards } from "./data";
 
 export default function PrdsPage() {
@@ -18,21 +18,27 @@ export default function PrdsPage() {
         </div>
       </header>
 
-      <KeyboardCardGrid
-        items={prds}
-        hrefBase="/prds"
-        classNames={{
-          grid: styles.cards,
-          card: styles.card,
-          meta: styles.cardMeta,
-          excerpt: styles.cardExcerpt,
-          link: styles.cardLink,
-          focused: styles.cardFocused,
-          count: styles.cardCount,
-        }}
-        linkLabel="Read the PRD"
-        backspaceHref="/"
-      />
+      <ul className={styles.prdList}>
+        {prds.map((prd) => (
+          <li key={prd.slug} className={styles.prdItem}>
+            <details className={styles.prdDetails}>
+              <summary className={styles.prdSummary}>
+                <div>
+                  <p className={styles.prdMeta}>{prd.date}</p>
+                  <h2 className={styles.prdTitle}>{prd.title}</h2>
+                </div>
+                <p className={styles.prdCount}>{prd.storyCount} stories</p>
+              </summary>
+              <div className={styles.prdBody}>
+                <p className={styles.prdExcerpt}>{prd.summary}</p>
+                <Link className={styles.prdLink} href={`/prds/${prd.slug}`}>
+                  Open PRD
+                </Link>
+              </div>
+            </details>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

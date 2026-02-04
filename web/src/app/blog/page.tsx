@@ -20,9 +20,8 @@ export default function BlogIndexPage() {
       relatedStories,
     };
   });
-  const unassignedStories = sortedPosts.filter(
-    (post) => getPrdSlugsFromTags(post.tags).length === 0
-  );
+  const visiblePrdGroups = prdGroups.slice(0, 5);
+  const olderPrdGroups = prdGroups.slice(5);
 
   return (
     <div className={styles.page}>
@@ -44,7 +43,7 @@ export default function BlogIndexPage() {
           </div>
         </div>
         <ul className={styles.groupList}>
-          {prdGroups.map((group) => (
+          {visiblePrdGroups.map((group) => (
             <li key={group.slug} className={styles.groupItem}>
               <Link className={styles.noteLink} href={`/prds/${group.slug}`}>
                 <h3 className={styles.noteTitle}>{group.title}</h3>
@@ -64,22 +63,43 @@ export default function BlogIndexPage() {
               )}
             </li>
           ))}
-          <li className={styles.groupItem}>
-            <p className={styles.unassignedTitle}>Unassigned</p>
-            {unassignedStories.length > 0 ? (
-              <ul className={styles.storyList}>
-                {unassignedStories.map((post) => (
-                  <li key={post.slug} className={styles.storyItem}>
-                    <Link className={styles.noteLink} href={`/blog/${post.slug}`}>
-                      <span className={styles.storyTitle}>{post.title}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className={styles.emptyNote}>No unassigned stories yet.</p>
-            )}
-          </li>
+          {olderPrdGroups.length > 0 ? (
+            <li className={styles.olderItem}>
+              <details className={styles.olderDetails}>
+                <summary className={styles.olderSummary}>
+                  <span className={styles.olderIcon} aria-hidden="true">
+                    +
+                  </span>
+                  Show older PRDs
+                </summary>
+                <ul className={styles.groupList}>
+                  {olderPrdGroups.map((group) => (
+                    <li key={group.slug} className={styles.groupItem}>
+                      <Link className={styles.noteLink} href={`/prds/${group.slug}`}>
+                        <h3 className={styles.noteTitle}>{group.title}</h3>
+                      </Link>
+                      {group.relatedStories.length > 0 ? (
+                        <ul className={styles.storyList}>
+                          {group.relatedStories.map((post) => (
+                            <li key={post.slug} className={styles.storyItem}>
+                              <Link
+                                className={styles.noteLink}
+                                href={`/blog/${post.slug}`}
+                              >
+                                <span className={styles.storyTitle}>{post.title}</span>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className={styles.emptyNote}>No related stories yet.</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            </li>
+          ) : null}
         </ul>
       </section>
 

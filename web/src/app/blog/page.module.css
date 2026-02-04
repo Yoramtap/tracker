@@ -86,6 +86,58 @@
   color: var(--ink-soft);
 }
 
+.olderDetails {
+  margin-top: 4px;
+}
+
+.olderItem {
+  list-style: none;
+}
+
+.olderSummary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--ink);
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface-muted);
+}
+
+.olderIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  color: var(--accent);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.olderSummary::-webkit-details-marker {
+  display: none;
+}
+
+.olderSummary:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.olderDetails[open] .olderSummary {
+  background: var(--surface);
+  border-color: color-mix(in srgb, var(--accent) 25%, var(--line));
+}
+
 .storyList {
   list-style: circle;
   margin: 6px 0 0;
@@ -144,13 +196,6 @@
   font-size: 0.95rem;
 }
 
-.unassignedTitle {
-  font-family: var(--font-body), "Work Sans", sans-serif;
-  font-size: 0.95rem;
-  letter-spacing: 0.02em;
-  text-transform: lowercase;
-  color: var(--ink-soft);
-}
 
 .card {
   background: var(--surface);
