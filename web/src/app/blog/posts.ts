@@ -103,6 +103,28 @@ const rawPosts: BlogPost[] = [
     ],
   },
   {
+    slug: "home-prd-list-layout",
+    title: "Homepage PRD list layout",
+    summary:
+      "Swapped the homepage PRD cards for a simple editorial list and removed the build notes section.",
+    excerpt:
+      "Swapped the homepage PRD cards for a simple editorial list and removed the build notes section.",
+    date: "Feb 4, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-2.svg",
+    whatShipped:
+      "Replaced the PRD card grid on the homepage with a clean list and removed the secondary build notes block.",
+    implemented:
+      "Rendered the PRD section using the existing list styling and removed the build notes section entirely.",
+    files: ["web/src/app/page.tsx"],
+    learnings: [
+      "List layouts keep the homepage calmer when there is only a small set of PRDs.",
+      "Removing redundant sections helps the hero and primary content breathe.",
+      "Reuse existing list styling to avoid introducing new visual systems.",
+    ],
+  },
+  {
     slug: "us-001-home-page",
     title: "Home page",
     prdSlug: "modern-food-blog",

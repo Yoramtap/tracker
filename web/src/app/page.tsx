@@ -1,8 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./page.module.css";
-import { posts } from "./blog/posts";
-import KeyboardCardGrid from "./components/keyboard-card-grid";
 import { getPrdCards } from "./prds/data";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -56,43 +54,14 @@ export default function Home() {
               View all PRDs
             </Link>
           </div>
-          <KeyboardCardGrid
-            items={prds}
-            hrefBase="/prds"
-            classNames={{
-              grid: styles.cards,
-              card: styles.card,
-              meta: styles.cardMeta,
-              excerpt: styles.cardExcerpt,
-              link: styles.cardLink,
-              focused: styles.cardFocused,
-              count: styles.cardCount,
-            }}
-            linkLabel="Read the PRD"
-          />
-        </section>
-
-        <section className={styles.featured} id="featured">
-          <div className={styles.sectionHeader}>
-            <div>
-              <p className={styles.sectionKicker}>build notes</p>
-              <h2>Fresh from the build log</h2>
-            </div>
-            <Link className={styles.sectionLink} href="/blog">
-              View all notes
-            </Link>
-          </div>
           <ul className={styles.notesList}>
-            {posts
-              .slice(-3)
-              .reverse()
-              .map((post) => (
-                <li key={post.slug} className={styles.notesItem}>
-                  <Link className={styles.notesLink} href={`/blog/${post.slug}`}>
-                    <h3 className={styles.notesTitle}>{post.title}</h3>
-                  </Link>
-                </li>
-              ))}
+            {prds.map((prd) => (
+              <li key={prd.slug} className={styles.notesItem}>
+                <Link className={styles.notesLink} href={`/prds/${prd.slug}`}>
+                  <h3 className={styles.notesTitle}>{prd.title}</h3>
+                </Link>
+              </li>
+            ))}
           </ul>
         </section>
 
