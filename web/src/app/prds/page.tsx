@@ -37,6 +37,10 @@ export default function PrdsPage() {
         </div>
       </header>
 
+      <p className={styles.context}>
+        Active briefs and the stories that shipped them.
+      </p>
+
       <ul className={styles.prdList}>
         {visiblePrdGroups.map((prd) => (
           <li key={prd.slug} className={styles.prdItem}>
@@ -46,9 +50,19 @@ export default function PrdsPage() {
                   <p className={styles.prdMeta}>{prd.date}</p>
                   <h2 className={styles.prdTitle}>{prd.title}</h2>
                 </div>
-                <p className={styles.prdCount}>
-                  {prd.storyCount} {prd.storyCount === 1 ? "story" : "stories"}
-                </p>
+                <div className={styles.prdProgress}>
+                  <span className={styles.prdCount}>
+                    {prd.storyCount} {prd.storyCount === 1 ? "story" : "stories"}
+                  </span>
+                  <span className={styles.prdMeter} aria-hidden="true">
+                    <span
+                      className={styles.prdMeterFill}
+                      style={{
+                        width: `${Math.min(prd.storyCount * 20, 100)}%`,
+                      }}
+                    />
+                  </span>
+                </div>
               </summary>
               <div className={styles.prdBody}>
                 <p className={styles.prdExcerpt}>{prd.summary}</p>
@@ -96,9 +110,20 @@ export default function PrdsPage() {
                           <p className={styles.prdMeta}>{prd.date}</p>
                           <h2 className={styles.prdTitle}>{prd.title}</h2>
                         </div>
-                        <p className={styles.prdCount}>
-                          {prd.storyCount} {prd.storyCount === 1 ? "story" : "stories"}
-                        </p>
+                        <div className={styles.prdProgress}>
+                          <span className={styles.prdCount}>
+                            {prd.storyCount}{" "}
+                            {prd.storyCount === 1 ? "story" : "stories"}
+                          </span>
+                          <span className={styles.prdMeter} aria-hidden="true">
+                            <span
+                              className={styles.prdMeterFill}
+                              style={{
+                                width: `${Math.min(prd.storyCount * 20, 100)}%`,
+                              }}
+                            />
+                          </span>
+                        </div>
                       </summary>
                       <div className={styles.prdBody}>
                         <p className={styles.prdExcerpt}>{prd.summary}</p>

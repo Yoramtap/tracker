@@ -39,6 +39,14 @@
   line-height: 1.7;
 }
 
+.context {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
 .backLink {
   align-self: flex-start;
   text-transform: lowercase;
@@ -88,6 +96,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 16px 18px;
+  transition: background 0.2s ease;
 }
 
 .prdSummary::-webkit-details-marker {
@@ -98,6 +107,11 @@
   outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
   outline-offset: 3px;
   border-radius: 12px;
+}
+
+.prdSummary:hover {
+  background: var(--surface-muted);
+  border-radius: 16px;
 }
 
 .prdMeta {
@@ -116,12 +130,38 @@
   color: var(--ink);
 }
 
+.prdProgress {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
 .prdCount {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-soft);
   margin-top: 2px;
+}
+
+.prdMeter {
+  width: 72px;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--line) 70%, transparent);
+  overflow: hidden;
+}
+
+.prdMeterFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent) 65%, transparent),
+    color-mix(in srgb, var(--accent) 90%, transparent)
+  );
 }
 
 .prdBody {
@@ -141,7 +181,9 @@
 }
 
 .storyDetails {
-  margin-top: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed color-mix(in srgb, var(--line) 75%, transparent);
 }
 
 .storySummary {

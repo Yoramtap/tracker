@@ -70,6 +70,35 @@ const rawPosts: BlogPost[] = [
     ],
   },
   {
+    slug: "manifesto-relay-prds-refine",
+    title: "Manifesto, Relay, and PRDs polish",
+    summary:
+      "Refined manifesto layout, added relay pull-quote, and clarified PRD progress indicators.",
+    excerpt:
+      "Refined manifesto layout, added relay pull-quote, and clarified PRD progress indicators.",
+    date: "Feb 4, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-4.svg",
+    whatShipped:
+      "Reworked manifesto layout for clarity, added a relay pull-quote, and upgraded PRD story counts with a progress pill.",
+    implemented:
+      "Adjusted manifesto section structure and labels, enhanced relay section styling, and added PRD progress meters.",
+    files: [
+      "web/src/app/manifesto/page.tsx",
+      "web/src/app/manifesto/page.module.css",
+      "web/src/app/relay/page.tsx",
+      "web/src/app/relay/page.module.css",
+      "web/src/app/prds/page.tsx",
+      "web/src/app/prds/page.module.css",
+    ],
+    learnings: [
+      "Small structural tweaks can reduce perceived complexity.",
+      "Pull-quotes add rhythm without adding new sections.",
+      "Micro-meters make story counts feel more alive.",
+    ],
+  },
+  {
     slug: "prd-story-index-mapping",
     title: "PRD story mapping",
     prdSlug: "blog-prd-story-index",

@@ -56,12 +56,34 @@
   line-height: 1.8;
 }
 
+.sectionLabel {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+
 .buildSteps {
   list-style: none;
   display: grid;
   gap: 12px;
   padding: 0;
   margin: 0;
+}
+
+.howWeBuild {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  gap: 32px;
+  align-items: start;
+}
+
+.visionSide h3 {
+  font-size: 1.4rem;
+  line-height: 1.3;
+  margin: 0 0 12px;
+  color: var(--ink);
 }
 
 .buildSteps li {
@@ -120,6 +142,10 @@
   color: var(--accent);
 }
 
+.spine {
+  position: relative;
+}
+
 @media (max-width: 600px) {
   .page {
     padding: 72px 6vw 64px;
@@ -131,5 +157,10 @@
 
   .section {
     margin-bottom: 36px;
+  }
+
+  .howWeBuild {
+    grid-template-columns: 1fr;
+    gap: 18px;
   }
 }
