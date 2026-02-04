@@ -99,6 +99,40 @@ const rawPosts: BlogPost[] = [
     ],
   },
   {
+    slug: "adding-daily-insights",
+    title: "Adding daily insights",
+    prdSlug: "adding-daily-insights",
+    prdTitle: "Adding daily insights",
+    summary:
+      "Consolidated PRDs and stories into a single hub and added a daily insight quote on the homepage.",
+    excerpt:
+      "Consolidated PRDs and stories into a single hub and added a daily insight quote on the homepage.",
+    date: "Feb 4, 2026",
+    category: "build notes",
+    author: "Relay",
+    image: "/images/tile-5.svg",
+    whatShipped:
+      "Moved stories under /prds/story, collapsed older PRDs, removed the blog index, and added a homepage insight carousel.",
+    implemented:
+      "Rewired routing, consolidated PRD listings, and added a markdown-backed insight carousel on the homepage.",
+    files: [
+      "web/src/app/prds/page.tsx",
+      "web/src/app/prds/page.module.css",
+      "web/src/app/prds/story/[slug]/page.tsx",
+      "web/src/app/prds/story/posts.ts",
+      "web/src/app/components/primary-nav.tsx",
+      "web/src/app/page.tsx",
+      "web/src/app/components/insight-carousel.tsx",
+      "data/daily-quote.md",
+      "tasks/prd-adding-daily-insights.md"
+    ],
+    learnings: [
+      "A single hub makes navigation feel calmer and more purposeful.",
+      "Story nesting reads best when it’s hidden until expanded.",
+      "Daily insight snippets add personality without adding new pages.",
+    ],
+  },
+  {
     slug: "homepage-client-quote",
     title: "Homepage client quote",
     summary:

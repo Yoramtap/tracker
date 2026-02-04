@@ -29,17 +29,9 @@ export default function PrdsPage() {
       <header className={styles.header}>
         <div>
           <p className={styles.kicker}>prds</p>
-          <h1>Product briefs, end to end.</h1>
-          <p className={styles.subtitle}>
-            Each brief captures what we planned, what we built, and the checks that
-            got it shipped.
-          </p>
+          <h1>Flow of product features.</h1>
         </div>
       </header>
-
-      <p className={styles.context}>
-        Active briefs and the stories that shipped them.
-      </p>
 
       <ul className={styles.prdList}>
         {visiblePrdGroups.map((prd) => (

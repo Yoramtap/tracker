@@ -1,0 +1,104 @@
+.carousel {
+  max-width: 880px;
+  margin: 0 auto;
+  display: grid;
+  gap: 14px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.label {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+}
+
+.button {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  background: var(--surface-muted);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.button:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 3px;
+}
+
+.card {
+  border-radius: 22px;
+  padding: 24px 26px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--surface) 92%, transparent),
+    color-mix(in srgb, var(--surface-contrast) 90%, transparent)
+  );
+  box-shadow: 0 18px 40px rgba(61, 47, 37, 0.12);
+}
+
+.text {
+  position: relative;
+  padding: 6px 12px 6px 24px;
+  font-family: var(--font-body), "Work Sans", sans-serif;
+  font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+  line-height: 1.6;
+  color: var(--ink);
+  display: grid;
+  gap: 10px;
+}
+
+.text::before {
+  content: "“";
+  position: absolute;
+  left: 0;
+  top: -2px;
+  font-family: var(--font-display), "DM Serif Display", serif;
+  font-size: 2.2rem;
+  color: color-mix(in srgb, var(--accent) 55%, var(--ink));
+}
+
+.text::after {
+  content: "”";
+  position: absolute;
+  right: 0;
+  bottom: -6px;
+  font-family: var(--font-display), "DM Serif Display", serif;
+  font-size: 2.2rem;
+  color: color-mix(in srgb, var(--accent) 55%, var(--ink));
+}
+
+.line {
+  margin: 0;
+}
+
+.meta {
+  margin-top: 14px;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}

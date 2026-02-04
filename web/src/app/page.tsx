@@ -4,36 +4,43 @@ import Image from "next/image";
 import Link from "next/link";
 import styles from "./page.module.css";
 import { getPrdCards } from "./prds/data";
+import InsightCarousel, { type InsightEntry } from "./components/insight-carousel";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const QUOTE_PATH = path.resolve(process.cwd(), "..", "data", "daily-quote.md");
 
-type DailyQuote = {
-  date: string;
-  author: string;
-  lines: string[];
-};
-
-const readDailyQuote = (): DailyQuote | null => {
+const parseInsightEntries = (): InsightEntry[] => {
   try {
-    if (!fs.existsSync(QUOTE_PATH)) return null;
+    if (!fs.existsSync(QUOTE_PATH)) return [];
     const content = fs.readFileSync(QUOTE_PATH, "utf-8");
-    const lines = content
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
-    if (lines.length < 3) return null;
-    const [date, author, ...quoteLines] = lines;
-    if (!date || !author || quoteLines.length === 0) return null;
-    return { date, author, lines: quoteLines };
+    const blocks = content.split("\n---\n");
+    return blocks
+      .map((block) => block.trim())
+      .filter(Boolean)
+      .map((block) => {
+        const lines = block
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .filter((line) => line !== "---");
+        const dateLine = lines.find((line) => line.startsWith("date:"));
+        const authorLine = lines.find((line) => line.startsWith("author:"));
+        const date = dateLine ? dateLine.replace("date:", "").trim() : "";
+        const author = authorLine ? authorLine.replace("author:", "").trim() : "";
+        const quoteLines = lines.filter(
+          (line) => !line.startsWith("date:") && !line.startsWith("author:")
+        );
+        return { date, author, lines: quoteLines };
+      })
+      .filter((entry) => entry.date && entry.author && entry.lines.length > 0);
   } catch {
-    return null;
+    return [];
   }
 };
 
 export default function Home() {
   const prds = getPrdCards().slice(0, 3);
-  const quote = readDailyQuote();
+  const insights = parseInsightEntries();
   return (
     <div className={styles.page}>
       <main className={styles.main}>
@@ -92,23 +99,7 @@ export default function Home() {
           </ul>
         </section>
 
-        {quote ? (
-          <section className={styles.quoteSection}>
-            <p className={styles.quoteLabel}>Insight</p>
-            <div className={styles.quoteCard}>
-              <div className={styles.quoteText}>
-                {quote.lines.map((line, index) => (
-                  <p key={`${line}-${index}`} className={styles.quoteLine}>
-                    {line}
-                  </p>
-                ))}
-              </div>
-              <p className={styles.quoteMeta}>
-                {quote.author} · {quote.date}
-              </p>
-            </div>
-          </section>
-        ) : null}
+        {insights.length > 0 ? <InsightCarousel entries={insights} /> : null}
 
         {/* say-hi block intentionally hidden for now */}
       </main>
