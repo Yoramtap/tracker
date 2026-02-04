@@ -1,67 +1,50 @@
 {
-  "project": "Relay Introduction",
-  "branchName": "ralph/relay-introduction",
-  "description": "Add a dedicated Relay page with a hero block, short bio, mission, how-I-can-help bullets, and a playful Q&A to introduce Relay as the blog’s resident assistant.",
+  "project": "Build Notes List View",
+  "branchName": "ralph/build-notes-list",
+  "description": "Switch build notes from card grid to a title-only list while keeping PRDs unchanged to improve visual distinction and scan-ability.",
   "userStories": [
     {
       "id": "US-001",
-      "title": "Add Relay page route",
-      "description": "As a reader, I want a dedicated Relay page so I can learn who Relay is.",
+      "title": "Render build notes as a list",
+      "description": "As a reader, I want build notes in a list so I can scan them quickly and distinguish them from PRDs.",
       "acceptanceCriteria": [
-        "A new page/route exists for Relay (e.g., /relay or a route consistent with the site’s routing)",
-        "The page is reachable from the site’s navigation or another clear entry point",
-        "The page renders without errors",
+        "Build notes section renders as a vertical list instead of a card grid",
+        "List preserves newest-first ordering (current behavior)",
+        "PRD presentation remains unchanged",
+        "List uses a clear treatment for scan-ability (bullets or subtle dividers)",
         "Typecheck passes",
         "Verify in browser using dev-browser skill"
       ],
       "priority": 1,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-002",
-      "title": "Create Relay hero block",
-      "description": "As a reader, I want a hero section that introduces Relay at a glance so I immediately understand the page’s purpose.",
+      "title": "Click list item to open build note",
+      "description": "As a reader, I want each build note list item to open the full build note.",
       "acceptanceCriteria": [
-        "Hero block includes Relay name, a short subtitle/tagline, and a brief intro sentence",
-        "Hero block is visually prominent at the top of the page",
-        "Hero block includes a CTA or jump link to the “How I can help” section",
+        "Clicking a list item navigates to the build note page",
+        "List item has a visible hover/active affordance (e.g., underline or background)",
         "Typecheck passes",
         "Verify in browser using dev-browser skill"
       ],
       "priority": 2,
-      "passes": true,
+      "passes": false,
       "notes": ""
     },
     {
       "id": "US-003",
-      "title": "Add bio, mission, and help bullets",
-      "description": "As a reader, I want a short bio and a clear list of ways Relay can help so I know what to expect.",
+      "title": "List item content is title-only",
+      "description": "As a reader, I want concise list items so I can scan titles fast.",
       "acceptanceCriteria": [
-        "Bio is 2–4 sentences and introduces Relay’s role",
-        "Mission statement is a single concise sentence",
-        "“How I can help” section contains 3–5 bullet items",
-        "Tone is playful and witty while remaining clear",
+        "Each list item shows the build note title only (no date/excerpt)",
+        "Titles are readable and consistent with existing typography",
         "Typecheck passes",
         "Verify in browser using dev-browser skill"
       ],
       "priority": 3,
-      "passes": true,
-      "notes": ""
-    },
-    {
-      "id": "US-004",
-      "title": "Add Relay Q&A section",
-      "description": "As a reader, I want a short Q&A so I can quickly understand Relay’s personality and boundaries.",
-      "acceptanceCriteria": [
-        "Q&A includes 3–5 questions with short answers",
-        "At least one Q&A addresses what Relay does NOT do",
-        "Tone matches the playful, witty style of the page",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
-      ],
-      "priority": 4,
-      "passes": true,
+      "passes": false,
       "notes": ""
     }
   ]

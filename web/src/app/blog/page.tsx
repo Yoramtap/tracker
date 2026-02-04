@@ -1,6 +1,6 @@
+import Link from "next/link";
 import styles from "./page.module.css";
 import { posts } from "./posts";
-import KeyboardCardGrid from "../components/keyboard-card-grid";
 
 export default function BlogIndexPage() {
   const sortedPosts = [...posts].sort((a, b) => {
@@ -29,22 +29,21 @@ export default function BlogIndexPage() {
             <h2>Stories that shipped it</h2>
           </div>
         </div>
-        <KeyboardCardGrid
-          items={sortedPosts.map((post) => ({
-            ...post,
-            category: "story",
-        }))}
-        classNames={{
-          grid: styles.cards,
-          card: styles.card,
-          meta: styles.cardMeta,
-          excerpt: styles.cardExcerpt,
-          link: styles.cardLink,
-          focused: styles.cardFocused,
-        }}
-        linkLabel="Read the note"
-        backspaceHref="/"
-      />
+        <ul className={styles.noteList}>
+          {sortedPosts.map((post) => (
+            <li key={post.slug} className={styles.noteItem}>
+              <Link className={styles.noteLink} href={`/blog/${post.slug}`}>
+                <p className={styles.noteMeta}>
+                  <span>{post.category}</span>
+                  <span>{post.date}</span>
+                </p>
+                <h3 className={styles.noteTitle}>{post.title}</h3>
+                <p className={styles.noteSummary}>{post.summary}</p>
+                <span className={styles.noteCta}>Read the note</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <div className={styles.pagination}>
