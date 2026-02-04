@@ -242,6 +242,90 @@ export const posts: BlogPost[] = [
     ],
   },
   {
+    slug: "build-notes-list-us-001",
+    title: "Build notes list layout",
+    prdSlug: "build-notes-list",
+    prdTitle: "Build Notes List View",
+    summary:
+      "Switched build notes from cards to a list on the home page to clearly separate them from PRDs.",
+    excerpt:
+      "Switched build notes from cards to a list on the home page to clearly separate them from PRDs.",
+    date: "Feb 4, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-6.svg",
+    whatShipped:
+      "Replaced the home page build notes card grid with a vertical list so PRDs keep their card treatment.",
+    implemented:
+      "Replaced the home page build notes card grid with a vertical list so PRDs keep their card treatment.",
+    files: ["web/src/app/page.tsx", "web/src/app/page.module.css", "prd.json"],
+    learnings: [
+      "Keep PRD cards untouched when changing build notes layout.",
+      "List treatment should be visually lighter than cards for hierarchy.",
+      "Manual browser verification needed (dev server tools unavailable here).",
+    ],
+  },
+  {
+    slug: "build-notes-list-us-002",
+    title: "Build notes list click targets",
+    prdSlug: "build-notes-list",
+    prdTitle: "Build Notes List View",
+    summary:
+      "Made each build note list row fully clickable with clear hover and focus states.",
+    excerpt:
+      "Made each build note list row fully clickable with clear hover and focus states.",
+    date: "Feb 4, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-3.svg",
+    whatShipped:
+      "Wrapped each build note list item in a single link with hover/active affordances.",
+    implemented:
+      "Wrapped each build note list item in a single link with hover/active affordances.",
+    files: [
+      "web/src/app/page.tsx",
+      "web/src/app/page.module.css",
+      "web/src/app/blog/page.tsx",
+      "web/src/app/blog/page.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "Prefer a single-link wrapper to make the whole list row clickable.",
+      "Focus-visible styling is required for accessibility.",
+      "Manual browser verification needed (dev server tools unavailable here).",
+    ],
+  },
+  {
+    slug: "build-notes-list-us-003",
+    title: "Build notes list title-only",
+    prdSlug: "build-notes-list",
+    prdTitle: "Build Notes List View",
+    summary:
+      "Simplified build notes list items to title-only for faster scanning.",
+    excerpt:
+      "Simplified build notes list items to title-only for faster scanning.",
+    date: "Feb 4, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-1.svg",
+    whatShipped:
+      "Removed meta and summaries so build note lists show titles only.",
+    implemented:
+      "Removed meta and summaries so build note lists show titles only.",
+    files: [
+      "web/src/app/page.tsx",
+      "web/src/app/page.module.css",
+      "web/src/app/blog/page.tsx",
+      "web/src/app/blog/page.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "Title-only list items reduce visual noise for build notes.",
+      "Keep list padding consistent across home and blog index.",
+      "Manual browser verification needed (dev server tools unavailable here).",
+    ],
+  },
+  {
     slug: "mobile-usability-polish",
     title: "Mobile usability polish",
     prdSlug: "mobile-usability-polish",

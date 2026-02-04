@@ -46,6 +46,7 @@ npm run dev
 - Stories should be small enough to complete in one context window
 - Always update AGENTS.md with discovered patterns for future iterations
 - TODO: Confirm any new patterns observed in recent Ralph runs
+- After shipping a feature, add build note entries to `web/src/app/blog/posts.ts` so it shows up in the build notes list
 
 ## Browser Verification
 
