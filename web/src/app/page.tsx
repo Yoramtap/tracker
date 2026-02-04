@@ -44,7 +44,16 @@ export default function Home() {
           </div>
         </section>
 
-        <section className={styles.featured} id="prds">
+        <div className={styles.sectionDivider} aria-hidden="true" />
+
+        <section className={`${styles.featured} ${styles.prdSection}`} id="prds">
+          <div className={styles.prdIntro}>
+            <span className={styles.prdChip}>Current Work</span>
+            <p className={styles.prdLabel}>Active briefs</p>
+            <Link className={styles.prdLink} href="/prds">
+              View all PRDs
+            </Link>
+          </div>
           <ul className={styles.notesList}>
             {prds.map((prd) => (
               <li key={prd.slug} className={styles.notesItem}>

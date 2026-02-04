@@ -48,6 +48,28 @@ const rawPosts: BlogPost[] = [
     ],
   },
   {
+    slug: "homepage-editorial-refine",
+    title: "Homepage editorial refinement",
+    summary:
+      "Refined the hero and PRD list styling for a calmer, more editorial homepage.",
+    excerpt:
+      "Refined the hero and PRD list styling for a calmer, more editorial homepage.",
+    date: "Feb 4, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-2.svg",
+    whatShipped:
+      "Adjusted hero typography and CTA styling, and turned the PRD list into quiet cards for a more composed homepage.",
+    implemented:
+      "Tightened type rhythm, softened the primary CTA, and added subtle card styling and spacing in the PRD list.",
+    files: ["web/src/app/page.module.css", "web/src/app/page.tsx"],
+    learnings: [
+      "Small typographic shifts can change the perceived tone quickly.",
+      "Soft card borders keep lists readable without feeling busy.",
+      "Micro-structure around lists helps anchor the hero visually.",
+    ],
+  },
+  {
     slug: "prd-story-index-mapping",
     title: "PRD story mapping",
     prdSlug: "blog-prd-story-index",

@@ -40,7 +40,7 @@
 .heroText {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
   animation: fadeUp 0.8s ease both;
 }
 
@@ -52,13 +52,14 @@
 }
 
 .heroText h1 {
-  font-size: clamp(2.6rem, 4vw, 4rem);
-  line-height: 1.1;
+  font-size: clamp(2.8rem, 4.2vw, 4.4rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
 }
 
 .tagline {
-  font-size: 1.05rem;
-  line-height: 1.8;
+  font-size: 1.08rem;
+  line-height: 1.75;
   color: var(--ink-soft);
   max-width: 520px;
 }
@@ -71,18 +72,20 @@
 }
 
 .primaryCta {
-  background: var(--ink);
-  color: var(--surface);
+  background: var(--surface);
+  color: var(--ink);
   padding: 12px 22px;
+  border: 1px solid color-mix(in srgb, var(--ink) 25%, var(--line));
   border-radius: 999px;
   font-size: 0.95rem;
   letter-spacing: 0.02em;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .primaryCta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(47, 36, 29, 0.18);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  box-shadow: 0 12px 24px rgba(47, 36, 29, 0.12);
 }
 
 .secondaryCta {
@@ -104,11 +107,15 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: var(--surface);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--surface) 90%, transparent),
+    color-mix(in srgb, var(--surface-contrast) 85%, transparent)
+  );
   border-radius: 32px;
   border: 1px solid var(--line);
   padding: 18px;
-  box-shadow: 0 30px 60px rgba(61, 47, 37, 0.1);
+  box-shadow: 0 24px 48px rgba(61, 47, 37, 0.08);
   animation: fadeUp 0.9s ease both;
 }
 
@@ -135,6 +142,71 @@ html[data-night-vision="on"] .heroImageNight {
   display: flex;
   flex-direction: column;
   gap: 32px;
+}
+
+.sectionDivider {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--line) 70%, transparent),
+    transparent
+  );
+}
+
+.prdSection {
+  position: relative;
+  padding-left: 22px;
+}
+
+.prdSection::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--accent) 35%, transparent),
+    transparent
+  );
+}
+
+.prdIntro {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-transform: lowercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+.prdChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--line));
+  background: var(--surface-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.prdLabel {
+  margin: 0;
+}
+
+.prdLink {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--ink);
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 40%, transparent);
 }
 
 .sectionHeader {
@@ -174,36 +246,39 @@ html[data-night-vision="on"] .heroImageNight {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .notesItem {
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 8px;
+  border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  border-radius: 18px;
+  background: var(--surface);
+  padding: 14px 18px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.notesItem:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+.notesItem:hover {
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+  box-shadow: 0 10px 24px rgba(61, 47, 37, 0.08);
 }
 
 .notesTitle {
-  font-size: 1.35rem;
-  line-height: 1.35;
+  font-size: 1.25rem;
+  line-height: 1.45;
   margin: 0;
 }
 
 .notesLink {
   display: block;
-  padding: 14px 8px;
+  padding: 0;
   color: var(--ink);
   text-decoration: none;
   border-radius: 12px;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .notesLink:hover {
-  background: var(--surface-muted);
+  color: var(--accent);
   transform: translateY(-1px);
 }
 
@@ -386,6 +461,19 @@ html[data-night-vision="on"] .heroImageNight {
   .heroImageWrap img {
     width: 100%;
     height: auto;
+  }
+
+  .prdSection {
+    padding-left: 16px;
+  }
+
+  .prdIntro {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .prdLink {
+    width: 100%;
   }
 
   .sayHi {
