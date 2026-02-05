@@ -133,8 +133,9 @@ for i in $(seq 1 $MAX_ITERATIONS); do
   codex exec --full-auto --cd "$SCRIPT_DIR" - < "$SCRIPT_DIR/CODEX.md" 2>&1 | tee "$LOG_FILE" || true
   echo "Codex output saved to: $LOG_FILE"
   
-  # Check for completion signal
-  if grep -q "<promise>COMPLETE</promise>" "$LOG_FILE"; then
+  # Check completion from PRD state instead of log token matching.
+  # The token can appear in instruction text and cause false positives.
+  if jq -e '[.userStories[].passes] | all' "$PRD_FILE" > /dev/null 2>&1; then
     echo ""
     echo "Ralph completed all tasks!"
     echo "Completed at iteration $i of $MAX_ITERATIONS"
