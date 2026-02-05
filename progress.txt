@@ -2,7 +2,8 @@
 ## Codebase Patterns
 - For new top-level web pages, follow the route convention `web/src/app/<route>/page.tsx` with a colocated `page.module.css`, and add discoverability via `web/src/app/components/primary-nav.tsx` when it is primary navigation.
 - Replay timeline data should be normalized in `web/src/app/replay/data.ts` by combining `getPrdEntries()` and `posts`, then sorted newest-first by parsed date with a deterministic fallback index for ties/unparseable dates.
-- Replay timeline presentation should group events in `web/src/app/replay/page.tsx` by parsed calendar day (`YYYY-MM-DD` key) while preserving event order from `getReplayEvents()` within each day.
+- Replay timeline presentation and URL filter handling live in `web/src/app/replay/replay-timeline.tsx`; keep `web/src/app/replay/page.tsx` focused on the route shell and server data handoff.
+- For static export routes, query-param-driven UI state should use a client component wrapped in `Suspense` (avoid `await searchParams` in the server page component).
 
 Started: Thu Feb  5 22:30:33 CET 2026
 ---
@@ -37,4 +38,15 @@ Started: Thu Feb  5 22:30:33 CET 2026
   - Keep replay grouping logic in the page layer and leave normalization/sorting in `web/src/app/replay/data.ts` to avoid mixed responsibilities.
   - Event card link labels are type-driven (`prd_created` -> PRD link, `story_shipped` -> Story link), which keeps rendering deterministic as more event types are added.
   - Browser automation verification was not run in this environment; manual browser verification is required for UI-centric stories.
+---
+## [2026-02-05 22:40:43 CET] - US-004
+- Added replay filters (`All`, `PRDs`, `Stories`) with URL query-state (`?filter=`) and deterministic invalid/missing fallback to `All`.
+- Moved replay timeline rendering into a client component so filter interactions update the rendered list via client navigation without full page reloads.
+- Preserved static export compatibility by wrapping the client timeline (`useSearchParams`) in `Suspense` from the route shell.
+- Verified quality checks by running `npm run lint` and `npm run build` in `web`.
+- Files changed: `web/src/app/replay/page.tsx`, `web/src/app/replay/page.module.css`, `web/src/app/replay/replay-timeline.tsx`, `AGENTS.md`, `prd.json`, `progress.txt`
+- **Learnings for future iterations:**
+  - For static-export pages in Next.js app router, URL-query UI filters should live in a client component with `useSearchParams` and be rendered under a `Suspense` boundary.
+  - Keep replay data normalization/sorting in `web/src/app/replay/data.ts` and keep query/filter rendering concerns in `web/src/app/replay/replay-timeline.tsx`.
+  - Attempted browser verification with `agent-browser`, but this environment could not launch a usable browser session (`Browser not launched. Call launch first.`); manual browser verification is required.
 ---

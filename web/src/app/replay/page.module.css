@@ -65,6 +65,36 @@
   font-weight: 600;
 }
 
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.filterLink {
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--line) 70%, var(--accent) 30%);
+  padding: 6px 14px;
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 0.86rem;
+  font-weight: 600;
+  transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
+}
+
+.filterLink:hover,
+.filterLink:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--line));
+  color: var(--ink);
+}
+
+.filterLink[data-active="true"] {
+  background: color-mix(in srgb, var(--accent) 24%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 62%, var(--line));
+  color: var(--ink);
+}
+
 .groupList {
   list-style: none;
   margin: 0;

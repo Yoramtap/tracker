@@ -47,7 +47,8 @@ npm run dev
 - Always update AGENTS.md with discovered patterns for future iterations
 - TODO: Confirm any new patterns observed in recent Ralph runs
 - After shipping a feature, add build note entries to `web/src/app/prds/story/posts.ts` so it shows up in the build notes list
-- Replay timeline responsibilities are split: normalize/sort events in `web/src/app/replay/data.ts`, then do date-grouped rendering and card presentation in `web/src/app/replay/page.tsx`.
+- Replay timeline responsibilities are split: normalize/sort events in `web/src/app/replay/data.ts`, keep route shell in `web/src/app/replay/page.tsx`, and do grouped rendering plus URL filter behavior in `web/src/app/replay/replay-timeline.tsx`.
+- For static export compatibility, query-param UI state on `/replay` should be handled in a client component wrapped in `Suspense` instead of `await searchParams` in the page server component.
 
 ## Browser Verification
 
