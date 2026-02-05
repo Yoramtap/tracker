@@ -8,6 +8,7 @@ export type ReplayEvent = {
   type: ReplayEventType;
   title: string;
   date: string;
+  summary: string;
   prdSlug: string;
   href: string;
 };
@@ -33,23 +34,27 @@ const toSortableReplayEvents = (): SortableReplayEvent[] => {
     type: "prd_created",
     title: entry.title,
     date: entry.date,
+    summary: entry.summary,
     prdSlug: entry.slug,
     href: `/prds/${entry.slug}`,
   }));
 
   const storyEvents: ReplayEvent[] = posts.flatMap((post) => {
-      const prdSlug = resolveStoryPrdSlug(post.tags, post.prdSlug);
-      if (!prdSlug) return [];
+    const prdSlug = resolveStoryPrdSlug(post.tags, post.prdSlug);
+    if (!prdSlug) return [];
 
-      return [{
+    return [
+      {
         id: `story-shipped:${post.slug}`,
         type: "story_shipped" as const,
         title: post.title,
         date: post.date,
+        summary: post.excerpt,
         prdSlug,
         href: `/prds/story/${post.slug}`,
-      }];
-    });
+      },
+    ];
+  });
 
   return [...prdEvents, ...storyEvents].map((event, index) => ({
     ...event,
@@ -64,6 +69,7 @@ export const getReplayEvents = (): ReplayEvent[] => {
     type: event.type,
     title: event.title,
     date: event.date,
+    summary: event.summary,
     prdSlug: event.prdSlug,
     href: event.href,
   });

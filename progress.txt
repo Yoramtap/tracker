@@ -4,6 +4,7 @@
 - Replay timeline data should be normalized in `web/src/app/replay/data.ts` by combining `getPrdEntries()` and `posts`, then sorted newest-first by parsed date with a deterministic fallback index for ties/unparseable dates.
 - Replay timeline presentation and URL filter handling live in `web/src/app/replay/replay-timeline.tsx`; keep `web/src/app/replay/page.tsx` focused on the route shell and server data handoff.
 - For static export routes, query-param-driven UI state should use a client component wrapped in `Suspense` (avoid `await searchParams` in the server page component).
+- For replay event selection, derive the active event from the filtered list (`selected` fallback to first visible event) instead of syncing selection in an effect; this avoids `react-hooks/set-state-in-effect` lint errors.
 
 Started: Thu Feb  5 22:30:33 CET 2026
 ---
@@ -49,4 +50,16 @@ Started: Thu Feb  5 22:30:33 CET 2026
   - For static-export pages in Next.js app router, URL-query UI filters should live in a client component with `useSearchParams` and be rendered under a `Suspense` boundary.
   - Keep replay data normalization/sorting in `web/src/app/replay/data.ts` and keep query/filter rendering concerns in `web/src/app/replay/replay-timeline.tsx`.
   - Attempted browser verification with `agent-browser`, but this environment could not launch a usable browser session (`Browser not launched. Call launch first.`); manual browser verification is required.
+---
+## [2026-02-05 22:45:47 CET] - US-005
+- Implemented interactive replay event selection with highlighted cards and a responsive detail experience: sticky side panel on desktop and inline details beneath the selected card on small screens.
+- Extended replay event data to include detail summaries (`PRD summary` or story `excerpt`) and rendered detail content with title, date, type label, summary, and primary link.
+- Added predictable keyboard focus behavior by moving focus to the selected detail container after event selection.
+- Verified quality checks by running `npm run lint` and `npm run build` in `web`.
+- Browser verification tooling is currently blocked in this environment: `agent-browser` reports `Browser not launched. Call launch first.` and additional local port binding attempts are restricted; manual browser verification is required.
+- Files changed: `web/src/app/replay/data.ts`, `web/src/app/replay/replay-timeline.tsx`, `web/src/app/replay/page.module.css`, `AGENTS.md`, `prd.json`, `progress.txt`
+- **Learnings for future iterations:**
+  - Keep replay selection state resilient to filter changes by deriving the active event from currently filtered events instead of effect-driven synchronization.
+  - Reusing existing PRD `summary` and story `excerpt` fields keeps detail panels informative without introducing duplicate content sources.
+  - Browser automation may be unavailable in constrained environments even when `agent-browser` is installed; document the exact failure and request manual verification.
 ---

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./page.module.css";
 import { type ReplayEvent } from "./data";
 
@@ -92,16 +93,62 @@ const getEmptyStateMessage = (filter: ReplayFilter): string => {
 const getFilterHref = (pathname: string, filter: ReplayFilter): string =>
   filter === "all" ? pathname : `${pathname}?filter=${filter}`;
 
+const isSmallViewport = (): boolean => {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(max-width: 860px)").matches;
+};
+
 type ReplayTimelineProps = {
   replayEvents: ReplayEvent[];
 };
+
+type ReplayDetailContentProps = {
+  event: ReplayEvent;
+};
+
+const ReplayDetailContent = ({ event }: ReplayDetailContentProps) => (
+  <>
+    <p className={styles.detailType}>{getEventTypeLabel(event.type)}</p>
+    <h3 className={styles.detailTitle}>{event.title}</h3>
+    <p className={styles.detailDate}>{formatDateLabel(event.date)}</p>
+    <p className={styles.detailSummary}>{event.summary}</p>
+    <Link className={styles.detailLink} href={event.href}>
+      {getEventLinkLabel(event.type)}
+    </Link>
+  </>
+);
 
 export const ReplayTimeline = ({ replayEvents }: ReplayTimelineProps) => {
   const pathname = usePathname() ?? "/replay";
   const searchParams = useSearchParams();
   const selectedFilter = parseReplayFilter(searchParams.get("filter"));
-  const filteredEvents = filterReplayEvents(replayEvents, selectedFilter);
-  const replayEventGroups = groupReplayEventsByDate(filteredEvents);
+  const filteredEvents = useMemo(
+    () => filterReplayEvents(replayEvents, selectedFilter),
+    [replayEvents, selectedFilter],
+  );
+  const replayEventGroups = useMemo(
+    () => groupReplayEventsByDate(filteredEvents),
+    [filteredEvents],
+  );
+  const detailPanelRef = useRef<HTMLElement>(null);
+  const [userSelectedEventId, setUserSelectedEventId] = useState<string | null>(null);
+
+  const selectedEvent =
+    filteredEvents.find((event) => event.id === userSelectedEventId) ??
+    filteredEvents[0] ??
+    null;
+
+  useEffect(() => {
+    if (!selectedEvent) return;
+
+    if (isSmallViewport()) {
+      const inlineDetail = document.getElementById(`inline-detail-${selectedEvent.id}`);
+      inlineDetail?.focus();
+      return;
+    }
+
+    detailPanelRef.current?.focus();
+  }, [selectedEvent]);
 
   return (
     <>
@@ -125,25 +172,63 @@ export const ReplayTimeline = ({ replayEvents }: ReplayTimelineProps) => {
           );
         })}
       </nav>
-      {replayEventGroups.length > 0 ? (
-        <ol className={styles.groupList}>
-          {replayEventGroups.map((group) => (
-            <li key={group.id} className={styles.groupItem}>
-              <h3 className={styles.groupDate}>{group.label}</h3>
-              <ul className={styles.cardList}>
-                {group.events.map((event) => (
-                  <li key={event.id} className={styles.cardItem}>
-                    <p className={styles.cardType}>{getEventTypeLabel(event.type)}</p>
-                    <h4 className={styles.cardTitle}>{event.title}</h4>
-                    <Link className={styles.cardLink} href={event.href}>
-                      {getEventLinkLabel(event.type)}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </ol>
+      {replayEventGroups.length > 0 && selectedEvent ? (
+        <div className={styles.timelineLayout}>
+          <ol className={styles.groupList}>
+            {replayEventGroups.map((group) => (
+              <li key={group.id} className={styles.groupItem}>
+                <h3 className={styles.groupDate}>{group.label}</h3>
+                <ul className={styles.cardList}>
+                  {group.events.map((event) => {
+                    const isSelected = event.id === selectedEvent.id;
+                    return (
+                      <li
+                        key={event.id}
+                        className={styles.cardItem}
+                        data-selected={isSelected}
+                      >
+                        <button
+                          type="button"
+                          className={styles.cardButton}
+                          onClick={() => setUserSelectedEventId(event.id)}
+                          aria-pressed={isSelected}
+                        >
+                          <p className={styles.cardType}>{getEventTypeLabel(event.type)}</p>
+                          <h4 className={styles.cardTitle}>{event.title}</h4>
+                        </button>
+                        <div className={styles.cardActions}>
+                          <Link className={styles.cardLink} href={event.href}>
+                            {getEventLinkLabel(event.type)}
+                          </Link>
+                        </div>
+                        {isSelected ? (
+                          <section
+                            id={`inline-detail-${event.id}`}
+                            className={styles.inlineDetail}
+                            aria-label={`Details for ${event.title}`}
+                            tabIndex={-1}
+                          >
+                            <ReplayDetailContent event={event} />
+                          </section>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </li>
+            ))}
+          </ol>
+          <aside
+            id={`desktop-detail-${selectedEvent.id}`}
+            ref={detailPanelRef}
+            className={styles.detailPanel}
+            aria-live="polite"
+            tabIndex={-1}
+          >
+            <p className={styles.detailKicker}>Selected event</p>
+            <ReplayDetailContent event={selectedEvent} />
+          </aside>
+        </div>
       ) : (
         <p className={styles.emptyState}>{getEmptyStateMessage(selectedFilter)}</p>
       )}

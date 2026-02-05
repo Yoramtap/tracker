@@ -95,6 +95,13 @@
   color: var(--ink);
 }
 
+.timelineLayout {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(240px, 0.9fr);
+  align-items: start;
+}
+
 .groupList {
   list-style: none;
   margin: 0;
@@ -125,10 +132,31 @@
 }
 
 .cardItem {
-  padding: 16px 18px;
   border-radius: 14px;
   border: 1px solid color-mix(in srgb, var(--line) 74%, var(--accent) 26%);
   background: color-mix(in srgb, var(--surface-contrast) 32%, var(--surface));
+  overflow: hidden;
+}
+
+.cardItem[data-selected="true"] {
+  border-color: color-mix(in srgb, var(--accent) 72%, var(--line));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.cardButton {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 16px 18px 8px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.cardButton:hover,
+.cardButton:focus-visible {
+  background: color-mix(in srgb, var(--surface-contrast) 42%, var(--surface));
 }
 
 .cardType {
@@ -145,9 +173,13 @@
   line-height: 1.4;
 }
 
-.cardLink {
+.cardActions {
+  padding: 0 18px 12px;
+}
+
+.cardLink,
+.detailLink {
   display: inline-block;
-  margin-top: 10px;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--accent);
@@ -155,14 +187,88 @@
 }
 
 .cardLink:hover,
-.cardLink:focus-visible {
+.cardLink:focus-visible,
+.detailLink:hover,
+.detailLink:focus-visible {
   text-decoration: underline;
+}
+
+.detailPanel,
+.inlineDetail {
+  border: 1px solid color-mix(in srgb, var(--line) 68%, var(--accent) 32%);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-contrast) 50%, var(--surface));
+  padding: 16px;
+}
+
+.detailPanel {
+  position: sticky;
+  top: 84px;
+}
+
+.detailPanel:focus-visible,
+.inlineDetail:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 72%, var(--line));
+  outline-offset: 2px;
+}
+
+.detailKicker {
+  margin: 0 0 8px;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+}
+
+.detailType {
+  margin: 0;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+}
+
+.detailTitle {
+  margin: 8px 0 6px;
+  font-size: 1.15rem;
+  line-height: 1.35;
+}
+
+.detailDate {
+  margin: 0 0 10px;
+  font-size: 0.86rem;
+  color: var(--ink-soft);
+}
+
+.detailSummary {
+  margin: 0 0 12px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.inlineDetail {
+  display: none;
+  margin: 0 12px 12px;
 }
 
 .emptyState {
   margin: 6px 0 0;
   color: var(--ink-soft);
   line-height: 1.6;
+}
+
+@media (max-width: 860px) {
+  .timelineLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .detailPanel {
+    display: none;
+  }
+
+  .inlineDetail {
+    display: block;
+  }
 }
 
 @media (max-width: 640px) {
@@ -175,7 +281,17 @@
     padding: 22px 20px;
   }
 
-  .cardItem {
-    padding: 14px 14px;
+  .cardButton {
+    padding: 14px 14px 8px;
+  }
+
+  .cardActions,
+  .inlineDetail {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+
+  .cardActions {
+    padding: 0 4px 12px;
   }
 }

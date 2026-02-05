@@ -49,6 +49,7 @@ npm run dev
 - After shipping a feature, add build note entries to `web/src/app/prds/story/posts.ts` so it shows up in the build notes list
 - Replay timeline responsibilities are split: normalize/sort events in `web/src/app/replay/data.ts`, keep route shell in `web/src/app/replay/page.tsx`, and do grouped rendering plus URL filter behavior in `web/src/app/replay/replay-timeline.tsx`.
 - For static export compatibility, query-param UI state on `/replay` should be handled in a client component wrapped in `Suspense` instead of `await searchParams` in the page server component.
+- For replay event selection UX, derive the active event from filtered data (`selected || first visible`) instead of syncing selection in `useEffect`, which avoids `react-hooks/set-state-in-effect` lint failures and keeps focus behavior predictable.
 
 ## Browser Verification
 
