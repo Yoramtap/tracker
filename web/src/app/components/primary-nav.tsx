@@ -38,6 +38,13 @@ export default function PrimaryNav() {
             >
               PRDs
             </Link>
+            <Link
+              className={styles.link}
+              href="/replay"
+              aria-current={isCurrent("/replay") ? "page" : undefined}
+            >
+              Replay
+            </Link>
           </nav>
           <NightVisionToggle />
         </div>

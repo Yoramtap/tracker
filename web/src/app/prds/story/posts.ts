@@ -18,6 +18,173 @@ export type BlogPost = {
 
 const rawPosts: BlogPost[] = [
   {
+    slug: "replay-route-shell",
+    title: "Replay timeline route shell",
+    prdSlug: "build-replay-timeline",
+    prdTitle: "Build Replay Timeline",
+    summary:
+      "Added a dedicated /replay route and exposed it in primary navigation.",
+    excerpt:
+      "Added a dedicated /replay route and exposed it in primary navigation.",
+    date: "Feb 5, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-1.svg",
+    whatShipped:
+      "Introduced a standalone replay page shell with intro copy and timeline container, plus a new Replay nav item.",
+    implemented:
+      "Created the /replay route, route-scoped styles, and updated primary navigation for discoverability.",
+    files: [
+      "web/src/app/replay/page.tsx",
+      "web/src/app/replay/page.module.css",
+      "web/src/app/components/primary-nav.tsx",
+      "prd.json",
+    ],
+    learnings: [
+      "New top-level pages should be linked in primary navigation immediately.",
+      "Keep route shell concerns separate from data normalization logic.",
+      "Static build checks should run after adding new app routes.",
+    ],
+  },
+  {
+    slug: "replay-unified-data-model",
+    title: "Replay unified event model",
+    prdSlug: "build-replay-timeline",
+    prdTitle: "Build Replay Timeline",
+    summary:
+      "Normalized PRD and story metadata into a single replay event model.",
+    excerpt:
+      "Normalized PRD and story metadata into a single replay event model.",
+    date: "Feb 5, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-2.svg",
+    whatShipped:
+      "Added replay events for both PRD creation and story shipping with deterministic newest-first ordering.",
+    implemented:
+      "Built a server-side replay data utility with stable ids, dates, links, and tie-safe sorting behavior.",
+    files: ["web/src/app/replay/data.ts", "web/src/app/replay/page.tsx", "prd.json"],
+    learnings: [
+      "Normalize heterogeneous sources before rendering to keep UI simple.",
+      "Prefer deterministic sort fallbacks when dates collide or fail parsing.",
+      "Keep event link construction in the data layer for consistency.",
+    ],
+  },
+  {
+    slug: "replay-grouped-cards",
+    title: "Replay grouped timeline cards",
+    prdSlug: "build-replay-timeline",
+    prdTitle: "Build Replay Timeline",
+    summary:
+      "Rendered replay events as date-grouped cards with contextual links.",
+    excerpt:
+      "Rendered replay events as date-grouped cards with contextual links.",
+    date: "Feb 5, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-3.svg",
+    whatShipped:
+      "Built date-grouped timeline sections, card metadata labels, and empty-state handling for replay events.",
+    implemented:
+      "Added grouped timeline rendering and type-aware card links for PRDs and stories.",
+    files: [
+      "web/src/app/replay/page.tsx",
+      "web/src/app/replay/page.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "Date grouping belongs in presentation when data is already normalized.",
+      "Type-driven link labels reduce conditional complexity in card markup.",
+      "Keep empty states explicit for newly bootstrapped features.",
+    ],
+  },
+  {
+    slug: "replay-url-filters",
+    title: "Replay URL filter controls",
+    prdSlug: "build-replay-timeline",
+    prdTitle: "Build Replay Timeline",
+    summary:
+      "Added replay filters for All, PRDs, and Stories with shareable URL state.",
+    excerpt:
+      "Added replay filters for All, PRDs, and Stories with shareable URL state.",
+    date: "Feb 5, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-4.svg",
+    whatShipped:
+      "Implemented URL-backed filter controls that update timeline results without full page reloads.",
+    implemented:
+      "Moved interactive filter behavior into a client replay timeline component wrapped in Suspense for static export compatibility.",
+    files: [
+      "web/src/app/replay/page.tsx",
+      "web/src/app/replay/replay-timeline.tsx",
+      "web/src/app/replay/page.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "Query-param UI state should live in client components for App Router routes.",
+      "Wrap useSearchParams consumers in Suspense for static export compatibility.",
+      "Filter fallbacks should normalize invalid params to a stable default.",
+    ],
+  },
+  {
+    slug: "replay-detail-panel",
+    title: "Replay detail panel and selection",
+    prdSlug: "build-replay-timeline",
+    prdTitle: "Build Replay Timeline",
+    summary:
+      "Added event selection with desktop detail panel and mobile inline detail view.",
+    excerpt:
+      "Added event selection with desktop detail panel and mobile inline detail view.",
+    date: "Feb 5, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-5.svg",
+    whatShipped:
+      "Shipped selected-card highlighting and responsive detail rendering with summary context and primary links.",
+    implemented:
+      "Extended replay events with summary content and added focus-aware selection behavior across breakpoints.",
+    files: [
+      "web/src/app/replay/data.ts",
+      "web/src/app/replay/replay-timeline.tsx",
+      "web/src/app/replay/page.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "Derive active selection from visible events to survive filter changes.",
+      "Use one detail component for desktop and mobile to avoid divergence.",
+      "Focus movement should target selected content predictably after click.",
+    ],
+  },
+  {
+    slug: "replay-status-visual-states",
+    title: "Replay planned vs shipped states",
+    prdSlug: "build-replay-timeline",
+    prdTitle: "Build Replay Timeline",
+    summary:
+      "Added visual completion states so planned and shipped events are instantly distinguishable.",
+    excerpt:
+      "Added visual completion states so planned and shipped events are instantly distinguishable.",
+    date: "Feb 5, 2026",
+    category: "build notes",
+    author: "Ralph",
+    image: "/images/tile-6.svg",
+    whatShipped:
+      "Introduced status pills and card treatments for planned vs shipped events, including night-vision-safe contrast.",
+    implemented:
+      "Mapped event types to shared status semantics and styled cards/detail rows via data-status hooks.",
+    files: [
+      "web/src/app/replay/replay-timeline.tsx",
+      "web/src/app/replay/page.module.css",
+      "prd.json",
+    ],
+    learnings: [
+      "Centralize event-type-to-status mapping to keep UI labels and styles aligned.",
+      "Data attributes are a clean seam for status-driven CSS variants.",
+      "Theme-specific overrides are required for status contrast in night mode.",
+    ],
+  },
+  {
     slug: "prds-stories-hub",
     title: "PRDs + stories hub",
     prdSlug: "prds-stories-hub",
