@@ -43,13 +43,26 @@
 
 .link {
   color: var(--ink-soft);
-  padding-bottom: 2px;
-  transition: color 0.2s ease;
+  padding: 4px 2px;
+  border-radius: 8px;
+  transition: color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .link:hover,
 .link:focus-visible {
   color: var(--accent);
+}
+
+.link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 42%, transparent);
+}
+
+.link[aria-current="page"] {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
 }
 
 @media (max-width: 600px) {

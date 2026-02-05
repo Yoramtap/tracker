@@ -43,7 +43,7 @@ export default function Home() {
   const insights = parseInsightEntries();
   return (
     <div className={styles.page}>
-      <main className={styles.main}>
+      <div className={styles.main}>
         <section className={styles.hero}>
           <div className={styles.heroText}>
             <p className={styles.kicker}>the build notes kitchen</p>
@@ -102,7 +102,7 @@ export default function Home() {
         {insights.length > 0 ? <InsightCarousel entries={insights} /> : null}
 
         {/* say-hi block intentionally hidden for now */}
-      </main>
+      </div>
       <footer className={styles.footer}>
         <div>
           <p className={styles.footerTitle}>The Build Notes Kitchen</p>

@@ -117,7 +117,8 @@
 .controlButton {
   border-radius: 999px;
   border: 1px solid var(--line);
-  padding: 8px 16px;
+  padding: 10px 16px;
+  min-height: 44px;
   font-size: 0.9rem;
   background: var(--surface);
   color: var(--ink);
