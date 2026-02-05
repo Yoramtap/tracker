@@ -44,6 +44,34 @@ PROGRESS_FILE="$SCRIPT_DIR/progress.txt"
 ARCHIVE_DIR="$SCRIPT_DIR/archive"
 LAST_BRANCH_FILE="$SCRIPT_DIR/.last-branch"
 
+# Ensure Ralph runs on the branch declared in prd.json
+if [ ! -f "$PRD_FILE" ]; then
+  echo "Error: Missing $PRD_FILE"
+  exit 1
+fi
+
+TARGET_BRANCH=$(jq -r '.branchName // empty' "$PRD_FILE" 2>/dev/null || echo "")
+if [ -z "$TARGET_BRANCH" ]; then
+  echo "Error: prd.json.branchName is empty."
+  exit 1
+fi
+
+CURRENT_GIT_BRANCH=$(git -C "$SCRIPT_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+if [ "$CURRENT_GIT_BRANCH" != "$TARGET_BRANCH" ]; then
+  if ! git -C "$SCRIPT_DIR" diff --quiet || ! git -C "$SCRIPT_DIR" diff --cached --quiet; then
+    echo "Error: Working tree is dirty. Commit or stash before switching to $TARGET_BRANCH."
+    exit 1
+  fi
+
+  if git -C "$SCRIPT_DIR" show-ref --verify --quiet "refs/heads/$TARGET_BRANCH"; then
+    echo "Switching to existing branch: $TARGET_BRANCH"
+    git -C "$SCRIPT_DIR" checkout "$TARGET_BRANCH"
+  else
+    echo "Creating and switching to new branch: $TARGET_BRANCH"
+    git -C "$SCRIPT_DIR" checkout -b "$TARGET_BRANCH"
+  fi
+fi
+
 # Archive previous run if branch changed
 if [ -f "$PRD_FILE" ] && [ -f "$LAST_BRANCH_FILE" ]; then
   CURRENT_BRANCH=$(jq -r '.branchName // empty' "$PRD_FILE" 2>/dev/null || echo "")

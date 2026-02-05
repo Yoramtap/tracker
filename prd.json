@@ -1,62 +1,100 @@
 {
-  "project": "PRDs + Stories Hub",
-  "branchName": "ralph/prds-stories-hub",
-  "description": "Make /prds the single hub for PRDs and related stories, remove /blog from nav, and move the older-PRDs control into /prds.",
+  "project": "Build Replay Timeline",
+  "branchName": "ralph/build-replay-timeline",
+  "description": "Add a /replay page that reconstructs PRD-to-story history into a visual timeline with filters and event details.",
   "userStories": [
     {
       "id": "US-001",
-      "title": "Show related stories in PRD accordion",
-      "description": "As a reader, I want to see related stories directly under each PRD when expanded so I can connect briefs to shipped work.",
+      "title": "Add timeline route shell",
+      "description": "As a reader, I want a dedicated replay page so that I can browse build history in one place.",
       "acceptanceCriteria": [
-        "Expanded PRD rows render a nested list of related stories (link to /blog/[slug])",
-        "Stories appear only when the PRD is expanded",
-        "Stories are ordered newest-first by story date",
+        "Create /replay route with page header, intro copy, and timeline container",
+        "Add Replay link to primary navigation",
+        "Route builds in static export mode without runtime errors",
         "Typecheck passes",
         "Verify in browser using dev-browser skill"
       ],
       "priority": 1,
-      "passes": true,
-      "notes": "Related stories render under expanded PRDs with newest-first ordering."
+      "passes": false,
+      "notes": ""
     },
     {
       "id": "US-002",
-      "title": "Remove /blog as a destination",
-      "description": "As a reader, I want /prds to be the primary hub without a competing blog index.",
+      "title": "Build unified replay data model",
+      "description": "As a developer, I want a normalized replay event model so that timeline rendering is deterministic.",
       "acceptanceCriteria": [
-        "Primary nav removes the Build notes link",
-        "/blog is removed from nav and not treated as a primary hub page",
+        "Create a server-side data utility that maps PRD and story metadata into replay events",
+        "Event type includes at minimum: prd_created and story_shipped",
+        "Events include stable id, title, date, related PRD slug, and href",
+        "Events are sorted newest-first by parsed date with stable fallback ordering",
         "Typecheck passes"
       ],
       "priority": 2,
-      "passes": true,
-      "notes": "Primary nav now omits the Build notes link."
+      "passes": false,
+      "notes": ""
     },
     {
       "id": "US-003",
-      "title": "Move Show older PRDs control to /prds",
-      "description": "As a reader, I want older PRDs collapsed by default on the main hub to keep the page short.",
+      "title": "Render grouped timeline cards",
+      "description": "As a reader, I want events grouped by date so that I can scan activity quickly.",
       "acceptanceCriteria": [
-        "/prds shows newest PRDs by default and a Show older PRDs control",
-        "Older PRDs expand only when the control is opened",
-        "Control is visually distinct and accessible",
+        "Timeline renders date groups with one or more event cards per day",
+        "Each card shows type label, title, and contextual link",
+        "Story cards link to /prds/story/[slug] and PRD cards link to /prds/[slug]",
+        "Empty-state message appears if no events exist",
         "Typecheck passes",
         "Verify in browser using dev-browser skill"
       ],
       "priority": 3,
-      "passes": true,
-      "notes": "Added Show older PRDs control on /prds with distinct pill styling."
+      "passes": false,
+      "notes": ""
     },
     {
       "id": "US-004",
-      "title": "Hide empty story sections",
-      "description": "As a reader, I don't want empty placeholders under PRDs with no related stories.",
+      "title": "Add replay filters",
+      "description": "As a reader, I want to filter replay events so that I can focus on PRD activity or shipped stories.",
       "acceptanceCriteria": [
-        "PRDs with zero related stories show no story section when expanded",
-        "Typecheck passes"
+        "Add filter controls: All, PRDs, Stories",
+        "Filter state updates the rendered list without full page reload",
+        "Filter selection is reflected in URL query param for shareable state",
+        "Invalid or missing filter param falls back to All",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
       ],
       "priority": 4,
-      "passes": true,
-      "notes": "Zero-story PRDs render no story section."
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Add timeline detail panel",
+      "description": "As a reader, I want a focused detail panel for a selected event so that I can inspect context without leaving the page.",
+      "acceptanceCriteria": [
+        "Clicking an event highlights it and opens a detail panel on desktop",
+        "Detail panel includes title, date, type, summary or excerpt, and primary link",
+        "On small screens, detail content appears inline under the selected card",
+        "Keyboard focus moves predictably to selected content",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Add visual completion states",
+      "description": "As a maintainer, I want visual status cues so that readers can quickly distinguish planning work from shipped work.",
+      "acceptanceCriteria": [
+        "Event cards include visual status treatment for planned vs shipped",
+        "Status styles work in both default and night vision modes",
+        "Labels and contrast meet accessible readability standards",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
     }
   ]
 }
