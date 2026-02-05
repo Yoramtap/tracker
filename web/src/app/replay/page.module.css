@@ -132,15 +132,32 @@
 }
 
 .cardItem {
+  --status-border: color-mix(in srgb, var(--line) 74%, var(--accent) 26%);
+  --status-fill: color-mix(in srgb, var(--surface-contrast) 32%, var(--surface));
+  --status-stripe: color-mix(in srgb, var(--line) 80%, var(--ink-soft));
   border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--line) 74%, var(--accent) 26%);
-  background: color-mix(in srgb, var(--surface-contrast) 32%, var(--surface));
+  border: 1px solid var(--status-border);
+  background: var(--status-fill);
+  box-shadow: inset 4px 0 0 var(--status-stripe);
   overflow: hidden;
+}
+
+.cardItem[data-status="planned"] {
+  --status-border: color-mix(in srgb, var(--line) 88%, var(--ink-soft) 12%);
+  --status-fill: color-mix(in srgb, var(--surface-muted) 70%, var(--surface) 30%);
+  --status-stripe: color-mix(in srgb, var(--ink-soft) 56%, var(--line));
+}
+
+.cardItem[data-status="shipped"] {
+  --status-border: color-mix(in srgb, var(--accent) 58%, var(--line));
+  --status-fill: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  --status-stripe: color-mix(in srgb, var(--accent) 72%, var(--line));
 }
 
 .cardItem[data-selected="true"] {
   border-color: color-mix(in srgb, var(--accent) 72%, var(--line));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: inset 4px 0 0 var(--status-stripe),
+    0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .cardButton {
@@ -156,19 +173,51 @@
 
 .cardButton:hover,
 .cardButton:focus-visible {
-  background: color-mix(in srgb, var(--surface-contrast) 42%, var(--surface));
+  background: color-mix(in srgb, var(--surface-contrast) 44%, var(--surface));
+}
+
+.cardMetaRow,
+.detailMetaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .cardType {
-  margin: 0 0 6px;
+  margin: 0;
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--ink-soft);
 }
 
+.statusPill {
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  border: 1px solid transparent;
+  color: var(--ink);
+}
+
+.statusPill[data-status="planned"] {
+  background: color-mix(in srgb, var(--surface-muted) 86%, var(--surface));
+  border-color: color-mix(in srgb, var(--line) 66%, var(--ink-soft));
+  color: color-mix(in srgb, var(--ink-soft) 82%, var(--ink));
+}
+
+.statusPill[data-status="shipped"] {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 64%, var(--line));
+  color: color-mix(in srgb, var(--accent) 78%, var(--ink));
+}
+
 .cardTitle {
-  margin: 0;
+  margin: 8px 0 0;
   font-size: 1.06rem;
   line-height: 1.4;
 }
@@ -294,4 +343,16 @@
   .cardActions {
     padding: 0 4px 12px;
   }
+}
+
+html[data-night-vision="on"] .cardItem[data-status="planned"] {
+  --status-fill: color-mix(in srgb, var(--surface-muted) 88%, var(--surface));
+}
+
+html[data-night-vision="on"] .statusPill[data-status="planned"] {
+  color: color-mix(in srgb, var(--ink) 92%, var(--ink-soft));
+}
+
+html[data-night-vision="on"] .statusPill[data-status="shipped"] {
+  color: color-mix(in srgb, var(--accent) 72%, white 28%);
 }

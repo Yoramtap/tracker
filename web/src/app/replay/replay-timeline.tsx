@@ -7,6 +7,7 @@ import styles from "./page.module.css";
 import { type ReplayEvent } from "./data";
 
 type ReplayFilter = "all" | "prds" | "stories";
+type ReplayStatus = "planned" | "shipped";
 
 type ReplayEventGroup = {
   id: string;
@@ -64,6 +65,12 @@ const getEventTypeLabel = (type: ReplayEvent["type"]): string =>
 const getEventLinkLabel = (type: ReplayEvent["type"]): string =>
   type === "prd_created" ? "Open PRD" : "Open Story";
 
+const getEventStatus = (type: ReplayEvent["type"]): ReplayStatus =>
+  type === "story_shipped" ? "shipped" : "planned";
+
+const getStatusLabel = (status: ReplayStatus): string =>
+  status === "shipped" ? "Shipped" : "Planned";
+
 const parseReplayFilter = (value: string | null): ReplayFilter => {
   if (value === "prds" || value === "stories") return value;
   return "all";
@@ -106,17 +113,26 @@ type ReplayDetailContentProps = {
   event: ReplayEvent;
 };
 
-const ReplayDetailContent = ({ event }: ReplayDetailContentProps) => (
-  <>
-    <p className={styles.detailType}>{getEventTypeLabel(event.type)}</p>
-    <h3 className={styles.detailTitle}>{event.title}</h3>
-    <p className={styles.detailDate}>{formatDateLabel(event.date)}</p>
-    <p className={styles.detailSummary}>{event.summary}</p>
-    <Link className={styles.detailLink} href={event.href}>
-      {getEventLinkLabel(event.type)}
-    </Link>
-  </>
-);
+const ReplayDetailContent = ({ event }: ReplayDetailContentProps) => {
+  const status = getEventStatus(event.type);
+
+  return (
+    <>
+      <div className={styles.detailMetaRow}>
+        <p className={styles.detailType}>{getEventTypeLabel(event.type)}</p>
+        <span className={styles.statusPill} data-status={status}>
+          {getStatusLabel(status)}
+        </span>
+      </div>
+      <h3 className={styles.detailTitle}>{event.title}</h3>
+      <p className={styles.detailDate}>{formatDateLabel(event.date)}</p>
+      <p className={styles.detailSummary}>{event.summary}</p>
+      <Link className={styles.detailLink} href={event.href}>
+        {getEventLinkLabel(event.type)}
+      </Link>
+    </>
+  );
+};
 
 export const ReplayTimeline = ({ replayEvents }: ReplayTimelineProps) => {
   const pathname = usePathname() ?? "/replay";
@@ -181,11 +197,13 @@ export const ReplayTimeline = ({ replayEvents }: ReplayTimelineProps) => {
                 <ul className={styles.cardList}>
                   {group.events.map((event) => {
                     const isSelected = event.id === selectedEvent.id;
+                    const status = getEventStatus(event.type);
                     return (
                       <li
                         key={event.id}
                         className={styles.cardItem}
                         data-selected={isSelected}
+                        data-status={status}
                       >
                         <button
                           type="button"
@@ -193,7 +211,12 @@ export const ReplayTimeline = ({ replayEvents }: ReplayTimelineProps) => {
                           onClick={() => setUserSelectedEventId(event.id)}
                           aria-pressed={isSelected}
                         >
-                          <p className={styles.cardType}>{getEventTypeLabel(event.type)}</p>
+                          <div className={styles.cardMetaRow}>
+                            <p className={styles.cardType}>{getEventTypeLabel(event.type)}</p>
+                            <span className={styles.statusPill} data-status={status}>
+                              {getStatusLabel(status)}
+                            </span>
+                          </div>
                           <h4 className={styles.cardTitle}>{event.title}</h4>
                         </button>
                         <div className={styles.cardActions}>
