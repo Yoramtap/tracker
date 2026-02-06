@@ -5,8 +5,8 @@ import path from "node:path";
 
 const BOARD_ID = 38;
 const MAX_SPRINTS = 14;
-const PRIORITIES = ["highest", "high", "medium", "low", "lowest"];
 const DONE_STATUSES = '(Done, "Won\'t Fix", Duplicate)';
+const SNAPSHOT_PATH = path.resolve(process.cwd(), "src/app/backlog/snapshot.json");
 
 function env(name, fallback = "") {
   const value = process.env[name] ?? fallback;
@@ -132,11 +132,24 @@ async function fetchIssuesForAsOf(site, email, token, endDate) {
   return issues;
 }
 
-function formatTrendBlock(points) {
-  const lines = points.map((point) => {
-    return `  { date: ${JSON.stringify(point.date)}, highest: ${point.highest}, high: ${point.high}, medium: ${point.medium}, low: ${point.low}, lowest: ${point.lowest} },`;
-  });
-  return `const BOARD_38_TREND: TrendPoint[] = [\n${lines.join("\n")}\n];`;
+function emptyPoint(date) {
+  return { date, highest: 0, high: 0, medium: 0, low: 0, lowest: 0 };
+}
+
+async function readSnapshotOrDefault() {
+  try {
+    const raw = await fs.readFile(SNAPSHOT_PATH, "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return {
+      source: {
+        mode: "mcp_snapshot",
+        syncedAt: new Date(0).toISOString(),
+        note: "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date).",
+      },
+      combinedPoints: [],
+    };
+  }
 }
 
 async function main() {
@@ -166,32 +179,36 @@ async function main() {
     }
 
     points.push({
-      date: sprint.name,
+      date: endDate,
       ...counts,
     });
   }
 
-  const dataPath = path.resolve(process.cwd(), "src/app/backlog/data.ts");
-  let source = await fs.readFile(dataPath, "utf8");
+  const snapshot = await readSnapshotOrDefault();
+  const byDate = new Map((snapshot.combinedPoints ?? []).map((entry) => [entry.date, entry]));
 
-  const trendRegex = /const BOARD_38_TREND: TrendPoint\[\] = \[[\s\S]*?\];/;
-  if (!trendRegex.test(source)) {
-    throw new Error("Could not find BOARD_38_TREND block in data.ts");
+  for (const point of points) {
+    const existing = byDate.get(point.date);
+    byDate.set(point.date, {
+      date: point.date,
+      api: point,
+      legacy: existing?.legacy ?? emptyPoint(point.date),
+      react: existing?.react ?? emptyPoint(point.date),
+    });
   }
 
-  source = source.replace(trendRegex, formatTrendBlock(points));
-  source = source.replace(
-    /syncedAt: ".*?"/,
-    `syncedAt: "${new Date().toISOString()}"`,
-  );
-  source = source.replace(
-    /note: ".*?"/,
-    'note: "Board 38 sprint trend is now populated from Jira historical as-of queries (not manual points)."',
-  );
+  const combinedPoints = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
+  const nextSnapshot = {
+    source: {
+      mode: "mcp_snapshot",
+      syncedAt: new Date().toISOString(),
+      note: "Board 38 sprint trend is now populated from Jira historical as-of queries (not manual points).",
+    },
+    combinedPoints,
+  };
 
-  await fs.writeFile(dataPath, source, "utf8");
-
-  console.log(`Updated BOARD_38_TREND with ${points.length} closed API sprints from Jira.`);
+  await fs.writeFile(SNAPSHOT_PATH, `${JSON.stringify(nextSnapshot, null, 2)}\n`, "utf8");
+  console.log(`Updated snapshot.json API trend with ${points.length} closed API sprints from Jira.`);
 }
 
 main().catch((error) => {

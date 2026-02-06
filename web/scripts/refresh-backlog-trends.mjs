@@ -40,6 +40,7 @@ const BOARDS = [
 
 const PAGE_SIZE = 100;
 const MAX_RETRIES = 5;
+const SNAPSHOT_PATH = path.resolve(process.cwd(), "src/app/backlog/snapshot.json");
 
 function env(name, fallback = "") {
   return (process.env[name] ?? fallback).trim();
@@ -168,22 +169,6 @@ async function countFor(board, date, site, email, token) {
   return counts;
 }
 
-function formatTrendBlock(constName, points) {
-  const lines = points.map((point) => {
-    return `  { date: ${JSON.stringify(point.date)}, highest: ${point.highest}, high: ${point.high}, medium: ${point.medium}, low: ${point.low}, lowest: ${point.lowest} },`;
-  });
-  return `const ${constName}: TrendPoint[] = [\n${lines.join("\n")}\n];`;
-}
-
-function replaceConstBlock(source, constName, nextBlock) {
-  const startMarker = `const ${constName}: TrendPoint[] = [`;
-  const start = source.indexOf(startMarker);
-  if (start === -1) throw new Error(`Could not find ${constName} block in data.ts`);
-  const end = source.indexOf("];", start);
-  if (end === -1) throw new Error(`Could not find end of ${constName} block in data.ts`);
-  return `${source.slice(0, start)}${nextBlock}${source.slice(end + 2)}`;
-}
-
 async function buildBoardTrend(board, site, email, token) {
   const points = [];
   for (const date of DATES) {
@@ -194,6 +179,38 @@ async function buildBoardTrend(board, site, email, token) {
     points.push({ date, ...counts });
   }
   return points;
+}
+
+function emptyPoint(date) {
+  return { date, highest: 0, high: 0, medium: 0, low: 0, lowest: 0 };
+}
+
+function buildCombinedSnapshot(computed, syncedAt) {
+  const api = computed.BOARD_38_TREND ?? [];
+  const legacy = computed.BOARD_39_TREND ?? [];
+  const react = computed.BOARD_46_TREND ?? [];
+
+  const apiByDate = new Map(api.map((point) => [point.date, point]));
+  const legacyByDate = new Map(legacy.map((point) => [point.date, point]));
+  const reactByDate = new Map(react.map((point) => [point.date, point]));
+
+  const allDates = Array.from(
+    new Set([...api.map((p) => p.date), ...legacy.map((p) => p.date), ...react.map((p) => p.date)]),
+  ).sort();
+
+  return {
+    source: {
+      mode: "mcp_snapshot",
+      syncedAt,
+      note: "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date).",
+    },
+    combinedPoints: allDates.map((date) => ({
+      date,
+      api: apiByDate.get(date) ?? emptyPoint(date),
+      legacy: legacyByDate.get(date) ?? emptyPoint(date),
+      react: reactByDate.get(date) ?? emptyPoint(date),
+    })),
+  };
 }
 
 async function main() {
@@ -215,25 +232,10 @@ async function main() {
     console.log(`Computed ${board.constName} (${DATES.length} points).`);
   }
 
-  const dataPath = path.resolve(process.cwd(), "src/app/backlog/data.ts");
-  let source = await fs.readFile(dataPath, "utf8");
-
-  for (const board of BOARDS) {
-    source = replaceConstBlock(
-      source,
-      board.constName,
-      formatTrendBlock(board.constName, computed[board.constName]),
-    );
-  }
-
-  source = source.replace(/syncedAt: ".*?"/, `syncedAt: "${new Date().toISOString()}"`);
-  source = source.replace(
-    /note: ".*?"/,
-    'note: "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date)."',
-  );
-
-  await fs.writeFile(dataPath, source, "utf8");
-  console.log("Updated BOARD_38_TREND, BOARD_39_TREND, and BOARD_46_TREND.");
+  const syncedAt = new Date().toISOString();
+  const snapshot = buildCombinedSnapshot(computed, syncedAt);
+  await fs.writeFile(SNAPSHOT_PATH, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+  console.log("Updated snapshot.json for BOARD_38_TREND, BOARD_39_TREND, and BOARD_46_TREND.");
 }
 
 main().catch((error) => {
