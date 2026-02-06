@@ -24,37 +24,47 @@
 }
 
 :root {
-  --background: #f6f0e7;
-  --surface: #fbf7f2;
-  --surface-muted: #f4ede4;
-  --surface-contrast: #f9f3ec;
-  --ink: #2f241d;
-  --ink-soft: #5a4c41;
-  --accent: #b97a52;
-  --accent-rgb: 185, 122, 82;
-  --line: #e6d8c9;
-  --bg-gradient-start: #fdf8f1;
-  --bg-gradient-mid: #f6f0e7;
-  --bg-gradient-end: #efe4d6;
-  --glow-1: rgba(185, 122, 82, 0.08);
-  --glow-2: rgba(94, 119, 84, 0.1);
+  --background: #111a3b;
+  --surface: #1a2752;
+  --surface-muted: #16234a;
+  --surface-contrast: #223162;
+  --ink: #f4f8ff;
+  --ink-soft: #c4d2ee;
+  --accent: #f6b12d;
+  --accent-rgb: 246, 177, 45;
+  --line: #2f4476;
+  --bg-gradient-start: #0d1737;
+  --bg-gradient-mid: #111a3b;
+  --bg-gradient-end: #16224a;
+  --glow-1: rgba(246, 177, 45, 0.1);
+  --glow-2: rgba(47, 106, 185, 0.14);
+  --nav-bg: #0f1c46;
+  --nav-bg-2: #162657;
+  --nav-ink: #f8fbff;
+  --nav-ink-soft: #cdd8ef;
+  --nav-line: rgba(255, 255, 255, 0.12);
 }
 
 html[data-night-vision="on"] {
-  --background: #0f1a16;
-  --surface: #15231e;
-  --surface-muted: #13211c;
-  --surface-contrast: #1b2c25;
-  --ink: #d8f2e3;
-  --ink-soft: #9fc7b4;
-  --accent: #6bcf9a;
-  --accent-rgb: 107, 207, 154;
-  --line: #214033;
-  --bg-gradient-start: #0c1512;
-  --bg-gradient-mid: #0f1a16;
-  --bg-gradient-end: #12201a;
-  --glow-1: rgba(107, 207, 154, 0.08);
-  --glow-2: rgba(34, 84, 64, 0.18);
+  --background: #0b1430;
+  --surface: #111f44;
+  --surface-muted: #101b3c;
+  --surface-contrast: #172a58;
+  --ink: #ecf3ff;
+  --ink-soft: #b8c9ea;
+  --accent: #ffd052;
+  --accent-rgb: 255, 208, 82;
+  --line: #274071;
+  --bg-gradient-start: #09122b;
+  --bg-gradient-mid: #0b1430;
+  --bg-gradient-end: #0f1b3e;
+  --glow-1: rgba(255, 208, 82, 0.1);
+  --glow-2: rgba(54, 112, 201, 0.16);
+  --nav-bg: #0a132e;
+  --nav-bg-2: #101f45;
+  --nav-ink: #ecf2ff;
+  --nav-ink-soft: #bac9e8;
+  --nav-line: rgba(255, 255, 255, 0.14);
 }
 
 html,
@@ -66,7 +76,7 @@ body {
 body {
   color: var(--ink);
   background: var(--background);
-  font-family: var(--font-body), "Work Sans", sans-serif;
+  font-family: var(--font-body), "Nunito Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: 0.01em;
@@ -75,9 +85,10 @@ body {
 h1,
 h2,
 h3 {
-  font-family: var(--font-display), "DM Serif Display", serif;
-  font-weight: 400;
+  font-family: var(--font-display), "Nunito Sans", sans-serif;
+  font-weight: 800;
   color: var(--ink);
+  letter-spacing: -0.015em;
 }
 
 a {

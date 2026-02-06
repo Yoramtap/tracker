@@ -45,6 +45,13 @@ export default function PrimaryNav() {
             >
               Replay
             </Link>
+            <Link
+              className={styles.link}
+              href="/backlog"
+              aria-current={isCurrent("/backlog") ? "page" : undefined}
+            >
+              Backlog
+            </Link>
           </nav>
           <NightVisionToggle />
         </div>

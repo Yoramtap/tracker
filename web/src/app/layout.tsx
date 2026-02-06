@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
-import { DM_Serif_Display, Work_Sans } from "next/font/google";
+import { Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import NightVisionTrigger from "./components/night-vision-trigger";
 import PrimaryNav from "./components/primary-nav";
 
-const display = DM_Serif_Display({
+const display = Nunito_Sans({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: "400",
+  weight: ["700", "800"],
 });
 
-const body = Work_Sans({
+const body = Nunito_Sans({
   variable: "--font-body",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {

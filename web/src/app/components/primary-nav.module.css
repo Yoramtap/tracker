@@ -2,8 +2,9 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  background: var(--background);
-  border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  background: linear-gradient(90deg, var(--nav-bg) 0%, var(--nav-bg-2) 100%);
+  border-bottom: 1px solid var(--nav-line);
+  box-shadow: 0 8px 24px rgb(7 16 40 / 20%);
 }
 
 .inner {
@@ -25,32 +26,35 @@
 }
 
 .brand {
-  font-family: var(--font-display), "DM Serif Display", serif;
-  letter-spacing: 0.22em;
-  text-transform: lowercase;
-  font-size: 0.85rem;
+  font-family: var(--font-display), "Nunito Sans", sans-serif;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--nav-ink);
 }
 
 .links {
   display: flex;
   align-items: center;
   gap: 26px;
-  font-size: 0.85rem;
-  letter-spacing: 0.18em;
-  text-transform: lowercase;
+  font-size: 0.96rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
   line-height: 1;
+  font-weight: 700;
 }
 
 .link {
-  color: var(--ink-soft);
-  padding: 4px 2px;
+  color: var(--nav-ink-soft);
+  padding: 6px 2px;
   border-radius: 8px;
-  transition: color 0.2s ease, box-shadow 0.2s ease;
+  transition: color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
 .link:hover,
 .link:focus-visible {
-  color: var(--accent);
+  color: var(--nav-ink);
 }
 
 .link:focus-visible {
@@ -59,9 +63,9 @@
 }
 
 .link[aria-current="page"] {
-  color: var(--ink);
+  color: var(--nav-ink);
   text-decoration: underline;
-  text-decoration-thickness: 1px;
+  text-decoration-thickness: 1.5px;
   text-underline-offset: 6px;
 }
 

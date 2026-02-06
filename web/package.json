@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "backlog:refresh-api-trend": "node scripts/refresh-api-trend.mjs",
+    "backlog:refresh-trends": "node scripts/refresh-backlog-trends.mjs",
+    "backlog:setup-auth": "node scripts/setup-backlog-auth.mjs"
   },
   "dependencies": {
     "next": "16.1.6",

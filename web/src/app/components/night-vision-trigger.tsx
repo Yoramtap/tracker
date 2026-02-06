@@ -31,11 +31,8 @@ export default function NightVisionTrigger({
 }) {
   const bufferRef = useRef("");
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [mode, setMode] = useState<Mode>(() => {
-    if (typeof window === "undefined") return "on";
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    return stored === "on" || stored === "off" ? stored : "on";
-  });
+  const [mode, setMode] = useState<Mode>("on");
+  const [isHydrated, setIsHydrated] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastTick, setToastTick] = useState(0);
   const [isToastVisible, setIsToastVisible] = useState(false);
@@ -47,17 +44,27 @@ export default function NightVisionTrigger({
   };
 
   useEffect(() => {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored === "on" || stored === "off") {
+      setMode(stored);
+    }
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
     const updateHtmlAttribute = () => {
       document.documentElement.dataset.nightVision = mode;
     };
 
     updateHtmlAttribute();
-    window.localStorage.setItem(STORAGE_KEY, mode);
+    if (isHydrated) {
+      window.localStorage.setItem(STORAGE_KEY, mode);
+    }
 
     return () => {
       document.documentElement.removeAttribute("data-night-vision");
     };
-  }, [mode]);
+  }, [mode, isHydrated]);
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
