@@ -200,7 +200,7 @@ export default function BacklogPage() {
               </button>
               {showUpdatedToast ? <div className={styles.updatedToast}>Updated</div> : null}
               <span className={styles.syncedBadge}>
-                {isRefreshing ? "Refreshing Jira..." : refreshDisabled && secondsLeft > 0 ? `Retry in ${secondsLeft}s` : `Synced: ${syncedLabel}`}
+                {isRefreshing ? "Refreshing Jira..." : refreshDisabled && secondsLeft > 0 ? `Refresh unlocks in ${secondsLeft}s` : `Synced: ${syncedLabel}`}
               </span>
             </div>
           </div>

@@ -1,17 +1,8 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import type { TrendPoint } from "./data";
+import type { CombinedTrendPoint, TeamKey, TrendPoint } from "./types";
 import styles from "./page.module.css";
-
-export type TeamKey = "api" | "legacy" | "react";
-
-export type CombinedTrendPoint = {
-  date: string;
-  api: TrendPoint;
-  legacy: TrendPoint;
-  react: TrendPoint;
-};
 
 type HoverState = {
   x: number;
@@ -63,13 +54,9 @@ function totalForPoint(point: TrendPoint) {
 export function CombinedTeamTrendChart({
   points,
   visibleTeams,
-  onVisibleTeamsChange,
-  showTeamControls = true,
 }: {
   points: CombinedTrendPoint[];
   visibleTeams: Record<TeamKey, boolean>;
-  onVisibleTeamsChange: (next: Record<TeamKey, boolean>) => void;
-  showTeamControls?: boolean;
 }) {
   const [hover, setHover] = useState<HoverState>(null);
   const [visiblePriorities, setVisiblePriorities] = useState<Record<PriorityKey, boolean>>({
@@ -127,12 +114,6 @@ export function CombinedTeamTrendChart({
     return { value, y };
   });
 
-  const onTeamClick = (key: TeamKey) => {
-    const next = { ...visibleTeams, [key]: !visibleTeams[key] };
-    if (!Object.values(next).some(Boolean)) return;
-    onVisibleTeamsChange(next);
-  };
-
   const onPriorityClick = (key: PriorityKey) => {
     const next = { ...visiblePriorities, [key]: !visiblePriorities[key] };
     const activeCount = PRIORITIES.filter((priority) => next[priority.key]).length;
@@ -164,29 +145,6 @@ export function CombinedTeamTrendChart({
 
   return (
     <section className={styles.panel} aria-label="Combined team trend">
-      {showTeamControls ? (
-        <div className={styles.combinedFilters}>
-          <div className={styles.combinedTeamToggles} role="group" aria-label="Filter teams">
-            {TEAMS.map((team) => {
-              const active = visibleTeams[team.key];
-              return (
-                <button
-                  key={team.key}
-                  type="button"
-                  className={styles.combinedTeamToggle}
-                  data-active={active ? "true" : "false"}
-                  onClick={() => onTeamClick(team.key)}
-                  aria-pressed={active}
-                >
-                  <span>{team.label}</span>
-                  {active ? <span className={styles.combinedTeamToggleClose}>×</span> : null}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
-
       <div
         ref={containerRef}
         className={styles.interactiveChart}
@@ -299,6 +257,7 @@ export function CombinedTeamTrendChart({
                                     )
                                 : undefined
                             }
+                            onMouseLeave={isVisible ? () => setHover(null) : undefined}
                             onFocus={
                               isVisible
                                 ? () =>
