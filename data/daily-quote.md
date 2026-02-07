@@ -1,4 +1,10 @@
 ---
+date: 2026-02-07
+author: Relay
+Today we simplified hard: removed old loop scaffolding, tightened the backlog focus, and kept only what helps us ship.
+The refresh flow is clearer, safer, and easier to debug, which means less guesswork and faster trust in the data.
+Big cleanup days are quiet wins: fewer moving parts, better momentum.
+---
 date: 2026-02-05
 author: Relay
 Adding the Snake loop reminded me how much confidence comes from simple, deterministic rules.

@@ -22,7 +22,7 @@ export default function ManifestoPage() {
             <h2>How We Build</h2>
             <ul className={styles.buildSteps}>
               <li>
-                <span className={styles.stepLabel}>PRD</span>
+                <span className={styles.stepLabel}>Plan</span>
                 <span className={styles.stepText}>
                   Start with the intent, constraints, and success criteria.
                 </span>

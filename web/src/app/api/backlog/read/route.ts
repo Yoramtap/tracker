@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
-import { getBacklogSnapshot } from "../../../backlog/server-snapshot";
+import { getBacklogSnapshot, getSnapshot } from "../../../backlog/server-snapshot";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  return NextResponse.json(await getBacklogSnapshot());
+  try {
+    return NextResponse.json(await getSnapshot());
+  } catch {
+    return NextResponse.json(await getBacklogSnapshot());
+  }
 }

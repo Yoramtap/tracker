@@ -33,20 +33,6 @@ export default function PrimaryNav() {
             </Link>
             <Link
               className={styles.link}
-              href="/prds"
-              aria-current={isCurrent("/prds") ? "page" : undefined}
-            >
-              PRDs
-            </Link>
-            <Link
-              className={styles.link}
-              href="/replay"
-              aria-current={isCurrent("/replay") ? "page" : undefined}
-            >
-              Replay
-            </Link>
-            <Link
-              className={styles.link}
               href="/backlog"
               aria-current={isCurrent("/backlog") ? "page" : undefined}
             >

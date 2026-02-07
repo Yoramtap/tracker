@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./build-loop.module.css";
 
 const steps = [
-  { title: "Plan", detail: "draft PRD + split stories" },
+  { title: "Plan", detail: "capture intent + split stories" },
   { title: "Build", detail: "code the change" },
   { title: "Verify", detail: "prove it" },
   { title: "Note", detail: "log the build" },

@@ -4,6 +4,8 @@ import { BOARD_38_TREND, BOARD_39_TREND, BOARD_46_TREND, backlogSource } from ".
 import type { BacklogSnapshot, CombinedTrendPoint, TrendPoint } from "./types";
 
 const SNAPSHOT_PATH = path.resolve(process.cwd(), "src/app/backlog/snapshot.json");
+const SNAPSHOT_TMP_PATH = path.resolve(process.cwd(), "src/app/backlog/snapshot.json.tmp");
+const SNAPSHOT_SCHEMA_VERSION = 1;
 
 function normalizeTrendDate(date: string) {
   return date.startsWith("API ") ? date.slice(4) : date;
@@ -14,6 +16,7 @@ function emptyTrendPoint(date: string): TrendPoint {
 }
 
 function buildSnapshotFromModuleData(): BacklogSnapshot {
+  const nowIso = new Date().toISOString();
   const apiTrend = BOARD_38_TREND.map((point) => ({
     ...point,
     date: normalizeTrendDate(point.date),
@@ -41,18 +44,39 @@ function buildSnapshotFromModuleData(): BacklogSnapshot {
   }));
 
   return {
+    schemaVersion: SNAPSHOT_SCHEMA_VERSION,
+    updatedAt: nowIso,
     source: backlogSource,
     combinedPoints,
   };
 }
 
+export async function getSnapshot(): Promise<BacklogSnapshot> {
+  const raw = await fs.readFile(SNAPSHOT_PATH, "utf8");
+  const parsed = JSON.parse(raw) as Partial<BacklogSnapshot>;
+  return {
+    ...parsed,
+    schemaVersion: typeof parsed.schemaVersion === "number" ? parsed.schemaVersion : SNAPSHOT_SCHEMA_VERSION,
+    updatedAt: parsed.updatedAt ?? parsed.source?.syncedAt ?? new Date().toISOString(),
+    source: parsed.source ?? backlogSource,
+    combinedPoints: Array.isArray(parsed.combinedPoints) ? parsed.combinedPoints : [],
+  } as BacklogSnapshot;
+}
+
+export async function writeSnapshot(nextSnapshot: BacklogSnapshot) {
+  const serialized = `${JSON.stringify(nextSnapshot, null, 2)}\n`;
+  try {
+    await fs.writeFile(SNAPSHOT_TMP_PATH, serialized, "utf8");
+    await fs.rename(SNAPSHOT_TMP_PATH, SNAPSHOT_PATH);
+  } catch (error) {
+    await fs.unlink(SNAPSHOT_TMP_PATH).catch(() => undefined);
+    throw error;
+  }
+}
+
 export async function getBacklogSnapshot(): Promise<BacklogSnapshot> {
   try {
-    const raw = await fs.readFile(SNAPSHOT_PATH, "utf8");
-    const parsed = JSON.parse(raw) as BacklogSnapshot;
-    if (Array.isArray(parsed.combinedPoints) && parsed.source?.syncedAt) {
-      return parsed;
-    }
+    return await getSnapshot();
   } catch {
     // Fallback to module data below.
   }

@@ -1,5 +1,18 @@
 #!/usr/bin/env node
 
+// FULL snapshot rebuild:
+// Recomputes and writes all consumer slices in snapshot.json:
+// - API team metrics
+// - Legacy FE team metrics
+// - React FE team metrics
+//
+// Jira credentials are required for this script:
+// - ATLASSIAN_EMAIL
+// - ATLASSIAN_API_TOKEN
+// - Optional: ATLASSIAN_SITE (defaults to nepgroup.atlassian.net)
+// Env values can be provided via:
+// - web/.env.backlog
+// - web/.env.local
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -41,6 +54,8 @@ const BOARDS = [
 const PAGE_SIZE = 100;
 const MAX_RETRIES = 5;
 const SNAPSHOT_PATH = path.resolve(process.cwd(), "src/app/backlog/snapshot.json");
+const SNAPSHOT_TMP_PATH = path.resolve(process.cwd(), "src/app/backlog/snapshot.json.tmp");
+const SNAPSHOT_SCHEMA_VERSION = 1;
 
 function env(name, fallback = "") {
   return (process.env[name] ?? fallback).trim();
@@ -186,6 +201,7 @@ function emptyPoint(date) {
 }
 
 function buildCombinedSnapshot(computed, syncedAt) {
+  const updatedAt = new Date().toISOString();
   const api = computed.BOARD_38_TREND ?? [];
   const legacy = computed.BOARD_39_TREND ?? [];
   const react = computed.BOARD_46_TREND ?? [];
@@ -199,6 +215,8 @@ function buildCombinedSnapshot(computed, syncedAt) {
   ).sort();
 
   return {
+    schemaVersion: SNAPSHOT_SCHEMA_VERSION,
+    updatedAt,
     source: {
       mode: "mcp_snapshot",
       syncedAt,
@@ -213,6 +231,17 @@ function buildCombinedSnapshot(computed, syncedAt) {
   };
 }
 
+async function writeSnapshotAtomic(snapshot) {
+  const serialized = `${JSON.stringify(snapshot, null, 2)}\n`;
+  try {
+    await fs.writeFile(SNAPSHOT_TMP_PATH, serialized, "utf8");
+    await fs.rename(SNAPSHOT_TMP_PATH, SNAPSHOT_PATH);
+  } catch (error) {
+    await fs.unlink(SNAPSHOT_TMP_PATH).catch(() => undefined);
+    throw error;
+  }
+}
+
 async function main() {
   await loadLocalEnv();
 
@@ -220,11 +249,18 @@ async function main() {
   const email = env("ATLASSIAN_EMAIL");
   const token = env("ATLASSIAN_API_TOKEN");
 
-  if (!email || !token) {
+  if (!email) {
     throw new Error(
-      "Missing credentials. Set ATLASSIAN_EMAIL and ATLASSIAN_API_TOKEN (and optionally ATLASSIAN_SITE).",
+      "Missing ATLASSIAN_EMAIL. Create web/.env.backlog with ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN, and optional ATLASSIAN_SITE.",
     );
   }
+  if (!token) {
+    throw new Error(
+      "Missing ATLASSIAN_API_TOKEN. Create web/.env.backlog with ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN, and optional ATLASSIAN_SITE.",
+    );
+  }
+
+  console.log(`Refreshing backlog from Jira site: ${site}`);
 
   const computed = {};
   for (const board of BOARDS) {
@@ -234,7 +270,7 @@ async function main() {
 
   const syncedAt = new Date().toISOString();
   const snapshot = buildCombinedSnapshot(computed, syncedAt);
-  await fs.writeFile(SNAPSHOT_PATH, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+  await writeSnapshotAtomic(snapshot);
   console.log("Updated snapshot.json for BOARD_38_TREND, BOARD_39_TREND, and BOARD_46_TREND.");
 }
 

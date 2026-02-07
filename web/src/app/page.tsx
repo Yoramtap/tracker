@@ -1,9 +1,7 @@
 import fs from "fs";
 import path from "path";
 import Image from "next/image";
-import Link from "next/link";
 import styles from "./page.module.css";
-import { getPrdCards } from "./prds/data";
 import InsightCarousel, { type InsightEntry } from "./components/insight-carousel";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -39,7 +37,6 @@ const parseInsightEntries = (): InsightEntry[] => {
 };
 
 export default function Home() {
-  const prds = getPrdCards().slice(0, 3);
   const insights = parseInsightEntries();
   return (
     <div className={styles.page}>
@@ -49,14 +46,9 @@ export default function Home() {
             <p className={styles.kicker}>the build notes kitchen</p>
             <h1>Ship, note, repeat.</h1>
             <p className={styles.tagline}>
-              We document each feature end-to-end: PRD, stories, build, checks,
-              notes, and the final ship.
+              We document each feature end-to-end: plan, build, verify, notes,
+              and the final ship.
             </p>
-            <div className={styles.heroCtas}>
-              <Link className={styles.primaryCta} href="/prds">
-                Explore the PRDs
-              </Link>
-            </div>
           </div>
           <div className={styles.heroImageWrap}>
             <Image
@@ -79,25 +71,6 @@ export default function Home() {
         </section>
 
         <div className={styles.sectionDivider} aria-hidden="true" />
-
-        <section className={`${styles.featured} ${styles.prdSection}`} id="prds">
-          <div className={styles.prdIntro}>
-            <span className={styles.prdChip}>Current Work</span>
-            <p className={styles.prdLabel}>Active briefs</p>
-            <Link className={styles.prdLink} href="/prds">
-              View all PRDs
-            </Link>
-          </div>
-          <ul className={styles.notesList}>
-            {prds.map((prd) => (
-              <li key={prd.slug} className={styles.notesItem}>
-                <Link className={styles.notesLink} href={`/prds/${prd.slug}`}>
-                  <h3 className={styles.notesTitle}>{prd.title}</h3>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
 
         {insights.length > 0 ? <InsightCarousel entries={insights} /> : null}
 

@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Backlog snapshot artifacts
+src/app/backlog/snapshot.json.tmp
+src/app/backlog/snapshot.lock

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "backlog:refresh-api-trend": "node scripts/refresh-api-trend.mjs",
+    "refresh:full": "npm run backlog:refresh-trends",
     "backlog:refresh-trends": "node scripts/refresh-backlog-trends.mjs",
     "backlog:setup-auth": "node scripts/setup-backlog-auth.mjs"
   },
@@ -22,7 +22,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
-    "playwright": "^1.58.1",
     "typescript": "^5"
   }
 }

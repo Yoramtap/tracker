@@ -1,7 +1,9 @@
 {
+  "schemaVersion": 1,
+  "updatedAt": "2026-02-07T12:59:34.668Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-02-06T20:56:06.365Z",
+    "syncedAt": "2026-02-07T12:59:34.666Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date)."
   },
   "combinedPoints": [

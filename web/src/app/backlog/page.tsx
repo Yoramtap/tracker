@@ -56,6 +56,11 @@ export default function BacklogPage() {
     return snapshot.source.syncedAt.replace("T", " ").replace("Z", " UTC");
   }, [snapshot?.source.syncedAt]);
 
+  const updatedLabel = useMemo(() => {
+    if (!snapshot?.updatedAt) return "Unknown";
+    return snapshot.updatedAt.replace("T", " ").replace("Z", " UTC");
+  }, [snapshot?.updatedAt]);
+
   useEffect(() => {
     let active = true;
     fetchSnapshot("/api/backlog/read", "GET")
@@ -120,6 +125,10 @@ export default function BacklogPage() {
               <h2>Combined Team Bug Trend</h2>
             </div>
           </header>
+          <p className={styles.syncedBadge}>
+            Last updated: {updatedLabel}
+            {snapshot?.schemaVersion ? ` (schema v${snapshot.schemaVersion})` : ""}
+          </p>
 
           <div className={styles.controlRow}>
             <div className={styles.combinedTeamToggles} role="group" aria-label="Filter teams">
