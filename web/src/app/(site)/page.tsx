@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import Image from "next/image";
 import styles from "./page.module.css";
-import InsightCarousel, { type InsightEntry } from "./components/insight-carousel";
+import InsightCarousel, { type InsightEntry } from "@/components/insight-carousel";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const QUOTE_PATH = path.resolve(process.cwd(), "..", "data", "daily-quote.md");

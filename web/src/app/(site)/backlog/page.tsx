@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   CombinedTeamTrendChart,
-} from "./combined-team-trend-chart";
+} from "@/domains/backlog/ui/combined-team-trend-chart";
 import styles from "./page.module.css";
-import type { BacklogSnapshot, TeamKey } from "./types";
+import type { BacklogSnapshot, TeamKey } from "@/domains/backlog/types";
 
 const REFRESH_COOLDOWN_MS = 15_000;
 

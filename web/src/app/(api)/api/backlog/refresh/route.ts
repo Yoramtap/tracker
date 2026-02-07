@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { NextResponse } from "next/server";
-import { getBacklogSnapshot } from "../../../backlog/server-snapshot";
+import { getBacklogSnapshot } from "@/domains/backlog/server-snapshot";
 
 const execFileAsync = promisify(execFile);
 let inFlightRefresh: Promise<void> | null = null;

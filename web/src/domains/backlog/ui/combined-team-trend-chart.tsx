@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import type { CombinedTrendPoint, TeamKey, TrendPoint } from "./types";
-import styles from "./page.module.css";
+import type { CombinedTrendPoint, TeamKey, TrendPoint } from "@/domains/backlog/types";
+import styles from "./combined-team-trend-chart.module.css";
 
 type HoverState = {
   x: number;

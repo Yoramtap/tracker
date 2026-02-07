@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getBacklogSnapshot, getSnapshot } from "../../../backlog/server-snapshot";
+import { getBacklogSnapshot, getSnapshot } from "@/domains/backlog/server-snapshot";
 
 export const runtime = "nodejs";
 

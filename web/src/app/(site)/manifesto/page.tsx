@@ -1,4 +1,4 @@
-import BuildLoop from "../components/build-loop";
+import BuildLoop from "@/components/build-loop";
 import styles from "./page.module.css";
 
 export default function ManifestoPage() {

@@ -1,0 +1,454 @@
+.page {
+  --line: rgb(118 164 232 / 38%);
+  min-height: 100vh;
+  padding: 28px 6vw 72px;
+  background: radial-gradient(
+    circle at top,
+    var(--bg-gradient-start) 0%,
+    var(--bg-gradient-mid) 55%,
+    var(--bg-gradient-end) 100%
+  );
+}
+
+.dashboardGrid {
+  max-width: 980px;
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1fr;
+}
+
+.panel {
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 16px;
+}
+
+.boardCard {
+  position: relative;
+}
+
+.boardCardHeader {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 6px 8px;
+}
+
+.boardCardHeader h2 {
+  font-size: 1.1rem;
+  margin: 0;
+  line-height: 1;
+}
+
+.titleWithLogo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nepLogo {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 26%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 32%),
+    0 2px 8px rgb(0 0 0 / 15%);
+  transform: translateY(0.5px);
+}
+
+.controlRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 36px;
+  margin: 2px 0 4px;
+}
+
+.combinedTeamToggles {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.combinedTeamToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 34px;
+  min-width: 102px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgb(143 170 215 / 44%);
+  background: linear-gradient(180deg, rgb(18 36 73 / 58%) 0%, rgb(12 26 55 / 44%) 100%);
+  color: rgb(215 230 252 / 88%);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  opacity: 0.95;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease,
+    background-color 140ms ease,
+    opacity 140ms ease;
+}
+
+.combinedTeamToggle[data-active="true"] {
+  color: #f7fbff;
+  border-color: rgb(117 180 255 / 78%);
+  background: linear-gradient(180deg, rgb(26 63 118 / 95%) 0%, rgb(18 48 93 / 93%) 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 20%),
+    0 0 0 1px rgb(117 180 255 / 30%);
+}
+
+.combinedTeamToggle:hover {
+  border-color: rgb(182 209 248 / 56%);
+  color: rgb(238 246 255 / 96%);
+  background: linear-gradient(180deg, rgb(22 44 86 / 66%) 0%, rgb(16 34 66 / 56%) 100%);
+}
+
+.combinedTeamToggle:focus-visible {
+  outline: 2px solid rgb(141 200 255 / 90%);
+  outline-offset: 2px;
+}
+
+.combinedTeamToggleClose {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  border-radius: 999px;
+  border: 1px solid rgb(200 227 255 / 48%);
+  background: rgb(0 0 0 / 16%);
+  font-size: 0;
+}
+
+.combinedTeamToggleClose::before {
+  content: "×";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  transform: translateY(-0.5px);
+}
+
+.loadError {
+  margin: 6px auto 0;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgb(255 143 143 / 45%);
+  background: rgb(120 24 24 / 22%);
+  color: rgb(255 214 214 / 96%);
+  font-size: 0.8rem;
+}
+
+.interactiveChart {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: 14px;
+  border: 1px solid rgb(124 173 245 / 42%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 26%),
+    0 10px 22px rgb(10 20 40 / 12%);
+  background: linear-gradient(180deg, #1b2a52 0%, #132043 100%);
+  padding: 10px;
+}
+
+.interactiveSvg {
+  width: max-content;
+  height: auto;
+  display: block;
+}
+
+.axisLine {
+  stroke: rgb(168 190 230 / 52%);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+  vector-effect: non-scaling-stroke;
+}
+
+.axisTickLabel {
+  fill: rgb(226 236 255 / 90%);
+  font-size: 11px;
+}
+
+.axisLabel {
+  fill: rgb(235 244 255 / 92%);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.axisLabelYear {
+  font-size: 10px;
+  fill: rgb(196 212 238 / 90%);
+}
+
+.axisLabelTeam {
+  fill: rgb(219 233 255 / 94%);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.plotBand {
+  fill: rgb(255 255 255 / 1.8%);
+}
+
+.plotBand[data-alt="true"] {
+  fill: rgb(255 255 255 / 3.1%);
+}
+
+.slotDivider {
+  stroke: rgb(144 174 225 / 34%);
+  stroke-width: 1;
+  opacity: 0.74;
+  shape-rendering: crispEdges;
+  vector-effect: non-scaling-stroke;
+}
+
+.interactiveBar {
+  cursor: pointer;
+  stroke: none;
+  shape-rendering: geometricPrecision;
+  transition:
+    opacity 140ms ease,
+    filter 140ms ease;
+}
+
+.interactiveBar:hover,
+.interactiveBar:focus-visible {
+  opacity: 0.96;
+  filter: brightness(1.08) saturate(1.02);
+  outline: none;
+}
+
+.chartTooltip {
+  position: absolute;
+  pointer-events: none;
+  display: grid;
+  gap: 2px;
+  min-width: 110px;
+  max-width: 150px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid rgb(126 177 248 / 52%);
+  background: color-mix(in srgb, var(--surface) 92%, var(--surface-contrast));
+  box-shadow: 0 6px 18px rgb(0 0 0 / 18%);
+  font-size: 0.76rem;
+  color: var(--ink);
+}
+
+.priorityLegend {
+  margin-top: 10px;
+  display: flex;
+  gap: 0;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 11px;
+  border: 1px solid rgb(166 190 235 / 24%);
+  background: linear-gradient(180deg, rgb(11 24 52 / 72%) 0%, rgb(10 20 44 / 62%) 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%);
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.priorityLegendButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgb(214 228 252 / 84%);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  opacity: 0.84;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease,
+    opacity 140ms ease;
+}
+
+.priorityLegendButton[data-active="true"] {
+  color: #f6fbff;
+  border-color: rgb(131 183 255 / 62%);
+  background: linear-gradient(180deg, rgb(40 73 127 / 94%) 0%, rgb(28 56 102 / 92%) 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 18%),
+    0 0 0 1px rgb(131 183 255 / 22%);
+}
+
+.priorityLegendButton:hover {
+  border-color: rgb(197 216 247 / 30%);
+  color: rgb(238 246 255 / 96%);
+  background: rgb(255 255 255 / 6%);
+}
+
+.legendDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.bottomSyncControls {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.headerActions {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 56px;
+}
+
+.refreshButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: rgb(202 223 255 / 82%);
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    color 140ms ease,
+    opacity 140ms ease;
+}
+
+.refreshButton:hover {
+  color: rgb(241 248 255 / 100%);
+}
+
+.refreshButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.refreshButton:active {
+  transform: translateY(1px);
+}
+
+.refreshButton:focus-visible {
+  outline: 2px solid rgb(141 200 255 / 90%);
+  outline-offset: 2px;
+}
+
+.refreshIcon {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+}
+
+.refreshButton[data-refreshing="true"] .refreshIcon {
+  animation: backlogSpin 900ms linear infinite;
+}
+
+.syncedBadge {
+  color: rgb(196 213 240 / 86%);
+  font-size: 0.67rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  max-width: 280px;
+  white-space: nowrap;
+}
+
+@keyframes backlogSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.updatedToast {
+  position: absolute;
+  left: 50%;
+  top: -28px;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgb(127 186 255 / 48%);
+  background: linear-gradient(180deg, rgb(26 63 118 / 95%) 0%, rgb(18 48 93 / 93%) 100%);
+  color: #f4f9ff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 20px rgb(7 15 32 / 30%);
+  z-index: 5;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .controlRow {
+    justify-content: flex-start;
+    min-height: auto;
+    margin-bottom: 6px;
+  }
+
+  .bottomSyncControls {
+    justify-content: flex-start;
+    margin-left: 6px;
+  }
+
+  .syncedBadge {
+    max-width: calc(100vw - 130px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .combinedTeamToggles {
+    width: auto;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .boardCardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .interactiveChart {
+    padding: 6px;
+  }
+
+  .axisTickLabel {
+    font-size: 10px;
+  }
+
+  .chartTooltip {
+    font-size: 0.72rem;
+  }
+}

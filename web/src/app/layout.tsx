@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Nunito_Sans } from "next/font/google";
 import "./globals.css";
-import NightVisionTrigger from "./components/night-vision-trigger";
-import PrimaryNav from "./components/primary-nav";
+import NightVisionTrigger from "../components/night-vision-trigger";
+import PrimaryNav from "../components/primary-nav";
 
 const display = Nunito_Sans({
   variable: "--font-display",
