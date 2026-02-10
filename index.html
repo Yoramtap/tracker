@@ -3,6 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://cdn.plot.ly; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'"
+    />
     <title>Backlog Trends</title>
     <style>
       :root {
@@ -15,12 +19,6 @@
 
       * {
         box-sizing: border-box;
-      }
-
-      html,
-      body {
-        width: 100%;
-        overflow-x: hidden;
       }
 
       body {
@@ -64,7 +62,6 @@
         border-radius: 12px;
         padding: 6px;
         background: rgba(10, 16, 30, 0.35);
-        overflow: hidden;
       }
 
       .chart-canvas {
@@ -77,8 +74,6 @@
 
       .bar-chart-wrap {
         width: 100%;
-        overflow-x: hidden;
-        overflow-y: hidden;
       }
 
       .panel-status {
@@ -106,7 +101,11 @@
       </section>
     </main>
 
-    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <script
+      src="https://cdn.plot.ly/plotly-2.35.2.min.js"
+      integrity="sha384-cCVCZkAjYNxaYKbM8lsArLznDF/SvMFr1jcZrvOpSTCa0W40ZAdLzHCEulnUa5i7"
+      crossorigin="anonymous"
+    ></script>
     <script src="./app.js"></script>
   </body>
 </html>

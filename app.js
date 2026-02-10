@@ -132,12 +132,14 @@ function renderLineChart() {
       tickangle: -30,
       color: CHART_COLORS.text,
       gridcolor: CHART_COLORS.grid,
+      automargin: true,
     },
     yaxis: {
       title: "Open Bugs",
       rangemode: "tozero",
       color: CHART_COLORS.text,
       gridcolor: CHART_COLORS.grid,
+      automargin: true,
     },
   };
 
@@ -190,7 +192,7 @@ function renderStackedBarChart() {
     ...BASE_LAYOUT,
     barmode: "stack",
     uirevision: "backlog-stack",
-    margin: { t: 18, r: 12, b: 78, l: 52 },
+    margin: { t: 18, r: 16, b: 86, l: 56 },
     bargap: 0.36,
     xaxis: {
       type: "multicategory",
@@ -198,12 +200,14 @@ function renderStackedBarChart() {
       tickfont: { size: 9 },
       color: CHART_COLORS.text,
       showgrid: false,
+      automargin: true,
     },
     yaxis: {
       title: "Open Bugs",
       rangemode: "tozero",
       color: CHART_COLORS.text,
       gridcolor: CHART_COLORS.grid,
+      automargin: true,
     },
   };
 
