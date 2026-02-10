@@ -20,6 +20,25 @@ const PRIORITY_LABELS = PRIORITY_CONFIG.reduce((acc, priority) => {
   return acc;
 }, {});
 
+const CHART_COLORS = {
+  text: "#d9e8ff",
+  grid: "rgba(175,203,250,0.12)",
+  transparent: "rgba(0,0,0,0)",
+};
+
+const BASE_LAYOUT = {
+  paper_bgcolor: CHART_COLORS.transparent,
+  plot_bgcolor: CHART_COLORS.transparent,
+  legend: {
+    orientation: "h",
+    yanchor: "bottom",
+    y: 1.02,
+    xanchor: "left",
+    x: 0,
+    font: { color: CHART_COLORS.text },
+  },
+};
+
 const state = {
   snapshot: null,
   mode: "all",
@@ -69,9 +88,10 @@ function totalForPoint(point) {
 }
 
 function breakdownText(point) {
-  return PRIORITY_CONFIG.map(
-    (priority) => `${PRIORITY_LABELS[priority.key]}: ${toNumber(point[priority.key])}`
-  ).join("<br>");
+  return PRIORITY_CONFIG.map((priority) => {
+    const value = toNumber(point[priority.key]);
+    return `${PRIORITY_LABELS[priority.key]}: ${value}`;
+  }).join("<br>");
 }
 
 function formatDateShort(date) {
@@ -86,7 +106,9 @@ function renderLineChart() {
   const x = state.snapshot.combinedPoints.map((point) => point.date);
   const traces = TEAM_CONFIG.map((team) => {
     const y = state.snapshot.combinedPoints.map((point) => totalForPoint(point[team.key]));
-    const customData = state.snapshot.combinedPoints.map((point) => breakdownText(point[team.key]));
+    const customData = state.snapshot.combinedPoints.map((point) =>
+      breakdownText(point[team.key])
+    );
     return {
       type: "scatter",
       mode: "lines+markers",
@@ -102,29 +124,20 @@ function renderLineChart() {
   });
 
   const layout = {
-    paper_bgcolor: "rgba(0,0,0,0)",
-    plot_bgcolor: "rgba(0,0,0,0)",
+    ...BASE_LAYOUT,
     uirevision: "backlog-line",
     margin: { t: 18, r: 20, b: 42, l: 56 },
     xaxis: {
       title: "Date",
       tickangle: -30,
-      color: "#d9e8ff",
-      gridcolor: "rgba(175,203,250,0.12)",
+      color: CHART_COLORS.text,
+      gridcolor: CHART_COLORS.grid,
     },
     yaxis: {
       title: "Open Bugs",
       rangemode: "tozero",
-      color: "#d9e8ff",
-      gridcolor: "rgba(175,203,250,0.12)",
-    },
-    legend: {
-      orientation: "h",
-      yanchor: "bottom",
-      y: 1.02,
-      xanchor: "left",
-      x: 0,
-      font: { color: "#d9e8ff" },
+      color: CHART_COLORS.text,
+      gridcolor: CHART_COLORS.grid,
     },
   };
 
@@ -174,9 +187,8 @@ function renderStackedBarChart() {
   }));
 
   const layout = {
+    ...BASE_LAYOUT,
     barmode: "stack",
-    paper_bgcolor: "rgba(0,0,0,0)",
-    plot_bgcolor: "rgba(0,0,0,0)",
     uirevision: "backlog-stack",
     margin: { t: 18, r: 12, b: 78, l: 52 },
     bargap: 0.36,
@@ -184,22 +196,14 @@ function renderStackedBarChart() {
       type: "multicategory",
       tickangle: -90,
       tickfont: { size: 9 },
-      color: "#d9e8ff",
+      color: CHART_COLORS.text,
       showgrid: false,
     },
     yaxis: {
       title: "Open Bugs",
       rangemode: "tozero",
-      color: "#d9e8ff",
-      gridcolor: "rgba(175,203,250,0.12)",
-    },
-    legend: {
-      orientation: "h",
-      yanchor: "bottom",
-      y: 1.02,
-      xanchor: "left",
-      x: 0,
-      font: { color: "#d9e8ff" },
+      color: CHART_COLORS.text,
+      gridcolor: CHART_COLORS.grid,
     },
   };
 

@@ -67,13 +67,21 @@
         overflow: hidden;
       }
 
+      .chart-canvas {
+        width: 100%;
+      }
+
+      .chart-canvas--tall {
+        min-height: 560px;
+      }
+
       .bar-chart-wrap {
         width: 100%;
         overflow-x: hidden;
         overflow-y: hidden;
       }
 
-      #status {
+      .panel-status {
         margin-top: 8px;
         color: #ffd2d2;
         font-size: 0.84rem;
@@ -85,16 +93,16 @@
       <section id="trend-panel" class="panel" aria-label="Backlog trend chart">
         <h1>Bug trend across teams</h1>
         <div class="chart">
-          <div id="chart" style="width: 100%; min-height: 560px"></div>
+          <div id="chart" class="chart-canvas chart-canvas--tall"></div>
         </div>
       </section>
 
       <section id="composition-panel" class="panel" aria-label="Backlog stacked bars">
         <h2>Bug composition by priority</h2>
         <div class="chart">
-          <div id="stacked-chart" class="bar-chart-wrap" style="min-height: 560px"></div>
+          <div id="stacked-chart" class="chart-canvas chart-canvas--tall bar-chart-wrap"></div>
         </div>
-        <p id="status" hidden></p>
+        <p id="status" class="panel-status" hidden></p>
       </section>
     </main>
 
