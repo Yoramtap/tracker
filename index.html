@@ -17,19 +17,25 @@
         box-sizing: border-box;
       }
 
+      html,
+      body {
+        width: 100%;
+        overflow-x: hidden;
+      }
+
       body {
         margin: 0;
         min-height: 100vh;
         font-family: "Segoe UI", Roboto, Arial, sans-serif;
         color: var(--text);
         background: radial-gradient(circle at top, #1f2f5b 0%, var(--bg) 62%);
-        overflow-x: hidden;
       }
 
       main {
-        width: min(1100px, calc(100% - 32px));
+        width: 100%;
+        max-width: 1100px;
         margin: 0 auto;
-        padding: 28px 0 40px;
+        padding: 28px 16px 40px;
         display: grid;
         gap: 18px;
       }
@@ -58,6 +64,7 @@
         border-radius: 12px;
         padding: 6px;
         background: rgba(10, 16, 30, 0.35);
+        overflow: hidden;
       }
 
       .bar-chart-wrap {
@@ -75,14 +82,14 @@
   </head>
   <body>
     <main>
-      <section class="panel" aria-label="Backlog trend chart">
+      <section id="trend-panel" class="panel" aria-label="Backlog trend chart">
         <h1>Bug trend across teams</h1>
         <div class="chart">
           <div id="chart" style="width: 100%; min-height: 560px"></div>
         </div>
       </section>
 
-      <section class="panel" aria-label="Backlog stacked bars">
+      <section id="composition-panel" class="panel" aria-label="Backlog stacked bars">
         <h2>Bug composition by priority</h2>
         <div class="chart">
           <div id="stacked-chart" class="bar-chart-wrap" style="min-height: 560px"></div>

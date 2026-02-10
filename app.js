@@ -22,7 +22,37 @@ const PRIORITY_LABELS = PRIORITY_CONFIG.reduce((acc, priority) => {
 
 const state = {
   snapshot: null,
+  mode: "all",
 };
+
+function getModeFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const chart = (params.get("chart") || "").toLowerCase();
+  if (chart === "trend") return "trend";
+  if (chart === "composition") return "composition";
+  return "all";
+}
+
+function applyModeVisibility() {
+  const trendPanel = document.getElementById("trend-panel");
+  const compositionPanel = document.getElementById("composition-panel");
+  if (!trendPanel || !compositionPanel) return;
+
+  if (state.mode === "trend") {
+    trendPanel.hidden = false;
+    compositionPanel.hidden = true;
+    return;
+  }
+
+  if (state.mode === "composition") {
+    trendPanel.hidden = true;
+    compositionPanel.hidden = false;
+    return;
+  }
+
+  trendPanel.hidden = false;
+  compositionPanel.hidden = false;
+}
 
 function toNumber(value) {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
@@ -183,14 +213,20 @@ function renderStackedBarChart() {
 async function loadSnapshot() {
   const status = document.getElementById("status");
   status.hidden = true;
+  state.mode = getModeFromUrl();
+  applyModeVisibility();
 
   try {
     const response = await fetch("./snapshot.json", { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
     state.snapshot = await response.json();
-    renderLineChart();
-    renderStackedBarChart();
+    if (state.mode !== "composition") {
+      renderLineChart();
+    }
+    if (state.mode !== "trend") {
+      renderStackedBarChart();
+    }
   } catch (error) {
     status.hidden = false;
     status.textContent = `Failed to load snapshot.json: ${
