@@ -100,6 +100,7 @@ function renderLineChart() {
 
   Plotly.react("chart", traces, layout, {
     displayModeBar: true,
+    displaylogo: false,
     responsive: true,
   });
 }
@@ -147,12 +148,12 @@ function renderStackedBarChart() {
     paper_bgcolor: "rgba(0,0,0,0)",
     plot_bgcolor: "rgba(0,0,0,0)",
     uirevision: "backlog-stack",
-    margin: { t: 18, r: 20, b: 84, l: 56 },
-    bargap: 0.3,
+    margin: { t: 18, r: 12, b: 78, l: 52 },
+    bargap: 0.36,
     xaxis: {
       type: "multicategory",
       tickangle: -90,
-      tickfont: { size: 10 },
+      tickfont: { size: 9 },
       color: "#d9e8ff",
       showgrid: false,
     },
@@ -174,6 +175,7 @@ function renderStackedBarChart() {
 
   Plotly.react("stacked-chart", traces, layout, {
     displayModeBar: true,
+    displaylogo: false,
     responsive: true,
   });
 }
