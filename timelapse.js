@@ -183,6 +183,14 @@ const el = {
   indexLabel: document.getElementById("index-label")
 };
 
+function getMotionOverride() {
+  const params = new URLSearchParams(window.location.search);
+  const motion = (params.get("motion") || "").toLowerCase();
+  if (motion === "on") return "force-on";
+  if (motion === "off") return "force-off";
+  return "auto";
+}
+
 function getMoveDurationMs(movedCount) {
   if (movedCount <= 3) return 280;
   if (movedCount <= 6) return 250;
@@ -404,12 +412,17 @@ function runMoveAnimations(fromRects, toRects, movedIds, durationMs) {
     ghost.style.top = `${from.top}px`;
     ghost.style.width = `${from.width}px`;
     ghost.style.height = `${from.height}px`;
+    ghost.style.transition = "none";
+    ghost.style.transform = "translate(0px, 0px)";
+    ghost.style.opacity = "1";
     document.body.appendChild(ghost);
 
     sourceNode.classList.add("card--moving");
     sourceNode.style.visibility = "hidden";
 
     requestAnimationFrame(() => {
+      // Force layout so Firefox reliably applies the next transition.
+      void ghost.offsetWidth;
       ghost.style.transition = `transform ${durationMs}ms ease-in-out, opacity ${durationMs}ms ease-in-out`;
       ghost.style.transform = `translate(${-dx}px, ${-dy}px)`;
       ghost.style.opacity = "0.9";
@@ -535,9 +548,18 @@ function bind() {
 }
 
 function init() {
+  const motionOverride = getMotionOverride();
   const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-  state.reducedMotion = motionQuery.matches;
+  if (motionOverride === "force-on") {
+    state.reducedMotion = false;
+  } else if (motionOverride === "force-off") {
+    state.reducedMotion = true;
+  } else {
+    state.reducedMotion = motionQuery.matches;
+  }
+
   motionQuery.addEventListener("change", (event) => {
+    if (motionOverride !== "auto") return;
     state.reducedMotion = event.matches;
   });
 
