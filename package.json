@@ -1,0 +1,11 @@
+{
+  "name": "bugtracker-workshop",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "python3 -m http.server 4173",
+    "refresh:full": "node scripts/refresh-backlog-trends.mjs",
+    "backlog:setup-auth": "node scripts/setup-backlog-auth.mjs",
+    "export:public": "node scripts/export-public.mjs"
+  }
+}

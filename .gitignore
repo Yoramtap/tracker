@@ -1,1 +1,5 @@
 .DS_Store
+.env.backlog
+.env.local
+node_modules
+snapshot.json.tmp

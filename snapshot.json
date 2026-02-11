@@ -1,117 +1,116 @@
 {
-  "schemaVersion": 1,
-  "updatedAt": "2026-02-10T15:17:50.914Z",
+  "schemaVersion": 2,
+  "updatedAt": "2026-02-11T19:09:59.352Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-02-10T15:17:50.901Z",
-    "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date)."
+    "syncedAt": "2026-02-11T19:09:59.352Z",
+    "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). UAT aging is generated from current UAT issues and changelog-derived status entry timestamps."
+  },
+  "uatAging": {
+    "scope": {
+      "project": "TFC",
+      "issueType": "Any",
+      "status": "UAT",
+      "label": "Broadcast"
+    },
+    "generatedAt": "2026-02-11T19:09:59.352Z",
+    "totalIssues": 19,
+    "buckets": [
+      {
+        "id": "d0_7",
+        "label": "0-7 days",
+        "minDays": 0,
+        "maxDays": 7
+      },
+      {
+        "id": "d8_14",
+        "label": "8-14 days",
+        "minDays": 8,
+        "maxDays": 14
+      },
+      {
+        "id": "d15_30",
+        "label": "15-30 days",
+        "minDays": 15,
+        "maxDays": 30
+      },
+      {
+        "id": "d31_60",
+        "label": "31-60 days",
+        "minDays": 31,
+        "maxDays": 60
+      },
+      {
+        "id": "d61_plus",
+        "label": "61+ days",
+        "minDays": 61,
+        "maxDays": null
+      }
+    ],
+    "priorities": {
+      "highest": {
+        "count": 6,
+        "avgDays": 8,
+        "maxDays": 27,
+        "buckets": {
+          "d0_7": 3,
+          "d8_14": 2,
+          "d15_30": 1,
+          "d31_60": 0,
+          "d61_plus": 0
+        }
+      },
+      "high": {
+        "count": 4,
+        "avgDays": 36,
+        "maxDays": 61,
+        "buckets": {
+          "d0_7": 1,
+          "d8_14": 0,
+          "d15_30": 1,
+          "d31_60": 1,
+          "d61_plus": 1
+        }
+      },
+      "medium": {
+        "count": 9,
+        "avgDays": 37.6,
+        "maxDays": 61,
+        "buckets": {
+          "d0_7": 2,
+          "d8_14": 0,
+          "d15_30": 3,
+          "d31_60": 1,
+          "d61_plus": 3
+        }
+      },
+      "low": {
+        "count": 0,
+        "avgDays": 0,
+        "maxDays": 0,
+        "buckets": {
+          "d0_7": 0,
+          "d8_14": 0,
+          "d15_30": 0,
+          "d31_60": 0,
+          "d61_plus": 0
+        }
+      },
+      "lowest": {
+        "count": 0,
+        "avgDays": 0,
+        "maxDays": 0,
+        "buckets": {
+          "d0_7": 0,
+          "d8_14": 0,
+          "d15_30": 0,
+          "d31_60": 0,
+          "d61_plus": 0
+        }
+      }
+    }
   },
   "combinedPoints": [
-    {
-      "date": "2025-06-23",
-      "api": {
-        "date": "2025-06-23",
-        "highest": 0,
-        "high": 1,
-        "medium": 9,
-        "low": 2,
-        "lowest": 0
-      },
-      "legacy": {
-        "date": "2025-06-23",
-        "highest": 0,
-        "high": 2,
-        "medium": 33,
-        "low": 56,
-        "lowest": 3
-      },
-      "react": {
-        "date": "2025-06-23",
-        "highest": 0,
-        "high": 0,
-        "medium": 1,
-        "low": 0,
-        "lowest": 0
-      },
-      "bc": {
-        "date": "2025-06-23",
-        "highest": 3,
-        "high": 53,
-        "medium": 95,
-        "low": 10,
-        "lowest": 1
-      }
-    },
-    {
-      "date": "2025-07-07",
-      "api": {
-        "date": "2025-07-07",
-        "highest": 0,
-        "high": 1,
-        "medium": 7,
-        "low": 2,
-        "lowest": 0
-      },
-      "legacy": {
-        "date": "2025-07-07",
-        "highest": 0,
-        "high": 2,
-        "medium": 34,
-        "low": 56,
-        "lowest": 3
-      },
-      "react": {
-        "date": "2025-07-07",
-        "highest": 0,
-        "high": 0,
-        "medium": 1,
-        "low": 0,
-        "lowest": 0
-      },
-      "bc": {
-        "date": "2025-07-07",
-        "highest": 5,
-        "high": 55,
-        "medium": 96,
-        "low": 10,
-        "lowest": 1
-      }
-    },
-    {
-      "date": "2025-08-04",
-      "api": {
-        "date": "2025-08-04",
-        "highest": 0,
-        "high": 2,
-        "medium": 5,
-        "low": 2,
-        "lowest": 0
-      },
-      "legacy": {
-        "date": "2025-08-04",
-        "highest": 0,
-        "high": 1,
-        "medium": 31,
-        "low": 55,
-        "lowest": 3
-      },
-      "react": {
-        "date": "2025-08-04",
-        "highest": 0,
-        "high": 0,
-        "medium": 1,
-        "low": 0,
-        "lowest": 0
-      },
-      "bc": {
-        "date": "2025-08-04",
-        "highest": 3,
-        "high": 52,
-        "medium": 90,
-        "low": 9,
-        "lowest": 1
-      }
-    },
     {
       "date": "2025-08-18",
       "api": {
@@ -218,9 +217,9 @@
       }
     },
     {
-      "date": "2025-09-30",
+      "date": "2025-09-29",
       "api": {
-        "date": "2025-09-30",
+        "date": "2025-09-29",
         "highest": 1,
         "high": 2,
         "medium": 7,
@@ -228,15 +227,15 @@
         "lowest": 0
       },
       "legacy": {
-        "date": "2025-09-30",
+        "date": "2025-09-29",
         "highest": 0,
-        "high": 2,
-        "medium": 10,
+        "high": 1,
+        "medium": 9,
         "low": 45,
         "lowest": 2
       },
       "react": {
-        "date": "2025-09-30",
+        "date": "2025-09-29",
         "highest": 0,
         "high": 0,
         "medium": 1,
@@ -244,8 +243,8 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2025-09-30",
-        "highest": 3,
+        "date": "2025-09-29",
+        "highest": 2,
         "high": 54,
         "medium": 95,
         "low": 9,
@@ -428,6 +427,76 @@
       }
     },
     {
+      "date": "2025-12-22",
+      "api": {
+        "date": "2025-12-22",
+        "highest": 0,
+        "high": 0,
+        "medium": 5,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-12-22",
+        "highest": 0,
+        "high": 1,
+        "medium": 8,
+        "low": 47,
+        "lowest": 2
+      },
+      "react": {
+        "date": "2025-12-22",
+        "highest": 0,
+        "high": 0,
+        "medium": 5,
+        "low": 1,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-12-22",
+        "highest": 4,
+        "high": 71,
+        "medium": 111,
+        "low": 8,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2026-01-05",
+      "api": {
+        "date": "2026-01-05",
+        "highest": 0,
+        "high": 1,
+        "medium": 4,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2026-01-05",
+        "highest": 0,
+        "high": 1,
+        "medium": 6,
+        "low": 47,
+        "lowest": 2
+      },
+      "react": {
+        "date": "2026-01-05",
+        "highest": 0,
+        "high": 0,
+        "medium": 3,
+        "low": 1,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2026-01-05",
+        "highest": 4,
+        "high": 73,
+        "medium": 113,
+        "low": 8,
+        "lowest": 0
+      }
+    },
+    {
       "date": "2026-01-19",
       "api": {
         "date": "2026-01-19",
@@ -493,6 +562,41 @@
         "highest": 3,
         "high": 70,
         "medium": 112,
+        "low": 7,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2026-02-16",
+      "api": {
+        "date": "2026-02-16",
+        "highest": 0,
+        "high": 1,
+        "medium": 5,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2026-02-16",
+        "highest": 0,
+        "high": 1,
+        "medium": 7,
+        "low": 32,
+        "lowest": 0
+      },
+      "react": {
+        "date": "2026-02-16",
+        "highest": 0,
+        "high": 0,
+        "medium": 7,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2026-02-16",
+        "highest": 6,
+        "high": 68,
+        "medium": 113,
         "low": 7,
         "lowest": 0
       }
