@@ -21,28 +21,48 @@ const PRIORITY_LABELS = PRIORITY_CONFIG.reduce((acc, priority) => {
 }, {});
 
 const CHART_COLORS = {
-  text: "#d9e8ff",
-  grid: "rgba(175,203,250,0.12)",
   transparent: "rgba(0,0,0,0)",
-};
-
-const BASE_LAYOUT = {
-  paper_bgcolor: CHART_COLORS.transparent,
-  plot_bgcolor: CHART_COLORS.transparent,
-  legend: {
-    orientation: "h",
-    yanchor: "bottom",
-    y: 1.02,
-    xanchor: "left",
-    x: 0,
-    font: { color: CHART_COLORS.text },
-  },
 };
 
 const state = {
   snapshot: null,
   mode: "all",
 };
+
+function readThemeColor(name, fallback) {
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  return value || fallback;
+}
+
+function getThemeColors() {
+  return {
+    text: readThemeColor("--text", "#172b4d"),
+    grid: readThemeColor("--chart-grid", "rgba(9,30,66,0.14)"),
+  };
+}
+
+function buildBaseLayout(colors) {
+  return {
+    paper_bgcolor: CHART_COLORS.transparent,
+    plot_bgcolor: CHART_COLORS.transparent,
+    font: { color: colors.text },
+    legend: {
+      orientation: "h",
+      yanchor: "bottom",
+      y: 1.02,
+      xanchor: "left",
+      x: 0,
+      font: { color: colors.text },
+    },
+    modebar: {
+      bgcolor: CHART_COLORS.transparent,
+      color: colors.text,
+      activecolor: colors.text,
+    },
+  };
+}
 
 function getModeFromUrl() {
   const params = new URLSearchParams(window.location.search);
@@ -102,6 +122,7 @@ function formatDateShort(date) {
 
 function renderLineChart() {
   if (!state.snapshot || !Array.isArray(state.snapshot.combinedPoints)) return;
+  const themeColors = getThemeColors();
 
   const x = state.snapshot.combinedPoints.map((point) => point.date);
   const traces = TEAM_CONFIG.map((team) => {
@@ -124,21 +145,21 @@ function renderLineChart() {
   });
 
   const layout = {
-    ...BASE_LAYOUT,
+    ...buildBaseLayout(themeColors),
     uirevision: "backlog-line",
     margin: { t: 18, r: 20, b: 42, l: 56 },
     xaxis: {
       title: "Date",
       tickangle: -30,
-      color: CHART_COLORS.text,
-      gridcolor: CHART_COLORS.grid,
+      color: themeColors.text,
+      gridcolor: themeColors.grid,
       automargin: true,
     },
     yaxis: {
       title: "Open Bugs",
       rangemode: "tozero",
-      color: CHART_COLORS.text,
-      gridcolor: CHART_COLORS.grid,
+      color: themeColors.text,
+      gridcolor: themeColors.grid,
       automargin: true,
     },
   };
@@ -152,6 +173,7 @@ function renderLineChart() {
 
 function renderStackedBarChart() {
   if (!state.snapshot || !Array.isArray(state.snapshot.combinedPoints)) return;
+  const themeColors = getThemeColors();
 
   const root = document.getElementById("stacked-chart");
   if (!root) return;
@@ -189,7 +211,7 @@ function renderStackedBarChart() {
   }));
 
   const layout = {
-    ...BASE_LAYOUT,
+    ...buildBaseLayout(themeColors),
     barmode: "stack",
     uirevision: "backlog-stack",
     margin: { t: 18, r: 16, b: 86, l: 56 },
@@ -198,15 +220,15 @@ function renderStackedBarChart() {
       type: "multicategory",
       tickangle: -90,
       tickfont: { size: 9 },
-      color: CHART_COLORS.text,
+      color: themeColors.text,
       showgrid: false,
       automargin: true,
     },
     yaxis: {
       title: "Open Bugs",
       rangemode: "tozero",
-      color: CHART_COLORS.text,
-      gridcolor: CHART_COLORS.grid,
+      color: themeColors.text,
+      gridcolor: themeColors.grid,
       automargin: true,
     },
   };
