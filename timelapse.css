@@ -92,9 +92,11 @@ body {
 
 .column-head {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   gap: 8px;
+  text-align: center;
+  flex-wrap: wrap;
 }
 
 .column h3 {
@@ -117,16 +119,44 @@ body {
 
 .card {
   border: 1px solid var(--card-border);
-  border-radius: 8px;
+  border-radius: 7px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.07),
+    0 2px 2px rgba(0, 0, 0, 0.07),
+    0 4px 4px rgba(0, 0, 0, 0.07),
+    0 8px 8px rgba(0, 0, 0, 0.07);
+  position: relative;
+}
+
+.card--moving {
+  z-index: 35;
+}
+
+.card-header {
+  height: 10px;
+  border-bottom: 1px solid rgba(31, 45, 61, 0.12);
+}
+
+.card-body {
   background: var(--card-bg);
-  padding: 6px 8px;
-  font-size: 0.78rem;
+  padding: 7px 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-id {
+  display: block;
+  font-size: 0.79rem;
   line-height: 1.2;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   color: #1f2d3d;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
 }
 
 .controls-row {

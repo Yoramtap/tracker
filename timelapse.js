@@ -183,6 +183,13 @@ const el = {
   indexLabel: document.getElementById("index-label")
 };
 
+function getMoveDurationMs(movedCount) {
+  if (movedCount <= 3) return 280;
+  if (movedCount <= 6) return 250;
+  if (movedCount <= 10) return 220;
+  return 200;
+}
+
 function normalize(raw) {
   const columns = Array.isArray(raw?.columns) ? raw.columns : [];
   const snapshots = Array.isArray(raw?.snapshots) ? raw.snapshots : [];
@@ -218,18 +225,15 @@ function formatTs(iso) {
   });
 }
 
-function agingColor(streak) {
-  const ratio = Math.max(0, Math.min(1, (streak - 1) / 5));
-  const r = Math.round(248 - ratio * 12);
-  const g = Math.round(251 - ratio * 120);
-  const b = Math.round(255 - ratio * 140);
-  return `rgb(${r}, ${g}, ${b})`;
-}
+function cardHeaderColor(column, dwell) {
+  if (column === "Done") return "rgb(170, 221, 185)";
+  if (column === "To Do") return "transparent";
 
-function cardBackground(column, streak) {
-  if (column === "Done") return "rgb(225, 248, 233)";
-  if (column === "To Do") return "rgb(248, 251, 255)";
-  return agingColor(streak);
+  const ratio = Math.max(0, Math.min(1, (dwell - 1) / 6));
+  const r = Math.round(238 - ratio * 18);
+  const g = Math.round(216 - ratio * 100);
+  const b = Math.round(186 - ratio * 95);
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
 function setPlaybackLabel(isPlaying) {
@@ -347,25 +351,41 @@ function buildBoard() {
 function buildCardPool() {
   state.cardNodes = {};
   state.cardIds.forEach((id) => {
-    const card = document.createElement("article");
-    card.className = "card";
-    card.dataset.cardId = id;
-    card.textContent = id;
-    state.cardNodes[id] = card;
+    const root = document.createElement("article");
+    root.className = "card";
+    root.dataset.cardId = id;
+
+    const header = document.createElement("div");
+    header.className = "card-header";
+    header.setAttribute("aria-hidden", "true");
+
+    const body = document.createElement("div");
+    body.className = "card-body";
+
+    const idLabel = document.createElement("span");
+    idLabel.className = "card-id";
+    idLabel.textContent = id;
+
+    body.appendChild(idLabel);
+    root.appendChild(header);
+    root.appendChild(body);
+
+    state.cardNodes[id] = { root, header, body, idLabel };
   });
 }
 
 function collectRects() {
   const rects = {};
   state.cardIds.forEach((id) => {
-    const node = state.cardNodes[id];
+    const card = state.cardNodes[id];
+    const node = card?.root;
     if (!node || !node.isConnected) return;
     rects[id] = node.getBoundingClientRect();
   });
   return rects;
 }
 
-function runMoveAnimations(fromRects, toRects, movedIds) {
+function runMoveAnimations(fromRects, toRects, movedIds, durationMs) {
   movedIds.forEach((id) => {
     const from = fromRects[id];
     const to = toRects[id];
@@ -375,7 +395,7 @@ function runMoveAnimations(fromRects, toRects, movedIds) {
     const dy = from.top - to.top;
     if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
 
-    const sourceNode = state.cardNodes[id];
+    const sourceNode = state.cardNodes[id]?.root;
     if (!sourceNode || !sourceNode.isConnected) return;
 
     const ghost = sourceNode.cloneNode(true);
@@ -386,18 +406,20 @@ function runMoveAnimations(fromRects, toRects, movedIds) {
     ghost.style.height = `${from.height}px`;
     document.body.appendChild(ghost);
 
+    sourceNode.classList.add("card--moving");
     sourceNode.style.visibility = "hidden";
 
     requestAnimationFrame(() => {
-      ghost.style.transition = "transform 220ms ease, opacity 220ms ease";
+      ghost.style.transition = `transform ${durationMs}ms ease-in-out, opacity ${durationMs}ms ease-in-out`;
       ghost.style.transform = `translate(${-dx}px, ${-dy}px)`;
       ghost.style.opacity = "0.9";
     });
 
     window.setTimeout(() => {
+      sourceNode.classList.remove("card--moving");
       sourceNode.style.visibility = "";
       ghost.remove();
-    }, 240);
+    }, durationMs + 30);
   });
 }
 
@@ -421,9 +443,10 @@ function render(index, animateMoves) {
     ids.forEach((id) => {
       const card = state.cardNodes[id];
       const dwell = view.meta[id].dwell;
-      card.style.background = cardBackground(column, dwell);
-      card.title = `${id} · ${column} · ${dwell} day(s) in column`;
-      frag.appendChild(card);
+      card.body.style.backgroundColor = "rgb(255, 255, 255)";
+      card.header.style.backgroundColor = cardHeaderColor(column, dwell);
+      card.root.title = `${id} · ${column} · ${dwell} day(s) in column`;
+      frag.appendChild(card.root);
     });
 
     list.replaceChildren(frag);
@@ -436,8 +459,11 @@ function render(index, animateMoves) {
   if (shouldAnimate && prevRects && previousIndex !== index) {
     const prevCards = state.views[previousIndex].cards;
     const movedIds = state.cardIds.filter((id) => prevCards[id] !== view.cards[id]);
-    const nextRects = collectRects();
-    runMoveAnimations(prevRects, nextRects, movedIds);
+    if (movedIds.length > 0) {
+      const nextRects = collectRects();
+      const durationMs = getMoveDurationMs(movedIds.length);
+      runMoveAnimations(prevRects, nextRects, movedIds, durationMs);
+    }
   }
 }
 
@@ -459,7 +485,7 @@ function stepNext(animate) {
 
 function stepPrev() {
   if (state.currentIndex <= 0) return;
-  render(state.currentIndex - 1, false);
+  render(state.currentIndex - 1, true);
 }
 
 function play() {
@@ -488,7 +514,7 @@ function bind() {
 
   el.nextBtn.addEventListener("click", () => {
     stopPlayback();
-    stepNext(false);
+    stepNext(true);
   });
 
   el.slider.addEventListener("input", (event) => {

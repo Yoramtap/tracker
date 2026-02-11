@@ -137,3 +137,37 @@ None for MVP at this time.
 - Scrubbing is near-instant and deterministic.
 - UI remains readable and stable with ~100–150 cards.
 - Experiment results are reviewable in browser and ready for next-phase product decisions.
+
+## 11. Addendum: Motion + Sticky Notes
+
+### Summary of Agreed Changes
+
+- Make card movement the primary visual signal of flow (not only state replacement).
+- Keep scrubbing instant (no movement animation while dragging the timeline).
+- Style cards as sticky notes to better match scrum-board mental models.
+- Keep card content minimal and readable (short IDs only, no metadata clutter).
+
+### Motion Specification
+
+- Use position-based card movement animation for cards that change columns between two timeline steps.
+- Playback and step actions (`Play`, `Next`, `Previous`) should animate movement.
+- Scrubbing should update state instantly with no movement animation.
+- Animation timing:
+  - Default movement duration: `200-300ms`
+  - Easing: `ease-in-out`
+  - Adapt duration down when many cards move in the same step to reduce visual congestion.
+- Preserve deterministic layout behavior: cards should not jump unpredictably between frames unrelated to actual movement.
+
+### Sticky Note Visual Specification
+
+- Render cards with a sticky-note look (paper tone, subtle shadow, clear edge contrast).
+- Maintain high text contrast and readable short identifiers (for example `A6`, `BUG-123`).
+- Keep `Done` cards visually positive (green family).
+- Keep `To Do` cards neutral.
+- Apply aging/red pressure cues only in active flow columns (`In Progress`, `In Review`, `QA`, `UAT`).
+
+### Scope Notes for This Addendum
+
+- This addendum does not add new data requirements.
+- This addendum does not change multi-team scope.
+- Highlight/pulse effects are optional and should be selective only; avoid highlighting every moved card by default.
