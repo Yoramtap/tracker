@@ -17,7 +17,9 @@ This keeps credentials and private access in the workshop repo while exposing on
    - Script: `scripts/refresh-report-data.mjs`
 2. If refresh succeeds, generate analysis brief:
    - `npm run analyze:brief`
-   - Output: `reports/latest-analysis.md`
+   - Outputs:
+     - `reports/latest-analysis.md`
+     - `reports/history/analysis-<timestamp>.md`
 3. If analysis succeeds, export approved files for public consumption:
    - `npm run export:public -- --target /Users/yoramtap/Documents/AI/bugtracker`
 4. In `bugtracker`, commit and push:
@@ -60,6 +62,8 @@ Because this workflow runs locally, use Codex automation as the scheduler/orches
 2. In `/Users/yoramtap/Documents/AI/bugtracker-workshop`:
    - Run `npm run analyze:brief`
    - If failed: stop and report failure
+   - Verify `reports/latest-analysis.md` exists
+   - Capture newest `reports/history/analysis-*.md` as `analysis_history_file`
 3. In `/Users/yoramtap/Documents/AI/bugtracker-workshop`:
    - Run `npm run export:public -- --target /Users/yoramtap/Documents/AI/bugtracker`
 4. In `/Users/yoramtap/Documents/AI/bugtracker`:
@@ -73,6 +77,8 @@ Because this workflow runs locally, use Codex automation as the scheduler/orches
 - `exported`: yes/no
 - `committed`: yes/no
 - `pushed`: yes/no
+- `analysis_latest_file`: path
+- `analysis_history_file`: path
 - `result`: success | failed | skipped
 - `details`: error or skip reason when applicable
 

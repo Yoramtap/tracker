@@ -13,6 +13,7 @@ const TEAM_LABELS = {
 };
 const DEFAULT_INPUT = "snapshot.json";
 const DEFAULT_HISTORY_DIR = "snapshots";
+const DEFAULT_REPORT_HISTORY_DIR = "reports/history";
 
 function getArg(flag) {
   const index = process.argv.indexOf(flag);
@@ -45,6 +46,12 @@ function formatPercent(value) {
 
 function teamLabel(teamKey) {
   return TEAM_LABELS[teamKey] || teamKey;
+}
+
+function safeStampFromIso(isoLike) {
+  return String(isoLike || "unknown")
+    .replace(/[:.]/g, "-")
+    .replace(/[^0-9TZ-]/g, "");
 }
 
 function buildBugSeries(points) {
@@ -233,8 +240,6 @@ function buildMarkdown(snapshot, bugSummary, uatSummary, pointCount, uatHistoryS
 
   const backlogDirection =
     bugSummary.totalDelta > 0 ? "up" : bugSummary.totalDelta < 0 ? "down" : "flat";
-  const urgentDirection =
-    bugSummary.urgentDelta > 0 ? "rising" : bugSummary.urgentDelta < 0 ? "falling" : "flat";
 
   const riskLevel =
     uatSummary.longAgedPct >= 40 ? "high" : uatSummary.longAgedPct >= 25 ? "medium" : "lower";
@@ -409,6 +414,9 @@ async function main() {
   const outputPathArg = getArg("--output");
   const outputPath = outputPathArg ? path.resolve(outputPathArg) : "";
   const historyDirPath = path.resolve(getArg("--history-dir") || DEFAULT_HISTORY_DIR);
+  const reportHistoryDirPath = path.resolve(
+    getArg("--report-history-dir") || DEFAULT_REPORT_HISTORY_DIR
+  );
 
   const raw = await fs.readFile(inputPath, "utf8");
   const snapshot = JSON.parse(raw);
@@ -430,13 +438,23 @@ async function main() {
     points.length,
     uatHistorySummary
   );
+  const generatedAtIso = new Date().toISOString();
+  const archivedReportPath = path.join(
+    reportHistoryDirPath,
+    `analysis-${safeStampFromIso(generatedAtIso)}.md`
+  );
 
   if (outputPath) {
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
     await fs.writeFile(outputPath, `${report}\n`, "utf8");
     console.log(`Wrote analysis report: ${outputPath}`);
   } else {
     console.log(report);
   }
+
+  await fs.mkdir(reportHistoryDirPath, { recursive: true });
+  await fs.writeFile(archivedReportPath, `${report}\n`, "utf8");
+  console.log(`Archived analysis history copy: ${archivedReportPath}`);
 }
 
 main().catch((error) => {

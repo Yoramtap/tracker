@@ -98,6 +98,7 @@ npm run analyze:brief
 This writes:
 
 - `reports/latest-analysis.md`
+- `reports/history/analysis-<timestamp>.md`
 
 The report includes:
 
@@ -115,6 +116,8 @@ Each `npm run refresh:full` run writes:
 - historical copy: `snapshots/snapshot-<timestamp>.json`
 
 This archive enables longitudinal UAT analysis across runs without exposing private Jira credentials.
+
+A similar archive is kept for analysis output in `reports/history/` so each run is preserved for historical comparison.
 
 ## UAT Aging (Third Chart)
 
