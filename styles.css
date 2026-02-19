@@ -78,22 +78,6 @@ h2 {
   color: rgba(31, 51, 71, 0.72);
 }
 
-#trend-updated,
-#composition-updated,
-#uat-updated,
-#management-updated,
-#sprint-goals-updated,
-#product-cycle-updated,
-#lifecycle-days-updated {
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin: 0;
-  font-size: 0.8rem;
-  text-align: right;
-  color: rgba(31, 51, 71, 0.74);
-}
-
 .chart {
   border: 0;
   border-radius: 0;
@@ -115,18 +99,8 @@ body.embed-compact main {
 }
 
 body.embed-compact .panel-subtitle {
-  margin: 0 0 6px;
-}
-
-body.embed-compact #trend-updated,
-body.embed-compact #composition-updated,
-body.embed-compact #uat-updated,
-body.embed-compact #management-updated,
-body.embed-compact #sprint-goals-updated,
-body.embed-compact #product-cycle-updated,
-body.embed-compact #lifecycle-days-updated {
-  top: 2px;
-  font-size: 0.76rem;
+  margin: 0 0 4px;
+  font-size: 0.8rem;
 }
 
 body.embed-compact .management-toggle-row,
