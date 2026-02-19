@@ -450,7 +450,7 @@
 
     return h(
       ResponsiveContainer,
-      { width: "100%", height: 460 },
+      { width: "100%", height: 380 },
       h(
         LineChart,
         {
@@ -516,7 +516,7 @@
 
     return h(
       ResponsiveContainer,
-      { width: "100%", height: 560 },
+      { width: "100%", height: 380 },
       h(
         BarChart,
         {
@@ -592,7 +592,7 @@
 
     return h(
       ResponsiveContainer,
-      { width: "100%", height: 460 },
+      { width: "100%", height: 340 },
       h(
         BarChart,
         {
@@ -699,7 +699,7 @@
     ];
     return h(
       ResponsiveContainer,
-      { width: "100%", height: 440 },
+      { width: "100%", height: 340 },
       h(
         ComposedChart,
         {
@@ -840,7 +840,7 @@
     const geometry = groupedBarGeometry(rows.length, defs.length);
     return h(
       ResponsiveContainer,
-      { width: "100%", height: 420 },
+      { width: "100%", height: 320 },
       h(
         BarChart,
         {
@@ -942,7 +942,7 @@
     const geometry = groupedBarGeometry(rows.length, seriesDefs.length);
     return h(
       ResponsiveContainer,
-      { width: "100%", height: 520 },
+      { width: "100%", height: 360 },
       h(
         BarChart,
         {
@@ -1063,7 +1063,7 @@
     const geometry = groupedBarGeometry(rows.length, phaseDefs.length);
     return h(
       ResponsiveContainer,
-      { width: "100%", height: 520 },
+      { width: "100%", height: 360 },
       h(
         BarChart,
         {
