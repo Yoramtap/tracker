@@ -8,15 +8,6 @@ const PRIORITY_CONFIG = [
   { key: "lowest", label: "Lowest" }
 ];
 
-const SPRINT_GOALS_LOOKBACK = 6;
-const SPRINT_GOALS_TEAMS = [
-  "API",
-  "Frontend",
-  "Broadcast",
-  "Titanium",
-  "Orchestration",
-  "Shift"
-];
 const PRODUCT_CYCLE_COMPARE_YEARS = ["2025", "2026"];
 const PRODUCT_CYCLE_EFFORT_SCOPE_OPTIONS = ["all", "single", "combined"];
 const LIFECYCLE_YEAR_OPTIONS = ["2025", "2026"];
@@ -52,7 +43,6 @@ const MODE_PANEL_IDS = {
   composition: "composition-panel",
   uat: "uat-panel",
   management: "management-panel",
-  "sprint-goals": "sprint-goals-panel",
   "product-cycle": "product-cycle-panel",
   "lifecycle-days": "lifecycle-days-panel"
 };
@@ -61,7 +51,6 @@ const CHART_STATUS_IDS = [
   "trend-status",
   "uat-status",
   "management-status",
-  "sprint-goals-status",
   "product-cycle-status",
   "lifecycle-days-status"
 ];
@@ -70,7 +59,6 @@ const LAST_UPDATED_IDS = [
   "composition-updated",
   "uat-updated",
   "management-updated",
-  "sprint-goals-updated",
   "product-cycle-updated",
   "lifecycle-days-updated"
 ];
@@ -78,25 +66,22 @@ const PRODUCT_CYCLE_UPDATED_IDS = ["product-cycle-updated", "lifecycle-days-upda
 
 const state = {
   snapshot: null,
-  sprintGoals: null,
   productCycle: null,
   mode: "all",
   managementUatScope: "all",
   compositionTeamScope: "bc",
-  sprintGoalsTeamScope: "API",
   productCycleEffortScope: "all",
   productCycleMetricScope: "median",
   lifecycleDaysYearScope: "2026",
   lifecycleDaysMetricScope: "median"
 };
 
-const dashboardUiUtils = window.DashboardUiUtils;
+const dashboardUiUtils = window.DashboardViewUtils;
 if (!dashboardUiUtils) {
   throw new Error("Dashboard UI helpers not loaded.");
 }
 const {
   toNumber,
-  formatDateShort,
   formatUpdatedAt,
   setTextForIds,
   setStatusMessage,
@@ -131,7 +116,7 @@ function applyModeVisibility() {
 function renderLineChart() {
   setStatusMessage("trend-status");
   if (!state.snapshot || !Array.isArray(state.snapshot.combinedPoints)) return;
-  if (!window.BugChartsRecharts?.renderTrendChart) {
+  if (!window.DashboardCharts?.renderTrendChart) {
     setStatusMessage(
       "trend-status",
       "Trend chart unavailable: Recharts did not load. Check local script paths."
@@ -139,7 +124,7 @@ function renderLineChart() {
     return;
   }
 
-  window.BugChartsRecharts.renderTrendChart({
+  window.DashboardCharts.renderTrendChart({
     containerId: "chart",
     snapshot: state.snapshot,
     colors: getThemeColors()
@@ -149,7 +134,7 @@ function renderLineChart() {
 function renderStackedBarChart() {
   setStatusMessage("status");
   if (!state.snapshot || !Array.isArray(state.snapshot.combinedPoints)) return;
-  if (!window.BugChartsRecharts?.renderCompositionChart) {
+  if (!window.DashboardCharts?.renderCompositionChart) {
     setStatusMessage(
       "status",
       "Composition chart unavailable: Recharts did not load. Check local script paths."
@@ -161,7 +146,7 @@ function renderStackedBarChart() {
   const scope = state.compositionTeamScope || "bc";
   if (scopeSelect) scopeSelect.value = scope;
 
-  window.BugChartsRecharts.renderCompositionChart({
+  window.DashboardCharts.renderCompositionChart({
     containerId: "stacked-chart",
     snapshot: state.snapshot,
     colors: getThemeColors(),
@@ -178,7 +163,7 @@ function renderUatAgingChart() {
   status.hidden = true;
   if (!state.snapshot || !state.snapshot.uatAging) {
     status.hidden = false;
-    status.textContent = "No UAT aging data found in snapshot.json.";
+    status.textContent = "No UAT aging data found in backlog-snapshot.json.";
     return;
   }
 
@@ -193,7 +178,7 @@ function renderUatAgingChart() {
 
   if (buckets.length === 0) {
     status.hidden = false;
-    status.textContent = "UAT aging buckets are missing from snapshot.json.";
+    status.textContent = "UAT aging buckets are missing from backlog-snapshot.json.";
     return;
   }
 
@@ -207,8 +192,8 @@ function renderUatAgingChart() {
     return row;
   });
 
-  if (!window.BugChartsRecharts?.renderUatAgingChart) return;
-  window.BugChartsRecharts.renderUatAgingChart({
+  if (!window.DashboardCharts?.renderUatAgingChart) return;
+  window.DashboardCharts.renderUatAgingChart({
     containerId: "uat-chart",
     rows: chartRows,
     priorities,
@@ -332,87 +317,6 @@ function bindManagementUatScopeToggle() {
   });
 }
 
-function normalizeSprintGoals(sprintGoalsDoc) {
-  const sprints = Array.isArray(sprintGoalsDoc?.sprints) ? sprintGoalsDoc.sprints : [];
-  return sprints
-    .filter((sprint) => /^\d{4}-\d{2}-\d{2}$/.test(String(sprint?.sprint_start || "")))
-    .sort((a, b) => String(a.sprint_start || "").localeCompare(String(b.sprint_start || "")));
-}
-
-function bindSprintGoalsTeamScopeToggle() {
-  const scopeSelect = document.getElementById("sprint-goals-team-scope");
-  if (!scopeSelect || scopeSelect.dataset.bound === "1") return;
-  scopeSelect.dataset.bound = "1";
-  scopeSelect.addEventListener("change", () => {
-    state.sprintGoalsTeamScope = scopeSelect.value || "API";
-    renderSprintGoalsChart();
-  });
-}
-
-function renderSprintGoalsChart() {
-  const status = document.getElementById("sprint-goals-status");
-  const root = document.getElementById("sprint-goals-chart");
-  const context = document.getElementById("sprint-goals-context");
-  const scopeSelect = document.getElementById("sprint-goals-team-scope");
-  if (!status || !root || !context) return;
-
-  status.hidden = true;
-  if (!state.sprintGoals || typeof state.sprintGoals !== "object") {
-    status.hidden = false;
-    status.textContent = "No sprint goals data found in data/manual/sprint-goals.json.";
-    return;
-  }
-
-  const team = SPRINT_GOALS_TEAMS.includes(state.sprintGoalsTeamScope)
-    ? state.sprintGoalsTeamScope
-    : "API";
-  if (scopeSelect) scopeSelect.value = team;
-
-  const sprints = normalizeSprintGoals(state.sprintGoals);
-  const recent = sprints.slice(-SPRINT_GOALS_LOOKBACK);
-  if (recent.length === 0) {
-    status.hidden = false;
-    status.textContent = "No valid sprint rows found in sprint-goals.json.";
-    return;
-  }
-
-  const x = recent.map((sprint) => sprint.sprint_start);
-  const xShort = recent.map((sprint) => formatDateShort(sprint.sprint_start));
-  const totals = [];
-  const passed = [];
-  const successRatePct = [];
-
-  for (const sprint of recent) {
-    const teams = Array.isArray(sprint.teams) ? sprint.teams : [];
-    const row = teams.find((entry) => String(entry?.team || "") === team) || {};
-    const total = toNumber(row.goals_total);
-    const ok = toNumber(row.goals_passed);
-    totals.push(total);
-    passed.push(ok);
-    successRatePct.push(total > 0 ? (ok / total) * 100 : 0);
-  }
-
-  if (!window.BugChartsRecharts?.renderSprintGoalsChart) {
-    status.hidden = false;
-    status.textContent = "Sprint goals chart unavailable: Recharts renderer missing.";
-    return;
-  }
-  const rows = recent.map((_, index) => ({
-    date: x[index],
-    dateShort: xShort[index],
-    goalsTotal: totals[index],
-    goalsPassed: passed[index],
-    successRate: successRatePct[index]
-  }));
-  window.BugChartsRecharts.renderSprintGoalsChart({
-    containerId: "sprint-goals-chart",
-    rows,
-    colors: getThemeColors()
-  });
-
-  context.textContent = `${team}, last ${recent.length} sprints`;
-}
-
 function bindProductCycleControls() {
   const effortSelect = document.getElementById("product-cycle-effort-scope");
   const metricSelect = document.getElementById("product-cycle-metric-scope");
@@ -477,7 +381,7 @@ function renderProductCycleChartFromPublicAggregates(publicAggregates, effortSco
   const teams = getProductCycleTeamsFromAggregates(publicAggregates);
   if (teams.length === 0) {
     status.hidden = false;
-    status.textContent = "No product cycle aggregates found in product-cycle-times.json.";
+    status.textContent = "No product cycle aggregates found in product-cycle-snapshot.json.";
     return;
   }
 
@@ -512,7 +416,7 @@ function renderProductCycleChartFromPublicAggregates(publicAggregates, effortSco
 
   const totalIdeasCombined = perYear.reduce((sum, entry) => sum + entry.ideasInYearCount, 0);
   const totalCycleSample = perYear.reduce((sum, entry) => sum + entry.cycleRowsCount, 0);
-  const contextText = `Total ideas (2025+2026): ${totalIdeasCombined} • cycle sample: ${totalCycleSample}`;
+  const contextText = `Cycle time per team. Total ideas (2025+2026): ${totalIdeasCombined} • cycle sample: ${totalCycleSample}`;
   context.textContent = contextText;
 
   if (perYear.every((entry) => entry.cycleRowsCount === 0)) {
@@ -546,12 +450,12 @@ function renderProductCycleChartFromPublicAggregates(publicAggregates, effortSco
     return row;
   });
 
-  if (!window.BugChartsRecharts?.renderProductCycleChart) {
+  if (!window.DashboardCharts?.renderProductCycleChart) {
     status.hidden = false;
     status.textContent = "Product cycle chart unavailable: Recharts renderer missing.";
     return;
   }
-  window.BugChartsRecharts.renderProductCycleChart({
+  window.DashboardCharts.renderProductCycleChart({
     containerId: "product-cycle-chart",
     rows,
     seriesDefs,
@@ -577,7 +481,7 @@ function renderLifecycleDaysChartFromPublicAggregates(publicAggregates, year, me
   const teams = getProductCycleTeamsFromAggregates(publicAggregates);
   if (teams.length === 0) {
     status.hidden = false;
-    status.textContent = "No lifecycle aggregates found in product-cycle-times.json.";
+    status.textContent = "No lifecycle aggregates found in product-cycle-snapshot.json.";
     return;
   }
 
@@ -632,12 +536,12 @@ function renderLifecycleDaysChartFromPublicAggregates(publicAggregates, year, me
     clearChartContainer("lifecycle-days-chart");
     return;
   }
-  if (!window.BugChartsRecharts?.renderLifecycleDaysChart) {
+  if (!window.DashboardCharts?.renderLifecycleDaysChart) {
     status.hidden = false;
     status.textContent = "Lifecycle chart unavailable: Recharts renderer missing.";
     return;
   }
-  window.BugChartsRecharts.renderLifecycleDaysChart({
+  window.DashboardCharts.renderLifecycleDaysChart({
     containerId: "lifecycle-days-chart",
     rows,
     phaseDefs,
@@ -667,7 +571,7 @@ function renderProductCycleChart() {
   const publicAggregates = getProductCyclePublicAggregates();
   if (!publicAggregates) {
     status.hidden = false;
-    status.textContent = "No product cycle aggregates found in data/manual/product-cycle-times.json.";
+    status.textContent = "No product cycle aggregates found in product-cycle-snapshot.json.";
     clearChartContainer("product-cycle-chart");
     return;
   }
@@ -693,7 +597,7 @@ function renderLifecycleDaysChart() {
   const publicAggregates = getProductCyclePublicAggregates();
   if (!publicAggregates) {
     status.hidden = false;
-    status.textContent = "No lifecycle aggregates found in data/manual/product-cycle-times.json.";
+    status.textContent = "No lifecycle aggregates found in product-cycle-snapshot.json.";
     clearChartContainer("lifecycle-days-chart");
     return;
   }
@@ -716,7 +620,7 @@ function renderManagementChart() {
   const flow = scopedFlow || state.snapshot?.kpis?.broadcast?.flow_by_priority;
   if (!flow || typeof flow !== "object") {
     status.hidden = false;
-    status.textContent = "No Broadcast flow_by_priority data found in snapshot.json.";
+    status.textContent = "No Broadcast flow_by_priority data found in backlog-snapshot.json.";
     return;
   }
 
@@ -781,12 +685,12 @@ function renderManagementChart() {
     : 1;
   const paddedMaxY = Math.max(1, Math.ceil(maxY * 1.12));
 
-  if (!window.BugChartsRecharts?.renderManagementChart) {
+  if (!window.DashboardCharts?.renderManagementChart) {
     status.hidden = false;
     status.textContent = "Management chart unavailable: Recharts renderer missing.";
     return;
   }
-  window.BugChartsRecharts.renderManagementChart({
+  window.DashboardCharts.renderManagementChart({
     containerId: "management-chart",
     rows,
     colors: themeColors,
@@ -807,32 +711,21 @@ async function loadSnapshot() {
   applyModeVisibility();
 
   try {
-    const [snapshotResponse, sprintGoalsResponse, productCycleResponse] = await Promise.all([
-      fetch("./snapshot.json", { cache: "no-store" }),
-      fetch("./data/manual/sprint-goals.json", { cache: "no-store" }),
-      fetch("./data/manual/product-cycle-times.json", { cache: "no-store" })
+    const [snapshotResponse, productCycleResponse] = await Promise.all([
+      fetch("./backlog-snapshot.json", { cache: "no-store" }),
+      fetch("./product-cycle-snapshot.json", { cache: "no-store" })
     ]);
-    if (!snapshotResponse.ok) throw new Error(`snapshot.json HTTP ${snapshotResponse.status}`);
+    if (!snapshotResponse.ok) throw new Error(`backlog-snapshot.json HTTP ${snapshotResponse.status}`);
     state.snapshot = await snapshotResponse.json();
-    if (sprintGoalsResponse.ok) {
-      state.sprintGoals = await sprintGoalsResponse.json();
-    } else {
-      state.sprintGoals = null;
-      setStatusMessage(
-        "sprint-goals-status",
-        `Failed to load sprint-goals.json: HTTP ${sprintGoalsResponse.status}`
-      );
-    }
     if (productCycleResponse.ok) {
       state.productCycle = await productCycleResponse.json();
     } else {
       state.productCycle = null;
-      const message = `Failed to load product-cycle-times.json: HTTP ${productCycleResponse.status}`;
+      const message = `Failed to load product-cycle-snapshot.json: HTTP ${productCycleResponse.status}`;
       setStatusMessageForIds(["product-cycle-status", "lifecycle-days-status"], message);
     }
     bindCompositionTeamScopeToggle();
     bindManagementUatScopeToggle();
-    bindSprintGoalsTeamScopeToggle();
     bindProductCycleControls();
     bindLifecycleDaysControls();
     setLastUpdatedSubtitles(state.snapshot);
@@ -845,11 +738,10 @@ async function loadSnapshot() {
     }
     renderUatAgingChart();
     renderManagementChart();
-    renderSprintGoalsChart();
     renderProductCycleChart();
     renderLifecycleDaysChart();
   } catch (error) {
-    const message = `Failed to load snapshot.json: ${
+    const message = `Failed to load backlog-snapshot.json: ${
       error instanceof Error ? error.message : String(error)
     }`;
     setStatusMessageForIds(CHART_STATUS_IDS, message);

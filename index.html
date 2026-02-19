@@ -8,7 +8,7 @@
       content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-elem 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'"
     />
     <title>Backlog Trends</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./dashboard-styles.css" />
   </head>
   <body>
     <main>
@@ -16,7 +16,7 @@
         <h1>Interactive chart - Bug trend across teams</h1>
         <p id="trend-updated" class="panel-subtitle">Last updated: --</p>
         <div class="chart">
-          <div id="chart" class="chart-canvas chart-canvas--tall"></div>
+          <div id="chart" class="chart-canvas chart-canvas--standard"></div>
         </div>
         <p id="trend-status" class="panel-status" hidden></p>
       </section>
@@ -35,7 +35,7 @@
           </select>
         </div>
         <div class="chart">
-          <div id="stacked-chart" class="chart-canvas chart-canvas--tall bar-chart-wrap"></div>
+          <div id="stacked-chart" class="chart-canvas chart-canvas--dense bar-chart-wrap"></div>
         </div>
         <p id="status" class="panel-status" hidden></p>
       </section>
@@ -45,7 +45,7 @@
         <p id="uat-context" class="panel-subtitle">Broadcast, -- currently in UAT</p>
         <p id="uat-updated" class="panel-subtitle">Last updated: --</p>
         <div class="chart">
-          <div id="uat-chart" class="chart-canvas"></div>
+          <div id="uat-chart" class="chart-canvas chart-canvas--standard"></div>
         </div>
         <p id="uat-status" class="panel-status" hidden></p>
       </section>
@@ -62,30 +62,9 @@
           </select>
         </div>
         <div class="chart">
-          <div id="management-chart" class="chart-canvas"></div>
+          <div id="management-chart" class="chart-canvas chart-canvas--standard"></div>
         </div>
         <p id="management-status" class="panel-status" hidden></p>
-      </section>
-
-      <section id="sprint-goals-panel" class="panel" aria-label="Sprint goals by team">
-        <h2>Interactive chart - Sprint goals by team</h2>
-        <p id="sprint-goals-context" class="panel-subtitle">--</p>
-        <p id="sprint-goals-updated" class="panel-subtitle">Last updated: --</p>
-        <div class="composition-toggle-row">
-          <label for="sprint-goals-team-scope">Team</label>
-          <select id="sprint-goals-team-scope">
-            <option value="API">API</option>
-            <option value="Frontend">Frontend</option>
-            <option value="Broadcast">Broadcast</option>
-            <option value="Titanium">Titanium</option>
-            <option value="Orchestration">Orchestration</option>
-            <option value="Shift">Shift</option>
-          </select>
-        </div>
-        <div class="chart">
-          <div id="sprint-goals-chart" class="chart-canvas"></div>
-        </div>
-        <p id="sprint-goals-status" class="panel-status" hidden></p>
       </section>
 
       <section id="product-cycle-panel" class="panel" aria-label="Product cycle time by team">
@@ -106,7 +85,7 @@
           </select>
         </div>
         <div class="chart">
-          <div id="product-cycle-chart" class="chart-canvas chart-canvas--tall"></div>
+          <div id="product-cycle-chart" class="chart-canvas chart-canvas--dense"></div>
         </div>
         <p id="product-cycle-totals" class="panel-summary" hidden></p>
         <p id="product-cycle-status" class="panel-status" hidden></p>
@@ -129,7 +108,7 @@
           </select>
         </div>
         <div class="chart">
-          <div id="lifecycle-days-chart" class="chart-canvas chart-canvas--tall"></div>
+          <div id="lifecycle-days-chart" class="chart-canvas chart-canvas--dense"></div>
         </div>
         <p id="lifecycle-days-status" class="panel-status" hidden></p>
       </section>
@@ -139,7 +118,8 @@
     <script src="./vendor/react-dom.production.min.js"></script>
     <script src="./vendor/prop-types.min.js"></script>
     <script src="./vendor/recharts.umd.js"></script>
-    <script src="./bug-charts-recharts.js"></script>
-    <script src="./app.js"></script>
+    <script src="./dashboard-charts-recharts.js"></script>
+    <script src="./dashboard-view-utils.js"></script>
+    <script src="./dashboard-app.js"></script>
   </body>
 </html>

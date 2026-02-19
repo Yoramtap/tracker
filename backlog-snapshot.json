@@ -1,0 +1,977 @@
+{
+  "schemaVersion": 2,
+  "updatedAt": "2026-02-19T18:29:05.073Z",
+  "source": {
+    "mode": "mcp_snapshot",
+    "syncedAt": "2026-02-19T18:29:05.073Z",
+    "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). UAT aging is generated from current UAT issues and changelog-derived status entry timestamps.",
+    "trendDates": {
+      "source": "sprint_anchor",
+      "count": 18,
+      "firstDate": "2025-06-23",
+      "lastDate": "2026-02-16",
+      "startBoundary": "2025-06-23",
+      "endBoundary": "2026-02-19",
+      "totalResolvedBeforeConstraints": 18,
+      "usedFallbackDates": false,
+      "fallbackReason": "",
+      "sprintAnchorStart": "2025-06-23",
+      "sprintCurrentStart": "2026-02-16"
+    },
+    "trendPriority": {
+      "mode": "as_of_date",
+      "as_of_time": "23:59"
+    }
+  },
+  "uatAging": {
+    "scope": {
+      "project": "TFC",
+      "issueType": "Any",
+      "status": "UAT",
+      "label": "Broadcast"
+    },
+    "generatedAt": "2026-02-17T15:13:28.498Z",
+    "totalIssues": 18,
+    "buckets": [
+      {
+        "id": "d0_7",
+        "label": "0-7 days",
+        "minDays": 0,
+        "maxDays": 7
+      },
+      {
+        "id": "d8_14",
+        "label": "8-14 days",
+        "minDays": 8,
+        "maxDays": 14
+      },
+      {
+        "id": "d15_30",
+        "label": "15-30 days",
+        "minDays": 15,
+        "maxDays": 30
+      },
+      {
+        "id": "d31_60",
+        "label": "31-60 days",
+        "minDays": 31,
+        "maxDays": 60
+      },
+      {
+        "id": "d61_plus",
+        "label": "61+ days",
+        "minDays": 61,
+        "maxDays": null
+      }
+    ],
+    "priorities": {
+      "highest": {
+        "count": 5,
+        "avgDays": 15.2,
+        "maxDays": 33,
+        "buckets": {
+          "d0_7": 2,
+          "d8_14": 1,
+          "d15_30": 1,
+          "d31_60": 1,
+          "d61_plus": 0
+        }
+      },
+      "high": {
+        "count": 4,
+        "avgDays": 40,
+        "maxDays": 67,
+        "buckets": {
+          "d0_7": 1,
+          "d8_14": 0,
+          "d15_30": 1,
+          "d31_60": 0,
+          "d61_plus": 2
+        }
+      },
+      "medium": {
+        "count": 9,
+        "avgDays": 43.6,
+        "maxDays": 67,
+        "buckets": {
+          "d0_7": 0,
+          "d8_14": 2,
+          "d15_30": 0,
+          "d31_60": 3,
+          "d61_plus": 4
+        }
+      },
+      "low": {
+        "count": 0,
+        "avgDays": 0,
+        "maxDays": 0,
+        "buckets": {
+          "d0_7": 0,
+          "d8_14": 0,
+          "d15_30": 0,
+          "d31_60": 0,
+          "d61_plus": 0
+        }
+      },
+      "lowest": {
+        "count": 0,
+        "avgDays": 0,
+        "maxDays": 0,
+        "buckets": {
+          "d0_7": 0,
+          "d8_14": 0,
+          "d15_30": 0,
+          "d31_60": 0,
+          "d61_plus": 0
+        }
+      }
+    }
+  },
+  "kpis": {
+    "broadcast": {
+      "flow_by_priority": {
+        "highest": {
+          "avg_dev_days": 8.04,
+          "median_dev_days": 0.61,
+          "avg_uat_days": 11.65,
+          "median_uat_days": 7.46,
+          "n_dev": 8,
+          "n_uat": 8
+        },
+        "high": {
+          "avg_dev_days": 29.51,
+          "median_dev_days": 1.1,
+          "avg_uat_days": 60.55,
+          "median_uat_days": 62.52,
+          "n_dev": 5,
+          "n_uat": 5
+        },
+        "medium": {
+          "avg_dev_days": 35.59,
+          "median_dev_days": 5.15,
+          "avg_uat_days": 45.34,
+          "median_uat_days": 33.61,
+          "n_dev": 9,
+          "n_uat": 9
+        }
+      },
+      "flow_by_priority_variants": {
+        "all": {
+          "highest": {
+            "avg_dev_days": 8.04,
+            "median_dev_days": 0.61,
+            "avg_uat_days": 11.65,
+            "median_uat_days": 7.46,
+            "n_dev": 8,
+            "n_uat": 8
+          },
+          "high": {
+            "avg_dev_days": 29.51,
+            "median_dev_days": 1.1,
+            "avg_uat_days": 60.55,
+            "median_uat_days": 62.52,
+            "n_dev": 5,
+            "n_uat": 5
+          },
+          "medium": {
+            "avg_dev_days": 35.59,
+            "median_dev_days": 5.15,
+            "avg_uat_days": 45.34,
+            "median_uat_days": 33.61,
+            "n_dev": 9,
+            "n_uat": 9
+          }
+        },
+        "bugs_only": {
+          "highest": {
+            "avg_dev_days": 9.13,
+            "median_dev_days": 0.87,
+            "avg_uat_days": 12.78,
+            "median_uat_days": 7.55,
+            "n_dev": 7,
+            "n_uat": 7
+          },
+          "high": {
+            "avg_dev_days": 36.89,
+            "median_dev_days": 1.5,
+            "avg_uat_days": 48.32,
+            "median_uat_days": 41.07,
+            "n_dev": 4,
+            "n_uat": 4
+          },
+          "medium": {
+            "avg_dev_days": 0.72,
+            "median_dev_days": 0.94,
+            "avg_uat_days": 36.11,
+            "median_uat_days": 34.11,
+            "n_dev": 4,
+            "n_uat": 4
+          }
+        }
+      },
+      "uat_now_count": {
+        "current": {
+          "all": {
+            "count": 18,
+            "oldest_age_days": 169.51,
+            "avg_age_days": 56.38
+          },
+          "bugs_only": {
+            "count": 12,
+            "oldest_age_days": 64.6,
+            "avg_age_days": 31.06
+          }
+        }
+      }
+    },
+    "kpi_8": {
+      "broadcast": {
+        "dev_time_days_avg": 16.92,
+        "dev_time_days_median": 1.01,
+        "uat_time_days_avg": 40.2,
+        "uat_time_days_median": 1.17,
+        "uat_time_days_p90": 98.86,
+        "dev_vs_uat_ratio": 0.09,
+        "uat_time_by_priority": {
+          "highest": {
+            "n_with_uat": 8,
+            "uat_time_days_avg": 11.65,
+            "uat_time_days_median": 7.46,
+            "uat_time_days_p90": 33.29
+          },
+          "high": {
+            "n_with_uat": 5,
+            "uat_time_days_avg": 60.55,
+            "uat_time_days_median": 62.52,
+            "uat_time_days_p90": 109.47
+          },
+          "medium": {
+            "n_with_uat": 7,
+            "uat_time_days_avg": 58.29,
+            "uat_time_days_median": 34.61,
+            "uat_time_days_p90": 140.76
+          },
+          "other": {
+            "n_with_uat": 0,
+            "uat_time_days_avg": 0,
+            "uat_time_days_median": 0,
+            "uat_time_days_p90": 0
+          }
+        },
+        "high_priority": {
+          "dev_time_days_avg": 18.02,
+          "dev_time_days_median": 0.88,
+          "dev_time_days_p90": 155.64,
+          "uat_time_days_avg": 60.55,
+          "uat_time_days_median": 12.28,
+          "uat_time_days_p90": 109.47
+        }
+      }
+    },
+    "kpi_9": {
+      "broadcast": {
+        "uat_over_14d_pct": 66.67,
+        "uat_loop_rate_pct": 40.91,
+        "uat_by_priority": {
+          "highest": {
+            "uat_current_count": 5,
+            "uat_current_oldest_age_days": 33,
+            "uat_current_age_days_avg": 15.2,
+            "uat_current_age_days_median": 14
+          },
+          "high": {
+            "uat_current_count": 4,
+            "uat_current_oldest_age_days": 67,
+            "uat_current_age_days_avg": 40,
+            "uat_current_age_days_median": 44.5
+          },
+          "medium": {
+            "uat_current_count": 9,
+            "uat_current_oldest_age_days": 67,
+            "uat_current_age_days_avg": 43.56,
+            "uat_current_age_days_median": 36
+          },
+          "other": {
+            "uat_current_count": 0,
+            "uat_current_oldest_age_days": 0,
+            "uat_current_age_days_avg": 0,
+            "uat_current_age_days_median": 0
+          }
+        },
+        "high_priority": {
+          "uat_current_age_days_avg": 40,
+          "uat_current_age_days_median": 44.5,
+          "uat_current_oldest_age_days": 67
+        }
+      }
+    }
+  },
+  "combinedPoints": [
+    {
+      "date": "2025-06-23",
+      "api": {
+        "date": "2025-06-23",
+        "highest": 0,
+        "high": 1,
+        "medium": 9,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-06-23",
+        "highest": 0,
+        "high": 2,
+        "medium": 33,
+        "low": 55,
+        "lowest": 4
+      },
+      "react": {
+        "date": "2025-06-23",
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-06-23",
+        "highest": 5,
+        "high": 52,
+        "medium": 96,
+        "low": 10,
+        "lowest": 1,
+        "longstanding_30d_plus": 145,
+        "longstanding_60d_plus": 135
+      }
+    },
+    {
+      "date": "2025-07-07",
+      "api": {
+        "date": "2025-07-07",
+        "highest": 0,
+        "high": 1,
+        "medium": 10,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-07-07",
+        "highest": 0,
+        "high": 2,
+        "medium": 32,
+        "low": 55,
+        "lowest": 4
+      },
+      "react": {
+        "date": "2025-07-07",
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-07-07",
+        "highest": 6,
+        "high": 53,
+        "medium": 91,
+        "low": 9,
+        "lowest": 1,
+        "longstanding_30d_plus": 136,
+        "longstanding_60d_plus": 130
+      }
+    },
+    {
+      "date": "2025-07-21",
+      "api": {
+        "date": "2025-07-21",
+        "highest": 0,
+        "high": 0,
+        "medium": 9,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-07-21",
+        "highest": 0,
+        "high": 2,
+        "medium": 30,
+        "low": 54,
+        "lowest": 4
+      },
+      "react": {
+        "date": "2025-07-21",
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-07-21",
+        "highest": 3,
+        "high": 50,
+        "medium": 91,
+        "low": 9,
+        "lowest": 1,
+        "longstanding_30d_plus": 137,
+        "longstanding_60d_plus": 128
+      }
+    },
+    {
+      "date": "2025-08-04",
+      "api": {
+        "date": "2025-08-04",
+        "highest": 0,
+        "high": 0,
+        "medium": 12,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-08-04",
+        "highest": 0,
+        "high": 2,
+        "medium": 24,
+        "low": 56,
+        "lowest": 4
+      },
+      "react": {
+        "date": "2025-08-04",
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-08-04",
+        "highest": 2,
+        "high": 51,
+        "medium": 94,
+        "low": 9,
+        "lowest": 1,
+        "longstanding_30d_plus": 141,
+        "longstanding_60d_plus": 128
+      }
+    },
+    {
+      "date": "2025-08-18",
+      "api": {
+        "date": "2025-08-18",
+        "highest": 0,
+        "high": 0,
+        "medium": 12,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-08-18",
+        "highest": 0,
+        "high": 2,
+        "medium": 10,
+        "low": 47,
+        "lowest": 3
+      },
+      "react": {
+        "date": "2025-08-18",
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-08-18",
+        "highest": 4,
+        "high": 50,
+        "medium": 94,
+        "low": 10,
+        "lowest": 1,
+        "longstanding_30d_plus": 143,
+        "longstanding_60d_plus": 128
+      }
+    },
+    {
+      "date": "2025-09-01",
+      "api": {
+        "date": "2025-09-01",
+        "highest": 0,
+        "high": 2,
+        "medium": 10,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-09-01",
+        "highest": 0,
+        "high": 3,
+        "medium": 10,
+        "low": 45,
+        "lowest": 3
+      },
+      "react": {
+        "date": "2025-09-01",
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-09-01",
+        "highest": 3,
+        "high": 50,
+        "medium": 95,
+        "low": 9,
+        "lowest": 0,
+        "longstanding_30d_plus": 144,
+        "longstanding_60d_plus": 132
+      }
+    },
+    {
+      "date": "2025-09-15",
+      "api": {
+        "date": "2025-09-15",
+        "highest": 0,
+        "high": 0,
+        "medium": 11,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-09-15",
+        "highest": 1,
+        "high": 1,
+        "medium": 10,
+        "low": 43,
+        "lowest": 3
+      },
+      "react": {
+        "date": "2025-09-15",
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-09-15",
+        "highest": 7,
+        "high": 48,
+        "medium": 97,
+        "low": 9,
+        "lowest": 0,
+        "longstanding_30d_plus": 148,
+        "longstanding_60d_plus": 138
+      }
+    },
+    {
+      "date": "2025-09-29",
+      "api": {
+        "date": "2025-09-29",
+        "highest": 1,
+        "high": 0,
+        "medium": 8,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-09-29",
+        "highest": 0,
+        "high": 1,
+        "medium": 13,
+        "low": 43,
+        "lowest": 3
+      },
+      "react": {
+        "date": "2025-09-29",
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-09-29",
+        "highest": 4,
+        "high": 53,
+        "medium": 98,
+        "low": 9,
+        "lowest": 0,
+        "longstanding_30d_plus": 147,
+        "longstanding_60d_plus": 140
+      }
+    },
+    {
+      "date": "2025-10-13",
+      "api": {
+        "date": "2025-10-13",
+        "highest": 0,
+        "high": 0,
+        "medium": 8,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-10-13",
+        "highest": 0,
+        "high": 1,
+        "medium": 13,
+        "low": 43,
+        "lowest": 3
+      },
+      "react": {
+        "date": "2025-10-13",
+        "highest": 0,
+        "high": 0,
+        "medium": 3,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-10-13",
+        "highest": 1,
+        "high": 56,
+        "medium": 100,
+        "low": 9,
+        "lowest": 0,
+        "longstanding_30d_plus": 149,
+        "longstanding_60d_plus": 142
+      }
+    },
+    {
+      "date": "2025-10-27",
+      "api": {
+        "date": "2025-10-27",
+        "highest": 0,
+        "high": 0,
+        "medium": 8,
+        "low": 1,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-10-27",
+        "highest": 0,
+        "high": 1,
+        "medium": 13,
+        "low": 43,
+        "lowest": 3
+      },
+      "react": {
+        "date": "2025-10-27",
+        "highest": 0,
+        "high": 0,
+        "medium": 6,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-10-27",
+        "highest": 3,
+        "high": 64,
+        "medium": 106,
+        "low": 9,
+        "lowest": 0,
+        "longstanding_30d_plus": 158,
+        "longstanding_60d_plus": 144
+      }
+    },
+    {
+      "date": "2025-11-10",
+      "api": {
+        "date": "2025-11-10",
+        "highest": 0,
+        "high": 1,
+        "medium": 3,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-11-10",
+        "highest": 0,
+        "high": 1,
+        "medium": 10,
+        "low": 44,
+        "lowest": 3
+      },
+      "react": {
+        "date": "2025-11-10",
+        "highest": 0,
+        "high": 0,
+        "medium": 5,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-11-10",
+        "highest": 2,
+        "high": 68,
+        "medium": 109,
+        "low": 9,
+        "lowest": 0,
+        "longstanding_30d_plus": 164,
+        "longstanding_60d_plus": 149
+      }
+    },
+    {
+      "date": "2025-11-24",
+      "api": {
+        "date": "2025-11-24",
+        "highest": 0,
+        "high": 1,
+        "medium": 5,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-11-24",
+        "highest": 0,
+        "high": 1,
+        "medium": 9,
+        "low": 45,
+        "lowest": 3
+      },
+      "react": {
+        "date": "2025-11-24",
+        "highest": 0,
+        "high": 0,
+        "medium": 7,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-11-24",
+        "highest": 3,
+        "high": 70,
+        "medium": 113,
+        "low": 9,
+        "lowest": 0,
+        "longstanding_30d_plus": 175,
+        "longstanding_60d_plus": 153
+      }
+    },
+    {
+      "date": "2025-12-08",
+      "api": {
+        "date": "2025-12-08",
+        "highest": 0,
+        "high": 0,
+        "medium": 5,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-12-08",
+        "highest": 0,
+        "high": 1,
+        "medium": 8,
+        "low": 46,
+        "lowest": 3
+      },
+      "react": {
+        "date": "2025-12-08",
+        "highest": 0,
+        "high": 0,
+        "medium": 5,
+        "low": 1,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-12-08",
+        "highest": 4,
+        "high": 70,
+        "medium": 112,
+        "low": 8,
+        "lowest": 0,
+        "longstanding_30d_plus": 173,
+        "longstanding_60d_plus": 154
+      }
+    },
+    {
+      "date": "2025-12-22",
+      "api": {
+        "date": "2025-12-22",
+        "highest": 0,
+        "high": 1,
+        "medium": 5,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2025-12-22",
+        "highest": 0,
+        "high": 1,
+        "medium": 7,
+        "low": 46,
+        "lowest": 3
+      },
+      "react": {
+        "date": "2025-12-22",
+        "highest": 0,
+        "high": 0,
+        "medium": 3,
+        "low": 1,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2025-12-22",
+        "highest": 4,
+        "high": 72,
+        "medium": 112,
+        "low": 8,
+        "lowest": 0,
+        "longstanding_30d_plus": 183,
+        "longstanding_60d_plus": 164
+      }
+    },
+    {
+      "date": "2026-01-05",
+      "api": {
+        "date": "2026-01-05",
+        "highest": 0,
+        "high": 0,
+        "medium": 6,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2026-01-05",
+        "highest": 0,
+        "high": 1,
+        "medium": 6,
+        "low": 46,
+        "lowest": 3
+      },
+      "react": {
+        "date": "2026-01-05",
+        "highest": 0,
+        "high": 0,
+        "medium": 3,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2026-01-05",
+        "highest": 3,
+        "high": 69,
+        "medium": 112,
+        "low": 7,
+        "lowest": 0,
+        "longstanding_30d_plus": 181,
+        "longstanding_60d_plus": 164
+      }
+    },
+    {
+      "date": "2026-01-19",
+      "api": {
+        "date": "2026-01-19",
+        "highest": 0,
+        "high": 1,
+        "medium": 5,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2026-01-19",
+        "highest": 0,
+        "high": 1,
+        "medium": 4,
+        "low": 35,
+        "lowest": 0
+      },
+      "react": {
+        "date": "2026-01-19",
+        "highest": 0,
+        "high": 0,
+        "medium": 4,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2026-01-19",
+        "highest": 3,
+        "high": 70,
+        "medium": 112,
+        "low": 7,
+        "lowest": 0,
+        "longstanding_30d_plus": 174,
+        "longstanding_60d_plus": 164
+      }
+    },
+    {
+      "date": "2026-02-02",
+      "api": {
+        "date": "2026-02-02",
+        "highest": 0,
+        "high": 1,
+        "medium": 5,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2026-02-02",
+        "highest": 0,
+        "high": 1,
+        "medium": 6,
+        "low": 32,
+        "lowest": 0
+      },
+      "react": {
+        "date": "2026-02-02",
+        "highest": 0,
+        "high": 0,
+        "medium": 6,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2026-02-02",
+        "highest": 5,
+        "high": 69,
+        "medium": 113,
+        "low": 7,
+        "lowest": 0,
+        "longstanding_30d_plus": 178,
+        "longstanding_60d_plus": 168
+      }
+    },
+    {
+      "date": "2026-02-16",
+      "api": {
+        "date": "2026-02-16",
+        "highest": 0,
+        "high": 2,
+        "medium": 7,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2026-02-16",
+        "highest": 0,
+        "high": 2,
+        "medium": 6,
+        "low": 32,
+        "lowest": 0
+      },
+      "react": {
+        "date": "2026-02-16",
+        "highest": 0,
+        "high": 0,
+        "medium": 6,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2026-02-16",
+        "highest": 5,
+        "high": 73,
+        "medium": 113,
+        "low": 8,
+        "lowest": 0,
+        "longstanding_30d_plus": 180,
+        "longstanding_60d_plus": 170
+      }
+    }
+  ]
+}

@@ -1,0 +1,725 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-02-19T18:37:54.814Z",
+  "teams": [
+    "API",
+    "Frontend",
+    "Broadcast",
+    "Titanium",
+    "Orchestration",
+    "Shift",
+    "UNMAPPED"
+  ],
+  "years": [
+    "2025",
+    "2026"
+  ],
+  "phases": [
+    "parking_lot",
+    "design",
+    "ready_for_development",
+    "in_development",
+    "feedback"
+  ],
+  "effortScopes": [
+    "all",
+    "single",
+    "combined"
+  ],
+  "publicAggregates": {
+    "cycleTime": {
+      "byYear": {
+        "2025": {
+          "all": {
+            "teams": {
+              "API": {
+                "n": 57,
+                "median": 21.14,
+                "average": 30.69
+              },
+              "Frontend": {
+                "n": 25,
+                "median": 22.96,
+                "average": 43.23
+              },
+              "Broadcast": {
+                "n": 20,
+                "median": 28.38,
+                "average": 50.27
+              },
+              "Titanium": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "Orchestration": {
+                "n": 13,
+                "median": 97.85,
+                "average": 80.42
+              },
+              "Shift": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "UNMAPPED": {
+                "n": 19,
+                "median": 35.78,
+                "average": 52.09
+              }
+            }
+          },
+          "single": {
+            "teams": {
+              "API": {
+                "n": 23,
+                "median": 17.05,
+                "average": 30.08
+              },
+              "Frontend": {
+                "n": 23,
+                "median": 22.85,
+                "average": 35.6
+              },
+              "Broadcast": {
+                "n": 20,
+                "median": 28.38,
+                "average": 50.27
+              },
+              "Titanium": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "Orchestration": {
+                "n": 13,
+                "median": 97.85,
+                "average": 80.42
+              },
+              "Shift": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "UNMAPPED": {
+                "n": 19,
+                "median": 35.78,
+                "average": 52.09
+              }
+            }
+          },
+          "combined": {
+            "teams": {
+              "API": {
+                "n": 34,
+                "median": 22.99,
+                "average": 31.11
+              },
+              "Frontend": {
+                "n": 19,
+                "median": 41.81,
+                "average": 44.93
+              },
+              "Broadcast": {
+                "n": 22,
+                "median": 12.77,
+                "average": 35.88
+              },
+              "Titanium": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "Orchestration": {
+                "n": 2,
+                "median": 24.96,
+                "average": 24.96
+              },
+              "Shift": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "UNMAPPED": {
+                "n": 0,
+                "median": null,
+                "average": null
+              }
+            }
+          }
+        },
+        "2026": {
+          "all": {
+            "teams": {
+              "API": {
+                "n": 10,
+                "median": 43.95,
+                "average": 47.06
+              },
+              "Frontend": {
+                "n": 1,
+                "median": 23.64,
+                "average": 23.64
+              },
+              "Broadcast": {
+                "n": 3,
+                "median": 135.41,
+                "average": 135.67
+              },
+              "Titanium": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "Orchestration": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "Shift": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "UNMAPPED": {
+                "n": 1,
+                "median": 0,
+                "average": 0
+              }
+            }
+          },
+          "single": {
+            "teams": {
+              "API": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "Frontend": {
+                "n": 1,
+                "median": 23.64,
+                "average": 23.64
+              },
+              "Broadcast": {
+                "n": 3,
+                "median": 135.41,
+                "average": 135.67
+              },
+              "Titanium": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "Orchestration": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "Shift": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "UNMAPPED": {
+                "n": 1,
+                "median": 0,
+                "average": 0
+              }
+            }
+          },
+          "combined": {
+            "teams": {
+              "API": {
+                "n": 10,
+                "median": 43.95,
+                "average": 47.06
+              },
+              "Frontend": {
+                "n": 6,
+                "median": 33.59,
+                "average": 39.63
+              },
+              "Broadcast": {
+                "n": 4,
+                "median": 61.42,
+                "average": 58.19
+              },
+              "Titanium": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "Orchestration": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "Shift": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "UNMAPPED": {
+                "n": 0,
+                "median": null,
+                "average": null
+              }
+            }
+          }
+        }
+      },
+      "totalsByYear": {
+        "2025": {
+          "all": {
+            "total": 276,
+            "done": 134,
+            "ongoing_year_end": 142,
+            "ongoing_now": 142,
+            "cycle_sample": 134
+          },
+          "single": {
+            "total": 188,
+            "done": 98,
+            "ongoing_year_end": 90,
+            "ongoing_now": 90,
+            "cycle_sample": 98
+          },
+          "combined": {
+            "total": 88,
+            "done": 36,
+            "ongoing_year_end": 52,
+            "ongoing_now": 52,
+            "cycle_sample": 36
+          }
+        },
+        "2026": {
+          "all": {
+            "total": 29,
+            "done": 15,
+            "ongoing_year_end": 14,
+            "ongoing_now": 14,
+            "cycle_sample": 15
+          },
+          "single": {
+            "total": 13,
+            "done": 5,
+            "ongoing_year_end": 8,
+            "ongoing_now": 8,
+            "cycle_sample": 5
+          },
+          "combined": {
+            "total": 16,
+            "done": 10,
+            "ongoing_year_end": 6,
+            "ongoing_now": 6,
+            "cycle_sample": 10
+          }
+        }
+      }
+    },
+    "lifecyclePhaseDays": {
+      "byYear": {
+        "2025": {
+          "teams": {
+            "API": {
+              "parking_lot": {
+                "n": 50,
+                "median": 42,
+                "average": 69.39
+              },
+              "design": {
+                "n": 9,
+                "median": 14.54,
+                "average": 32.91
+              },
+              "ready_for_development": {
+                "n": 13,
+                "median": 14.11,
+                "average": 32.71
+              },
+              "in_development": {
+                "n": 46,
+                "median": 22.14,
+                "average": 32.09
+              },
+              "feedback": {
+                "n": 8,
+                "median": 10.13,
+                "average": 9.87
+              }
+            },
+            "Frontend": {
+              "parking_lot": {
+                "n": 10,
+                "median": 37.88,
+                "average": 46.24
+              },
+              "design": {
+                "n": 3,
+                "median": 0.02,
+                "average": 13.96
+              },
+              "ready_for_development": {
+                "n": 3,
+                "median": 3.09,
+                "average": 7.48
+              },
+              "in_development": {
+                "n": 21,
+                "median": 21.98,
+                "average": 34.8
+              },
+              "feedback": {
+                "n": 1,
+                "median": 17.04,
+                "average": 17.04
+              }
+            },
+            "Broadcast": {
+              "parking_lot": {
+                "n": 24,
+                "median": 137.23,
+                "average": 152.07
+              },
+              "design": {
+                "n": 4,
+                "median": 32.41,
+                "average": 36.36
+              },
+              "ready_for_development": {
+                "n": 6,
+                "median": 20.6,
+                "average": 27.22
+              },
+              "in_development": {
+                "n": 19,
+                "median": 40.87,
+                "average": 54.87
+              },
+              "feedback": {
+                "n": 8,
+                "median": 9.82,
+                "average": 30.81
+              }
+            },
+            "Titanium": {
+              "parking_lot": {
+                "n": 2,
+                "median": 18.48,
+                "average": 18.48
+              },
+              "design": {
+                "n": 3,
+                "median": 8.21,
+                "average": 22.8
+              },
+              "ready_for_development": {
+                "n": 4,
+                "median": 0.01,
+                "average": 15.21
+              },
+              "in_development": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "feedback": {
+                "n": 0,
+                "median": null,
+                "average": null
+              }
+            },
+            "Orchestration": {
+              "parking_lot": {
+                "n": 17,
+                "median": 37.95,
+                "average": 101.8
+              },
+              "design": {
+                "n": 1,
+                "median": 0.07,
+                "average": 0.07
+              },
+              "ready_for_development": {
+                "n": 2,
+                "median": 18.23,
+                "average": 18.23
+              },
+              "in_development": {
+                "n": 7,
+                "median": 105.57,
+                "average": 89.51
+              },
+              "feedback": {
+                "n": 2,
+                "median": 40.29,
+                "average": 40.29
+              }
+            },
+            "Shift": {
+              "parking_lot": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "design": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "ready_for_development": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "in_development": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "feedback": {
+                "n": 0,
+                "median": null,
+                "average": null
+              }
+            },
+            "UNMAPPED": {
+              "parking_lot": {
+                "n": 12,
+                "median": 100.65,
+                "average": 126.5
+              },
+              "design": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "ready_for_development": {
+                "n": 2,
+                "median": 19.01,
+                "average": 19.01
+              },
+              "in_development": {
+                "n": 7,
+                "median": 72.11,
+                "average": 59.8
+              },
+              "feedback": {
+                "n": 2,
+                "median": 54.38,
+                "average": 54.38
+              }
+            }
+          }
+        },
+        "2026": {
+          "teams": {
+            "API": {
+              "parking_lot": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "design": {
+                "n": 5,
+                "median": 1.9,
+                "average": 2.75
+              },
+              "ready_for_development": {
+                "n": 4,
+                "median": 22.61,
+                "average": 35.56
+              },
+              "in_development": {
+                "n": 9,
+                "median": 26.2,
+                "average": 31.28
+              },
+              "feedback": {
+                "n": 2,
+                "median": 16.71,
+                "average": 16.71
+              }
+            },
+            "Frontend": {
+              "parking_lot": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "design": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "ready_for_development": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "in_development": {
+                "n": 1,
+                "median": 23.64,
+                "average": 23.64
+              },
+              "feedback": {
+                "n": 0,
+                "median": null,
+                "average": null
+              }
+            },
+            "Broadcast": {
+              "parking_lot": {
+                "n": 2,
+                "median": 184.06,
+                "average": 184.06
+              },
+              "design": {
+                "n": 1,
+                "median": 37.21,
+                "average": 37.21
+              },
+              "ready_for_development": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "in_development": {
+                "n": 3,
+                "median": 85.88,
+                "average": 83.77
+              },
+              "feedback": {
+                "n": 1,
+                "median": 32.7,
+                "average": 32.7
+              }
+            },
+            "Titanium": {
+              "parking_lot": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "design": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "ready_for_development": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "in_development": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "feedback": {
+                "n": 0,
+                "median": null,
+                "average": null
+              }
+            },
+            "Orchestration": {
+              "parking_lot": {
+                "n": 1,
+                "median": 0.27,
+                "average": 0.27
+              },
+              "design": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "ready_for_development": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "in_development": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "feedback": {
+                "n": 0,
+                "median": null,
+                "average": null
+              }
+            },
+            "Shift": {
+              "parking_lot": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "design": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "ready_for_development": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "in_development": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "feedback": {
+                "n": 0,
+                "median": null,
+                "average": null
+              }
+            },
+            "UNMAPPED": {
+              "parking_lot": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "design": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "ready_for_development": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "in_development": {
+                "n": 0,
+                "median": null,
+                "average": null
+              },
+              "feedback": {
+                "n": 0,
+                "median": null,
+                "average": null
+              }
+            }
+          }
+        }
+      },
+      "totalsByYear": {
+        "2025": {
+          "total": 276,
+          "done": 134,
+          "ongoing": 142,
+          "cycle_sample": 184
+        },
+        "2026": {
+          "total": 29,
+          "done": 15,
+          "ongoing": 14,
+          "cycle_sample": 17
+        }
+      }
+    }
+  }
+}
