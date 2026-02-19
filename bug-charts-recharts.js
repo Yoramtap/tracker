@@ -48,6 +48,26 @@
     normalMax: 22,
     wideMax: 28
   };
+  const EMBED_COMPACT = new URLSearchParams(window.location.search).has("chart");
+  const CHART_HEIGHTS = EMBED_COMPACT
+    ? {
+        trend: 320,
+        composition: 320,
+        uat: 300,
+        sprintGoals: 300,
+        management: 290,
+        productCycle: 320,
+        lifecycleDays: 320
+      }
+    : {
+        trend: 380,
+        composition: 380,
+        uat: 340,
+        sprintGoals: 340,
+        management: 320,
+        productCycle: 360,
+        lifecycleDays: 360
+      };
 
   const roots = {
     trend: null,
@@ -450,7 +470,7 @@
 
     return h(
       ResponsiveContainer,
-      { width: "100%", height: 380 },
+      { width: "100%", height: CHART_HEIGHTS.composition },
       h(
         LineChart,
         {
@@ -516,7 +536,7 @@
 
     return h(
       ResponsiveContainer,
-      { width: "100%", height: 380 },
+      { width: "100%", height: CHART_HEIGHTS.trend },
       h(
         BarChart,
         {
@@ -592,7 +612,7 @@
 
     return h(
       ResponsiveContainer,
-      { width: "100%", height: 340 },
+      { width: "100%", height: CHART_HEIGHTS.uat },
       h(
         BarChart,
         {
@@ -699,7 +719,7 @@
     ];
     return h(
       ResponsiveContainer,
-      { width: "100%", height: 340 },
+      { width: "100%", height: CHART_HEIGHTS.sprintGoals },
       h(
         ComposedChart,
         {
@@ -840,7 +860,7 @@
     const geometry = groupedBarGeometry(rows.length, defs.length);
     return h(
       ResponsiveContainer,
-      { width: "100%", height: 320 },
+      { width: "100%", height: CHART_HEIGHTS.management },
       h(
         BarChart,
         {
@@ -942,7 +962,7 @@
     const geometry = groupedBarGeometry(rows.length, seriesDefs.length);
     return h(
       ResponsiveContainer,
-      { width: "100%", height: 360 },
+      { width: "100%", height: CHART_HEIGHTS.productCycle },
       h(
         BarChart,
         {
@@ -1063,7 +1083,7 @@
     const geometry = groupedBarGeometry(rows.length, phaseDefs.length);
     return h(
       ResponsiveContainer,
-      { width: "100%", height: 360 },
+      { width: "100%", height: CHART_HEIGHTS.lifecycleDays },
       h(
         BarChart,
         {

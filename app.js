@@ -164,6 +164,7 @@ function getModeFromUrl() {
 }
 
 function applyModeVisibility() {
+  document.body.classList.toggle("embed-compact", state.mode !== "all");
   const trendPanel = document.getElementById("trend-panel");
   const compositionPanel = document.getElementById("composition-panel");
   const uatPanel = document.getElementById("uat-panel");
