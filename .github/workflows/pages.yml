@@ -28,9 +28,10 @@ jobs:
 
       - name: Build static site artifact
         run: |
-          mkdir -p dist/data/manual
-          cp index.html app.js styles.css snapshot.json dist/
+          mkdir -p dist/data/manual dist/vendor
+          cp index.html app.js styles.css snapshot.json bug-charts-recharts.js dist/
           cp data/manual/sprint-goals.json data/manual/product-cycle-times.json dist/data/manual/
+          cp vendor/react.production.min.js vendor/react-dom.production.min.js vendor/prop-types.min.js vendor/recharts.umd.js dist/vendor/
           touch dist/.nojekyll
 
       - name: Upload static files
