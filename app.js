@@ -847,8 +847,9 @@ function renderProductCycleChartFromPublicAggregates(publicAggregates, effortSco
   });
 
   const totalIdeasCombined = perYear.reduce((sum, entry) => sum + entry.ideasInYearCount, 0);
-  const chartTitleText = `Cycle time from parking lot exit to done • total ideas (2025+2026): ${totalIdeasCombined}`;
-  context.textContent = chartTitleText;
+  const totalCycleSample = perYear.reduce((sum, entry) => sum + entry.cycleRowsCount, 0);
+  const contextText = `Total ideas (2025+2026): ${totalIdeasCombined} • cycle sample: ${totalCycleSample}`;
+  context.textContent = contextText;
 
   if (perYear.every((entry) => entry.cycleRowsCount === 0)) {
     status.hidden = false;
@@ -881,11 +882,6 @@ function renderProductCycleChartFromPublicAggregates(publicAggregates, effortSco
     return row;
   });
 
-  const yearSummaries = perYear.map((entry) => {
-    return `${entry.year}: total ${entry.ideasInYearCount} • done ${entry.doneInYearCount} • ongoing (year-end) ${entry.openAtYearEnd} • ongoing now ${entry.openNow} • cycle sample ${entry.cycleRowsCount}`;
-  });
-  const totalsText = yearSummaries.join(" | ");
-
   if (!window.BugChartsRecharts?.renderProductCycleChart) {
     status.hidden = false;
     status.textContent = "Product cycle chart unavailable: Recharts renderer missing.";
@@ -898,7 +894,7 @@ function renderProductCycleChartFromPublicAggregates(publicAggregates, effortSco
     colors: themeColors,
     metricLabel
   });
-  setProductCycleTotalsText(totalsText);
+  setProductCycleTotalsText("");
 
   const yearsWithoutCycles = perYear
     .filter((entry) => entry.cycleRowsCount === 0)
@@ -1071,14 +1067,15 @@ function renderProductCycleChart() {
     };
   });
   const totalIdeasCombined = perYear.reduce((sum, entry) => sum + entry.ideasInYear.length, 0);
-  const chartTitleText = `Cycle time from parking lot exit to done • total ideas (2025+2026): ${totalIdeasCombined}`;
-  context.textContent = chartTitleText;
+  const totalCycleSample = perYear.reduce((sum, entry) => sum + entry.cycleRows.length, 0);
+  const contextText = `Total ideas (2025+2026): ${totalIdeasCombined} • cycle sample: ${totalCycleSample}`;
+  context.textContent = contextText;
 
   if (perYear.every((entry) => entry.cycleRows.length === 0)) {
     status.hidden = false;
     status.textContent = `No completed Parking lot exit -> Done items found for ${yearsToShow.join(", ")}.`;
     clearChartContainer("product-cycle-chart");
-    context.textContent = chartTitleText;
+    context.textContent = contextText;
     return;
   }
 
@@ -1105,11 +1102,6 @@ function renderProductCycleChart() {
     }
     return row;
   });
-  const yearSummaries = perYear.map((entry) => {
-    return `${entry.year}: total ${entry.ideasInYear.length} • done ${entry.doneInYear.length} • ongoing (year-end) ${entry.openAtYearEnd} • ongoing now ${entry.openNow} • cycle sample ${entry.cycleRows.length}`;
-  });
-  const totalsText = yearSummaries.join(" | ");
-
   if (!window.BugChartsRecharts?.renderProductCycleChart) {
     status.hidden = false;
     status.textContent = "Product cycle chart unavailable: Recharts renderer missing.";
@@ -1122,9 +1114,9 @@ function renderProductCycleChart() {
     colors: themeColors,
     metricLabel
   });
-  setProductCycleTotalsText(totalsText);
+  setProductCycleTotalsText("");
 
-  context.textContent = chartTitleText;
+  context.textContent = contextText;
 
   const yearsWithoutCycles = perYear
     .filter((entry) => entry.cycleRows.length === 0)
