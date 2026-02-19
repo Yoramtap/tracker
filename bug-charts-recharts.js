@@ -48,27 +48,15 @@
     normalMax: 22,
     wideMax: 28
   };
-  const EMBED_COMPACT = new URLSearchParams(window.location.search).has("chart");
-  const EMBED_CHART_HEIGHT = 315;
-  const CHART_HEIGHTS = EMBED_COMPACT
-    ? {
-        trend: EMBED_CHART_HEIGHT,
-        composition: EMBED_CHART_HEIGHT,
-        uat: EMBED_CHART_HEIGHT,
-        sprintGoals: EMBED_CHART_HEIGHT,
-        management: EMBED_CHART_HEIGHT,
-        productCycle: EMBED_CHART_HEIGHT,
-        lifecycleDays: EMBED_CHART_HEIGHT
-      }
-    : {
-        trend: 380,
-        composition: 380,
-        uat: 340,
-        sprintGoals: 340,
-        management: 320,
-        productCycle: 360,
-        lifecycleDays: 360
-      };
+  const CHART_HEIGHTS = {
+    trend: 460,
+    composition: 560,
+    uat: 460,
+    sprintGoals: 440,
+    management: 420,
+    productCycle: 520,
+    lifecycleDays: 520
+  };
 
   const roots = {
     trend: null,
@@ -476,7 +464,7 @@
         LineChart,
         {
           data: rows,
-          margin: { top: 8, right: 20, bottom: 42, left: 20 }
+          margin: { top: 18, right: 20, bottom: 42, left: 20 }
         },
         h(CartesianGrid, { stroke: colors.grid, vertical: false }),
         h(XAxis, {
@@ -496,7 +484,7 @@
         }),
         h(Legend, {
           verticalAlign: "top",
-          height: 24,
+          height: 36,
           wrapperStyle: { color: colors.text, cursor: "pointer" },
           payload: buildLegendPayload(lineDefs, "line"),
           onClick: (entry) => {
@@ -542,7 +530,7 @@
         BarChart,
         {
           data: rows,
-          margin: { top: 8, right: 20, bottom: 52, left: 20 },
+          margin: { top: 18, right: 20, bottom: 52, left: 20 },
           barCategoryGap: categoryGap,
           barGap: BAR_LAYOUT.groupGap,
           maxBarSize: isAllTeams ? BAR_LAYOUT.denseMax : singleTeamMaxBarSize
@@ -576,7 +564,7 @@
         }),
         h(Legend, {
           verticalAlign: "top",
-          height: 24,
+          height: 36,
           wrapperStyle: { color: colors.text, cursor: "pointer" },
           payload: buildLegendPayload(priorityDefs, "rect"),
           onClick: (entry) => {
@@ -618,7 +606,7 @@
         BarChart,
         {
           data: chartRows,
-          margin: { top: 8, right: 20, bottom: 52, left: 20 },
+          margin: { top: 18, right: 20, bottom: 52, left: 20 },
           barCategoryGap: geometry.categoryGap,
           barGap: BAR_LAYOUT.groupGap,
           maxBarSize: geometry.maxBarSize
@@ -642,7 +630,7 @@
         }),
         h(Legend, {
           verticalAlign: "top",
-          height: 24,
+          height: 36,
           wrapperStyle: { color: colors.text, cursor: "pointer" },
           payload: buildLegendPayload(priorityDefs, "rect"),
           onClick: (entry) => {
@@ -725,7 +713,7 @@
         ComposedChart,
         {
           data: rows,
-          margin: { top: 8, right: 56, bottom: 52, left: 20 },
+          margin: { top: 18, right: 56, bottom: 52, left: 20 },
           barCategoryGap: geometry.categoryGap,
           barGap: BAR_LAYOUT.groupGap,
           maxBarSize: geometry.maxBarSize
@@ -759,7 +747,7 @@
         }),
         h(Legend, {
           verticalAlign: "top",
-          height: 24,
+          height: 36,
           wrapperStyle: { color: colors.text, cursor: "pointer" },
           payload: defs.map((item) => ({
             value: item.name,
@@ -866,7 +854,7 @@
         BarChart,
         {
           data: rows,
-          margin: { top: 8, right: 20, bottom: 52, left: 20 },
+          margin: { top: 18, right: 20, bottom: 52, left: 20 },
           barCategoryGap: geometry.categoryGap,
           barGap: BAR_LAYOUT.groupGap,
           maxBarSize: geometry.maxBarSize
@@ -888,7 +876,7 @@
         h(Tooltip, { content: ManagementTooltipContent(colors), cursor: { fill: "rgba(31,51,71,0.12)" } }),
         h(Legend, {
           verticalAlign: "top",
-          height: 24,
+          height: 36,
           wrapperStyle: { color: colors.text, cursor: "pointer" },
           payload: buildLegendPayload(defs, "rect"),
           onClick: (entry) => {
@@ -968,7 +956,7 @@
         BarChart,
         {
           data: rows,
-          margin: { top: 10, right: 20, bottom: 52, left: 20 },
+          margin: { top: 30, right: 20, bottom: 52, left: 20 },
           barCategoryGap: geometry.categoryGap,
           barGap: BAR_LAYOUT.groupGap,
           maxBarSize: geometry.maxBarSize
@@ -993,7 +981,7 @@
         }),
         h(Legend, {
           verticalAlign: "top",
-          height: 24,
+          height: 36,
           wrapperStyle: { color: colors.text, cursor: "pointer" },
           payload: buildLegendPayload(
             seriesDefs.map((series) => ({
@@ -1089,7 +1077,7 @@
         BarChart,
         {
           data: rows,
-          margin: { top: 10, right: 20, bottom: 52, left: 20 },
+          margin: { top: 30, right: 20, bottom: 52, left: 20 },
           barCategoryGap: geometry.categoryGap,
           barGap: BAR_LAYOUT.groupGap,
           maxBarSize: geometry.maxBarSize
@@ -1114,7 +1102,7 @@
         }),
         h(Legend, {
           verticalAlign: "top",
-          height: 24,
+          height: 36,
           wrapperStyle: { color: colors.text, cursor: "pointer" },
           payload: buildLegendPayload(
             phaseDefs.map((phase) => ({ dataKey: phase.key, name: phase.label, fill: phase.color })),

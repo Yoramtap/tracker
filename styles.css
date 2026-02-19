@@ -90,32 +90,7 @@ h2 {
 }
 
 .chart-canvas--tall {
-  min-height: 380px;
-}
-
-body.embed-compact main {
-  padding: 0 0 2px;
-  gap: 4px;
-}
-
-html:has(body.embed-compact),
-body.embed-compact {
-  overflow: hidden;
-}
-
-body.embed-compact .panel-subtitle {
-  margin: 0 0 2px;
-  font-size: 0.78rem;
-}
-
-body.embed-compact .management-toggle-row,
-body.embed-compact .composition-toggle-row {
-  margin: 0 0 2px;
-  padding-top: 0;
-}
-
-body.embed-compact .chart-canvas--tall {
-  min-height: 0;
+  min-height: 560px;
 }
 
 .bar-chart-wrap {
