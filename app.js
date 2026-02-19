@@ -1,12 +1,5 @@
 "use strict";
 
-const TEAM_CONFIG = [
-  { key: "api", label: "API" },
-  { key: "legacy", label: "Legacy FE" },
-  { key: "react", label: "React FE" },
-  { key: "bc", label: "BC" }
-];
-
 const PRIORITY_CONFIG = [
   { key: "highest", label: "Highest" },
   { key: "high", label: "High" },
@@ -15,15 +8,6 @@ const PRIORITY_CONFIG = [
   { key: "lowest", label: "Lowest" }
 ];
 
-const PRIORITY_LABELS = PRIORITY_CONFIG.reduce((acc, priority) => {
-  acc[priority.key] = priority.label;
-  return acc;
-}, {});
-const PRIORITY_STACK_ORDER = [...PRIORITY_CONFIG].reverse();
-
-const CHART_COLORS = {
-  transparent: "rgba(0,0,0,0)"
-};
 const SPRINT_GOALS_LOOKBACK = 6;
 const SPRINT_GOALS_TEAMS = [
   "API",
@@ -157,87 +141,13 @@ function getThemeColors() {
   };
 }
 
-function buildBaseLayout(colors) {
-  return {
-    paper_bgcolor: CHART_COLORS.transparent,
-    plot_bgcolor: CHART_COLORS.transparent,
-    font: { color: colors.text },
-    legend: {
-      orientation: "h",
-      yanchor: "bottom",
-      y: 1.02,
-      xanchor: "left",
-      x: 0,
-      font: { color: colors.text }
-    },
-    modebar: {
-      bgcolor: CHART_COLORS.transparent,
-      color: colors.text,
-      activecolor: colors.active
-    },
-    hoverlabel: {
-      bgcolor: colors.tooltip.bg,
-      bordercolor: colors.tooltip.border,
-      font: { color: colors.tooltip.text, size: 12 },
-      namelength: -1
-    }
-  };
-}
-
-function buildChartXAxis(colors, overrides = {}) {
-  return {
-    color: colors.text,
-    showgrid: false,
-    showline: true,
-    linecolor: colors.text,
-    linewidth: 1,
-    layer: "above traces",
-    ticks: "outside",
-    ticklen: 4,
-    tickcolor: colors.text,
-    automargin: true,
-    ...overrides
-  };
-}
-
-function buildChartYAxis(colors, overrides = {}) {
-  return {
-    color: colors.text,
-    showgrid: true,
-    gridcolor: colors.grid,
-    gridwidth: 1,
-    showline: true,
-    linecolor: colors.text,
-    linewidth: 1,
-    zeroline: true,
-    zerolinecolor: colors.text,
-    zerolinewidth: 1,
-    layer: "above traces",
-    ticks: "outside",
-    ticklen: 4,
-    tickcolor: colors.text,
-    automargin: true,
-    ...overrides
-  };
-}
-
-function buildBarMarker(colors, fillColor, options = {}) {
-  const { stacked = false, rounded = false, radius = 0 } = options;
-  if (stacked) {
-    return {
-      color: fillColor,
-      line: { color: CHART_COLORS.transparent, width: 0 }
-    };
+function clearChartContainer(containerId) {
+  if (window.BugChartsRecharts?.clearChart) {
+    window.BugChartsRecharts.clearChart({ containerId });
+    return;
   }
-
-  const marker = {
-    color: fillColor,
-    line: { color: colors.barBorder, width: 0.9 }
-  };
-  if (rounded && radius > 0) {
-    marker.cornerradius = radius;
-  }
-  return marker;
+  const root = document.getElementById(containerId);
+  if (root) root.innerHTML = "";
 }
 
 function getModeFromUrl() {
@@ -362,23 +272,6 @@ function toNumber(value) {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
-function totalForPoint(point) {
-  return (
-    toNumber(point.highest) +
-    toNumber(point.high) +
-    toNumber(point.medium) +
-    toNumber(point.low) +
-    toNumber(point.lowest)
-  );
-}
-
-function breakdownText(point) {
-  return PRIORITY_CONFIG.map((priority) => {
-    const value = toNumber(point[priority.key]);
-    return `${PRIORITY_LABELS[priority.key]}: ${value}`;
-  }).join("<br>");
-}
-
 function formatDateShort(date) {
   const [year, month, day] = date.split("-");
   if (!year || !month || !day) return date;
@@ -386,171 +279,56 @@ function formatDateShort(date) {
 }
 
 function renderLineChart() {
+  const trendStatus = document.getElementById("trend-status");
+  if (trendStatus) trendStatus.hidden = true;
   if (!state.snapshot || !Array.isArray(state.snapshot.combinedPoints)) return;
-  const themeColors = getThemeColors();
-
-  const x = state.snapshot.combinedPoints.map((point) => point.date);
-  const traces = TEAM_CONFIG.map((team) => {
-    const y = state.snapshot.combinedPoints.map((point) => totalForPoint(point[team.key]));
-    const customData = state.snapshot.combinedPoints.map((point) => breakdownText(point[team.key]));
-    return {
-      type: "scatter",
-      mode: "lines+markers",
-      name: team.label,
-      x,
-      y,
-      customdata: customData,
-      hovertemplate:
-        "<b>%{fullData.name}</b><br>Date: %{x}<br>Total: %{y}<br>%{customdata}<extra></extra>",
-      line: { color: themeColors.teams[team.key], width: 3 },
-      marker: { size: 7 }
-    };
-  });
-  const bcLongstanding = state.snapshot.combinedPoints.map((point) =>
-    toNumber(point?.bc?.longstanding_30d_plus)
-  );
-  const bcLongstanding60 = state.snapshot.combinedPoints.map((point) =>
-    toNumber(point?.bc?.longstanding_60d_plus)
-  );
-  const bcLongstandingHover = state.snapshot.combinedPoints.map((point) => {
-    const bcPoint = point?.bc || {};
-    return (
-      `Broadcast long-standing (30d+): ${toNumber(bcPoint.longstanding_30d_plus)}` +
-      `<br>Broadcast long-standing (60d+): ${toNumber(bcPoint.longstanding_60d_plus)}` +
-      `<br>Broadcast total open: ${totalForPoint(bcPoint)}`
-    );
-  });
-  traces.push({
-    type: "scatter",
-    mode: "lines+markers",
-    name: "BC long-standing (30d+)",
-    x,
-    y: bcLongstanding,
-    customdata: bcLongstandingHover,
-    hovertemplate: "<b>%{fullData.name}</b><br>Date: %{x}<br>%{customdata}<extra></extra>",
-    line: { color: "#8e9aaa", width: 2, dash: "dot" },
-    marker: { size: 6, symbol: "diamond" }
-  });
-  traces.push({
-    type: "scatter",
-    mode: "lines+markers",
-    name: "BC long-standing (60d+)",
-    x,
-    y: bcLongstanding60,
-    customdata: bcLongstandingHover,
-    hovertemplate: "<b>%{fullData.name}</b><br>Date: %{x}<br>%{customdata}<extra></extra>",
-    line: { color: "#6f7f92", width: 2, dash: "dash" },
-    marker: { size: 6, symbol: "triangle-up" }
-  });
-
-  const allYValues = traces.flatMap((trace) => trace.y).filter((value) => Number.isFinite(value));
-  const maxY = allYValues.length ? Math.max(...allYValues) : 10;
-  const paddedMaxY = Math.max(10, Math.ceil(maxY * 1.08));
-
-  const layout = {
-    ...buildBaseLayout(themeColors),
-    uirevision: "backlog-line",
-    margin: { t: 18, r: 20, b: 42, l: 56 },
-    xaxis: {
-      title: "Date",
-      tickangle: -30,
-      color: themeColors.text,
-      gridcolor: themeColors.grid,
-      showline: true,
-      linecolor: themeColors.text,
-      linewidth: 1,
-      layer: "above traces",
-      automargin: true
-    },
-    yaxis: {
-      title: "Open Bugs",
-      range: [0, paddedMaxY],
-      color: themeColors.text,
-      gridcolor: themeColors.grid,
-      showline: true,
-      linecolor: themeColors.text,
-      linewidth: 1,
-      zeroline: true,
-      zerolinecolor: themeColors.text,
-      zerolinewidth: 1,
-      layer: "above traces",
-      automargin: true
+  if (!window.BugChartsRecharts?.renderTrendChart) {
+    if (trendStatus) {
+      trendStatus.hidden = false;
+      trendStatus.textContent =
+        "Trend chart unavailable: Recharts did not load. Check local script paths.";
     }
-  };
+    return;
+  }
 
-  Plotly.react("chart", traces, layout, {
-    displayModeBar: true,
-    displaylogo: false,
-    responsive: true
+  window.BugChartsRecharts.renderTrendChart({
+    containerId: "chart",
+    snapshot: state.snapshot,
+    colors: getThemeColors()
   });
 }
 
 function renderStackedBarChart() {
+  const status = document.getElementById("status");
+  if (status) status.hidden = true;
   if (!state.snapshot || !Array.isArray(state.snapshot.combinedPoints)) return;
-  const themeColors = getThemeColors();
+  if (!window.BugChartsRecharts?.renderCompositionChart) {
+    if (status) {
+      status.hidden = false;
+      status.textContent =
+        "Composition chart unavailable: Recharts did not load. Check local script paths.";
+    }
+    return;
+  }
 
-  const root = document.getElementById("stacked-chart");
-  if (!root) return;
-
-  const points = state.snapshot.combinedPoints;
   const scopeSelect = document.getElementById("composition-team-scope");
   const scope = state.compositionTeamScope || "bc";
   if (scopeSelect) scopeSelect.value = scope;
-  const teamsForChart =
-    scope === "all" ? TEAM_CONFIG : TEAM_CONFIG.filter((team) => team.key === scope);
-  const flat = [];
-  points.forEach((point) => {
-    teamsForChart.forEach((team) => {
-      const teamPoint = point[team.key];
-      flat.push({
-        date: point.date,
-        dateShort: formatDateShort(point.date),
-        team: team.label,
-        total: totalForPoint(teamPoint),
-        highest: toNumber(teamPoint.highest),
-        high: toNumber(teamPoint.high),
-        medium: toNumber(teamPoint.medium),
-        low: toNumber(teamPoint.low),
-        lowest: toNumber(teamPoint.lowest)
-      });
-    });
+
+  window.BugChartsRecharts.renderCompositionChart({
+    containerId: "stacked-chart",
+    snapshot: state.snapshot,
+    colors: getThemeColors(),
+    scope
   });
+}
 
-  const x = [flat.map((item) => item.dateShort), flat.map((item) => item.team)];
-  const traces = PRIORITY_STACK_ORDER.map((priority) => ({
-    type: "bar",
-    name: priority.label,
-    marker: buildBarMarker(themeColors, themeColors.priorities[priority.key], { stacked: true }),
-    x,
-    y: flat.map((item) => item[priority.key]),
-    customdata: flat.map((item) => [item.date, item.team, item.total]),
-    hovertemplate:
-      "<b>%{customdata[1]}</b><br>Date: %{customdata[0]}<br>" +
-      `${priority.label}: %{y}<br>Total: %{customdata[2]}<extra></extra>`
-  }));
+function renderTrendChartPreferred() {
+  renderLineChart();
+}
 
-  const layout = {
-    ...buildBaseLayout(themeColors),
-    barmode: "stack",
-    uirevision: "backlog-stack",
-    margin: { t: 18, r: 16, b: 86, l: 56 },
-    bargap: 0.36,
-    xaxis: buildChartXAxis(themeColors, {
-      type: "multicategory",
-      tickangle: -90,
-      tickfont: { size: 9 }
-    }),
-    yaxis: buildChartYAxis(themeColors, {
-      title: "Open Bugs",
-      rangemode: "tozero"
-    })
-  };
-
-  Plotly.react("stacked-chart", traces, layout, {
-    displayModeBar: true,
-    displaylogo: false,
-    responsive: true
-  });
+function renderCompositionChartPreferred() {
+  renderStackedBarChart();
 }
 
 function renderUatAgingChart() {
@@ -566,28 +344,14 @@ function renderUatAgingChart() {
     return;
   }
 
-  const themeColors = getThemeColors();
   const uat = state.snapshot.uatAging;
   const scopeLabel = String(uat?.scope?.label || "Broadcast");
   if (context) context.textContent = `${scopeLabel}, ${toNumber(uat.totalIssues)} currently in UAT`;
   const allPriorities = PRIORITY_CONFIG.map((priority) => priority.key);
-  const priorityLabels = PRIORITY_CONFIG.reduce((acc, priority) => {
-    acc[priority.key] = priority.label;
-    return acc;
-  }, {});
   const buckets = Array.isArray(uat.buckets) ? uat.buckets : [];
   const priorities = allPriorities.filter((priority) =>
     buckets.some((bucket) => toNumber(uat?.priorities?.[priority]?.buckets?.[bucket.id]) > 0)
   );
-  const bucketLabels = buckets.map((bucket) => bucket.label);
-  const maxBarValue = buckets.reduce((maxSoFar, bucket) => {
-    const bucketMax = priorities.reduce((priorityMax, priority) => {
-      const value = toNumber(uat?.priorities?.[priority]?.buckets?.[bucket.id]);
-      return Math.max(priorityMax, value);
-    }, 0);
-    return Math.max(maxSoFar, bucketMax);
-  }, 0);
-  const paddedMaxY = maxBarValue > 0 ? Math.ceil(maxBarValue * 1.12) : 1;
 
   if (buckets.length === 0) {
     status.hidden = false;
@@ -595,92 +359,22 @@ function renderUatAgingChart() {
     return;
   }
 
-  // Robust grouped layout: center only the bars that actually exist in each bucket.
-  const perPriority = Object.fromEntries(
-    priorities.map((priority) => [
-      priority,
-      { x: [], y: [], width: [], customdata: [] }
-    ])
-  );
-  const intraBucketGap = 0.02;
-  const bucketSpan = 0.82;
-  buckets.forEach((bucket, bucketIndex) => {
-    const total = priorities.reduce(
-      (sum, p) => sum + toNumber(uat?.priorities?.[p]?.buckets?.[bucket.id]),
-      0
-    );
-    const active = priorities
-      .map((priority) => ({
-        priority,
-        value: toNumber(uat?.priorities?.[priority]?.buckets?.[bucket.id])
-      }))
-      .filter((item) => item.value > 0);
-    if (active.length === 0) return;
-
-    const barWidth = Math.max(
-      0.2,
-      Math.min(0.38, (bucketSpan - (active.length - 1) * intraBucketGap) / active.length)
-    );
-    const totalWidth = active.length * barWidth + (active.length - 1) * intraBucketGap;
-    const start = bucketIndex - totalWidth / 2 + barWidth / 2;
-
-    active.forEach((item, idx) => {
-      const slot = perPriority[item.priority];
-      slot.x.push(start + idx * (barWidth + intraBucketGap));
-      slot.y.push(item.value);
-      slot.width.push(barWidth);
-      slot.customdata.push({ total, bucket: bucket.label });
-    });
+  const chartRows = buckets.map((bucket) => {
+    const row = { bucketLabel: bucket.label, total: 0 };
+    for (const priority of priorities) {
+      const value = toNumber(uat?.priorities?.[priority]?.buckets?.[bucket.id]);
+      row[priority] = value;
+      row.total += value;
+    }
+    return row;
   });
 
-  const traces = priorities
-    .map((priority) => {
-      const slot = perPriority[priority];
-      if (!slot || slot.x.length === 0) return null;
-      return {
-        type: "bar",
-        name: priorityLabels[priority],
-        x: slot.x,
-        y: slot.y,
-        width: slot.width,
-        marker: buildBarMarker(
-          themeColors,
-          themeColors.priorities[priority] || themeColors.priorities.medium,
-          { rounded: true, radius: 4 }
-        ),
-        customdata: slot.customdata,
-        hovertemplate:
-          "<b>Time spent: %{customdata.bucket}</b><br>Priority: %{fullData.name}<br>Count: %{y}<br>" +
-          "Total: %{customdata.total}<extra></extra>"
-      };
-    })
-    .filter(Boolean);
-
-  const layout = {
-    ...buildBaseLayout(themeColors),
-    barmode: "overlay",
-    barcornerradius: 4,
-    uirevision: "backlog-uat-aging",
-    margin: { t: 18, r: 16, b: 52, l: 56 },
-    bargap: 0,
-    xaxis: buildChartXAxis(themeColors, {
-      type: "linear",
-      tickmode: "array",
-      tickvals: bucketLabels.map((_, index) => index),
-      ticktext: bucketLabels,
-      range: [-0.5, bucketLabels.length - 0.5],
-      title: "Time spent"
-    }),
-    yaxis: buildChartYAxis(themeColors, {
-      title: "Open UAT Tickets",
-      range: [0, paddedMaxY]
-    })
-  };
-
-  Plotly.react("uat-chart", traces, layout, {
-    displayModeBar: true,
-    displaylogo: false,
-    responsive: true
+  if (!window.BugChartsRecharts?.renderUatAgingChart) return;
+  window.BugChartsRecharts.renderUatAgingChart({
+    containerId: "uat-chart",
+    rows: chartRows,
+    priorities,
+    colors: getThemeColors()
   });
 }
 
@@ -691,13 +385,8 @@ function bindCompositionTeamScopeToggle() {
   scopeSelect.dataset.bound = "1";
   scopeSelect.addEventListener("change", () => {
     state.compositionTeamScope = scopeSelect.value || "bc";
-    renderStackedBarChart();
+    renderCompositionChartPreferred();
   });
-}
-
-function formatDays(value) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "--";
-  return value.toFixed(2);
 }
 
 function computeMedian(values) {
@@ -1039,71 +728,22 @@ function renderSprintGoalsChart() {
     successRatePct.push(total > 0 ? (ok / total) * 100 : 0);
   }
 
-  const themeColors = getThemeColors();
-  const traces = [
-    {
-      type: "bar",
-      name: "Goals Total",
-      x: xShort,
-      y: totals,
-      customdata: x,
-      marker: buildBarMarker(themeColors, themeColors.teams.api, { rounded: true, radius: 5 }),
-      hovertemplate: "<b>%{customdata}</b><br>Goals Total: %{y}<extra></extra>"
-    },
-    {
-      type: "bar",
-      name: "Goals Passed",
-      x: xShort,
-      y: passed,
-      customdata: x,
-      marker: buildBarMarker(themeColors, themeColors.teams.react, { rounded: true, radius: 5 }),
-      hovertemplate: "<b>%{customdata}</b><br>Goals Passed: %{y}<extra></extra>"
-    },
-    {
-      type: "scatter",
-      mode: "lines+markers",
-      name: "Success Rate",
-      x: xShort,
-      y: successRatePct,
-      customdata: x,
-      yaxis: "y2",
-      line: { color: themeColors.teams.bc, width: 3 },
-      marker: { size: 7 },
-      hovertemplate: "<b>%{customdata}</b><br>Success Rate: %{y:.1f}%<extra></extra>"
-    }
-  ];
-
-  const maxGoals = Math.max(1, ...totals, ...passed);
-  const layout = {
-    ...buildBaseLayout(themeColors),
-    barmode: "group",
-    barcornerradius: 5,
-    uirevision: `sprint-goals-${team}`,
-    margin: { t: 18, r: 56, b: 52, l: 56 },
-    bargap: 0.32,
-    xaxis: buildChartXAxis(themeColors, {
-      title: "Sprint Start"
-    }),
-    yaxis: buildChartYAxis(themeColors, {
-      title: "Goals",
-      range: [0, Math.ceil(maxGoals * 1.2)]
-    }),
-    yaxis2: {
-      title: "Success Rate",
-      overlaying: "y",
-      side: "right",
-      range: [0, 100],
-      ticksuffix: "%",
-      tickformat: ".0f",
-      showgrid: false,
-      color: themeColors.text
-    }
-  };
-
-  Plotly.react("sprint-goals-chart", traces, layout, {
-    displayModeBar: true,
-    displaylogo: false,
-    responsive: true
+  if (!window.BugChartsRecharts?.renderSprintGoalsChart) {
+    status.hidden = false;
+    status.textContent = "Sprint goals chart unavailable: Recharts renderer missing.";
+    return;
+  }
+  const rows = recent.map((_, index) => ({
+    date: x[index],
+    dateShort: xShort[index],
+    goalsTotal: totals[index],
+    goalsPassed: passed[index],
+    successRate: successRatePct[index]
+  }));
+  window.BugChartsRecharts.renderSprintGoalsChart({
+    containerId: "sprint-goals-chart",
+    rows,
+    colors: getThemeColors()
   });
 
   context.textContent = `${team}, last ${recent.length} sprints`;
@@ -1213,69 +853,50 @@ function renderProductCycleChartFromPublicAggregates(publicAggregates, effortSco
   if (perYear.every((entry) => entry.cycleRowsCount === 0)) {
     status.hidden = false;
     status.textContent = `No completed Parking lot exit -> Done items found for ${yearsToShow.join(", ")}.`;
-    Plotly.purge("product-cycle-chart");
+    clearChartContainer("product-cycle-chart");
     return;
   }
 
   const themeColors = getThemeColors();
-  const traces = perYear.map((entry) => ({
-    type: "bar",
-    name: `${entry.year}`,
-    x: entry.teamStats.map((item) => item.team),
-    y: entry.teamStats.map((item) =>
-      typeof item.metric === "number" && Number.isFinite(item.metric) ? item.metric : 0
-    ),
-    marker: {
-      color: entry.teamStats.map((item) => cycleYearTeamColor(themeColors, item.team, entry.year)),
-      line: { color: themeColors.barBorder, width: 0.9 }
-    },
-    customdata: entry.teamStats.map((item) => [
-      entry.year,
-      item.n,
-      formatDays(item.median),
-      formatDays(item.average),
-      typeof item.metric === "number" && Number.isFinite(item.metric) ? formatDays(item.metric) : "n/a"
-    ]),
-    hovertemplate:
-      "<b>%{x}</b><br>" +
-      "Year: %{customdata[0]}<br>" +
-      `${metricLabel} Parking lot exit -> Done: %{customdata[4]} days<br>` +
-      "Sample size: %{customdata[1]}<br>Median: %{customdata[2]} days<br>Average: %{customdata[3]} days<extra></extra>"
+  const seriesDefs = perYear.map((entry, index) => ({
+    key: `year_${entry.year}`,
+    name: String(entry.year),
+    color: index % 2 === 0 ? themeColors.teams.api : themeColors.teams.bc
   }));
+  const rows = teams.map((team) => {
+    const row = { team };
+    for (const entry of perYear) {
+      const key = `year_${entry.year}`;
+      const stat = entry.teamStats.find((item) => item.team === team) || {};
+      const metricValue =
+        typeof stat.metric === "number" && Number.isFinite(stat.metric) ? stat.metric : 0;
+      row[key] = metricValue;
+      row[`meta_${key}`] = {
+        n: toNumber(stat.n),
+        median: toFiniteMetric(stat.median) || 0,
+        average: toFiniteMetric(stat.average) || 0
+      };
+      row[`color_${key}`] = cycleYearTeamColor(themeColors, team, entry.year);
+    }
+    return row;
+  });
 
-  const yValues = traces
-    .flatMap((trace) => trace.y)
-    .filter((value) => typeof value === "number" && Number.isFinite(value));
-  const yMax = yValues.length > 0 ? Math.ceil(Math.max(...yValues) * 1.15) : 1;
   const yearSummaries = perYear.map((entry) => {
     return `${entry.year}: total ${entry.ideasInYearCount} • done ${entry.doneInYearCount} • ongoing (year-end) ${entry.openAtYearEnd} • ongoing now ${entry.openNow} • cycle sample ${entry.cycleRowsCount}`;
   });
   const totalsText = yearSummaries.join(" | ");
 
-  const layout = {
-    ...buildBaseLayout(themeColors),
-    height: 520,
-    barmode: "group",
-    barcornerradius: 5,
-    uirevision: `product-cycle-${effortScope}-${metric}`,
-    margin: { t: 42, r: 20, b: 64, l: 56 },
-    bargap: 0.42,
-    bargroupgap: 0.2,
-    legend: {
-      ...buildBaseLayout(themeColors).legend,
-      y: 1.12
-    },
-    xaxis: buildChartXAxis(themeColors, { title: "Team" }),
-    yaxis: buildChartYAxis(themeColors, {
-      title: "Cycle Time (days)",
-      range: [0, yMax]
-    })
-  };
-
-  Plotly.react("product-cycle-chart", traces, layout, {
-    displayModeBar: true,
-    displaylogo: false,
-    responsive: true
+  if (!window.BugChartsRecharts?.renderProductCycleChart) {
+    status.hidden = false;
+    status.textContent = "Product cycle chart unavailable: Recharts renderer missing.";
+    return;
+  }
+  window.BugChartsRecharts.renderProductCycleChart({
+    containerId: "product-cycle-chart",
+    rows,
+    seriesDefs,
+    colors: themeColors,
+    metricLabel
   });
   setProductCycleTotalsText(totalsText);
 
@@ -1302,7 +923,6 @@ function renderLifecycleDaysChartFromPublicAggregates(publicAggregates, year, me
 
   const metricLabel = metric === "average" ? "Average" : "Median";
   const chartTitleText = `Lifecycle time spent per phase (${metricLabel})`;
-  context.textContent = chartTitleText;
 
   const themeColors = getThemeColors();
   const phaseColors = [
@@ -1312,51 +932,32 @@ function renderLifecycleDaysChartFromPublicAggregates(publicAggregates, year, me
     themeColors.uatBuckets.d31_60,
     themeColors.uatBuckets.d61_plus
   ];
-
-  const traces = PRODUCT_CYCLE_PHASES.map((phase, phaseIndex) => {
-    const rows = teams.map((team) => {
-      const row = publicAggregates?.lifecyclePhaseDays?.byYear?.[year]?.teams?.[team]?.[phase.key] || {};
-      const median = toFiniteMetric(row.median);
-      const average = toFiniteMetric(row.average);
+  const phaseDefs = PRODUCT_CYCLE_PHASES.map((phase, phaseIndex) => ({
+    key: phase.key,
+    label: phase.label,
+    color: phaseColors[phaseIndex] || themeColors.teams.legacy
+  }));
+  const rows = teams.map((team) => {
+    const row = { team };
+    for (const phase of PRODUCT_CYCLE_PHASES) {
+      const source =
+        publicAggregates?.lifecyclePhaseDays?.byYear?.[year]?.teams?.[team]?.[phase.key] || {};
+      const median = toFiniteMetric(source.median);
+      const average = toFiniteMetric(source.average);
       const metricValue = metric === "average" ? average : median;
-      return {
-        n: toCount(row.n),
-        metric: metricValue,
-        median,
-        average
+      row[phase.key] =
+        typeof metricValue === "number" && Number.isFinite(metricValue) ? metricValue : 0;
+      row[`meta_${phase.key}`] = {
+        n: toCount(source.n),
+        median: median || 0,
+        average: average || 0
       };
-    });
-
-    return {
-      type: "bar",
-      name: phase.label,
-      x: teams,
-      y: rows.map((row) =>
-        typeof row.metric === "number" && Number.isFinite(row.metric) ? row.metric : 0
-      ),
-      marker: buildBarMarker(themeColors, phaseColors[phaseIndex] || themeColors.teams.legacy, {
-        rounded: true,
-        radius: 4
-      }),
-      customdata: rows.map((row) => [
-        row.n,
-        formatDays(row.median),
-        formatDays(row.average),
-        typeof row.metric === "number" && Number.isFinite(row.metric) ? formatDays(row.metric) : "n/a"
-      ]),
-      hovertemplate:
-        "<b>%{x}</b><br>" +
-        `${phase.label}<br>${metricLabel}: %{customdata[3]} days<br>` +
-        "Sample size: %{customdata[0]}<br>Median: %{customdata[1]} days<br>Average: %{customdata[2]} days<extra></extra>"
-    };
+    }
+    return row;
   });
-
-  const activeTraces = traces.filter((trace) =>
-    trace.y.some((value) => typeof value === "number" && Number.isFinite(value) && value > 0)
-  );
-  const plottedValues = traces
-    .flatMap((trace) => trace.y)
-    .filter((value) => typeof value === "number" && Number.isFinite(value));
+  const plottedValues = phaseDefs
+    .flatMap((phase) => rows.map((row) => row[phase.key]))
+    .filter((value) => typeof value === "number" && Number.isFinite(value) && value > 0);
 
   const totalsNode = publicAggregates?.lifecyclePhaseDays?.totalsByYear?.[year] || {};
   const doneCount = toCount(totalsNode.done);
@@ -1365,51 +966,25 @@ function renderLifecycleDaysChartFromPublicAggregates(publicAggregates, year, me
   const sampleCount = toCount(totalsNode.cycle_sample);
   const totalsText = `${year}: total ${totalCount} • done ${doneCount} • ongoing ${ongoingCount} • cycle sample ${sampleCount}`;
 
-  if (plottedValues.length === 0 || activeTraces.length === 0) {
+  if (plottedValues.length === 0) {
     status.hidden = false;
     status.textContent = `No lifecycle phase time data found for ${year}.`;
-    Plotly.purge("lifecycle-days-chart");
+    clearChartContainer("lifecycle-days-chart");
     return;
   }
-  const yMax = plottedValues.length > 0 ? Math.ceil(Math.max(...plottedValues) * 1.15) : 1;
-
-  const layout = {
-    ...buildBaseLayout(themeColors),
-    height: 520,
-    barmode: "group",
-    barcornerradius: 4,
-    uirevision: `lifecycle-days-${year}-${metric}`,
-    margin: { t: 64, r: 20, b: 96, l: 56 },
-    bargap: 0.4,
-    bargroupgap: 0.22,
-    legend: {
-      ...buildBaseLayout(themeColors).legend,
-      y: 1.18
-    },
-    annotations: [
-      {
-        xref: "paper",
-        yref: "paper",
-        x: 0.5,
-        y: -0.28,
-        showarrow: false,
-        text: totalsText,
-        font: { size: 12, color: themeColors.text },
-        align: "center"
-      }
-    ],
-    xaxis: buildChartXAxis(themeColors, { title: "Team" }),
-    yaxis: buildChartYAxis(themeColors, {
-      title: "Days",
-      range: [0, yMax]
-    })
-  };
-
-  Plotly.react("lifecycle-days-chart", activeTraces, layout, {
-    displayModeBar: true,
-    displaylogo: false,
-    responsive: true
+  if (!window.BugChartsRecharts?.renderLifecycleDaysChart) {
+    status.hidden = false;
+    status.textContent = "Lifecycle chart unavailable: Recharts renderer missing.";
+    return;
+  }
+  window.BugChartsRecharts.renderLifecycleDaysChart({
+    containerId: "lifecycle-days-chart",
+    rows,
+    phaseDefs,
+    colors: themeColors,
+    metricLabel
   });
+  context.textContent = `${chartTitleText} • ${totalsText}`;
 }
 
 function renderProductCycleChart() {
@@ -1502,70 +1077,50 @@ function renderProductCycleChart() {
   if (perYear.every((entry) => entry.cycleRows.length === 0)) {
     status.hidden = false;
     status.textContent = `No completed Parking lot exit -> Done items found for ${yearsToShow.join(", ")}.`;
-    Plotly.purge("product-cycle-chart");
+    clearChartContainer("product-cycle-chart");
     context.textContent = chartTitleText;
     return;
   }
 
   const themeColors = getThemeColors();
-  const traces = perYear.map((entry) => ({
-    type: "bar",
-    name: `${entry.year}`,
-    x: entry.teamStats.map((item) => item.team),
-    y: entry.teamStats.map((item) =>
-      typeof item.metric === "number" && Number.isFinite(item.metric) ? item.metric : 0
-    ),
-    marker: {
-      color: entry.teamStats.map((item) => cycleYearTeamColor(themeColors, item.team, entry.year)),
-      line: { color: themeColors.barBorder, width: 0.9 }
-    },
-    customdata: entry.teamStats.map((item) => [
-      entry.year,
-      item.n,
-      formatDays(item.median),
-      formatDays(item.average),
-      typeof item.metric === "number" && Number.isFinite(item.metric) ? formatDays(item.metric) : "n/a"
-    ]),
-    hovertemplate:
-      "<b>%{x}</b><br>" +
-      "Year: %{customdata[0]}<br>" +
-      `${metricLabel} Parking lot exit -> Done: %{customdata[4]} days<br>` +
-      "Sample size: %{customdata[1]}<br>Median: %{customdata[2]} days<br>Average: %{customdata[3]} days<extra></extra>"
+  const seriesDefs = perYear.map((entry, index) => ({
+    key: `year_${entry.year}`,
+    name: String(entry.year),
+    color: index % 2 === 0 ? themeColors.teams.api : themeColors.teams.bc
   }));
-
-  const yValues = traces
-    .flatMap((trace) => trace.y)
-    .filter((value) => typeof value === "number" && Number.isFinite(value));
-  const yMax = yValues.length > 0 ? Math.ceil(Math.max(...yValues) * 1.15) : 1;
+  const rows = teams.map((team) => {
+    const row = { team };
+    for (const entry of perYear) {
+      const key = `year_${entry.year}`;
+      const stat = entry.teamStats.find((item) => item.team === team) || {};
+      const metricValue =
+        typeof stat.metric === "number" && Number.isFinite(stat.metric) ? stat.metric : 0;
+      row[key] = metricValue;
+      row[`meta_${key}`] = {
+        n: toNumber(stat.n),
+        median: toFiniteMetric(stat.median) || 0,
+        average: toFiniteMetric(stat.average) || 0
+      };
+      row[`color_${key}`] = cycleYearTeamColor(themeColors, team, entry.year);
+    }
+    return row;
+  });
   const yearSummaries = perYear.map((entry) => {
     return `${entry.year}: total ${entry.ideasInYear.length} • done ${entry.doneInYear.length} • ongoing (year-end) ${entry.openAtYearEnd} • ongoing now ${entry.openNow} • cycle sample ${entry.cycleRows.length}`;
   });
   const totalsText = yearSummaries.join(" | ");
 
-  const layout = {
-    ...buildBaseLayout(themeColors),
-    height: 520,
-    barmode: "group",
-    barcornerradius: 5,
-    uirevision: `product-cycle-${effortScope}-${metric}`,
-    margin: { t: 42, r: 20, b: 64, l: 56 },
-    bargap: 0.42,
-    bargroupgap: 0.2,
-    legend: {
-      ...buildBaseLayout(themeColors).legend,
-      y: 1.12
-    },
-    xaxis: buildChartXAxis(themeColors, { title: "Team" }),
-    yaxis: buildChartYAxis(themeColors, {
-      title: "Cycle Time (days)",
-      range: [0, yMax]
-    })
-  };
-
-  Plotly.react("product-cycle-chart", traces, layout, {
-    displayModeBar: true,
-    displaylogo: false,
-    responsive: true
+  if (!window.BugChartsRecharts?.renderProductCycleChart) {
+    status.hidden = false;
+    status.textContent = "Product cycle chart unavailable: Recharts renderer missing.";
+    return;
+  }
+  window.BugChartsRecharts.renderProductCycleChart({
+    containerId: "product-cycle-chart",
+    rows,
+    seriesDefs,
+    colors: themeColors,
+    metricLabel
   });
   setProductCycleTotalsText(totalsText);
 
@@ -1635,49 +1190,34 @@ function renderLifecycleDaysChart() {
     themeColors.uatBuckets.d31_60,
     themeColors.uatBuckets.d61_plus
   ];
-  const traces = PRODUCT_CYCLE_PHASES.map((phase, phaseIndex) => {
-    const rows = teams.map((team) => {
+  const phaseDefs = PRODUCT_CYCLE_PHASES.map((phase, phaseIndex) => ({
+    key: phase.key,
+    label: phase.label,
+    color: phaseColors[phaseIndex] || themeColors.teams.legacy
+  }));
+  const rows = teams.map((team) => {
+    const row = { team };
+    for (const phase of PRODUCT_CYCLE_PHASES) {
       const values = (groupedByTeam.get(team) || [])
         .map((idea) => idea?._phase_spent_days?.[phase.key])
         .filter((value) => typeof value === "number" && Number.isFinite(value) && value > 0);
-      return {
+      const median = computeMedian(values);
+      const average = computeAverage(values);
+      const metricValue = metricFn(values);
+      row[phase.key] =
+        typeof metricValue === "number" && Number.isFinite(metricValue) ? metricValue : 0;
+      row[`meta_${phase.key}`] = {
         n: values.length,
-        metric: metricFn(values),
-        median: computeMedian(values),
-        average: computeAverage(values)
+        median: median || 0,
+        average: average || 0
       };
-    });
-      return {
-        type: "bar",
-        name: phase.label,
-        x: teams,
-        y: rows.map((row) =>
-          typeof row.metric === "number" && Number.isFinite(row.metric) ? row.metric : 0
-        ),
-        marker: buildBarMarker(themeColors, phaseColors[phaseIndex] || themeColors.teams.legacy, {
-          rounded: true,
-          radius: 4
-        }),
-        customdata: rows.map((row) => [
-          row.n,
-          formatDays(row.median),
-          formatDays(row.average),
-          typeof row.metric === "number" && Number.isFinite(row.metric) ? formatDays(row.metric) : "n/a"
-        ]),
-        hovertemplate:
-          "<b>%{x}</b><br>" +
-          `${phase.label}<br>${metricLabel}: %{customdata[3]} days<br>` +
-          "Sample size: %{customdata[0]}<br>Median: %{customdata[1]} days<br>Average: %{customdata[2]} days<extra></extra>"
-      };
-    });
+    }
+    return row;
+  });
 
-  const activeTraces = traces.filter((trace) =>
-    trace.y.some((value) => typeof value === "number" && Number.isFinite(value) && value > 0)
-  );
-
-  const plottedValues = traces
-    .flatMap((trace) => trace.y)
-    .filter((value) => typeof value === "number" && Number.isFinite(value));
+  const plottedValues = phaseDefs
+    .flatMap((phase) => rows.map((row) => row[phase.key]))
+    .filter((value) => typeof value === "number" && Number.isFinite(value) && value > 0);
   const doneCount = ideasInYear.filter((idea) => isoYear(idea?.entered_done) === year).length;
   const ongoingCount = Math.max(0, ideasInYear.length - doneCount);
   const sampleSet = new Set();
@@ -1692,52 +1232,25 @@ function renderLifecycleDaysChart() {
   const totalsText = `${year}: total ${ideasInYear.length} • done ${doneCount} • ongoing ${ongoingCount} • cycle sample ${sampleCount}`;
   context.textContent = chartTitleText;
 
-  if (plottedValues.length === 0 || activeTraces.length === 0) {
+  if (plottedValues.length === 0) {
     status.hidden = false;
     status.textContent = `No lifecycle phase time data found for ${year}.`;
-    Plotly.purge("lifecycle-days-chart");
+    clearChartContainer("lifecycle-days-chart");
     return;
   }
-  const yMax = plottedValues.length > 0 ? Math.ceil(Math.max(...plottedValues) * 1.15) : 1;
-
-  const layout = {
-    ...buildBaseLayout(themeColors),
-    height: 520,
-    barmode: "group",
-    barcornerradius: 4,
-    uirevision: `lifecycle-days-${year}-${metric}`,
-    margin: { t: 64, r: 20, b: 96, l: 56 },
-    bargap: 0.4,
-    bargroupgap: 0.22,
-    legend: {
-      ...buildBaseLayout(themeColors).legend,
-      y: 1.18
-    },
-    annotations: [
-      {
-        xref: "paper",
-        yref: "paper",
-        x: 0.5,
-        y: -0.28,
-        showarrow: false,
-        text: totalsText,
-        font: { size: 12, color: themeColors.text },
-        align: "center"
-      }
-    ],
-    xaxis: buildChartXAxis(themeColors, { title: "Team" }),
-    yaxis: buildChartYAxis(themeColors, {
-      title: "Days",
-      range: [0, yMax]
-    })
-  };
-
-  Plotly.react("lifecycle-days-chart", activeTraces, layout, {
-    displayModeBar: true,
-    displaylogo: false,
-    responsive: true
+  if (!window.BugChartsRecharts?.renderLifecycleDaysChart) {
+    status.hidden = false;
+    status.textContent = "Lifecycle chart unavailable: Recharts renderer missing.";
+    return;
+  }
+  window.BugChartsRecharts.renderLifecycleDaysChart({
+    containerId: "lifecycle-days-chart",
+    rows,
+    phaseDefs,
+    colors: themeColors,
+    metricLabel
   });
-  context.textContent = chartTitleText;
+  context.textContent = `${chartTitleText} • ${totalsText}`;
 }
 
 function renderManagementChart() {
@@ -1786,36 +1299,20 @@ function renderManagementChart() {
     (sum, band, idx) => sum + Math.max(devCounts[idx], uatCounts[idx]),
     0
   );
-  context.textContent = `Broadcast, ${totalFlowTickets} historical flow tickets (sample)`;
+  const uat = state.snapshot?.uatAging;
+  const uatScopeLabel = String(uat?.scope?.label || "Broadcast");
+  const uatCurrentCount = toNumber(uat?.totalIssues);
+  context.textContent = `${uatScopeLabel}, ${uatCurrentCount} currently in UAT • ${totalFlowTickets} historical flow tickets (sample)`;
 
-  const traces = [
-    {
-      type: "bar",
-      name: "Median Dev",
-      x: labels,
-      y: devMedian,
-      marker: buildBarMarker(themeColors, readThemeColor("--mgmt-dev", "#98a3af"), {
-        rounded: true,
-        radius: 5
-      }),
-      customdata: labels.map((_, idx) => [devCounts[idx], formatDays(devAvg[idx])]),
-      hovertemplate:
-        "<b>%{x}</b><br>Median Dev: %{y:.2f} days<br>Avg Dev: %{customdata[1]} days<br>Issues used (Dev): %{customdata[0]}<extra></extra>"
-    },
-    {
-      type: "bar",
-      name: "Median UAT",
-      x: labels,
-      y: uatMedian,
-      marker: buildBarMarker(themeColors, readThemeColor("--mgmt-uat", "#c0c8d1"), {
-        rounded: true,
-        radius: 5
-      }),
-      customdata: labels.map((_, idx) => [uatCounts[idx], formatDays(uatAvg[idx])]),
-      hovertemplate:
-        "<b>%{x}</b><br>Median UAT: %{y:.2f} days<br>Avg UAT: %{customdata[1]} days<br>Issues used (UAT): %{customdata[0]}<extra></extra>"
-    }
-  ];
+  const rows = labels.map((label, idx) => ({
+    label,
+    devMedian: Number.isFinite(devMedian[idx]) ? devMedian[idx] : 0,
+    uatMedian: Number.isFinite(uatMedian[idx]) ? uatMedian[idx] : 0,
+    devAvg: Number.isFinite(devAvg[idx]) ? devAvg[idx] : 0,
+    uatAvg: Number.isFinite(uatAvg[idx]) ? uatAvg[idx] : 0,
+    devCount: devCounts[idx],
+    uatCount: uatCounts[idx]
+  }));
 
   const yValues = [...devMedian, ...uatMedian].filter((value) => Number.isFinite(value));
   const variantCandidates = [
@@ -1837,30 +1334,18 @@ function renderManagementChart() {
     : 1;
   const paddedMaxY = Math.max(1, Math.ceil(maxY * 1.12));
 
-  const layout = {
-    ...buildBaseLayout(themeColors),
-    barmode: "group",
-    barcornerradius: 5,
-    uirevision: "broadcast-management",
-    margin: { t: 18, r: 20, b: 52, l: 56 },
-    bargap: 0.38,
-    bargroupgap: 0.18,
-    xaxis: buildChartXAxis(themeColors, {
-      title: "Priority",
-      tickmode: "array",
-      tickvals: labels,
-      ticktext: labels
-    }),
-    yaxis: buildChartYAxis(themeColors, {
-      title: "Days",
-      range: [0, paddedMaxY]
-    })
-  };
-
-  Plotly.react("management-chart", traces, layout, {
-    displayModeBar: true,
-    displaylogo: false,
-    responsive: true
+  if (!window.BugChartsRecharts?.renderManagementChart) {
+    status.hidden = false;
+    status.textContent = "Management chart unavailable: Recharts renderer missing.";
+    return;
+  }
+  window.BugChartsRecharts.renderManagementChart({
+    containerId: "management-chart",
+    rows,
+    colors: themeColors,
+    devColor: readThemeColor("--mgmt-dev", "#98a3af"),
+    uatColor: readThemeColor("--mgmt-uat", "#c0c8d1"),
+    yUpper: paddedMaxY
   });
 
   if (scope === "bugs_only" && !scopedFlow) {
@@ -1923,10 +1408,10 @@ async function loadSnapshot() {
     setLastUpdatedSubtitles(state.snapshot);
     setProductCycleUpdatedSubtitles(state.productCycle, state.snapshot?.updatedAt);
     if (state.mode !== "composition") {
-      renderLineChart();
+      renderTrendChartPreferred();
     }
     if (state.mode !== "trend") {
-      renderStackedBarChart();
+      renderCompositionChartPreferred();
     }
     renderUatAgingChart();
     renderManagementChart();
