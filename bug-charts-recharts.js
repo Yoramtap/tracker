@@ -50,7 +50,7 @@
   };
   const EMBED_COMPACT = new URLSearchParams(window.location.search).has("chart");
   const EMBED_VIEWPORT_HEIGHT = Math.max(0, Math.floor(window.innerHeight || 0));
-  const EMBED_CHART_HEIGHT = Math.max(300, Math.min(390, EMBED_VIEWPORT_HEIGHT - 55));
+  const EMBED_CHART_HEIGHT = Math.max(240, Math.min(320, EMBED_VIEWPORT_HEIGHT - 130));
   const CHART_HEIGHTS = EMBED_COMPACT
     ? {
         trend: EMBED_CHART_HEIGHT,
