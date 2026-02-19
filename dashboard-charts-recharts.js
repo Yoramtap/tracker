@@ -838,7 +838,7 @@
     );
   }
 
-  function renderTrendChart({ containerId, snapshot, colors }) {
+  function renderBugTrendAcrossTeamsChart({ containerId, snapshot, colors }) {
     const root = ensureRoot("trend", containerId);
     if (!root) return;
 
@@ -863,7 +863,7 @@
     root.render(h(TrendChartView, { rows, colors, yUpper }));
   }
 
-  function renderCompositionChart({ containerId, snapshot, colors, scope = "bc" }) {
+  function renderBugCompositionByPriorityChart({ containerId, snapshot, colors, scope = "bc" }) {
     const root = ensureRoot("composition", containerId);
     if (!root) return;
 
@@ -876,7 +876,7 @@
     root.render(h(CompositionChartView, { rows, colors, scope }));
   }
 
-  function renderUatAgingChart({ containerId, rows, priorities, colors }) {
+  function renderUatOpenByPriorityChart({ containerId, rows, priorities, colors }) {
     const root = ensureRoot("uat", containerId);
     if (!root) return;
 
@@ -892,7 +892,7 @@
     root.render(h(UatAgingChartView, { chartRows, activePriorities, colors }));
   }
 
-  function renderManagementChart({ containerId, rows, colors, devColor, uatColor }) {
+  function renderDevelopmentTimeVsUatTimeChart({ containerId, rows, colors, devColor, uatColor }) {
     const root = ensureRoot("management", containerId);
     if (!root) return;
     const chartRows = Array.isArray(rows) ? rows : [];
@@ -910,7 +910,13 @@
     root.render(h(ManagementChartView, { rows: chartRows, colors, yUpper, devColor, uatColor }));
   }
 
-  function renderProductCycleChart({ containerId, rows, seriesDefs, colors, metricLabel = "Median" }) {
+  function renderCycleTimeParkingLotToDoneChart({
+    containerId,
+    rows,
+    seriesDefs,
+    colors,
+    metricLabel = "Median"
+  }) {
     const root = ensureRoot("productCycle", containerId);
     if (!root) return;
     const chartRows = Array.isArray(rows) ? rows : [];
@@ -933,7 +939,13 @@
     );
   }
 
-  function renderLifecycleDaysChart({ containerId, rows, phaseDefs, colors, metricLabel = "Median" }) {
+  function renderLifecycleTimeSpentPerPhaseChart({
+    containerId,
+    rows,
+    phaseDefs,
+    colors,
+    metricLabel = "Median"
+  }) {
     const root = ensureRoot("lifecycleDays", containerId);
     if (!root) return;
     const chartRows = Array.isArray(rows) ? rows : [];
@@ -953,12 +965,12 @@
   }
 
   window.DashboardCharts = {
-    renderTrendChart,
-    renderCompositionChart,
-    renderUatAgingChart,
-    renderManagementChart,
-    renderProductCycleChart,
-    renderLifecycleDaysChart,
+    renderBugTrendAcrossTeamsChart,
+    renderBugCompositionByPriorityChart,
+    renderUatOpenByPriorityChart,
+    renderDevelopmentTimeVsUatTimeChart,
+    renderCycleTimeParkingLotToDoneChart,
+    renderLifecycleTimeSpentPerPhaseChart,
     clearChart
   };
 })();

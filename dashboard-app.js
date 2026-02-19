@@ -47,7 +47,7 @@ const MODE_PANEL_IDS = {
   "lifecycle-days": "lifecycle-days-panel"
 };
 const CHART_STATUS_IDS = [
-  "status",
+  "composition-status",
   "trend-status",
   "uat-status",
   "management-status",
@@ -113,10 +113,10 @@ function applyModeVisibility() {
   }
 }
 
-function renderLineChart() {
+function renderBugTrendAcrossTeamsChart() {
   setStatusMessage("trend-status");
   if (!state.snapshot || !Array.isArray(state.snapshot.combinedPoints)) return;
-  if (!window.DashboardCharts?.renderTrendChart) {
+  if (!window.DashboardCharts?.renderBugTrendAcrossTeamsChart) {
     setStatusMessage(
       "trend-status",
       "Trend chart unavailable: Recharts did not load. Check local script paths."
@@ -124,19 +124,19 @@ function renderLineChart() {
     return;
   }
 
-  window.DashboardCharts.renderTrendChart({
-    containerId: "chart",
+  window.DashboardCharts.renderBugTrendAcrossTeamsChart({
+    containerId: "bug-trend-chart",
     snapshot: state.snapshot,
     colors: getThemeColors()
   });
 }
 
-function renderStackedBarChart() {
-  setStatusMessage("status");
+function renderBugCompositionByPriorityChart() {
+  setStatusMessage("composition-status");
   if (!state.snapshot || !Array.isArray(state.snapshot.combinedPoints)) return;
-  if (!window.DashboardCharts?.renderCompositionChart) {
+  if (!window.DashboardCharts?.renderBugCompositionByPriorityChart) {
     setStatusMessage(
-      "status",
+      "composition-status",
       "Composition chart unavailable: Recharts did not load. Check local script paths."
     );
     return;
@@ -146,17 +146,17 @@ function renderStackedBarChart() {
   const scope = state.compositionTeamScope || "bc";
   if (scopeSelect) scopeSelect.value = scope;
 
-  window.DashboardCharts.renderCompositionChart({
-    containerId: "stacked-chart",
+  window.DashboardCharts.renderBugCompositionByPriorityChart({
+    containerId: "bug-composition-chart",
     snapshot: state.snapshot,
     colors: getThemeColors(),
     scope
   });
 }
 
-function renderUatAgingChart() {
+function renderUatOpenByPriorityChart() {
   const status = document.getElementById("uat-status");
-  const root = document.getElementById("uat-chart");
+  const root = document.getElementById("uat-open-by-priority-chart");
   const context = document.getElementById("uat-context");
   if (!status || !root) return;
 
@@ -192,9 +192,9 @@ function renderUatAgingChart() {
     return row;
   });
 
-  if (!window.DashboardCharts?.renderUatAgingChart) return;
-  window.DashboardCharts.renderUatAgingChart({
-    containerId: "uat-chart",
+  if (!window.DashboardCharts?.renderUatOpenByPriorityChart) return;
+  window.DashboardCharts.renderUatOpenByPriorityChart({
+    containerId: "uat-open-by-priority-chart",
     rows: chartRows,
     priorities,
     colors: getThemeColors()
@@ -208,7 +208,7 @@ function bindCompositionTeamScopeToggle() {
   scopeSelect.dataset.bound = "1";
   scopeSelect.addEventListener("change", () => {
     state.compositionTeamScope = scopeSelect.value || "bc";
-    renderStackedBarChart();
+    renderBugCompositionByPriorityChart();
   });
 }
 
@@ -328,7 +328,7 @@ function bindManagementUatScopeToggle() {
   scopeSelect.dataset.bound = "1";
   scopeSelect.addEventListener("change", () => {
     state.managementUatScope = scopeSelect.value === "bugs_only" ? "bugs_only" : "all";
-    renderManagementChart();
+    renderDevelopmentTimeVsUatTimeChart();
   });
 }
 
@@ -344,12 +344,12 @@ function bindProductCycleControls() {
     state.productCycleEffortScope = PRODUCT_CYCLE_EFFORT_SCOPE_OPTIONS.includes(effortSelect.value)
       ? effortSelect.value
       : "all";
-    renderProductCycleChart();
+    renderCycleTimeParkingLotToDoneChart();
   });
 
   metricSelect.addEventListener("change", () => {
     state.productCycleMetricScope = metricSelect.value === "average" ? "average" : "median";
-    renderProductCycleChart();
+    renderCycleTimeParkingLotToDoneChart();
   });
 }
 
@@ -365,12 +365,12 @@ function bindLifecycleDaysControls() {
     state.lifecycleDaysYearScope = LIFECYCLE_YEAR_OPTIONS.includes(yearSelect.value)
       ? yearSelect.value
       : "2026";
-    renderLifecycleDaysChart();
+    renderLifecycleTimeSpentPerPhaseChart();
   });
 
   metricSelect.addEventListener("change", () => {
     state.lifecycleDaysMetricScope = metricSelect.value === "average" ? "average" : "median";
-    renderLifecycleDaysChart();
+    renderLifecycleTimeSpentPerPhaseChart();
   });
 }
 
@@ -387,7 +387,7 @@ function setProductCycleTotalsText(text) {
   totals.textContent = value;
 }
 
-function renderProductCycleChartFromPublicAggregates(publicAggregates, effortScope, metric) {
+function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(publicAggregates, effortScope, metric) {
   const status = document.getElementById("product-cycle-status");
   const context = document.getElementById("product-cycle-context");
   if (!status || !context) return;
@@ -437,7 +437,7 @@ function renderProductCycleChartFromPublicAggregates(publicAggregates, effortSco
   if (perYear.every((entry) => entry.cycleRowsCount === 0)) {
     status.hidden = false;
     status.textContent = `No completed Parking lot exit -> Done items found for ${yearsToShow.join(", ")}.`;
-    clearChartContainer("product-cycle-chart");
+    clearChartContainer("cycle-time-parking-lot-to-done-chart");
     return;
   }
 
@@ -464,13 +464,13 @@ function renderProductCycleChartFromPublicAggregates(publicAggregates, effortSco
     return row;
   });
 
-  if (!window.DashboardCharts?.renderProductCycleChart) {
+  if (!window.DashboardCharts?.renderCycleTimeParkingLotToDoneChart) {
     status.hidden = false;
     status.textContent = "Product cycle chart unavailable: Recharts renderer missing.";
     return;
   }
-  window.DashboardCharts.renderProductCycleChart({
-    containerId: "product-cycle-chart",
+  window.DashboardCharts.renderCycleTimeParkingLotToDoneChart({
+    containerId: "cycle-time-parking-lot-to-done-chart",
     rows,
     seriesDefs,
     colors: themeColors,
@@ -487,7 +487,7 @@ function renderProductCycleChartFromPublicAggregates(publicAggregates, effortSco
   }
 }
 
-function renderLifecycleDaysChartFromPublicAggregates(publicAggregates, year, metric) {
+function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggregates, year, metric) {
   const status = document.getElementById("lifecycle-days-status");
   const context = document.getElementById("lifecycle-days-context");
   if (!status || !context) return;
@@ -546,16 +546,16 @@ function renderLifecycleDaysChartFromPublicAggregates(publicAggregates, year, me
   if (plottedValues.length === 0) {
     status.hidden = false;
     status.textContent = `No lifecycle phase time data found for ${year}.`;
-    clearChartContainer("lifecycle-days-chart");
+    clearChartContainer("lifecycle-time-spent-per-phase-chart");
     return;
   }
-  if (!window.DashboardCharts?.renderLifecycleDaysChart) {
+  if (!window.DashboardCharts?.renderLifecycleTimeSpentPerPhaseChart) {
     status.hidden = false;
     status.textContent = "Lifecycle chart unavailable: Recharts renderer missing.";
     return;
   }
-  window.DashboardCharts.renderLifecycleDaysChart({
-    containerId: "lifecycle-days-chart",
+  window.DashboardCharts.renderLifecycleTimeSpentPerPhaseChart({
+    containerId: "lifecycle-time-spent-per-phase-chart",
     rows,
     phaseDefs,
     colors: themeColors,
@@ -564,9 +564,9 @@ function renderLifecycleDaysChartFromPublicAggregates(publicAggregates, year, me
   context.textContent = `${chartTitleText} • ${totalsText}`;
 }
 
-function renderProductCycleChart() {
+function renderCycleTimeParkingLotToDoneChart() {
   const status = document.getElementById("product-cycle-status");
-  const root = document.getElementById("product-cycle-chart");
+  const root = document.getElementById("cycle-time-parking-lot-to-done-chart");
   const context = document.getElementById("product-cycle-context");
   const effortSelect = document.getElementById("product-cycle-effort-scope");
   const metricSelect = document.getElementById("product-cycle-metric-scope");
@@ -585,15 +585,15 @@ function renderProductCycleChart() {
   if (!publicAggregates) {
     status.hidden = false;
     status.textContent = "No product cycle aggregates found in product-cycle-snapshot.json.";
-    clearChartContainer("product-cycle-chart");
+    clearChartContainer("cycle-time-parking-lot-to-done-chart");
     return;
   }
-  renderProductCycleChartFromPublicAggregates(publicAggregates, effortScope, metric);
+  renderCycleTimeParkingLotToDoneChartFromPublicAggregates(publicAggregates, effortScope, metric);
 }
 
-function renderLifecycleDaysChart() {
+function renderLifecycleTimeSpentPerPhaseChart() {
   const status = document.getElementById("lifecycle-days-status");
-  const root = document.getElementById("lifecycle-days-chart");
+  const root = document.getElementById("lifecycle-time-spent-per-phase-chart");
   const context = document.getElementById("lifecycle-days-context");
   const yearSelect = document.getElementById("lifecycle-days-year-scope");
   const metricSelect = document.getElementById("lifecycle-days-metric-scope");
@@ -611,15 +611,15 @@ function renderLifecycleDaysChart() {
   if (!publicAggregates) {
     status.hidden = false;
     status.textContent = "No lifecycle aggregates found in product-cycle-snapshot.json.";
-    clearChartContainer("lifecycle-days-chart");
+    clearChartContainer("lifecycle-time-spent-per-phase-chart");
     return;
   }
-  renderLifecycleDaysChartFromPublicAggregates(publicAggregates, year, metric);
+  renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggregates, year, metric);
 }
 
-function renderManagementChart() {
+function renderDevelopmentTimeVsUatTimeChart() {
   const status = document.getElementById("management-status");
-  const root = document.getElementById("management-chart");
+  const root = document.getElementById("development-time-vs-uat-time-chart");
   const context = document.getElementById("management-context");
   if (!status || !root || !context) return;
 
@@ -686,13 +686,13 @@ function renderManagementChart() {
     : 1;
   const paddedMaxY = Math.max(1, Math.ceil(maxY * 1.12));
 
-  if (!window.DashboardCharts?.renderManagementChart) {
+  if (!window.DashboardCharts?.renderDevelopmentTimeVsUatTimeChart) {
     status.hidden = false;
     status.textContent = "Management chart unavailable: Recharts renderer missing.";
     return;
   }
-  window.DashboardCharts.renderManagementChart({
-    containerId: "management-chart",
+  window.DashboardCharts.renderDevelopmentTimeVsUatTimeChart({
+    containerId: "development-time-vs-uat-time-chart",
     rows,
     colors: themeColors,
     devColor: readThemeColor("--mgmt-dev", "#98a3af"),
@@ -732,15 +732,15 @@ async function loadSnapshot() {
     setLastUpdatedSubtitles(state.snapshot);
     setProductCycleUpdatedSubtitles(state.productCycle, state.snapshot?.updatedAt);
     if (state.mode !== "composition") {
-      renderLineChart();
+      renderBugTrendAcrossTeamsChart();
     }
     if (state.mode !== "trend") {
-      renderStackedBarChart();
+      renderBugCompositionByPriorityChart();
     }
-    renderUatAgingChart();
-    renderManagementChart();
-    renderProductCycleChart();
-    renderLifecycleDaysChart();
+    renderUatOpenByPriorityChart();
+    renderDevelopmentTimeVsUatTimeChart();
+    renderCycleTimeParkingLotToDoneChart();
+    renderLifecycleTimeSpentPerPhaseChart();
   } catch (error) {
     const message = `Failed to load backlog-snapshot.json: ${
       error instanceof Error ? error.message : String(error)

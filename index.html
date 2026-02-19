@@ -16,7 +16,7 @@
         <h1>Interactive chart - Bug trend across teams</h1>
         <p id="trend-updated" class="panel-subtitle">Last updated: --</p>
         <div class="chart">
-          <div id="chart" class="chart-canvas chart-canvas--standard"></div>
+          <div id="bug-trend-chart" class="chart-canvas chart-canvas--standard"></div>
         </div>
         <p id="trend-status" class="panel-status" hidden></p>
       </section>
@@ -35,23 +35,23 @@
           </select>
         </div>
         <div class="chart">
-          <div id="stacked-chart" class="chart-canvas chart-canvas--dense bar-chart-wrap"></div>
+          <div id="bug-composition-chart" class="chart-canvas chart-canvas--dense bar-chart-wrap"></div>
         </div>
-        <p id="status" class="panel-status" hidden></p>
+        <p id="composition-status" class="panel-status" hidden></p>
       </section>
 
       <section id="uat-panel" class="panel" aria-label="UAT aging by priority">
-        <h2>Interactive chart - UAT aging by priority</h2>
+        <h2>Interactive chart - UAT open by priority</h2>
         <p id="uat-context" class="panel-subtitle">Broadcast, -- currently in UAT</p>
         <p id="uat-updated" class="panel-subtitle">Last updated: --</p>
         <div class="chart">
-          <div id="uat-chart" class="chart-canvas chart-canvas--standard"></div>
+          <div id="uat-open-by-priority-chart" class="chart-canvas chart-canvas--standard"></div>
         </div>
         <p id="uat-status" class="panel-status" hidden></p>
       </section>
 
       <section id="management-panel" class="panel" aria-label="Broadcast flow by priority">
-        <h2>Interactive chart - Broadcast flow by priority (Median Dev vs Median UAT)</h2>
+        <h2>Interactive chart - Development time vs UAT time</h2>
         <p id="management-context" class="panel-subtitle">Broadcast, -- historical flow tickets (sample)</p>
         <p id="management-updated" class="panel-subtitle">Last updated: --</p>
         <div class="management-toggle-row">
@@ -62,13 +62,13 @@
           </select>
         </div>
         <div class="chart">
-          <div id="management-chart" class="chart-canvas chart-canvas--standard"></div>
+          <div id="development-time-vs-uat-time-chart" class="chart-canvas chart-canvas--standard"></div>
         </div>
         <p id="management-status" class="panel-status" hidden></p>
       </section>
 
       <section id="product-cycle-panel" class="panel" aria-label="Product cycle time by team">
-        <h2>Cycle time from parking lot exit to done</h2>
+        <h2>Cycle time: leaving parking lot to done</h2>
         <p id="product-cycle-context" class="panel-subtitle">--</p>
         <p id="product-cycle-updated" class="panel-subtitle">Last updated: --</p>
         <div class="management-toggle-row">
@@ -85,7 +85,7 @@
           </select>
         </div>
         <div class="chart">
-          <div id="product-cycle-chart" class="chart-canvas chart-canvas--dense"></div>
+          <div id="cycle-time-parking-lot-to-done-chart" class="chart-canvas chart-canvas--dense"></div>
         </div>
         <p id="product-cycle-totals" class="panel-summary" hidden></p>
         <p id="product-cycle-status" class="panel-status" hidden></p>
@@ -108,7 +108,7 @@
           </select>
         </div>
         <div class="chart">
-          <div id="lifecycle-days-chart" class="chart-canvas chart-canvas--dense"></div>
+          <div id="lifecycle-time-spent-per-phase-chart" class="chart-canvas chart-canvas--dense"></div>
         </div>
         <p id="lifecycle-days-status" class="panel-status" hidden></p>
       </section>
