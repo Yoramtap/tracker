@@ -51,13 +51,13 @@
   const EMBED_COMPACT = new URLSearchParams(window.location.search).has("chart");
   const CHART_HEIGHTS = EMBED_COMPACT
     ? {
-        trend: 320,
-        composition: 320,
-        uat: 300,
-        sprintGoals: 300,
-        management: 290,
-        productCycle: 320,
-        lifecycleDays: 320
+        trend: 270,
+        composition: 270,
+        uat: 250,
+        sprintGoals: 250,
+        management: 250,
+        productCycle: 270,
+        lifecycleDays: 270
       }
     : {
         trend: 380,

@@ -110,7 +110,7 @@ body.embed-compact .composition-toggle-row {
 }
 
 body.embed-compact .chart-canvas--tall {
-  min-height: 320px;
+  min-height: 270px;
 }
 
 .bar-chart-wrap {
