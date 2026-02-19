@@ -105,7 +105,7 @@ body.embed-compact .panel-subtitle {
 
 body.embed-compact .management-toggle-row,
 body.embed-compact .composition-toggle-row {
-  margin: 0 0 2px;
+  margin: 4px 0 0;
 }
 
 body.embed-compact .chart-canvas--tall {
@@ -145,7 +145,7 @@ body.embed-compact .chart-canvas--tall {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin: 0 0 2px;
+  margin: 6px 0 0;
   font-size: 0.86rem;
   color: rgba(31, 51, 71, 0.88);
 }
@@ -164,7 +164,7 @@ body.embed-compact .chart-canvas--tall {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin: 0 0 2px;
+  margin: 6px 0 0;
   font-size: 0.86rem;
   color: rgba(31, 51, 71, 0.88);
 }

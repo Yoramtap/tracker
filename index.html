@@ -24,6 +24,9 @@
       <section id="composition-panel" class="panel" aria-label="Backlog stacked bars">
         <h2>Interactive chart - Bug composition by priority</h2>
         <p id="composition-updated" class="panel-subtitle">Last updated: --</p>
+        <div class="chart">
+          <div id="stacked-chart" class="chart-canvas chart-canvas--tall bar-chart-wrap"></div>
+        </div>
         <div class="composition-toggle-row">
           <label for="composition-team-scope">Team</label>
           <select id="composition-team-scope">
@@ -33,9 +36,6 @@
             <option value="react">React</option>
             <option value="all">All</option>
           </select>
-        </div>
-        <div class="chart">
-          <div id="stacked-chart" class="chart-canvas chart-canvas--tall bar-chart-wrap"></div>
         </div>
         <p id="status" class="panel-status" hidden></p>
       </section>
@@ -54,15 +54,15 @@
         <h2>Interactive chart - Broadcast flow by priority (Median Dev vs Median UAT)</h2>
         <p id="management-context" class="panel-subtitle">Broadcast, -- historical flow tickets (sample)</p>
         <p id="management-updated" class="panel-subtitle">Last updated: --</p>
+        <div class="chart">
+          <div id="management-chart" class="chart-canvas"></div>
+        </div>
         <div class="management-toggle-row">
           <label for="management-uat-scope">Issue scope</label>
           <select id="management-uat-scope">
             <option value="all">All issues</option>
             <option value="bugs_only">Bugs only</option>
           </select>
-        </div>
-        <div class="chart">
-          <div id="management-chart" class="chart-canvas"></div>
         </div>
         <p id="management-status" class="panel-status" hidden></p>
       </section>
@@ -71,6 +71,9 @@
         <h2>Interactive chart - Sprint goals by team</h2>
         <p id="sprint-goals-context" class="panel-subtitle">--</p>
         <p id="sprint-goals-updated" class="panel-subtitle">Last updated: --</p>
+        <div class="chart">
+          <div id="sprint-goals-chart" class="chart-canvas"></div>
+        </div>
         <div class="composition-toggle-row">
           <label for="sprint-goals-team-scope">Team</label>
           <select id="sprint-goals-team-scope">
@@ -82,9 +85,6 @@
             <option value="Shift">Shift</option>
           </select>
         </div>
-        <div class="chart">
-          <div id="sprint-goals-chart" class="chart-canvas"></div>
-        </div>
         <p id="sprint-goals-status" class="panel-status" hidden></p>
       </section>
 
@@ -92,6 +92,9 @@
         <h2>Cycle time from parking lot exit to done</h2>
         <p id="product-cycle-context" class="panel-subtitle">--</p>
         <p id="product-cycle-updated" class="panel-subtitle">Last updated: --</p>
+        <div class="chart">
+          <div id="product-cycle-chart" class="chart-canvas chart-canvas--tall"></div>
+        </div>
         <div class="management-toggle-row">
           <label for="product-cycle-effort-scope">Effort</label>
           <select id="product-cycle-effort-scope">
@@ -105,9 +108,6 @@
             <option value="average">Average</option>
           </select>
         </div>
-        <div class="chart">
-          <div id="product-cycle-chart" class="chart-canvas chart-canvas--tall"></div>
-        </div>
         <p id="product-cycle-totals" class="panel-summary" hidden></p>
         <p id="product-cycle-status" class="panel-status" hidden></p>
       </section>
@@ -116,6 +116,9 @@
         <h2>Lifecycle time spent per phase</h2>
         <p id="lifecycle-days-context" class="panel-subtitle">--</p>
         <p id="lifecycle-days-updated" class="panel-subtitle">Last updated: --</p>
+        <div class="chart">
+          <div id="lifecycle-days-chart" class="chart-canvas chart-canvas--tall"></div>
+        </div>
         <div class="management-toggle-row">
           <label for="lifecycle-days-year-scope">Year</label>
           <select id="lifecycle-days-year-scope">
@@ -127,9 +130,6 @@
             <option value="median">Median</option>
             <option value="average">Average</option>
           </select>
-        </div>
-        <div class="chart">
-          <div id="lifecycle-days-chart" class="chart-canvas chart-canvas--tall"></div>
         </div>
         <p id="lifecycle-days-status" class="panel-status" hidden></p>
       </section>
