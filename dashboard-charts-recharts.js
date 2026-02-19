@@ -571,7 +571,8 @@
             fill: priority.fill,
             ...barBaseStyle(colors),
             activeBar: activeBarStyle(colors),
-            hide: hiddenKeys.has(priority.dataKey)
+            hide: hiddenKeys.has(priority.dataKey),
+            isAnimationActive: false
           })
         )
       )
