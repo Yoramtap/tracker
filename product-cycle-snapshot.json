@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-02-21T12:06:14.958Z",
+  "generatedAt": "2026-02-21T12:33:30.595Z",
   "teams": [
     "API",
     "Frontend",
@@ -60,7 +60,7 @@
                     "lead": {
                       "n": 127,
                       "median": 117.22,
-                      "average": 159.49
+                      "average": 159.5
                     },
                     "cycle": {
                       "n": 53,
@@ -136,7 +136,7 @@
                     "lead": {
                       "n": 51,
                       "median": 262.3,
-                      "average": 232.29
+                      "average": 232.31
                     },
                     "cycle": {
                       "n": 20,
@@ -173,13 +173,13 @@
                   "full_backlog": {
                     "lead": {
                       "n": 8,
-                      "median": 165.5,
-                      "average": 149.71
+                      "median": 165.53,
+                      "average": 149.73
                     },
                     "cycle": {
                       "n": 4,
-                      "median": 126.88,
-                      "average": 126.88
+                      "median": 126.91,
+                      "average": 126.9
                     }
                   }
                 }
@@ -212,11 +212,11 @@
                     "lead": {
                       "n": 33,
                       "median": 193.58,
-                      "average": 205.01
+                      "average": 205.02
                     },
                     "cycle": {
                       "n": 15,
-                      "median": 102.56,
+                      "median": 102.58,
                       "average": 116.31
                     }
                   }
@@ -288,7 +288,7 @@
                     "lead": {
                       "n": 30,
                       "median": 146.21,
-                      "average": 161.91
+                      "average": 161.92
                     },
                     "cycle": {
                       "n": 8,
@@ -330,7 +330,7 @@
                     "lead": {
                       "n": 41,
                       "median": 117.22,
-                      "average": 149.38
+                      "average": 149.39
                     },
                     "cycle": {
                       "n": 23,
@@ -406,7 +406,7 @@
                     "lead": {
                       "n": 51,
                       "median": 262.3,
-                      "average": 232.29
+                      "average": 232.31
                     },
                     "cycle": {
                       "n": 20,
@@ -443,13 +443,13 @@
                   "full_backlog": {
                     "lead": {
                       "n": 8,
-                      "median": 165.5,
-                      "average": 149.71
+                      "median": 165.53,
+                      "average": 149.73
                     },
                     "cycle": {
                       "n": 4,
-                      "median": 126.88,
-                      "average": 126.88
+                      "median": 126.91,
+                      "average": 126.9
                     }
                   }
                 }
@@ -482,11 +482,11 @@
                     "lead": {
                       "n": 33,
                       "median": 193.58,
-                      "average": 205.01
+                      "average": 205.02
                     },
                     "cycle": {
                       "n": 15,
-                      "median": 102.56,
+                      "median": 102.58,
                       "average": 116.31
                     }
                   }
@@ -558,7 +558,7 @@
                     "lead": {
                       "n": 30,
                       "median": 146.21,
-                      "average": 161.91
+                      "average": 161.92
                     },
                     "cycle": {
                       "n": 8,
@@ -599,8 +599,8 @@
                   "full_backlog": {
                     "lead": {
                       "n": 86,
-                      "median": 118.57,
-                      "average": 164.3
+                      "median": 118.59,
+                      "average": 164.31
                     },
                     "cycle": {
                       "n": 30,
@@ -637,8 +637,8 @@
                   "full_backlog": {
                     "lead": {
                       "n": 48,
-                      "median": 178.66,
-                      "average": 173.4
+                      "median": 178.69,
+                      "average": 173.41
                     },
                     "cycle": {
                       "n": 18,
@@ -676,7 +676,7 @@
                     "lead": {
                       "n": 57,
                       "median": 189,
-                      "average": 179.94
+                      "average": 179.95
                     },
                     "cycle": {
                       "n": 18,
@@ -751,8 +751,8 @@
                   "full_backlog": {
                     "lead": {
                       "n": 7,
-                      "median": 194.08,
-                      "average": 192.9
+                      "median": 194.1,
+                      "average": 192.92
                     },
                     "cycle": {
                       "n": 0,
@@ -872,7 +872,7 @@
                     "lead": {
                       "n": 17,
                       "median": 26.13,
-                      "average": 32.32
+                      "average": 32.33
                     },
                     "cycle": {
                       "n": 10,
@@ -948,7 +948,7 @@
                     "lead": {
                       "n": 5,
                       "median": 143.31,
-                      "average": 147.96
+                      "average": 147.97
                     },
                     "cycle": {
                       "n": 3,
@@ -1023,8 +1023,8 @@
                   "full_backlog": {
                     "lead": {
                       "n": 1,
-                      "median": 23.46,
-                      "average": 23.46
+                      "median": 23.48,
+                      "average": 23.48
                     },
                     "cycle": {
                       "n": 0,
@@ -1099,8 +1099,8 @@
                   "full_backlog": {
                     "lead": {
                       "n": 5,
-                      "median": 10.43,
-                      "average": 35.07
+                      "median": 10.45,
+                      "average": 35.08
                     },
                     "cycle": {
                       "n": 0,
@@ -1141,8 +1141,8 @@
                   "full_backlog": {
                     "lead": {
                       "n": 1,
-                      "median": 23.18,
-                      "average": 23.18
+                      "median": 23.2,
+                      "average": 23.2
                     },
                     "cycle": {
                       "n": 0,
@@ -1218,7 +1218,7 @@
                     "lead": {
                       "n": 5,
                       "median": 143.31,
-                      "average": 147.96
+                      "average": 147.97
                     },
                     "cycle": {
                       "n": 3,
@@ -1293,8 +1293,8 @@
                   "full_backlog": {
                     "lead": {
                       "n": 1,
-                      "median": 23.46,
-                      "average": 23.46
+                      "median": 23.48,
+                      "average": 23.48
                     },
                     "cycle": {
                       "n": 0,
@@ -1369,8 +1369,8 @@
                   "full_backlog": {
                     "lead": {
                       "n": 5,
-                      "median": 10.43,
-                      "average": 35.07
+                      "median": 10.45,
+                      "average": 35.08
                     },
                     "cycle": {
                       "n": 0,
@@ -1412,7 +1412,7 @@
                     "lead": {
                       "n": 16,
                       "median": 26.13,
-                      "average": 32.89
+                      "average": 32.9
                     },
                     "cycle": {
                       "n": 10,
@@ -1487,8 +1487,8 @@
                   "full_backlog": {
                     "lead": {
                       "n": 10,
-                      "median": 10.43,
-                      "average": 28.85
+                      "median": 10.44,
+                      "average": 28.86
                     },
                     "cycle": {
                       "n": 4,
@@ -1969,8 +1969,8 @@
               }
             }
           },
-          "idea_scopes": {
-            "finished_work": {
+          "byEffort": {
+            "all": {
               "teams": {
                 "API": {
                   "parking_lot": {
@@ -2163,18 +2163,1180 @@
                 }
               }
             },
+            "single": {
+              "teams": {
+                "API": {
+                  "parking_lot": {
+                    "n": 22,
+                    "median": 0.05,
+                    "average": 16.05
+                  },
+                  "design": {
+                    "n": 2,
+                    "median": 0.81,
+                    "average": 0.81
+                  },
+                  "ready_for_development": {
+                    "n": 3,
+                    "median": 19.01,
+                    "average": 42.56
+                  },
+                  "in_development": {
+                    "n": 18,
+                    "median": 25.48,
+                    "average": 30.26
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Frontend": {
+                  "parking_lot": {
+                    "n": 18,
+                    "median": 0.12,
+                    "average": 17.57
+                  },
+                  "design": {
+                    "n": 2,
+                    "median": 0.02,
+                    "average": 0.02
+                  },
+                  "ready_for_development": {
+                    "n": 4,
+                    "median": 2.73,
+                    "average": 5.61
+                  },
+                  "in_development": {
+                    "n": 21,
+                    "median": 14.74,
+                    "average": 23.14
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Broadcast": {
+                  "parking_lot": {
+                    "n": 18,
+                    "median": 23.91,
+                    "average": 81.61
+                  },
+                  "design": {
+                    "n": 2,
+                    "median": 23.92,
+                    "average": 23.92
+                  },
+                  "ready_for_development": {
+                    "n": 1,
+                    "median": 6.18,
+                    "average": 6.18
+                  },
+                  "in_development": {
+                    "n": 13,
+                    "median": 30.89,
+                    "average": 45.23
+                  },
+                  "feedback": {
+                    "n": 7,
+                    "median": 8.82,
+                    "average": 9.62
+                  }
+                },
+                "Titanium": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Orchestration": {
+                  "parking_lot": {
+                    "n": 12,
+                    "median": 55.34,
+                    "average": 98.42
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 7,
+                    "median": 105.57,
+                    "average": 84.09
+                  },
+                  "feedback": {
+                    "n": 2,
+                    "median": 40.29,
+                    "average": 40.29
+                  }
+                },
+                "Shift": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "UNMAPPED": {
+                  "parking_lot": {
+                    "n": 16,
+                    "median": 83.98,
+                    "average": 92.21
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 5,
+                    "median": 72.11,
+                    "average": 64.35
+                  },
+                  "feedback": {
+                    "n": 2,
+                    "median": 54.38,
+                    "average": 54.38
+                  }
+                }
+              }
+            },
+            "combined": {
+              "teams": {
+                "API": {
+                  "parking_lot": {
+                    "n": 33,
+                    "median": 4.77,
+                    "average": 23.23
+                  },
+                  "design": {
+                    "n": 2,
+                    "median": 7.39,
+                    "average": 7.39
+                  },
+                  "ready_for_development": {
+                    "n": 8,
+                    "median": 4.78,
+                    "average": 9.37
+                  },
+                  "in_development": {
+                    "n": 25,
+                    "median": 15.93,
+                    "average": 21.33
+                  },
+                  "feedback": {
+                    "n": 10,
+                    "median": 8.14,
+                    "average": 7.9
+                  }
+                },
+                "Frontend": {
+                  "parking_lot": {
+                    "n": 17,
+                    "median": 6.27,
+                    "average": 41.51
+                  },
+                  "design": {
+                    "n": 1,
+                    "median": 14.54,
+                    "average": 14.54
+                  },
+                  "ready_for_development": {
+                    "n": 3,
+                    "median": 2.35,
+                    "average": 5.49
+                  },
+                  "in_development": {
+                    "n": 15,
+                    "median": 24.04,
+                    "average": 39.34
+                  },
+                  "feedback": {
+                    "n": 1,
+                    "median": 17.04,
+                    "average": 17.04
+                  }
+                },
+                "Broadcast": {
+                  "parking_lot": {
+                    "n": 21,
+                    "median": 5.07,
+                    "average": 35.57
+                  },
+                  "design": {
+                    "n": 1,
+                    "median": 0.24,
+                    "average": 0.24
+                  },
+                  "ready_for_development": {
+                    "n": 5,
+                    "median": 7.21,
+                    "average": 11.7
+                  },
+                  "in_development": {
+                    "n": 14,
+                    "median": 6.64,
+                    "average": 30.93
+                  },
+                  "feedback": {
+                    "n": 11,
+                    "median": 9.44,
+                    "average": 8.73
+                  }
+                },
+                "Titanium": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Orchestration": {
+                  "parking_lot": {
+                    "n": 2,
+                    "median": 190.08,
+                    "average": 190.08
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Shift": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "UNMAPPED": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                }
+              }
+            }
+          },
+          "idea_scopes": {
+            "finished_work": {
+              "teams": {
+                "API": {
+                  "parking_lot": {
+                    "n": 55,
+                    "median": 0.36,
+                    "average": 20.35
+                  },
+                  "design": {
+                    "n": 4,
+                    "median": 0.81,
+                    "average": 4.1
+                  },
+                  "ready_for_development": {
+                    "n": 11,
+                    "median": 7.21,
+                    "average": 18.42
+                  },
+                  "in_development": {
+                    "n": 43,
+                    "median": 19.02,
+                    "average": 25.07
+                  },
+                  "feedback": {
+                    "n": 10,
+                    "median": 8.14,
+                    "average": 7.9
+                  }
+                },
+                "Frontend": {
+                  "parking_lot": {
+                    "n": 19,
+                    "median": 0.19,
+                    "average": 24.39
+                  },
+                  "design": {
+                    "n": 2,
+                    "median": 0.02,
+                    "average": 0.02
+                  },
+                  "ready_for_development": {
+                    "n": 4,
+                    "median": 2.73,
+                    "average": 5.61
+                  },
+                  "in_development": {
+                    "n": 23,
+                    "median": 15.03,
+                    "average": 31.77
+                  },
+                  "feedback": {
+                    "n": 1,
+                    "median": 17.04,
+                    "average": 17.04
+                  }
+                },
+                "Broadcast": {
+                  "parking_lot": {
+                    "n": 18,
+                    "median": 23.91,
+                    "average": 81.61
+                  },
+                  "design": {
+                    "n": 2,
+                    "median": 23.92,
+                    "average": 23.92
+                  },
+                  "ready_for_development": {
+                    "n": 1,
+                    "median": 6.18,
+                    "average": 6.18
+                  },
+                  "in_development": {
+                    "n": 13,
+                    "median": 30.89,
+                    "average": 45.23
+                  },
+                  "feedback": {
+                    "n": 7,
+                    "median": 8.82,
+                    "average": 9.62
+                  }
+                },
+                "Titanium": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Orchestration": {
+                  "parking_lot": {
+                    "n": 12,
+                    "median": 55.34,
+                    "average": 98.42
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 7,
+                    "median": 105.57,
+                    "average": 84.09
+                  },
+                  "feedback": {
+                    "n": 2,
+                    "median": 40.29,
+                    "average": 40.29
+                  }
+                },
+                "Shift": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "UNMAPPED": {
+                  "parking_lot": {
+                    "n": 16,
+                    "median": 83.98,
+                    "average": 92.21
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 5,
+                    "median": 72.11,
+                    "average": 64.35
+                  },
+                  "feedback": {
+                    "n": 2,
+                    "median": 54.38,
+                    "average": 54.38
+                  }
+                }
+              },
+              "byEffort": {
+                "all": {
+                  "teams": {
+                    "API": {
+                      "parking_lot": {
+                        "n": 55,
+                        "median": 0.36,
+                        "average": 20.35
+                      },
+                      "design": {
+                        "n": 4,
+                        "median": 0.81,
+                        "average": 4.1
+                      },
+                      "ready_for_development": {
+                        "n": 11,
+                        "median": 7.21,
+                        "average": 18.42
+                      },
+                      "in_development": {
+                        "n": 43,
+                        "median": 19.02,
+                        "average": 25.07
+                      },
+                      "feedback": {
+                        "n": 10,
+                        "median": 8.14,
+                        "average": 7.9
+                      }
+                    },
+                    "Frontend": {
+                      "parking_lot": {
+                        "n": 19,
+                        "median": 0.19,
+                        "average": 24.39
+                      },
+                      "design": {
+                        "n": 2,
+                        "median": 0.02,
+                        "average": 0.02
+                      },
+                      "ready_for_development": {
+                        "n": 4,
+                        "median": 2.73,
+                        "average": 5.61
+                      },
+                      "in_development": {
+                        "n": 23,
+                        "median": 15.03,
+                        "average": 31.77
+                      },
+                      "feedback": {
+                        "n": 1,
+                        "median": 17.04,
+                        "average": 17.04
+                      }
+                    },
+                    "Broadcast": {
+                      "parking_lot": {
+                        "n": 18,
+                        "median": 23.91,
+                        "average": 81.61
+                      },
+                      "design": {
+                        "n": 2,
+                        "median": 23.92,
+                        "average": 23.92
+                      },
+                      "ready_for_development": {
+                        "n": 1,
+                        "median": 6.18,
+                        "average": 6.18
+                      },
+                      "in_development": {
+                        "n": 13,
+                        "median": 30.89,
+                        "average": 45.23
+                      },
+                      "feedback": {
+                        "n": 7,
+                        "median": 8.82,
+                        "average": 9.62
+                      }
+                    },
+                    "Titanium": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Orchestration": {
+                      "parking_lot": {
+                        "n": 12,
+                        "median": 55.34,
+                        "average": 98.42
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 7,
+                        "median": 105.57,
+                        "average": 84.09
+                      },
+                      "feedback": {
+                        "n": 2,
+                        "median": 40.29,
+                        "average": 40.29
+                      }
+                    },
+                    "Shift": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "UNMAPPED": {
+                      "parking_lot": {
+                        "n": 16,
+                        "median": 83.98,
+                        "average": 92.21
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 5,
+                        "median": 72.11,
+                        "average": 64.35
+                      },
+                      "feedback": {
+                        "n": 2,
+                        "median": 54.38,
+                        "average": 54.38
+                      }
+                    }
+                  }
+                },
+                "single": {
+                  "teams": {
+                    "API": {
+                      "parking_lot": {
+                        "n": 22,
+                        "median": 0.05,
+                        "average": 16.05
+                      },
+                      "design": {
+                        "n": 2,
+                        "median": 0.81,
+                        "average": 0.81
+                      },
+                      "ready_for_development": {
+                        "n": 3,
+                        "median": 19.01,
+                        "average": 42.56
+                      },
+                      "in_development": {
+                        "n": 18,
+                        "median": 25.48,
+                        "average": 30.26
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Frontend": {
+                      "parking_lot": {
+                        "n": 18,
+                        "median": 0.12,
+                        "average": 17.57
+                      },
+                      "design": {
+                        "n": 2,
+                        "median": 0.02,
+                        "average": 0.02
+                      },
+                      "ready_for_development": {
+                        "n": 4,
+                        "median": 2.73,
+                        "average": 5.61
+                      },
+                      "in_development": {
+                        "n": 21,
+                        "median": 14.74,
+                        "average": 23.14
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Broadcast": {
+                      "parking_lot": {
+                        "n": 18,
+                        "median": 23.91,
+                        "average": 81.61
+                      },
+                      "design": {
+                        "n": 2,
+                        "median": 23.92,
+                        "average": 23.92
+                      },
+                      "ready_for_development": {
+                        "n": 1,
+                        "median": 6.18,
+                        "average": 6.18
+                      },
+                      "in_development": {
+                        "n": 13,
+                        "median": 30.89,
+                        "average": 45.23
+                      },
+                      "feedback": {
+                        "n": 7,
+                        "median": 8.82,
+                        "average": 9.62
+                      }
+                    },
+                    "Titanium": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Orchestration": {
+                      "parking_lot": {
+                        "n": 12,
+                        "median": 55.34,
+                        "average": 98.42
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 7,
+                        "median": 105.57,
+                        "average": 84.09
+                      },
+                      "feedback": {
+                        "n": 2,
+                        "median": 40.29,
+                        "average": 40.29
+                      }
+                    },
+                    "Shift": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "UNMAPPED": {
+                      "parking_lot": {
+                        "n": 16,
+                        "median": 83.98,
+                        "average": 92.21
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 5,
+                        "median": 72.11,
+                        "average": 64.35
+                      },
+                      "feedback": {
+                        "n": 2,
+                        "median": 54.38,
+                        "average": 54.38
+                      }
+                    }
+                  }
+                },
+                "combined": {
+                  "teams": {
+                    "API": {
+                      "parking_lot": {
+                        "n": 33,
+                        "median": 4.77,
+                        "average": 23.23
+                      },
+                      "design": {
+                        "n": 2,
+                        "median": 7.39,
+                        "average": 7.39
+                      },
+                      "ready_for_development": {
+                        "n": 8,
+                        "median": 4.78,
+                        "average": 9.37
+                      },
+                      "in_development": {
+                        "n": 25,
+                        "median": 15.93,
+                        "average": 21.33
+                      },
+                      "feedback": {
+                        "n": 10,
+                        "median": 8.14,
+                        "average": 7.9
+                      }
+                    },
+                    "Frontend": {
+                      "parking_lot": {
+                        "n": 17,
+                        "median": 6.27,
+                        "average": 41.51
+                      },
+                      "design": {
+                        "n": 1,
+                        "median": 14.54,
+                        "average": 14.54
+                      },
+                      "ready_for_development": {
+                        "n": 3,
+                        "median": 2.35,
+                        "average": 5.49
+                      },
+                      "in_development": {
+                        "n": 15,
+                        "median": 24.04,
+                        "average": 39.34
+                      },
+                      "feedback": {
+                        "n": 1,
+                        "median": 17.04,
+                        "average": 17.04
+                      }
+                    },
+                    "Broadcast": {
+                      "parking_lot": {
+                        "n": 21,
+                        "median": 5.07,
+                        "average": 35.57
+                      },
+                      "design": {
+                        "n": 1,
+                        "median": 0.24,
+                        "average": 0.24
+                      },
+                      "ready_for_development": {
+                        "n": 5,
+                        "median": 7.21,
+                        "average": 11.7
+                      },
+                      "in_development": {
+                        "n": 14,
+                        "median": 6.64,
+                        "average": 30.93
+                      },
+                      "feedback": {
+                        "n": 11,
+                        "median": 9.44,
+                        "average": 8.73
+                      }
+                    },
+                    "Titanium": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Orchestration": {
+                      "parking_lot": {
+                        "n": 2,
+                        "median": 190.08,
+                        "average": 190.08
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Shift": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "UNMAPPED": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    }
+                  }
+                }
+              }
+            },
             "full_backlog": {
               "teams": {
                 "API": {
                   "parking_lot": {
                     "n": 121,
                     "median": 77.68,
-                    "average": 137.3
+                    "average": 137.31
                   },
                   "design": {
                     "n": 16,
-                    "median": 37.4,
-                    "average": 53.63
+                    "median": 37.41,
+                    "average": 53.64
                   },
                   "ready_for_development": {
                     "n": 16,
@@ -2223,7 +3385,7 @@
                   "parking_lot": {
                     "n": 49,
                     "median": 241.57,
-                    "average": 202.41
+                    "average": 202.42
                   },
                   "design": {
                     "n": 6,
@@ -2238,19 +3400,19 @@
                   "in_development": {
                     "n": 20,
                     "median": 39.04,
-                    "average": 55.73
+                    "average": 55.74
                   },
                   "feedback": {
                     "n": 10,
                     "median": 11.45,
-                    "average": 41.92
+                    "average": 41.93
                   }
                 },
                 "Titanium": {
                   "parking_lot": {
                     "n": 6,
                     "median": 6.97,
-                    "average": 22.24
+                    "average": 22.25
                   },
                   "design": {
                     "n": 5,
@@ -2260,12 +3422,12 @@
                   "ready_for_development": {
                     "n": 6,
                     "median": 30.4,
-                    "average": 53.8
+                    "average": 53.81
                   },
                   "in_development": {
                     "n": 4,
-                    "median": 126.88,
-                    "average": 126.88
+                    "median": 126.9,
+                    "average": 126.9
                   },
                   "feedback": {
                     "n": 0,
@@ -2276,13 +3438,13 @@
                 "Orchestration": {
                   "parking_lot": {
                     "n": 32,
-                    "median": 96.95,
-                    "average": 149.65
+                    "median": 96.97,
+                    "average": 149.66
                   },
                   "design": {
                     "n": 5,
-                    "median": 30.21,
-                    "average": 39.1
+                    "median": 30.22,
+                    "average": 39.11
                   },
                   "ready_for_development": {
                     "n": 2,
@@ -2292,7 +3454,7 @@
                   "in_development": {
                     "n": 14,
                     "median": 104.07,
-                    "average": 118.86
+                    "average": 118.87
                   },
                   "feedback": {
                     "n": 2,
@@ -2331,12 +3493,12 @@
                   "parking_lot": {
                     "n": 26,
                     "median": 130.44,
-                    "average": 146.36
+                    "average": 146.37
                   },
                   "design": {
                     "n": 1,
-                    "median": 162.14,
-                    "average": 162.14
+                    "median": 162.16,
+                    "average": 162.16
                   },
                   "ready_for_development": {
                     "n": 2,
@@ -2346,12 +3508,593 @@
                   "in_development": {
                     "n": 7,
                     "median": 77.04,
-                    "average": 106.15
+                    "average": 106.16
                   },
                   "feedback": {
                     "n": 2,
                     "median": 54.38,
                     "average": 54.38
+                  }
+                }
+              },
+              "byEffort": {
+                "all": {
+                  "teams": {
+                    "API": {
+                      "parking_lot": {
+                        "n": 121,
+                        "median": 77.68,
+                        "average": 137.31
+                      },
+                      "design": {
+                        "n": 16,
+                        "median": 37.41,
+                        "average": 53.64
+                      },
+                      "ready_for_development": {
+                        "n": 16,
+                        "median": 9.58,
+                        "average": 26.58
+                      },
+                      "in_development": {
+                        "n": 52,
+                        "median": 22.14,
+                        "average": 43.83
+                      },
+                      "feedback": {
+                        "n": 10,
+                        "median": 8.14,
+                        "average": 7.9
+                      }
+                    },
+                    "Frontend": {
+                      "parking_lot": {
+                        "n": 21,
+                        "median": 0.19,
+                        "average": 39.65
+                      },
+                      "design": {
+                        "n": 3,
+                        "median": 0.02,
+                        "average": 24.98
+                      },
+                      "ready_for_development": {
+                        "n": 4,
+                        "median": 2.73,
+                        "average": 5.61
+                      },
+                      "in_development": {
+                        "n": 23,
+                        "median": 15.03,
+                        "average": 31.77
+                      },
+                      "feedback": {
+                        "n": 1,
+                        "median": 17.04,
+                        "average": 17.04
+                      }
+                    },
+                    "Broadcast": {
+                      "parking_lot": {
+                        "n": 49,
+                        "median": 241.57,
+                        "average": 202.42
+                      },
+                      "design": {
+                        "n": 6,
+                        "median": 32.41,
+                        "average": 38.63
+                      },
+                      "ready_for_development": {
+                        "n": 6,
+                        "median": 20.6,
+                        "average": 27.21
+                      },
+                      "in_development": {
+                        "n": 20,
+                        "median": 39.04,
+                        "average": 55.74
+                      },
+                      "feedback": {
+                        "n": 10,
+                        "median": 11.45,
+                        "average": 41.93
+                      }
+                    },
+                    "Titanium": {
+                      "parking_lot": {
+                        "n": 6,
+                        "median": 6.97,
+                        "average": 22.25
+                      },
+                      "design": {
+                        "n": 5,
+                        "median": 8.21,
+                        "average": 46.78
+                      },
+                      "ready_for_development": {
+                        "n": 6,
+                        "median": 30.4,
+                        "average": 53.81
+                      },
+                      "in_development": {
+                        "n": 4,
+                        "median": 126.9,
+                        "average": 126.9
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Orchestration": {
+                      "parking_lot": {
+                        "n": 32,
+                        "median": 96.97,
+                        "average": 149.66
+                      },
+                      "design": {
+                        "n": 5,
+                        "median": 30.22,
+                        "average": 39.11
+                      },
+                      "ready_for_development": {
+                        "n": 2,
+                        "median": 18.23,
+                        "average": 18.23
+                      },
+                      "in_development": {
+                        "n": 14,
+                        "median": 104.07,
+                        "average": 118.87
+                      },
+                      "feedback": {
+                        "n": 2,
+                        "median": 40.29,
+                        "average": 40.29
+                      }
+                    },
+                    "Shift": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "UNMAPPED": {
+                      "parking_lot": {
+                        "n": 26,
+                        "median": 130.44,
+                        "average": 146.37
+                      },
+                      "design": {
+                        "n": 1,
+                        "median": 162.16,
+                        "average": 162.16
+                      },
+                      "ready_for_development": {
+                        "n": 2,
+                        "median": 19.01,
+                        "average": 19.01
+                      },
+                      "in_development": {
+                        "n": 7,
+                        "median": 77.04,
+                        "average": 106.16
+                      },
+                      "feedback": {
+                        "n": 2,
+                        "median": 54.38,
+                        "average": 54.38
+                      }
+                    }
+                  }
+                },
+                "single": {
+                  "teams": {
+                    "API": {
+                      "parking_lot": {
+                        "n": 39,
+                        "median": 17.05,
+                        "average": 118.54
+                      },
+                      "design": {
+                        "n": 4,
+                        "median": 32.63,
+                        "average": 49.99
+                      },
+                      "ready_for_development": {
+                        "n": 4,
+                        "median": 10.73,
+                        "average": 31.92
+                      },
+                      "in_development": {
+                        "n": 23,
+                        "median": 29.02,
+                        "average": 51.05
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Frontend": {
+                      "parking_lot": {
+                        "n": 20,
+                        "median": 0.12,
+                        "average": 34.27
+                      },
+                      "design": {
+                        "n": 3,
+                        "median": 0.02,
+                        "average": 24.98
+                      },
+                      "ready_for_development": {
+                        "n": 4,
+                        "median": 2.73,
+                        "average": 5.61
+                      },
+                      "in_development": {
+                        "n": 21,
+                        "median": 14.74,
+                        "average": 23.14
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Broadcast": {
+                      "parking_lot": {
+                        "n": 49,
+                        "median": 241.57,
+                        "average": 202.42
+                      },
+                      "design": {
+                        "n": 6,
+                        "median": 32.41,
+                        "average": 38.63
+                      },
+                      "ready_for_development": {
+                        "n": 6,
+                        "median": 20.6,
+                        "average": 27.21
+                      },
+                      "in_development": {
+                        "n": 20,
+                        "median": 39.04,
+                        "average": 55.74
+                      },
+                      "feedback": {
+                        "n": 10,
+                        "median": 11.45,
+                        "average": 41.93
+                      }
+                    },
+                    "Titanium": {
+                      "parking_lot": {
+                        "n": 6,
+                        "median": 6.97,
+                        "average": 22.25
+                      },
+                      "design": {
+                        "n": 5,
+                        "median": 8.21,
+                        "average": 46.78
+                      },
+                      "ready_for_development": {
+                        "n": 6,
+                        "median": 30.4,
+                        "average": 53.81
+                      },
+                      "in_development": {
+                        "n": 4,
+                        "median": 126.9,
+                        "average": 126.9
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Orchestration": {
+                      "parking_lot": {
+                        "n": 32,
+                        "median": 96.97,
+                        "average": 149.66
+                      },
+                      "design": {
+                        "n": 5,
+                        "median": 30.22,
+                        "average": 39.11
+                      },
+                      "ready_for_development": {
+                        "n": 2,
+                        "median": 18.23,
+                        "average": 18.23
+                      },
+                      "in_development": {
+                        "n": 14,
+                        "median": 104.07,
+                        "average": 118.87
+                      },
+                      "feedback": {
+                        "n": 2,
+                        "median": 40.29,
+                        "average": 40.29
+                      }
+                    },
+                    "Shift": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "UNMAPPED": {
+                      "parking_lot": {
+                        "n": 26,
+                        "median": 130.44,
+                        "average": 146.37
+                      },
+                      "design": {
+                        "n": 1,
+                        "median": 162.16,
+                        "average": 162.16
+                      },
+                      "ready_for_development": {
+                        "n": 2,
+                        "median": 19.01,
+                        "average": 19.01
+                      },
+                      "in_development": {
+                        "n": 7,
+                        "median": 77.04,
+                        "average": 106.16
+                      },
+                      "feedback": {
+                        "n": 2,
+                        "median": 54.38,
+                        "average": 54.38
+                      }
+                    }
+                  }
+                },
+                "combined": {
+                  "teams": {
+                    "API": {
+                      "parking_lot": {
+                        "n": 82,
+                        "median": 100.31,
+                        "average": 146.23
+                      },
+                      "design": {
+                        "n": 12,
+                        "median": 37.41,
+                        "average": 54.85
+                      },
+                      "ready_for_development": {
+                        "n": 12,
+                        "median": 9.58,
+                        "average": 24.8
+                      },
+                      "in_development": {
+                        "n": 29,
+                        "median": 21.55,
+                        "average": 38.1
+                      },
+                      "feedback": {
+                        "n": 10,
+                        "median": 8.14,
+                        "average": 7.9
+                      }
+                    },
+                    "Frontend": {
+                      "parking_lot": {
+                        "n": 44,
+                        "median": 153.32,
+                        "average": 162.07
+                      },
+                      "design": {
+                        "n": 5,
+                        "median": 25.99,
+                        "average": 68.4
+                      },
+                      "ready_for_development": {
+                        "n": 5,
+                        "median": 2.35,
+                        "average": 9.07
+                      },
+                      "in_development": {
+                        "n": 18,
+                        "median": 27.25,
+                        "average": 43.79
+                      },
+                      "feedback": {
+                        "n": 1,
+                        "median": 17.04,
+                        "average": 17.04
+                      }
+                    },
+                    "Broadcast": {
+                      "parking_lot": {
+                        "n": 54,
+                        "median": 125.72,
+                        "average": 157.83
+                      },
+                      "design": {
+                        "n": 10,
+                        "median": 55.85,
+                        "average": 64.04
+                      },
+                      "ready_for_development": {
+                        "n": 6,
+                        "median": 3.68,
+                        "average": 9.75
+                      },
+                      "in_development": {
+                        "n": 17,
+                        "median": 15.93,
+                        "average": 55.27
+                      },
+                      "feedback": {
+                        "n": 11,
+                        "median": 9.44,
+                        "average": 8.73
+                      }
+                    },
+                    "Titanium": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Orchestration": {
+                      "parking_lot": {
+                        "n": 7,
+                        "median": 175.09,
+                        "average": 164.76
+                      },
+                      "design": {
+                        "n": 1,
+                        "median": 3.35,
+                        "average": 3.35
+                      },
+                      "ready_for_development": {
+                        "n": 2,
+                        "median": 96.9,
+                        "average": 96.9
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Shift": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "UNMAPPED": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    }
                   }
                 }
               }
@@ -2550,8 +4293,8 @@
               }
             }
           },
-          "idea_scopes": {
-            "finished_work": {
+          "byEffort": {
+            "all": {
               "teams": {
                 "API": {
                   "parking_lot": {
@@ -2744,6 +4487,1168 @@
                 }
               }
             },
+            "single": {
+              "teams": {
+                "API": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Frontend": {
+                  "parking_lot": {
+                    "n": 1,
+                    "median": 0,
+                    "average": 0
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 1,
+                    "median": 23.64,
+                    "average": 23.64
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Broadcast": {
+                  "parking_lot": {
+                    "n": 3,
+                    "median": 85.86,
+                    "average": 125.37
+                  },
+                  "design": {
+                    "n": 1,
+                    "median": 37.21,
+                    "average": 37.21
+                  },
+                  "ready_for_development": {
+                    "n": 1,
+                    "median": 0,
+                    "average": 0
+                  },
+                  "in_development": {
+                    "n": 3,
+                    "median": 85.88,
+                    "average": 83.77
+                  },
+                  "feedback": {
+                    "n": 1,
+                    "median": 32.7,
+                    "average": 32.7
+                  }
+                },
+                "Titanium": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Orchestration": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Shift": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "UNMAPPED": {
+                  "parking_lot": {
+                    "n": 1,
+                    "median": 126.92,
+                    "average": 126.92
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                }
+              }
+            },
+            "combined": {
+              "teams": {
+                "API": {
+                  "parking_lot": {
+                    "n": 6,
+                    "median": 0,
+                    "average": 0
+                  },
+                  "design": {
+                    "n": 3,
+                    "median": 3.13,
+                    "average": 4.46
+                  },
+                  "ready_for_development": {
+                    "n": 4,
+                    "median": 22.6,
+                    "average": 35.56
+                  },
+                  "in_development": {
+                    "n": 9,
+                    "median": 26.2,
+                    "average": 31.28
+                  },
+                  "feedback": {
+                    "n": 2,
+                    "median": 16.72,
+                    "average": 16.72
+                  }
+                },
+                "Frontend": {
+                  "parking_lot": {
+                    "n": 3,
+                    "median": 0,
+                    "average": 0
+                  },
+                  "design": {
+                    "n": 2,
+                    "median": 5.74,
+                    "average": 5.74
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 6,
+                    "median": 29.41,
+                    "average": 37.72
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Broadcast": {
+                  "parking_lot": {
+                    "n": 3,
+                    "median": 0,
+                    "average": 0
+                  },
+                  "design": {
+                    "n": 1,
+                    "median": 1.9,
+                    "average": 1.9
+                  },
+                  "ready_for_development": {
+                    "n": 4,
+                    "median": 22.6,
+                    "average": 35.56
+                  },
+                  "in_development": {
+                    "n": 3,
+                    "median": 10.21,
+                    "average": 18.41
+                  },
+                  "feedback": {
+                    "n": 2,
+                    "median": 16.72,
+                    "average": 16.72
+                  }
+                },
+                "Titanium": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Orchestration": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Shift": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "UNMAPPED": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                }
+              }
+            }
+          },
+          "idea_scopes": {
+            "finished_work": {
+              "teams": {
+                "API": {
+                  "parking_lot": {
+                    "n": 6,
+                    "median": 0,
+                    "average": 0
+                  },
+                  "design": {
+                    "n": 3,
+                    "median": 3.13,
+                    "average": 4.46
+                  },
+                  "ready_for_development": {
+                    "n": 4,
+                    "median": 22.6,
+                    "average": 35.56
+                  },
+                  "in_development": {
+                    "n": 9,
+                    "median": 26.2,
+                    "average": 31.28
+                  },
+                  "feedback": {
+                    "n": 2,
+                    "median": 16.72,
+                    "average": 16.72
+                  }
+                },
+                "Frontend": {
+                  "parking_lot": {
+                    "n": 1,
+                    "median": 0,
+                    "average": 0
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 1,
+                    "median": 23.64,
+                    "average": 23.64
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Broadcast": {
+                  "parking_lot": {
+                    "n": 3,
+                    "median": 85.86,
+                    "average": 125.37
+                  },
+                  "design": {
+                    "n": 1,
+                    "median": 37.21,
+                    "average": 37.21
+                  },
+                  "ready_for_development": {
+                    "n": 1,
+                    "median": 0,
+                    "average": 0
+                  },
+                  "in_development": {
+                    "n": 3,
+                    "median": 85.88,
+                    "average": 83.77
+                  },
+                  "feedback": {
+                    "n": 1,
+                    "median": 32.7,
+                    "average": 32.7
+                  }
+                },
+                "Titanium": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Orchestration": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "Shift": {
+                  "parking_lot": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                },
+                "UNMAPPED": {
+                  "parking_lot": {
+                    "n": 1,
+                    "median": 126.92,
+                    "average": 126.92
+                  },
+                  "design": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "ready_for_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "in_development": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  },
+                  "feedback": {
+                    "n": 0,
+                    "median": null,
+                    "average": null
+                  }
+                }
+              },
+              "byEffort": {
+                "all": {
+                  "teams": {
+                    "API": {
+                      "parking_lot": {
+                        "n": 6,
+                        "median": 0,
+                        "average": 0
+                      },
+                      "design": {
+                        "n": 3,
+                        "median": 3.13,
+                        "average": 4.46
+                      },
+                      "ready_for_development": {
+                        "n": 4,
+                        "median": 22.6,
+                        "average": 35.56
+                      },
+                      "in_development": {
+                        "n": 9,
+                        "median": 26.2,
+                        "average": 31.28
+                      },
+                      "feedback": {
+                        "n": 2,
+                        "median": 16.72,
+                        "average": 16.72
+                      }
+                    },
+                    "Frontend": {
+                      "parking_lot": {
+                        "n": 1,
+                        "median": 0,
+                        "average": 0
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 1,
+                        "median": 23.64,
+                        "average": 23.64
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Broadcast": {
+                      "parking_lot": {
+                        "n": 3,
+                        "median": 85.86,
+                        "average": 125.37
+                      },
+                      "design": {
+                        "n": 1,
+                        "median": 37.21,
+                        "average": 37.21
+                      },
+                      "ready_for_development": {
+                        "n": 1,
+                        "median": 0,
+                        "average": 0
+                      },
+                      "in_development": {
+                        "n": 3,
+                        "median": 85.88,
+                        "average": 83.77
+                      },
+                      "feedback": {
+                        "n": 1,
+                        "median": 32.7,
+                        "average": 32.7
+                      }
+                    },
+                    "Titanium": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Orchestration": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Shift": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "UNMAPPED": {
+                      "parking_lot": {
+                        "n": 1,
+                        "median": 126.92,
+                        "average": 126.92
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    }
+                  }
+                },
+                "single": {
+                  "teams": {
+                    "API": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Frontend": {
+                      "parking_lot": {
+                        "n": 1,
+                        "median": 0,
+                        "average": 0
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 1,
+                        "median": 23.64,
+                        "average": 23.64
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Broadcast": {
+                      "parking_lot": {
+                        "n": 3,
+                        "median": 85.86,
+                        "average": 125.37
+                      },
+                      "design": {
+                        "n": 1,
+                        "median": 37.21,
+                        "average": 37.21
+                      },
+                      "ready_for_development": {
+                        "n": 1,
+                        "median": 0,
+                        "average": 0
+                      },
+                      "in_development": {
+                        "n": 3,
+                        "median": 85.88,
+                        "average": 83.77
+                      },
+                      "feedback": {
+                        "n": 1,
+                        "median": 32.7,
+                        "average": 32.7
+                      }
+                    },
+                    "Titanium": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Orchestration": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Shift": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "UNMAPPED": {
+                      "parking_lot": {
+                        "n": 1,
+                        "median": 126.92,
+                        "average": 126.92
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    }
+                  }
+                },
+                "combined": {
+                  "teams": {
+                    "API": {
+                      "parking_lot": {
+                        "n": 6,
+                        "median": 0,
+                        "average": 0
+                      },
+                      "design": {
+                        "n": 3,
+                        "median": 3.13,
+                        "average": 4.46
+                      },
+                      "ready_for_development": {
+                        "n": 4,
+                        "median": 22.6,
+                        "average": 35.56
+                      },
+                      "in_development": {
+                        "n": 9,
+                        "median": 26.2,
+                        "average": 31.28
+                      },
+                      "feedback": {
+                        "n": 2,
+                        "median": 16.72,
+                        "average": 16.72
+                      }
+                    },
+                    "Frontend": {
+                      "parking_lot": {
+                        "n": 3,
+                        "median": 0,
+                        "average": 0
+                      },
+                      "design": {
+                        "n": 2,
+                        "median": 5.74,
+                        "average": 5.74
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 6,
+                        "median": 29.41,
+                        "average": 37.72
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Broadcast": {
+                      "parking_lot": {
+                        "n": 3,
+                        "median": 0,
+                        "average": 0
+                      },
+                      "design": {
+                        "n": 1,
+                        "median": 1.9,
+                        "average": 1.9
+                      },
+                      "ready_for_development": {
+                        "n": 4,
+                        "median": 22.6,
+                        "average": 35.56
+                      },
+                      "in_development": {
+                        "n": 3,
+                        "median": 10.21,
+                        "average": 18.41
+                      },
+                      "feedback": {
+                        "n": 2,
+                        "median": 16.72,
+                        "average": 16.72
+                      }
+                    },
+                    "Titanium": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Orchestration": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Shift": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "UNMAPPED": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    }
+                  }
+                }
+              }
+            },
             "full_backlog": {
               "teams": {
                 "API": {
@@ -2754,8 +5659,8 @@
                   },
                   "design": {
                     "n": 9,
-                    "median": 5.43,
-                    "average": 8.57
+                    "median": 5.45,
+                    "average": 8.59
                   },
                   "ready_for_development": {
                     "n": 4,
@@ -2803,13 +5708,13 @@
                 "Broadcast": {
                   "parking_lot": {
                     "n": 4,
-                    "median": 52.59,
+                    "median": 52.6,
                     "average": 98.86
                   },
                   "design": {
                     "n": 2,
-                    "median": 30.18,
-                    "average": 30.18
+                    "median": 30.19,
+                    "average": 30.19
                   },
                   "ready_for_development": {
                     "n": 1,
@@ -2862,8 +5767,8 @@
                   },
                   "design": {
                     "n": 1,
-                    "median": 23.18,
-                    "average": 23.18
+                    "median": 23.2,
+                    "average": 23.2
                   },
                   "ready_for_development": {
                     "n": 0,
@@ -2911,13 +5816,13 @@
                 "UNMAPPED": {
                   "parking_lot": {
                     "n": 4,
-                    "median": 14.77,
-                    "average": 40.67
+                    "median": 14.79,
+                    "average": 40.68
                   },
                   "design": {
                     "n": 2,
-                    "median": 6.33,
-                    "average": 6.33
+                    "median": 6.35,
+                    "average": 6.35
                   },
                   "ready_for_development": {
                     "n": 0,
@@ -2935,6 +5840,587 @@
                     "average": null
                   }
                 }
+              },
+              "byEffort": {
+                "all": {
+                  "teams": {
+                    "API": {
+                      "parking_lot": {
+                        "n": 9,
+                        "median": 0,
+                        "average": 1.68
+                      },
+                      "design": {
+                        "n": 9,
+                        "median": 5.45,
+                        "average": 8.59
+                      },
+                      "ready_for_development": {
+                        "n": 4,
+                        "median": 22.6,
+                        "average": 35.56
+                      },
+                      "in_development": {
+                        "n": 9,
+                        "median": 26.2,
+                        "average": 31.28
+                      },
+                      "feedback": {
+                        "n": 2,
+                        "median": 16.72,
+                        "average": 16.72
+                      }
+                    },
+                    "Frontend": {
+                      "parking_lot": {
+                        "n": 1,
+                        "median": 0,
+                        "average": 0
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 1,
+                        "median": 23.64,
+                        "average": 23.64
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Broadcast": {
+                      "parking_lot": {
+                        "n": 4,
+                        "median": 52.6,
+                        "average": 98.86
+                      },
+                      "design": {
+                        "n": 2,
+                        "median": 30.19,
+                        "average": 30.19
+                      },
+                      "ready_for_development": {
+                        "n": 1,
+                        "median": 0,
+                        "average": 0
+                      },
+                      "in_development": {
+                        "n": 3,
+                        "median": 85.88,
+                        "average": 83.77
+                      },
+                      "feedback": {
+                        "n": 1,
+                        "median": 32.7,
+                        "average": 32.7
+                      }
+                    },
+                    "Titanium": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Orchestration": {
+                      "parking_lot": {
+                        "n": 1,
+                        "median": 0.28,
+                        "average": 0.28
+                      },
+                      "design": {
+                        "n": 1,
+                        "median": 23.2,
+                        "average": 23.2
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Shift": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "UNMAPPED": {
+                      "parking_lot": {
+                        "n": 4,
+                        "median": 14.79,
+                        "average": 40.68
+                      },
+                      "design": {
+                        "n": 2,
+                        "median": 6.35,
+                        "average": 6.35
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    }
+                  }
+                },
+                "single": {
+                  "teams": {
+                    "API": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 1,
+                        "median": 23.2,
+                        "average": 23.2
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Frontend": {
+                      "parking_lot": {
+                        "n": 1,
+                        "median": 0,
+                        "average": 0
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 1,
+                        "median": 23.64,
+                        "average": 23.64
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Broadcast": {
+                      "parking_lot": {
+                        "n": 4,
+                        "median": 52.6,
+                        "average": 98.86
+                      },
+                      "design": {
+                        "n": 2,
+                        "median": 30.19,
+                        "average": 30.19
+                      },
+                      "ready_for_development": {
+                        "n": 1,
+                        "median": 0,
+                        "average": 0
+                      },
+                      "in_development": {
+                        "n": 3,
+                        "median": 85.88,
+                        "average": 83.77
+                      },
+                      "feedback": {
+                        "n": 1,
+                        "median": 32.7,
+                        "average": 32.7
+                      }
+                    },
+                    "Titanium": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Orchestration": {
+                      "parking_lot": {
+                        "n": 1,
+                        "median": 0.28,
+                        "average": 0.28
+                      },
+                      "design": {
+                        "n": 1,
+                        "median": 23.2,
+                        "average": 23.2
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Shift": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "UNMAPPED": {
+                      "parking_lot": {
+                        "n": 4,
+                        "median": 14.79,
+                        "average": 40.68
+                      },
+                      "design": {
+                        "n": 2,
+                        "median": 6.35,
+                        "average": 6.35
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    }
+                  }
+                },
+                "combined": {
+                  "teams": {
+                    "API": {
+                      "parking_lot": {
+                        "n": 9,
+                        "median": 0,
+                        "average": 1.68
+                      },
+                      "design": {
+                        "n": 8,
+                        "median": 5.44,
+                        "average": 6.76
+                      },
+                      "ready_for_development": {
+                        "n": 4,
+                        "median": 22.6,
+                        "average": 35.56
+                      },
+                      "in_development": {
+                        "n": 9,
+                        "median": 26.2,
+                        "average": 31.28
+                      },
+                      "feedback": {
+                        "n": 2,
+                        "median": 16.72,
+                        "average": 16.72
+                      }
+                    },
+                    "Frontend": {
+                      "parking_lot": {
+                        "n": 5,
+                        "median": 0,
+                        "average": 2.02
+                      },
+                      "design": {
+                        "n": 5,
+                        "median": 5.44,
+                        "average": 7.7
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 6,
+                        "median": 29.41,
+                        "average": 37.72
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Broadcast": {
+                      "parking_lot": {
+                        "n": 6,
+                        "median": 2.5,
+                        "average": 2.52
+                      },
+                      "design": {
+                        "n": 6,
+                        "median": 5.44,
+                        "average": 7.1
+                      },
+                      "ready_for_development": {
+                        "n": 4,
+                        "median": 22.6,
+                        "average": 35.56
+                      },
+                      "in_development": {
+                        "n": 3,
+                        "median": 10.21,
+                        "average": 18.41
+                      },
+                      "feedback": {
+                        "n": 2,
+                        "median": 16.72,
+                        "average": 16.72
+                      }
+                    },
+                    "Titanium": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Orchestration": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "Shift": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    },
+                    "UNMAPPED": {
+                      "parking_lot": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "design": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "ready_for_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "in_development": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      },
+                      "feedback": {
+                        "n": 0,
+                        "median": null,
+                        "average": null
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -2946,12 +6432,78 @@
           "done": 134,
           "ongoing": 142,
           "cycle_sample": 131,
+          "byEffort": {
+            "all": {
+              "total": 276,
+              "done": 134,
+              "ongoing": 142,
+              "cycle_sample": 131,
+              "samples": {
+                "finished_work": {
+                  "cycle_sample": 131
+                },
+                "full_backlog": {
+                  "cycle_sample": 270
+                }
+              }
+            },
+            "single": {
+              "total": 188,
+              "done": 98,
+              "ongoing": 90,
+              "cycle_sample": 95,
+              "samples": {
+                "finished_work": {
+                  "cycle_sample": 95
+                },
+                "full_backlog": {
+                  "cycle_sample": 185
+                }
+              }
+            },
+            "combined": {
+              "total": 88,
+              "done": 36,
+              "ongoing": 52,
+              "cycle_sample": 36,
+              "samples": {
+                "finished_work": {
+                  "cycle_sample": 36
+                },
+                "full_backlog": {
+                  "cycle_sample": 85
+                }
+              }
+            }
+          },
           "samples": {
             "finished_work": {
-              "cycle_sample": 131
+              "cycle_sample": 131,
+              "byEffort": {
+                "all": {
+                  "cycle_sample": 131
+                },
+                "single": {
+                  "cycle_sample": 95
+                },
+                "combined": {
+                  "cycle_sample": 36
+                }
+              }
             },
             "full_backlog": {
-              "cycle_sample": 270
+              "cycle_sample": 270,
+              "byEffort": {
+                "all": {
+                  "cycle_sample": 270
+                },
+                "single": {
+                  "cycle_sample": 185
+                },
+                "combined": {
+                  "cycle_sample": 85
+                }
+              }
             }
           }
         },
@@ -2960,12 +6512,78 @@
           "done": 15,
           "ongoing": 14,
           "cycle_sample": 15,
+          "byEffort": {
+            "all": {
+              "total": 29,
+              "done": 15,
+              "ongoing": 14,
+              "cycle_sample": 15,
+              "samples": {
+                "finished_work": {
+                  "cycle_sample": 15
+                },
+                "full_backlog": {
+                  "cycle_sample": 28
+                }
+              }
+            },
+            "single": {
+              "total": 13,
+              "done": 5,
+              "ongoing": 8,
+              "cycle_sample": 5,
+              "samples": {
+                "finished_work": {
+                  "cycle_sample": 5
+                },
+                "full_backlog": {
+                  "cycle_sample": 13
+                }
+              }
+            },
+            "combined": {
+              "total": 16,
+              "done": 10,
+              "ongoing": 6,
+              "cycle_sample": 10,
+              "samples": {
+                "finished_work": {
+                  "cycle_sample": 10
+                },
+                "full_backlog": {
+                  "cycle_sample": 15
+                }
+              }
+            }
+          },
           "samples": {
             "finished_work": {
-              "cycle_sample": 15
+              "cycle_sample": 15,
+              "byEffort": {
+                "all": {
+                  "cycle_sample": 15
+                },
+                "single": {
+                  "cycle_sample": 5
+                },
+                "combined": {
+                  "cycle_sample": 10
+                }
+              }
             },
             "full_backlog": {
-              "cycle_sample": 28
+              "cycle_sample": 28,
+              "byEffort": {
+                "all": {
+                  "cycle_sample": 28
+                },
+                "single": {
+                  "cycle_sample": 13
+                },
+                "combined": {
+                  "cycle_sample": 15
+                }
+              }
             }
           }
         }

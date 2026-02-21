@@ -39,6 +39,7 @@ const PUBLIC_AGGREGATE_CHART_CONFIG = {
   lifecycleDays: {
     ideaRadioName: "lifecycle-days-idea-scope",
     yearRadioName: "lifecycle-days-year-scope",
+    effortRadioName: "lifecycle-days-effort-scope",
     metricRadioName: "lifecycle-days-metric-scope",
     statusId: "lifecycle-days-status",
     contextId: "lifecycle-days-context",
@@ -47,7 +48,7 @@ const PUBLIC_AGGREGATE_CHART_CONFIG = {
   }
 };
 
-const state = { snapshot: null, productCycle: null, mode: "all", managementUatScope: "all", compositionTeamScope: "bc", productCycleIdeaScope: "finished_work", productCycleWindowScope: "cycle", productCycleEffortScope: "all", productCycleMetricScope: "median", lifecycleDaysIdeaScope: "finished_work", lifecycleDaysYearScope: "2026", lifecycleDaysMetricScope: "median" };
+const state = { snapshot: null, productCycle: null, mode: "all", managementUatScope: "all", compositionTeamScope: "bc", productCycleIdeaScope: "finished_work", productCycleWindowScope: "cycle", productCycleEffortScope: "all", productCycleMetricScope: "median", lifecycleDaysIdeaScope: "finished_work", lifecycleDaysYearScope: "2026", lifecycleDaysEffortScope: "all", lifecycleDaysMetricScope: "median" };
 
 const dashboardUiUtils = window.DashboardViewUtils;
 if (!dashboardUiUtils) {
@@ -221,6 +222,12 @@ function productCycleWindowMeta(windowScope) {
   };
 }
 
+function effortScopeLabel(effortScope) {
+  if (effortScope === "single") return "Single-team";
+  if (effortScope === "combined") return "Combined";
+  return "All";
+}
+
 function readCycleWindowStats(teamNode, windowScope, ideaScope) {
   if (!teamNode || typeof teamNode !== "object") return {};
   const byIdeaScope = teamNode?.idea_scopes?.[ideaScope];
@@ -341,18 +348,23 @@ function combineLifecycleStats(nodes) {
   };
 }
 
-function readLifecycleStatsForScope(publicAggregates, yearScope, ideaScope, team, key) {
+function readLifecycleStatsForScope(publicAggregates, yearScope, ideaScope, effortScope, team, key) {
   const selectedYears = lifecycleSelectedYears(yearScope);
   if (selectedYears.length === 1) {
+    const selectedYear = selectedYears[0];
     return (
-      publicAggregates?.lifecyclePhaseDays?.byYear?.[selectedYears[0]]?.idea_scopes?.[ideaScope]?.teams?.[team]?.[key] ||
-      publicAggregates?.lifecyclePhaseDays?.byYear?.[selectedYears[0]]?.teams?.[team]?.[key] ||
+      publicAggregates?.lifecyclePhaseDays?.byYear?.[selectedYear]?.idea_scopes?.[ideaScope]?.byEffort?.[effortScope]?.teams?.[team]?.[key] ||
+      publicAggregates?.lifecyclePhaseDays?.byYear?.[selectedYear]?.idea_scopes?.[ideaScope]?.teams?.[team]?.[key] ||
+      publicAggregates?.lifecyclePhaseDays?.byYear?.[selectedYear]?.byEffort?.[effortScope]?.teams?.[team]?.[key] ||
+      publicAggregates?.lifecyclePhaseDays?.byYear?.[selectedYear]?.teams?.[team]?.[key] ||
       {}
     );
   }
   return combineLifecycleStats(
     selectedYears.map((selectedYear) =>
+      publicAggregates?.lifecyclePhaseDays?.byYear?.[selectedYear]?.idea_scopes?.[ideaScope]?.byEffort?.[effortScope]?.teams?.[team]?.[key] ||
       publicAggregates?.lifecyclePhaseDays?.byYear?.[selectedYear]?.idea_scopes?.[ideaScope]?.teams?.[team]?.[key] ||
+      publicAggregates?.lifecyclePhaseDays?.byYear?.[selectedYear]?.byEffort?.[effortScope]?.teams?.[team]?.[key] ||
       publicAggregates?.lifecyclePhaseDays?.byYear?.[selectedYear]?.teams?.[team]?.[key] ||
       null
     )
@@ -386,14 +398,17 @@ function computeLockedLifecycleYUpper(publicAggregates, teams, phaseDefs) {
   let maxValue = 0;
   for (const year of LIFECYCLE_YEAR_OPTIONS) {
     for (const ideaScope of PRODUCT_CYCLE_IDEA_SCOPE_OPTIONS) {
-      for (const metric of ["median", "average"]) {
-        const rows = buildMetricRowsByDefs({
-          teams,
-          defs: phaseDefs,
-          metric,
-          readSource: (team, key) => readLifecycleStatsForScope(publicAggregates, year, ideaScope, team, key)
-        });
-        maxValue = Math.max(maxValue, computeMaxFromRows(rows, phaseDefs));
+      for (const effortScope of PRODUCT_CYCLE_EFFORT_SCOPE_OPTIONS) {
+        for (const metric of ["median", "average"]) {
+          const rows = buildMetricRowsByDefs({
+            teams,
+            defs: phaseDefs,
+            metric,
+            readSource: (team, key) =>
+              readLifecycleStatsForScope(publicAggregates, year, ideaScope, effortScope, team, key)
+          });
+          maxValue = Math.max(maxValue, computeMaxFromRows(rows, phaseDefs));
+        }
       }
     }
   }
@@ -536,7 +551,7 @@ function withPublicAggregates({ statusId, contextId, containerId, missingMessage
   onReady({ status, context, publicAggregates });
 }
 
-function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggregates, year, metric, ideaScope) {
+function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggregates, year, effortScope, metric, ideaScope) {
   const status = document.getElementById("lifecycle-days-status");
   const context = document.getElementById("lifecycle-days-context");
   if (!status || !context) return;
@@ -570,13 +585,16 @@ function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggrega
     teams,
     defs: phaseDefs,
     metric,
-    readSource: (team, key) => readLifecycleStatsForScope(publicAggregates, year, ideaScope, team, key)
+    readSource: (team, key) => readLifecycleStatsForScope(publicAggregates, year, ideaScope, effortScope, team, key)
   });
   const plottedValues = phaseDefs
     .flatMap((phase) => rows.map((row) => row[phase.key]))
     .filter((value) => Number.isFinite(value) && value > 0);
 
-  const totalsNodes = selectedYears.map((selectedYear) => publicAggregates?.lifecyclePhaseDays?.totalsByYear?.[selectedYear] || {});
+  const totalsNodes = selectedYears.map((selectedYear) => {
+    const node = publicAggregates?.lifecyclePhaseDays?.totalsByYear?.[selectedYear] || {};
+    return node?.byEffort?.[effortScope] || node;
+  });
   const doneCount = totalsNodes.reduce((sum, node) => sum + toCount(node.done), 0);
   const ongoingCount = totalsNodes.reduce((sum, node) => sum + toCount(node.ongoing), 0);
   const totalCount = totalsNodes.reduce((sum, node) => sum + toCount(node.total), 0);
@@ -612,7 +630,7 @@ function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggrega
     metricLabel: metricLabelValue,
     yUpperOverride: yUpper
   });
-  context.textContent = `${chartTitleText} • ${yearLabel} • ${ideaScopeMeta.label}: total ${totalCount} • done ${doneCount} • ongoing ${ongoingCount} • cycle sample ${sampleCount}`;
+  context.textContent = `${chartTitleText} • ${yearLabel} • ${ideaScopeMeta.label} • ${effortScopeLabel(effortScope)}: total ${totalCount} • done ${doneCount} • ongoing ${ongoingCount} • cycle sample ${sampleCount}`;
 }
 
 function renderCycleTimeParkingLotToDoneChart() {
@@ -667,9 +685,11 @@ function renderLifecycleTimeSpentPerPhaseChart() {
   const config = PUBLIC_AGGREGATE_CHART_CONFIG.lifecycleDays;
   const ideaScope = normalizeProductCycleIdeaScope(state.lifecycleDaysIdeaScope);
   const year = normalizeOption(state.lifecycleDaysYearScope, LIFECYCLE_YEAR_OPTIONS, "2026");
+  const effortScope = normalizeOption(state.lifecycleDaysEffortScope, PRODUCT_CYCLE_EFFORT_SCOPE_OPTIONS, "all");
   const metric = normalizeMetric(state.lifecycleDaysMetricScope);
   syncRadioValue(config.ideaRadioName, ideaScope);
   syncRadioValue(config.yearRadioName, year);
+  syncRadioValue(config.effortRadioName, effortScope);
   syncRadioValue(config.metricRadioName, metric);
   withPublicAggregates({
     statusId: config.statusId,
@@ -677,7 +697,7 @@ function renderLifecycleTimeSpentPerPhaseChart() {
     containerId: config.containerId,
     missingMessage: config.missingMessage,
     onReady: ({ publicAggregates }) =>
-      renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggregates, year, metric, ideaScope)
+      renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggregates, year, effortScope, metric, ideaScope)
   });
 }
 
@@ -791,6 +811,7 @@ async function loadSnapshot() {
     bindRadioState("product-cycle-metric-scope", "productCycleMetricScope", normalizeMetric, renderCycleTimeParkingLotToDoneChart);
     bindRadioState("lifecycle-days-idea-scope", "lifecycleDaysIdeaScope", normalizeProductCycleIdeaScope, renderLifecycleTimeSpentPerPhaseChart);
     bindRadioState("lifecycle-days-year-scope", "lifecycleDaysYearScope", (value) => normalizeOption(value, LIFECYCLE_YEAR_OPTIONS, "2026"), renderLifecycleTimeSpentPerPhaseChart);
+    bindRadioState("lifecycle-days-effort-scope", "lifecycleDaysEffortScope", (value) => normalizeOption(value, PRODUCT_CYCLE_EFFORT_SCOPE_OPTIONS, "all"), renderLifecycleTimeSpentPerPhaseChart);
     bindRadioState("lifecycle-days-metric-scope", "lifecycleDaysMetricScope", normalizeMetric, renderLifecycleTimeSpentPerPhaseChart);
     setTextForIds(LAST_UPDATED_IDS, `Last updated: ${formatUpdatedAt(state.snapshot?.updatedAt)}`);
     setTextForIds(
