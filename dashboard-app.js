@@ -19,7 +19,6 @@ const MODE_PANEL_IDS = {
   composition: "composition-panel",
   uat: "uat-panel",
   management: "management-panel",
-  "dev-uat-ratio": "management-panel",
   "product-cycle": "product-cycle-panel",
   "lifecycle-days": "lifecycle-days-panel"
 };
