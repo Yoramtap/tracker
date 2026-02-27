@@ -254,6 +254,7 @@
     colors,
     height,
     margin,
+    chartLayout,
     layout,
     xAxisProps,
     yAxisProps,
@@ -268,6 +269,7 @@
         BarChart,
         {
           data: rows,
+          layout: chartLayout,
           margin,
           barCategoryGap: layout.categoryGap,
           barGap: BAR_LAYOUT.groupGap,
@@ -289,6 +291,10 @@
     );
     if (finiteValues.length === 0) return min;
     return Math.max(min, Math.ceil(Math.max(...finiteValues) * pad));
+  }
+
+  function buildNiceNumberAxis(_maxValue) {
+    return { upper: 300, ticks: [0, 50, 100, 150, 200, 250, 300] };
   }
 
   function groupedBarGeometry(rowsCount, seriesCount = 2) {
@@ -388,7 +394,10 @@
     colors,
     yUpper,
     xAxisProps,
+    yAxisProps,
     tooltipProps,
+    showLegend = true,
+    chartLayout = "horizontal",
     height = CHART_HEIGHTS.standard,
     margin = { top: 18, right: 20, bottom: 52, left: 20 }
   }) {
@@ -419,15 +428,24 @@
       colors,
       height,
       margin,
+      chartLayout,
       layout: geometry,
       xAxisProps: {
         ...xAxisProps,
         stroke: colors.text,
         tick: axisTick(colors)
       },
-      yAxisProps: baseYAxisProps(colors, yUpper ? [0, yUpper] : null),
+      yAxisProps: yAxisProps
+        ? {
+            ...yAxisProps,
+            stroke: colors.text,
+            tick: axisTick(colors)
+          }
+        : baseYAxisProps(colors, yUpper ? [0, yUpper] : null),
       tooltipProps,
-      legendNode: renderLegendNode({ colors, defs, type: "rect", hiddenKeys, setHiddenKeys }),
+      legendNode: showLegend
+        ? renderLegendNode({ colors, defs, type: "rect", hiddenKeys, setHiddenKeys })
+        : null,
       barNodes
     });
   }
@@ -628,7 +646,10 @@
     defs,
     colors,
     metricLabel = "Median",
-    yUpperOverride = null
+    yUpperOverride = null,
+    showLegend = true,
+    timeWindowLabel = "",
+    orientation = "columns"
   }) {
     const chartRows = Array.isArray(rows) ? rows : [];
     const seriesDefs = (Array.isArray(defs) ? defs : []).map((def) => ({
@@ -641,6 +662,9 @@
       Number.isFinite(yUpperOverride) && yUpperOverride > 0
         ? Math.ceil(yUpperOverride)
         : computeYUpper(yValues, { min: 1, pad: 1.15 });
+    const isHorizontal = orientation === "horizontal";
+    const niceAxis = isHorizontal ? buildNiceNumberAxis(yUpper) : null;
+    const niceYAxis = !isHorizontal ? buildNiceNumberAxis(yUpper) : null;
     renderGroupedBars(kind, containerId, chartRows.length > 0 && seriesDefs.length > 0, {
       rows: chartRows,
       defs: seriesDefs.map((series) => ({
@@ -650,16 +674,30 @@
       })),
       colors,
       yUpper,
+      showLegend,
       height: CHART_HEIGHTS.dense,
       margin: { top: 30, right: 20, bottom: 52, left: 20 },
       xAxisProps: {
-        dataKey: "team",
-        interval: 0,
-        height: 40
+        ...(isHorizontal
+          ? {
+              type: "number",
+              domain: [0, niceAxis.upper],
+              ticks: niceAxis.ticks,
+              allowDecimals: false
+            }
+          : { dataKey: "team", interval: 0, height: 40 })
       },
+      yAxisProps: isHorizontal
+        ? { dataKey: "team", type: "category", width: 110 }
+        : { domain: [0, niceYAxis.upper], ticks: niceYAxis.ticks, allowDecimals: false },
+      chartLayout: isHorizontal ? "vertical" : "horizontal",
       tooltipProps: {
         content: createTooltipContent(colors, (row, payload) => [
-          tooltipTitleLine("team", row.team || "", colors),
+          tooltipTitleLine(
+            "team",
+            `${row.team || "Team"} • ${timeWindowLabel || metricLabel}`,
+            colors
+          ),
           ...payload.map((item) => {
             const key = item?.dataKey;
             const meta = row?.[`meta_${key}`] || {};
@@ -679,7 +717,16 @@
   }
 
   function renderNamedMultiSeriesBars(kind, defs) {
-    return ({ containerId, rows, colors, metricLabel = "Median", yUpperOverride = null }) =>
+    return ({
+      containerId,
+      rows,
+      colors,
+      metricLabel = "Median",
+      yUpperOverride = null,
+      showLegend = true,
+      timeWindowLabel = "",
+      orientation = "columns"
+    }) =>
       renderMultiSeriesBars({
         kind,
         containerId,
@@ -687,7 +734,10 @@
         defs,
         colors,
         metricLabel,
-        yUpperOverride
+        yUpperOverride,
+        showLegend,
+        timeWindowLabel,
+        orientation
       });
   }
 
