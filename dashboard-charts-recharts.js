@@ -14,6 +14,7 @@
     Line,
     BarChart,
     Bar,
+    LabelList,
     CartesianGrid,
     XAxis,
     YAxis,
@@ -38,7 +39,15 @@
     { dataKey: "bcLong60", name: "BC long-standing (60d+)", stroke: "#6f7f92", strokeDasharray: "7 4" }
   ];
 
-  const roots = { trend: null, composition: null, uat: null, management: null, productCycle: null, lifecycleDays: null };
+  const roots = {
+    trend: null,
+    composition: null,
+    uat: null,
+    management: null,
+    productCycle: null,
+    doneWork: null,
+    lifecycleDays: null
+  };
   const rootContainerIds = {};
 
   function toNumber(value) {
@@ -240,6 +249,33 @@
     return { fill: colors.text, fontSize: 11 };
   }
 
+  function twoLineCategoryTickFactory(colors) {
+    return function twoLineCategoryTick(props) {
+      const { x, y, payload } = props || {};
+      const raw = String(payload?.value || "");
+      const splitIndex = raw.indexOf(" (n=");
+      const line1 = splitIndex > 0 ? raw.slice(0, splitIndex) : raw;
+      const line2 = splitIndex > 0 ? raw.slice(splitIndex + 1) : "";
+      return h(
+        "g",
+        { transform: `translate(${x},${y})` },
+        h(
+          "text",
+          {
+            x: 0,
+            y: 0,
+            dy: 3,
+            textAnchor: "end",
+            fill: colors.text,
+            fontSize: 12
+          },
+          h("tspan", { x: 0, dy: 0 }, line1),
+          line2 ? h("tspan", { x: 0, dy: 14, fill: "rgba(31,51,71,0.75)", fontSize: 11 }, line2) : null
+        )
+      );
+    };
+  }
+
   function baseYAxisProps(colors, domain = null) {
     return {
       stroke: colors.text,
@@ -406,8 +442,11 @@
       .map((def) => String(def?.stackId || "").trim())
       .filter(Boolean);
     const isFullyStacked = stackIds.length > 0 && new Set(stackIds).size === 1;
+    const isHorizontalSingleSeries = chartLayout === "vertical" && defs.length === 1;
     const geometry = isFullyStacked
       ? { categoryGap: "10%", barSize: null, maxBarSize: 96 }
+      : isHorizontalSingleSeries
+        ? { categoryGap: "18%", barSize: 30, maxBarSize: 30 }
       : groupedBarGeometry(rows.length, defs.length);
     const barNodes = defs.map((def) =>
       h(Bar, {
@@ -421,7 +460,24 @@
         activeBar: ACTIVE_BAR_STYLE,
         hide: hiddenKeys.has(def.dataKey),
         isAnimationActive: false
-      })
+      }, def.showValueLabel
+        ? h(LabelList, {
+            dataKey: def.dataKey,
+            position: chartLayout === "vertical" ? "right" : "top",
+            formatter: (value, entry) => {
+              const numericValue = Number(value);
+              const roundedValue = Number.isFinite(numericValue)
+                ? Number(numericValue.toFixed(1))
+                : 0;
+              const sampleCount = Number(entry?.payload?.[`meta_${def.dataKey}`]?.n);
+              const n = Number.isFinite(sampleCount) ? sampleCount : 0;
+              return `${roundedValue}d · n=${n}`;
+            },
+            fill: colors.text,
+            fontSize: 11,
+            offset: 8
+          })
+        : null)
     );
     return renderBarChartShell({
       rows,
@@ -433,13 +489,13 @@
       xAxisProps: {
         ...xAxisProps,
         stroke: colors.text,
-        tick: axisTick(colors)
+        tick: xAxisProps?.tick || axisTick(colors)
       },
       yAxisProps: yAxisProps
         ? {
             ...yAxisProps,
             stroke: colors.text,
-            tick: axisTick(colors)
+            tick: yAxisProps?.tick || axisTick(colors)
           }
         : baseYAxisProps(colors, yUpper ? [0, yUpper] : null),
       tooltipProps,
@@ -598,7 +654,7 @@
     );
   }
 
-  function renderDevelopmentTimeVsUatTimeChart({ containerId, rows, colors, devColor, uatColor }) {
+  function renderDevelopmentTimeVsUatTimeChart({ containerId, rows, colors, devColor, uatColor, yTicks }) {
     const chartRows = Array.isArray(rows) ? rows : [];
     const yUpper = computeYUpper(
       [
@@ -615,6 +671,10 @@
       ],
       colors,
       yUpper,
+      yAxisProps:
+        Array.isArray(yTicks) && yTicks.length > 1
+          ? { domain: [0, yTicks[yTicks.length - 1]], ticks: yTicks, allowDecimals: false }
+          : undefined,
       xAxisProps: {
         dataKey: "label",
         interval: 0,
@@ -639,6 +699,45 @@
     });
   }
 
+  function renderDoneWorkByTeamChart({ containerId, rows, colors, yUpper, yTicks, measureLabel }) {
+    const chartRows = Array.isArray(rows) ? rows : [];
+    const twoLineCategoryTick = twoLineCategoryTickFactory(colors);
+    renderGroupedBars("doneWork", containerId, chartRows.length > 0, {
+      rows: chartRows,
+      defs: [
+        { dataKey: "value", name: measureLabel || "Done", fill: colors.teams.api }
+      ],
+      colors,
+      yUpper,
+      height: CHART_HEIGHTS.dense,
+      margin: { top: 30, right: 20, bottom: 52, left: 20 },
+      xAxisProps: {
+        type: "number",
+        domain: [0, yUpper],
+        ticks: Array.isArray(yTicks) && yTicks.length > 1 ? yTicks : undefined,
+        allowDecimals: false
+      },
+      chartLayout: "vertical",
+      showLegend: false,
+      yAxisProps: {
+        dataKey: "teamWithSample",
+        type: "category",
+        width: 190,
+        tick: twoLineCategoryTick
+      },
+      tooltipProps: {
+        content: createTooltipContent(colors, (row) => [
+          tooltipTitleLine("team", row.team || "", colors),
+          makeTooltipLine("value", `${measureLabel || "Done"}: ${toNumber(row.value)}`, colors),
+          makeTooltipLine("count", `done ideas: ${toNumber(row.doneCount)}`, colors, {
+            color: "rgba(31,51,71,0.75)"
+          })
+        ]),
+        cursor: { fill: BAR_CURSOR_FILL }
+      }
+    });
+  }
+
   function renderMultiSeriesBars({
     kind,
     containerId,
@@ -649,7 +748,9 @@
     yUpperOverride = null,
     showLegend = true,
     timeWindowLabel = "",
-    orientation = "columns"
+    orientation = "columns",
+    categoryKey = "team",
+    categoryTickTwoLine = false
   }) {
     const chartRows = Array.isArray(rows) ? rows : [];
     const seriesDefs = (Array.isArray(defs) ? defs : []).map((def) => ({
@@ -665,12 +766,15 @@
     const isHorizontal = orientation === "horizontal";
     const niceAxis = isHorizontal ? buildNiceNumberAxis(yUpper) : null;
     const niceYAxis = !isHorizontal ? buildNiceNumberAxis(yUpper) : null;
+    const twoLineCategoryTick = twoLineCategoryTickFactory(colors);
+
     renderGroupedBars(kind, containerId, chartRows.length > 0 && seriesDefs.length > 0, {
       rows: chartRows,
       defs: seriesDefs.map((series) => ({
         dataKey: series.key,
         name: series.name,
-        fill: series.color
+        fill: series.color,
+        showValueLabel: Boolean(series.showValueLabel)
       })),
       colors,
       yUpper,
@@ -685,10 +789,15 @@
               ticks: niceAxis.ticks,
               allowDecimals: false
             }
-          : { dataKey: "team", interval: 0, height: 40 })
+          : { dataKey: categoryKey, interval: 0, height: 40 })
       },
       yAxisProps: isHorizontal
-        ? { dataKey: "team", type: "category", width: 110 }
+        ? {
+            dataKey: categoryKey,
+            type: "category",
+            width: categoryTickTwoLine ? 190 : 150,
+            tick: categoryTickTwoLine ? twoLineCategoryTick : undefined
+          }
         : { domain: [0, niceYAxis.upper], ticks: niceYAxis.ticks, allowDecimals: false },
       chartLayout: isHorizontal ? "vertical" : "horizontal",
       tooltipProps: {
@@ -701,12 +810,11 @@
           ...payload.map((item) => {
             const key = item?.dataKey;
             const meta = row?.[`meta_${key}`] || {};
-            const valueText = `${toNumber(item.value).toFixed(2)} days`;
+            const medianDays = toNumber(meta.median).toFixed(2);
+            const avgDays = toNumber(meta.average).toFixed(2);
             return makeTooltipLine(
               key,
-              `${item.name}: ${valueText} (${metricLabel}), n ${toNumber(meta.n)}, median ${toNumber(
-                meta.median
-              ).toFixed(2)}, avg ${toNumber(meta.average).toFixed(2)}`,
+              `${item.name}: median ${medianDays} days, avg ${avgDays} days, n ${toNumber(meta.n)}`,
               colors
             );
           })
@@ -725,7 +833,9 @@
       yUpperOverride = null,
       showLegend = true,
       timeWindowLabel = "",
-      orientation = "columns"
+      orientation = "columns",
+      categoryKey = "team",
+      categoryTickTwoLine = false
     }) =>
       renderMultiSeriesBars({
         kind,
@@ -737,7 +847,9 @@
         yUpperOverride,
         showLegend,
         timeWindowLabel,
-        orientation
+        orientation,
+        categoryKey,
+        categoryTickTwoLine
       });
   }
 
@@ -751,6 +863,7 @@
     renderBugCompositionByPriorityChart,
     renderUatPriorityAgingChart,
     renderDevelopmentTimeVsUatTimeChart,
+    renderDoneWorkByTeamChart,
     renderCycleTimeParkingLotToDoneChart,
     renderLifecycleTimeSpentPerPhaseChart,
     clearChart

@@ -81,12 +81,6 @@
             <legend>Year</legend>
             <label><input type="radio" name="product-cycle-year-scope" value="2025" /> 2025</label>
             <label><input type="radio" name="product-cycle-year-scope" value="2026" checked /> 2026</label>
-            <label><input type="radio" name="product-cycle-year-scope" value="2026_q1" /> 2026 Q1</label>
-          </fieldset>
-          <fieldset class="radio-group-card">
-            <legend>Measured in</legend>
-            <label><input type="radio" name="product-cycle-metric-scope" value="median" checked /> Median</label>
-            <label><input type="radio" name="product-cycle-metric-scope" value="average" /> Average</label>
           </fieldset>
         </div>
         <div class="chart">
@@ -94,6 +88,23 @@
         </div>
         <p id="product-cycle-totals" class="panel-summary" hidden></p>
         <p id="product-cycle-status" class="panel-status" hidden></p>
+      </section>
+
+      <section id="done-work-panel" class="panel" aria-label="Done work by team">
+        <h2>Done work by team (in ideas)</h2>
+        <p id="done-work-context" class="panel-subtitle">--</p>
+        <p id="done-work-updated" class="panel-subtitle">Last updated: --</p>
+        <div class="radio-control-groups" aria-label="Done work controls">
+          <fieldset class="radio-group-card">
+            <legend>Year</legend>
+            <label><input type="radio" name="done-work-year-scope" value="2025" /> 2025</label>
+            <label><input type="radio" name="done-work-year-scope" value="2026" checked /> 2026</label>
+          </fieldset>
+        </div>
+        <div class="chart">
+          <div id="done-work-by-team-chart" class="chart-canvas chart-canvas--dense"></div>
+        </div>
+        <p id="done-work-status" class="panel-status" hidden></p>
       </section>
 
       <section id="lifecycle-days-panel" class="panel" aria-label="Lifecycle phase days by team">
@@ -105,12 +116,6 @@
             <legend>Year</legend>
             <label><input type="radio" name="lifecycle-days-year-scope" value="2025" /> 2025</label>
             <label><input type="radio" name="lifecycle-days-year-scope" value="2026" checked /> 2026</label>
-            <label><input type="radio" name="lifecycle-days-year-scope" value="2026_q1" /> 2026 Q1</label>
-          </fieldset>
-          <fieldset class="radio-group-card">
-            <legend>Measured in</legend>
-            <label><input type="radio" name="lifecycle-days-metric-scope" value="median" checked /> Median</label>
-            <label><input type="radio" name="lifecycle-days-metric-scope" value="average" /> Average</label>
           </fieldset>
         </div>
         <div class="chart">
