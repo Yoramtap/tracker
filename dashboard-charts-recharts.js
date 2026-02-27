@@ -24,10 +24,6 @@
   const TEAM_CONFIG = [{ key: "api", label: "API" }, { key: "legacy", label: "Legacy FE" }, { key: "react", label: "React FE" }, { key: "bc", label: "BC" }];
   const PRIORITY_CONFIG = [{ key: "highest", label: "Highest" }, { key: "high", label: "High" }, { key: "medium", label: "Medium" }, { key: "low", label: "Low" }, { key: "lowest", label: "Lowest" }];
   const PRIORITY_STACK_ORDER = [...PRIORITY_CONFIG].reverse();
-  const PRIORITY_LABELS = PRIORITY_CONFIG.reduce((acc, item) => {
-    acc[item.key] = item.label;
-    return acc;
-  }, {});
   const BAR_LAYOUT = { categoryGap: "18%", groupGap: 2, denseMax: 12, normalMax: 22 };
   const CHART_HEIGHTS = { standard: 460, dense: 560 };
   const BAR_CURSOR_FILL = "rgba(31,51,71,0.12)";
@@ -397,17 +393,25 @@
     margin = { top: 18, right: 20, bottom: 52, left: 20 }
   }) {
     const [hiddenKeys, setHiddenKeys] = React.useState(() => new Set());
-    const geometry = groupedBarGeometry(rows.length, defs.length);
+    const stackIds = defs
+      .map((def) => String(def?.stackId || "").trim())
+      .filter(Boolean);
+    const isFullyStacked = stackIds.length > 0 && new Set(stackIds).size === 1;
+    const geometry = isFullyStacked
+      ? { categoryGap: "10%", barSize: null, maxBarSize: 96 }
+      : groupedBarGeometry(rows.length, defs.length);
     const barNodes = defs.map((def) =>
       h(Bar, {
         key: def.dataKey,
         dataKey: def.dataKey,
         name: def.name,
         fill: def.fill,
-        barSize: geometry.barSize,
+        stackId: def.stackId,
+        barSize: Number.isFinite(geometry.barSize) ? geometry.barSize : undefined,
         ...barBaseStyle(colors),
         activeBar: ACTIVE_BAR_STYLE,
-        hide: hiddenKeys.has(def.dataKey)
+        hide: hiddenKeys.has(def.dataKey),
+        isAnimationActive: false
       })
     );
     return renderBarChartShell({
@@ -521,42 +525,54 @@
     });
   }
 
-  function renderUatOpenByPriorityChart({ containerId, rows, priorities, colors }) {
+  function renderUatPriorityAgingChart({ containerId, rows, buckets, colors }) {
     const chartRows = Array.isArray(rows) ? rows : [];
-    const activePriorities = PRIORITY_STACK_ORDER.filter((item) =>
-      Array.isArray(priorities) ? priorities.includes(item.key) : false
+    const rowOrder = ["medium", "high", "highest"];
+    const orderedRows = rowOrder
+      .map((key) => chartRows.find((row) => row.priorityKey === key))
+      .filter(Boolean);
+    const bucketSeries = Array.isArray(buckets)
+      ? buckets
+          .map((bucket) => {
+            const bucketId = String(bucket?.id || "").trim();
+            if (!bucketId) return null;
+            return {
+              dataKey: bucketId,
+              name: String(bucket?.label || bucketId),
+              fill: colors.uatBuckets?.[bucketId] || colors.teams.bc
+            };
+          })
+          .filter(Boolean)
+      : [];
+    const yUpper = computeYUpper(
+      orderedRows.map((row) => toNumber(row?.total)),
+      { min: 1, pad: 1.12 }
     );
     renderGroupedBars(
       "uat",
       containerId,
-      chartRows.length > 0 && activePriorities.length > 0,
+      orderedRows.length > 0 && bucketSeries.length > 0,
       {
-        rows: chartRows,
-        defs: activePriorities.map((priority) => ({
-          dataKey: priority.key,
-          name: priority.label,
-          fill: colors.priorities[priority.key]
-        })),
+        rows: orderedRows,
+        defs: bucketSeries.map((series) => ({ ...series, stackId: "uatAging" })),
         colors,
+        yUpper,
         xAxisProps: {
-          dataKey: "bucketLabel",
+          dataKey: "priorityLabel",
           interval: 0,
           height: 44
         },
         tooltipProps: {
-          content: createTooltipContent(colors, (row) => [
-            tooltipTitleLine("title", row.bucketLabel || "", colors),
+          content: createTooltipContent(colors, (row, payload) => [
+            tooltipTitleLine("title", row.priorityLabel || "", colors),
             makeTooltipLine("total", `Total: ${toNumber(row.total)}`, colors, { margin: "0 0 6px" }),
-            ...activePriorities.flatMap((priority) => {
-              const value = toNumber(row[priority.key]);
-              if (value <= 0) return [];
-              return makeTooltipLine(
-                priority.key,
-                `${PRIORITY_LABELS[priority.key] || priority.key}: ${value}`,
-                colors,
-                { color: colors.priorities[priority.key] || colors.text }
-              );
-            })
+            ...payload.map((item) =>
+              makeTooltipLine(
+                item.dataKey,
+                `${item.name}: ${toNumber(item.value)}`,
+                colors
+              )
+            )
           ]),
           cursor: { fill: BAR_CURSOR_FILL }
         }
@@ -683,7 +699,7 @@
   window.DashboardCharts = {
     renderBugTrendAcrossTeamsChart,
     renderBugCompositionByPriorityChart,
-    renderUatOpenByPriorityChart,
+    renderUatPriorityAgingChart,
     renderDevelopmentTimeVsUatTimeChart,
     renderCycleTimeParkingLotToDoneChart,
     renderLifecycleTimeSpentPerPhaseChart,

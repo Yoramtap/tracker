@@ -1,6 +1,7 @@
 "use strict";
 
 const PRIORITY_CONFIG = [{ key: "highest", label: "Highest" }, { key: "high", label: "High" }, { key: "medium", label: "Medium" }, { key: "low", label: "Low" }, { key: "lowest", label: "Lowest" }];
+const UAT_PRIORITY_KEYS = ["medium", "high", "highest"];
 
 const PRODUCT_CYCLE_COMPARE_YEARS = ["2025", "2026"];
 const PRODUCT_CYCLE_EFFORT_SCOPE_OPTIONS = ["all", "single", "combined"];
@@ -127,12 +128,7 @@ function renderUatOpenByPriorityChart() {
 
   const uat = state.snapshot.uatAging;
   const scopeLabel = String(uat?.scope?.label || "Broadcast");
-  if (context) context.textContent = `${scopeLabel}, ${toNumber(uat.totalIssues)} currently in UAT`;
-  const allPriorities = PRIORITY_CONFIG.map((priority) => priority.key);
   const buckets = Array.isArray(uat.buckets) ? uat.buckets : [];
-  const priorities = allPriorities.filter((priority) =>
-    buckets.some((bucket) => toNumber(uat?.priorities?.[priority]?.buckets?.[bucket.id]) > 0)
-  );
 
   if (buckets.length === 0) {
     status.hidden = false;
@@ -140,24 +136,47 @@ function renderUatOpenByPriorityChart() {
     return;
   }
 
-  const chartRows = buckets.map((bucket) => {
-    const row = { bucketLabel: bucket.label, total: 0 };
-    for (const priority of priorities) {
-      const value = toNumber(uat?.priorities?.[priority]?.buckets?.[bucket.id]);
-      row[priority] = value;
+  const chartRows = UAT_PRIORITY_KEYS.map((priorityKey) => {
+    const priorityLabel = PRIORITY_CONFIG.find((item) => item.key === priorityKey)?.label || priorityKey;
+    const row = {
+      priorityLabel,
+      priorityKey,
+      total: 0
+    };
+    for (const bucket of buckets) {
+      const value = toNumber(uat?.priorities?.[priorityKey]?.buckets?.[bucket.id]);
+      row[bucket.id] = value;
       row.total += value;
     }
-    return row;
+    return {
+      ...row
+    };
   });
 
-  const renderChart = window.DashboardCharts?.renderUatOpenByPriorityChart;
+  if (context) context.textContent = `${scopeLabel}, ${toNumber(uat.totalIssues)} currently in UAT`;
+
+  const renderChart = window.DashboardCharts?.renderUatPriorityAgingChart;
   if (!renderChart) return;
+  const weekBuckets = buckets.map((bucket) => ({
+    ...bucket,
+    label: uatBucketWeekLabel(bucket)
+  }));
   renderChart({
     containerId: "uat-open-by-priority-chart",
     rows: chartRows,
-    priorities,
+    buckets: weekBuckets,
     colors: getThemeColors()
   });
+}
+
+function uatBucketWeekLabel(bucket) {
+  const id = String(bucket?.id || "").trim();
+  if (id === "d0_7") return "1 week";
+  if (id === "d8_14") return "2 weeks";
+  if (id === "d15_30") return "3-4 weeks";
+  if (id === "d31_60") return "5-8 weeks";
+  if (id === "d61_plus") return "9+ weeks";
+  return String(bucket?.label || id || "Unknown");
 }
 
 function toFiniteMetric(value) {
