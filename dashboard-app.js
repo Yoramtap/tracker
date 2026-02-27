@@ -211,7 +211,7 @@ function productCycleWindowMeta(windowScope) {
     return {
       key: "lead",
       title: "Lead time: parking lot, design, ready for delivery, delivery, feedback",
-      contextLabel: "Lead time per team",
+      contextLabel: "Lead time per team in days",
       sampleLabel: "lead sample"
     };
   }
@@ -219,14 +219,14 @@ function productCycleWindowMeta(windowScope) {
     return {
       key: "cycle",
       title: "Cycle time: delivery and feedback to done",
-      contextLabel: "Cycle time per team",
+      contextLabel: "Cycle time per team in days",
       sampleLabel: "cycle sample"
     };
   }
   return {
     key: "cycle",
     title: "Cycle time: delivery and feedback to done",
-    contextLabel: "Cycle time per team",
+    contextLabel: "Cycle time per team in days",
     sampleLabel: "cycle sample"
   };
 }
