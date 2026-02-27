@@ -1,6 +1,5 @@
 "use strict";
 
-const PRIORITY_CONFIG = [{ key: "highest", label: "Highest" }, { key: "high", label: "High" }, { key: "medium", label: "Medium" }, { key: "low", label: "Low" }, { key: "lowest", label: "Lowest" }];
 const UAT_PRIORITY_KEYS = ["medium", "high", "highest"];
 
 const PRODUCT_CYCLE_COMPARE_YEARS = ["2025", "2026"];
@@ -126,46 +125,50 @@ function renderUatOpenByPriorityChart() {
     return;
   }
 
-  const chartRows = UAT_PRIORITY_KEYS.map((priorityKey) => {
-    const priorityLabel = PRIORITY_CONFIG.find((item) => item.key === priorityKey)?.label || priorityKey;
-    const row = {
-      priorityLabel,
-      priorityKey,
-      total: 0
-    };
-    for (const bucket of buckets) {
+  const groupedByLabel = new Map();
+  for (const bucket of buckets) {
+    const label = uatBucketWeekLabel(bucket);
+    if (!groupedByLabel.has(label)) {
+      groupedByLabel.set(label, {
+        bucketId: label,
+        bucketLabel: label,
+        total: 0,
+        medium: 0,
+        high: 0,
+        highest: 0
+      });
+    }
+    const row = groupedByLabel.get(label);
+    for (const priorityKey of UAT_PRIORITY_KEYS) {
       const value = toNumber(uat?.priorities?.[priorityKey]?.buckets?.[bucket.id]);
-      row[bucket.id] = value;
+      row[priorityKey] += value;
       row.total += value;
     }
-    return {
-      ...row
-    };
-  });
+    row.bucketWithSample = `${row.bucketLabel} (n=${row.total})`;
+  }
+  const bucketOrder = ["1-2 weeks", "1 month", "2 months", "more than two months"];
+  const chartRows = bucketOrder
+    .map((label) => groupedByLabel.get(label))
+    .filter(Boolean);
 
   if (context) context.textContent = `${scopeLabel}, ${toNumber(uat.totalIssues)} currently in UAT`;
 
   const renderChart = window.DashboardCharts?.renderUatPriorityAgingChart;
   if (!renderChart) return;
-  const weekBuckets = buckets.map((bucket) => ({
-    ...bucket,
-    label: uatBucketWeekLabel(bucket)
-  }));
   renderChart({
     containerId: "uat-open-by-priority-chart",
     rows: chartRows,
-    buckets: weekBuckets,
+    buckets: chartRows,
     colors: getThemeColors()
   });
 }
 
 function uatBucketWeekLabel(bucket) {
   const id = String(bucket?.id || "").trim();
-  if (id === "d0_7") return "1 week";
-  if (id === "d8_14") return "2 weeks";
-  if (id === "d15_30") return "3-4 weeks";
-  if (id === "d31_60") return "5-8 weeks";
-  if (id === "d61_plus") return "9+ weeks";
+  if (id === "d0_7" || id === "d8_14") return "1-2 weeks";
+  if (id === "d15_30") return "1 month";
+  if (id === "d31_60") return "2 months";
+  if (id === "d61_plus") return "more than two months";
   return String(bucket?.label || id || "Unknown");
 }
 

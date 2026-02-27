@@ -599,46 +599,42 @@
     });
   }
 
-  function renderUatPriorityAgingChart({ containerId, rows, buckets, colors }) {
+  function renderUatPriorityAgingChart({ containerId, rows, buckets: _buckets, colors }) {
     const chartRows = Array.isArray(rows) ? rows : [];
-    const rowOrder = ["medium", "high", "highest"];
-    const orderedRows = rowOrder
-      .map((key) => chartRows.find((row) => row.priorityKey === key))
-      .filter(Boolean);
-    const bucketSeries = Array.isArray(buckets)
-      ? buckets
-          .map((bucket) => {
-            const bucketId = String(bucket?.id || "").trim();
-            if (!bucketId) return null;
-            return {
-              dataKey: bucketId,
-              name: String(bucket?.label || bucketId),
-              fill: colors.uatBuckets?.[bucketId] || colors.teams.bc
-            };
-          })
-          .filter(Boolean)
-      : [];
+    const sampleByBucket = Object.fromEntries(
+      chartRows.map((row) => [String(row.bucketLabel || ""), toNumber(row.total)])
+    );
+    const prioritySeries = ["medium", "high", "highest"].map((key) => ({
+      dataKey: key,
+      name: PRIORITY_CONFIG.find((item) => item.key === key)?.label || key,
+      fill: colors.priorities?.[key] || colors.teams.bc
+    }));
     const yUpper = computeYUpper(
-      orderedRows.map((row) => toNumber(row?.total)),
+      chartRows.map((row) => toNumber(row?.total)),
       { min: 1, pad: 1.12 }
     );
     renderGroupedBars(
       "uat",
       containerId,
-      orderedRows.length > 0 && bucketSeries.length > 0,
+      chartRows.length > 0 && prioritySeries.length > 0,
       {
-        rows: orderedRows,
-        defs: bucketSeries.map((series) => ({ ...series, stackId: "uatAging" })),
+        rows: chartRows,
+        defs: prioritySeries.map((series) => ({ ...series, stackId: "uatAging" })),
         colors,
         yUpper,
         xAxisProps: {
-          dataKey: "priorityLabel",
+          dataKey: "bucketLabel",
           interval: 0,
-          height: 44
+          height: 60,
+          tickFormatter: (value) => {
+            const key = String(value || "");
+            const sample = toNumber(sampleByBucket[key]);
+            return `${key}\n(n=${sample})`;
+          }
         },
         tooltipProps: {
           content: createTooltipContent(colors, (row, payload) => [
-            tooltipTitleLine("title", row.priorityLabel || "", colors),
+            tooltipTitleLine("title", row.bucketLabel || "", colors),
             makeTooltipLine("total", `Total: ${toNumber(row.total)}`, colors, { margin: "0 0 6px" }),
             ...payload.map((item) =>
               makeTooltipLine(
