@@ -99,6 +99,7 @@
     if (chart === "uat") return "uat";
     if (chart === "dev-uat-ratio") return "management";
     if (chart === "product-cycle" || chart === "cycle-time") return "product-cycle";
+    if (chart === "done-work") return "done-work";
     if (chart === "lifecycle-days") return "lifecycle-days";
     return "all";
   }

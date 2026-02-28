@@ -21,9 +21,8 @@
             <div class="help-popover" role="tooltip">
               <p><strong>Bug trend chart</strong> tracks open backlog over time by team.</p>
               <ul>
-                <li>Each line is a team-level backlog trend.</li>
-                <li>Use it to spot sustained growth, flattening, or cleanup momentum.</li>
-                <li>Hover points to inspect values by date.</li>
+                <li>Each line is one team.</li>
+                <li>Use it to see whether backlog is growing or shrinking.</li>
               </ul>
             </div>
           </span>
@@ -44,9 +43,8 @@
             <div class="help-popover" role="tooltip">
               <p><strong>Composition chart</strong> shows how open work is distributed across priority bands.</p>
               <ul>
-                <li>Each bar segment is a priority level.</li>
-                <li>Use Team filter to compare where urgency is concentrated.</li>
-                <li>Higher upper segments indicate more critical unresolved load.</li>
+                <li>Each segment is a priority bucket.</li>
+                <li>Use Team filter to compare where urgent load sits.</li>
               </ul>
             </div>
           </span>
@@ -77,9 +75,8 @@
             <div class="help-popover" role="tooltip">
               <p><strong>UAT aging chart</strong> groups items currently in UAT into time-in-stage buckets.</p>
               <ul>
-                <li>Buckets are weekly/monthly aging windows.</li>
-                <li>Colors split counts by priority within each bucket.</li>
-                <li>Rising older buckets signal verification bottlenecks.</li>
+                <li>Colors split counts by priority in each age bucket.</li>
+                <li>Growth in older buckets signals UAT bottlenecks.</li>
               </ul>
             </div>
           </span>
@@ -101,8 +98,7 @@
               <p><strong>Development vs UAT</strong> compares delivery time by priority.</p>
               <ul>
                 <li>Bars show median days in Dev and UAT for each priority band.</li>
-                <li>Source: completed flow items using changelog-derived stage timing.</li>
-                <li>If UAT bars are consistently higher, QA/UAT is the likely bottleneck.</li>
+                <li>Higher UAT bars usually indicate QA/UAT bottleneck.</li>
               </ul>
             </div>
           </span>
@@ -123,10 +119,9 @@
             <div class="help-popover" role="tooltip">
               <p><strong>Cycle time per team</strong> is computed from lifecycle timestamps.</p>
               <ul>
-                <li>Lead time: Parking + Design + Ready + Development + Feedback.</li>
-                <li>Cycle time: Development + Feedback only.</li>
-                <li>Sample can be Finished work or Full backlog (includes in-progress aging).</li>
-                <li>Values are aggregated by team (Median primary, Average companion).</li>
+                <li>Lead time = Parking + Design + Ready + Development + Feedback.</li>
+                <li>Cycle time = Development + Feedback.</li>
+                <li>Aggregated by team using selected sample scope.</li>
               </ul>
             </div>
           </span>
@@ -160,9 +155,8 @@
             <div class="help-popover" role="tooltip">
               <p><strong>Done work chart</strong> shows completed ideas by team for the selected year.</p>
               <ul>
-                <li>Values are counts of ideas marked done.</li>
-                <li>Use it to compare delivery volume across teams.</li>
-                <li>Interpret together with cycle/quality charts to avoid rewarding volume alone.</li>
+                <li>Values are counts of ideas marked Done.</li>
+                <li>Use with cycle/quality charts for balanced interpretation.</li>
               </ul>
             </div>
           </span>
@@ -191,9 +185,7 @@
               <p><strong>Lifecycle by stage</strong> breaks total flow time into stage-level durations by team.</p>
               <ul>
                 <li>Stages: Parking, Design, Ready, Development.</li>
-                <li>Each bar is stage duration for a team (selected metric).</li>
-                <li>Built from lifecycle transitions, then aggregated by team/stage.</li>
-                <li>Use with cycle/lead chart to locate where time accumulates.</li>
+                <li>Each bar is team time in that stage (selected metric).</li>
               </ul>
             </div>
           </span>
