@@ -78,6 +78,81 @@ h2 {
   color: rgba(31, 51, 71, 0.72);
 }
 
+.panel-subtitle--with-help {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.help-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.help-tip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(31, 51, 71, 0.42);
+  background: rgba(255, 255, 255, 0.94);
+  color: rgba(31, 51, 71, 0.92);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+}
+
+.help-popover {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 8px);
+  transform: translateX(-50%);
+  min-width: 320px;
+  max-width: min(520px, 82vw);
+  max-height: min(58vh, 420px);
+  overflow: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--tooltip-border);
+  border-radius: 8px;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+  z-index: 12;
+}
+
+.help-popover p {
+  margin: 0 0 6px;
+}
+
+.help-popover ul {
+  margin: 0 0 8px 16px;
+  padding: 0;
+}
+
+.help-popover li {
+  margin: 0 0 4px;
+}
+
+.help-wrap:hover .help-popover,
+.help-wrap:focus-within .help-popover,
+.help-tip:focus-visible + .help-popover {
+  opacity: 1;
+  visibility: visible;
+}
+
 .chart {
   border: 0;
   border-radius: 0;

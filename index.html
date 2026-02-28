@@ -109,7 +109,35 @@
 
       <section id="lifecycle-days-panel" class="panel" aria-label="Lifecycle phase days by team">
         <h2>Lifecycle time spent per phase</h2>
-        <p id="lifecycle-days-context" class="panel-subtitle">--</p>
+        <p class="panel-subtitle panel-subtitle--with-help">
+          <span id="lifecycle-days-context">--</span>
+          <span class="help-wrap">
+            <span class="help-tip" tabindex="0" role="button" aria-label="Lifecycle chart explainer">?</span>
+            <div class="help-popover" role="tooltip">
+              <p><strong>Lifecycle chart</strong> shows time spent per stage (not just lead/cycle totals), by team.</p>
+              <p><strong>Stages</strong></p>
+              <ul>
+                <li>Parking, Design, Ready, Development.</li>
+              </ul>
+              <p><strong>What each bar means</strong></p>
+              <ul>
+                <li>For the selected stage/team, the bar is the chosen summary statistic (Median or Average) of days spent in that stage.</li>
+              </ul>
+              <p><strong>Filters</strong></p>
+              <ul>
+                <li>Year: 2025 or 2026.</li>
+                <li>Measured in: Median or Average.</li>
+              </ul>
+              <p><strong>How it is computed</strong></p>
+              <ul>
+                <li>For each idea, we reconstruct stage durations from lifecycle timestamps/events.</li>
+                <li>We aggregate per team, per stage.</li>
+                <li>Finished work uses completed timelines; full backlog includes ongoing ideas using current-time tail where needed.</li>
+                <li>All time combines 2025+2026 aggregates (weighted by sample size).</li>
+              </ul>
+            </div>
+          </span>
+        </p>
         <p id="lifecycle-days-updated" class="panel-subtitle">Last updated: --</p>
         <div class="radio-control-groups" aria-label="Lifecycle controls">
           <fieldset class="radio-group-card">
