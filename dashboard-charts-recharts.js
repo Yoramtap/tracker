@@ -28,6 +28,7 @@
   const PRIORITY_STACK_ORDER = [...PRIORITY_CONFIG].reverse();
   const BAR_LAYOUT = { categoryGap: "14%", groupGap: 2, denseMax: 14, normalMax: 20 };
   const CHART_HEIGHTS = { standard: 280, dense: 320 };
+  const HORIZONTAL_CATEGORY_AXIS_WIDTH = 190;
   const BAR_CURSOR_FILL = "rgba(31,51,71,0.04)";
   const SHARED_CATEGORY_BLUE_TINTS = ["#CFE0F8", "#9EBAE3", "#6D95D1", "#3F73B8", "#295996"];
   const TREND_TEAM_LINES = [
@@ -800,7 +801,7 @@
       yAxisProps: {
         dataKey: "team",
         type: "category",
-        width: 150
+        width: HORIZONTAL_CATEGORY_AXIS_WIDTH
       },
       tooltipProps: {
         content: createTooltipContent(colors, (row) => [
@@ -882,7 +883,7 @@
         ? {
             dataKey: categoryKey,
             type: "category",
-            width: categoryTickTwoLine ? 190 : 150,
+            width: HORIZONTAL_CATEGORY_AXIS_WIDTH,
             tick: categoryTickTwoLine ? twoLineCategoryTick : undefined
           }
         : { domain: [0, niceYAxis.upper], ticks: niceYAxis.ticks, allowDecimals: false },
