@@ -4,15 +4,14 @@ const UAT_PRIORITY_KEYS = ["medium", "high", "highest"];
 
 const PRODUCT_CYCLE_COMPARE_YEARS = ["2025", "2026"];
 const PRODUCT_CYCLE_YEAR_SCOPE_OPTIONS = ["2025", "2026"];
-const PRODUCT_CYCLE_EFFORT_SCOPE_OPTIONS = ["all", "single", "combined"];
 const PRODUCT_CYCLE_WINDOW_SCOPE_OPTIONS = ["lead", "cycle"];
 const LIFECYCLE_YEAR_OPTIONS = ["2025", "2026"];
-const PRODUCT_CYCLE_PHASES = [
-  { key: "parking_lot", label: "Parking lot" },
-  { key: "design", label: "Design" },
-  { key: "ready_for_development", label: "Ready" },
-  { key: "in_development", label: "In Development" },
-  { key: "feedback", label: "Feedback" }
+const PRODUCT_CYCLE_TEAM_ORDER = ["api", "frontend", "broadcast", "orchestration", "titanium", "shift"];
+const LIFECYCLE_STAGE_GROUPS = [
+  { keys: ["parking_lot"], label: "Parking" },
+  { keys: ["design"], label: "Design" },
+  { keys: ["ready_for_development"], label: "Ready" },
+  { keys: ["in_development", "feedback"], label: "Development" }
 ];
 const MODE_PANEL_IDS = {
   trend: "trend-panel",
@@ -151,7 +150,9 @@ function renderUatOpenByPriorityChart() {
     .map((label) => groupedByLabel.get(label))
     .filter(Boolean);
 
-  if (context) context.textContent = `${scopeLabel}, ${toNumber(uat.totalIssues)} currently in UAT`;
+  if (context) {
+    context.textContent = `Time spent in UAT in weeks by priority • ${scopeLabel} • sample size: ${toNumber(uat.totalIssues)}`;
+  }
 
   const renderChart = window.DashboardCharts?.renderUatPriorityAgingChart;
   if (!renderChart) return;
@@ -234,12 +235,6 @@ function productCycleWindowMeta(windowScope) {
   };
 }
 
-function effortScopeLabel(effortScope) {
-  if (effortScope === "single") return "Single-team";
-  if (effortScope === "combined") return "Combined";
-  return "All";
-}
-
 function readCycleWindowStats(teamNode, windowScope, ideaScope) {
   if (!teamNode || typeof teamNode !== "object") return {};
   const byIdeaScope = teamNode?.idea_scopes?.[ideaScope];
@@ -283,12 +278,10 @@ function buildDoneWorkRowsForYear(publicAggregates, year, teams) {
       const doneCount = readDoneCountForTeam(publicAggregates, year, team);
       return {
         team,
-        teamWithSample: `${team} (n=${doneCount})`,
         doneCount,
         value: doneCount
       };
-    })
-    .sort((left, right) => toNumber(right.value) - toNumber(left.value));
+    });
 }
 
 function buildDoneWorkAxisLockedAcrossYears(publicAggregates, teams) {
@@ -301,6 +294,26 @@ function buildDoneWorkAxisLockedAcrossYears(publicAggregates, teams) {
   const ticks = [];
   for (let value = 0; value <= upper; value += roughStep) ticks.push(value);
   return { upper, ticks };
+}
+
+function toSeriesKey(label) {
+  return `series_${String(label || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")}`;
+}
+
+function orderProductCycleTeams(teams) {
+  return [...teams].sort((left, right) => {
+    const a = String(left || "").toLowerCase();
+    const b = String(right || "").toLowerCase();
+    const ai = PRODUCT_CYCLE_TEAM_ORDER.indexOf(a);
+    const bi = PRODUCT_CYCLE_TEAM_ORDER.indexOf(b);
+    const aRank = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
+    const bRank = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
+    if (aRank !== bRank) return aRank - bRank;
+    return a.localeCompare(b);
+  });
 }
 
 function readMetricStats(source, metric) {
@@ -432,25 +445,76 @@ function computeLockedProductCycleYUpper(
     const defs = (Array.isArray(years) ? years : []).map((year) => ({ key: `year_${year}` }));
     maxValue = Math.max(maxValue, computeMaxFromRows(rows, defs));
   }
-  return Math.max(1, Math.ceil(maxValue * 1.15));
+  return Math.min(300, Math.max(1, Math.ceil(maxValue * 1.15)));
 }
 
-function computeLockedLifecycleYUpper(publicAggregates, teams, phaseDefs) {
-  let maxValue = 0;
-  for (const year of LIFECYCLE_YEAR_OPTIONS) {
-    for (const effortScope of PRODUCT_CYCLE_EFFORT_SCOPE_OPTIONS) {
-      for (const metric of ["median", "average"]) {
-        const rows = buildMetricRowsByDefs({
-          teams,
-          defs: phaseDefs,
-          metric,
-          readSource: (team, key) =>
-            readLifecycleStatsForScope(publicAggregates, year, "full_backlog", effortScope, team, key)
+function buildLifecycleRowsByPhaseAndTeam(publicAggregates, year, teams, metric) {
+  const lifecycleTeamOrder = ["api", "frontend", "broadcast", "orchestration", "titanium", "shift"];
+  const orderedTeams = [...teams].sort((left, right) => {
+    const a = String(left || "").toLowerCase();
+    const b = String(right || "").toLowerCase();
+    const ai = lifecycleTeamOrder.indexOf(a);
+    const bi = lifecycleTeamOrder.indexOf(b);
+    const aRank = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
+    const bRank = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
+    if (aRank !== bRank) return aRank - bRank;
+    return a.localeCompare(b);
+  });
+  const rows = LIFECYCLE_STAGE_GROUPS.map((stage) => {
+    const stageValues = [];
+    orderedTeams.forEach((team) => {
+      const teamKey = toSeriesKey(team);
+      const combinedStats = combineLifecycleStats(
+        stage.keys.map((stageKey) =>
+          readLifecycleStatsForScope(publicAggregates, year, "full_backlog", "all", team, stageKey)
+        )
+      );
+      const stats = readMetricStats(combinedStats, metric);
+      if (stats.value > 0) {
+        stageValues.push({
+          team,
+          teamKey,
+          value: stats.value,
+          n: stats.n,
+          median: stats.median,
+          average: stats.average
         });
-        maxValue = Math.max(maxValue, computeMaxFromRows(rows, phaseDefs));
       }
-    }
+    });
+    const row = {
+      phaseLabel: stage.label,
+      phaseKey: stage.keys.join("+")
+    };
+    stageValues.forEach((entry, index) => {
+      const slotKey = `slot_${index}`;
+      row[slotKey] = entry.value;
+      row[`meta_${slotKey}`] = {
+        team: entry.team,
+        n: entry.n,
+        median: entry.median,
+        average: entry.average
+      };
+    });
+    return row;
+  });
+  const maxSlots = rows.reduce((max, row) => {
+    const slotCount = Object.keys(row).filter((key) => key.startsWith("slot_")).length;
+    return Math.max(max, slotCount);
+  }, 0);
+  const teamDefs = Array.from({ length: maxSlots }, (_, index) => ({
+    key: `slot_${index}`,
+    name: `Team ${index + 1}`
+  }));
+  return { teamDefs, rows };
+}
+
+function computeLockedLifecycleYUpper(publicAggregates, teams) {
+  const maxValues = [];
+  for (const year of LIFECYCLE_YEAR_OPTIONS) {
+    const { teamDefs, rows } = buildLifecycleRowsByPhaseAndTeam(publicAggregates, year, teams, "median");
+    maxValues.push(computeMaxFromRows(rows, teamDefs));
   }
+  const maxValue = Math.max(0, ...maxValues);
   return Math.max(1, Math.ceil(maxValue * 1.15));
 }
 
@@ -498,7 +562,7 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
   const ideaScopeMeta = productCycleIdeaScopeMeta("full_backlog");
   if (titleNode) titleNode.textContent = windowMeta.title;
 
-  const teams = getProductCycleTeamsFromAggregates(publicAggregates);
+  const teams = orderProductCycleTeams(getProductCycleTeamsFromAggregates(publicAggregates));
   if (teams.length === 0) {
     status.hidden = false;
     status.textContent = "No product cycle aggregates found in product-cycle-snapshot.json.";
@@ -517,9 +581,7 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
         : publicAggregates?.lifecyclePhaseDays?.totalsByYear?.[selectedYear]?.cycle_sample || 0)
   );
 
-  context.textContent = `${windowMeta.contextLabel} • ${ideaScopeMeta.label} • ${selectedYear}. Total ideas: ${toCount(
-    totalsNode.total
-  )} • ${windowMeta.sampleLabel}: ${sampleCount} • unmapped excluded`;
+  context.textContent = `${windowMeta.contextLabel} • ${selectedYear} • ${ideaScopeMeta.label} • sample size: ${sampleCount} • unmapped excluded`;
 
   if (sampleCount === 0) {
     status.hidden = false;
@@ -534,7 +596,7 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
       key: `year_${selectedYear}`,
       name: String(selectedYear),
       color: themeColors.teams.api,
-      showValueLabel: true
+      showValueLabel: false
     }
   ];
   const rows = buildMetricRowsByDefs({
@@ -550,13 +612,7 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
     }
   });
   const sortKey = seriesDefs[0]?.key;
-  const sortedRows = [...rows].sort((left, right) => {
-    const a = Number(left?.[sortKey]);
-    const b = Number(right?.[sortKey]);
-    const av = Number.isFinite(a) ? a : Number.POSITIVE_INFINITY;
-    const bv = Number.isFinite(b) ? b : Number.POSITIVE_INFINITY;
-    return av - bv;
-  }).map((row) => {
+  const rowsWithSample = rows.map((row) => {
     const sampleCount = toCount(row?.[`meta_${sortKey}`]?.n);
     return {
       ...row,
@@ -580,7 +636,7 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
   if (!renderChart) return;
   renderChart({
     containerId: "cycle-time-parking-lot-to-done-chart",
-    rows: sortedRows,
+    rows: rowsWithSample,
     seriesDefs,
     colors: themeColors,
     metricLabel: metricLabelValue,
@@ -623,55 +679,38 @@ function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggrega
   }
 
   const metricLabelValue = metricLabel(metric);
-  const chartTitleText = `Lifecycle time spent per phase (${metricLabelValue})`;
+  const chartTitleText = `Lifecycle time spent per stage (${metricLabelValue})`;
   const selectedYears = lifecycleSelectedYears(year);
   const yearLabel = selectedYears[0];
 
   const themeColors = getThemeColors();
-  const phaseColors = [
-    themeColors.uatBuckets.d0_7,
-    themeColors.uatBuckets.d8_14,
-    themeColors.uatBuckets.d15_30,
-    themeColors.uatBuckets.d31_60,
-    themeColors.uatBuckets.d61_plus
+  const teamColors = [
+    "#9CA3AF",
+    "#9CA3AF",
+    "#9CA3AF",
+    "#9CA3AF",
+    "#9CA3AF",
+    "#9CA3AF"
   ];
-  const phaseDefs = PRODUCT_CYCLE_PHASES.map((phase, phaseIndex) => ({
-    key: phase.key,
-    label: phase.label,
-    color: phaseColors[phaseIndex] || themeColors.teams.legacy
+  const { teamDefs: lifecycleTeamDefsBase, rows } = buildLifecycleRowsByPhaseAndTeam(publicAggregates, year, teams, metric);
+  const teamDefs = lifecycleTeamDefsBase.map((teamDef, index) => ({
+    ...teamDef,
+    color: teamColors[index % teamColors.length],
+    showSeriesLabel: false
   }));
-  const rows = buildMetricRowsByDefs({
-    teams,
-    defs: phaseDefs,
-    metric,
-    readSource: (team, key) =>
-      readLifecycleStatsForScope(publicAggregates, year, "full_backlog", effortScope, team, key)
-  });
-  const plottedValues = phaseDefs
-    .flatMap((phase) => rows.map((row) => row[phase.key]))
+  const plottedValues = teamDefs
+    .flatMap((teamDef) => rows.map((row) => row[teamDef.key]))
     .filter((value) => Number.isFinite(value) && value > 0);
-
-  const totalsNodes = selectedYears.map((selectedYear) => {
-    const node = publicAggregates?.lifecyclePhaseDays?.totalsByYear?.[selectedYear] || {};
-    return node?.byEffort?.[effortScope] || node;
-  });
-  const doneCount = totalsNodes.reduce((sum, node) => sum + toCount(node.done), 0);
-  const ongoingCount = totalsNodes.reduce((sum, node) => sum + toCount(node.ongoing), 0);
-  const totalCount = totalsNodes.reduce((sum, node) => sum + toCount(node.total), 0);
-  const sampleCount = totalsNodes.reduce(
-    (sum, node) =>
+  const lifecycleSampleSize = rows.reduce(
+    (sum, row) =>
       sum +
-      toCount(
-        node?.samples?.full_backlog?.cycle_sample ??
-          node?.cycle_sample
-      ),
+      teamDefs.reduce((inner, def) => inner + toCount(row?.[`meta_${def.key}`]?.n), 0),
     0
   );
-  const ideaScopeMeta = productCycleIdeaScopeMeta("full_backlog");
 
   if (plottedValues.length === 0) {
     status.hidden = false;
-    status.textContent = `No lifecycle phase time data found for ${yearLabel}.`;
+    status.textContent = `No lifecycle stage time data found for ${yearLabel}.`;
     clearChartContainer("lifecycle-time-spent-per-phase-chart");
     return;
   }
@@ -681,16 +720,21 @@ function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggrega
     "Lifecycle chart unavailable: Recharts renderer missing."
   );
   if (!renderChart) return;
-  const yUpper = computeLockedLifecycleYUpper(publicAggregates, teams, phaseDefs);
+  const yUpper = computeLockedLifecycleYUpper(publicAggregates, teams);
   renderChart({
     containerId: "lifecycle-time-spent-per-phase-chart",
     rows,
-    phaseDefs,
+    seriesDefs: teamDefs,
     colors: themeColors,
     metricLabel: metricLabelValue,
-    yUpperOverride: yUpper
+    yUpperOverride: yUpper,
+    categoryKey: "phaseLabel",
+    timeWindowLabel: "",
+    orientation: "columns",
+    showLegend: false,
+    colorByCategoryKey: "phaseLabel"
   });
-  context.textContent = `${chartTitleText} • ${yearLabel} • ${ideaScopeMeta.label} • ${effortScopeLabel(effortScope)}: total ${totalCount} • done ${doneCount} • ongoing ${ongoingCount} • cycle sample ${sampleCount} • unmapped excluded`;
+  context.textContent = `${chartTitleText} • ${yearLabel} • sample size: ${lifecycleSampleSize} • unmapped excluded`;
 }
 
 function renderDoneWorkByTeamChart() {
@@ -707,7 +751,7 @@ function renderDoneWorkByTeamChart() {
     containerId: "done-work-by-team-chart",
     missingMessage: "No done-work aggregates found in product-cycle-snapshot.json.",
     onReady: ({ publicAggregates }) => {
-      const teams = getProductCycleTeamsFromAggregates(publicAggregates);
+      const teams = orderProductCycleTeams(getProductCycleTeamsFromAggregates(publicAggregates));
       if (teams.length === 0) {
         status.hidden = false;
         status.textContent = "No teams available for done-work chart.";
@@ -836,8 +880,7 @@ function renderDevelopmentTimeVsUatTimeChart() {
   );
   const uat = state.snapshot?.uatAging;
   const uatScopeLabel = String(uat?.scope?.label || "Broadcast");
-  const uatCurrentCount = toNumber(uat?.totalIssues);
-  context.textContent = `${uatScopeLabel}, ${uatCurrentCount} currently in UAT • ${totalFlowTickets} historical flow tickets (sample)`;
+  context.textContent = `Development time vs UAT time • ${uatScopeLabel} • sample size: ${totalFlowTickets}`;
 
   const rows = labels.map((label, idx) => ({
     label,

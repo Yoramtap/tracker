@@ -1,7 +1,7 @@
 :root {
   --line: rgba(20, 46, 75, 0.14);
   --text: #1f3347;
-  --chart-grid: rgba(42, 63, 87, 0.22);
+  --chart-grid: rgba(42, 63, 87, 0.14);
   --chart-active: #4872a7;
   --status: #8d3f38;
   --panel-bg: transparent;
@@ -90,11 +90,11 @@ h2 {
 }
 
 .chart-canvas--standard {
-  min-height: 460px;
+  min-height: 280px;
 }
 
 .chart-canvas--dense {
-  min-height: 560px;
+  min-height: 320px;
 }
 
 .bar-chart-wrap {

@@ -14,6 +14,7 @@
     Line,
     BarChart,
     Bar,
+    Cell,
     LabelList,
     CartesianGrid,
     XAxis,
@@ -25,9 +26,10 @@
   const TEAM_CONFIG = [{ key: "api", label: "API" }, { key: "legacy", label: "Legacy FE" }, { key: "react", label: "React FE" }, { key: "bc", label: "BC" }];
   const PRIORITY_CONFIG = [{ key: "highest", label: "Highest" }, { key: "high", label: "High" }, { key: "medium", label: "Medium" }, { key: "low", label: "Low" }, { key: "lowest", label: "Lowest" }];
   const PRIORITY_STACK_ORDER = [...PRIORITY_CONFIG].reverse();
-  const BAR_LAYOUT = { categoryGap: "18%", groupGap: 2, denseMax: 12, normalMax: 22 };
-  const CHART_HEIGHTS = { standard: 460, dense: 560 };
-  const BAR_CURSOR_FILL = "rgba(31,51,71,0.12)";
+  const BAR_LAYOUT = { categoryGap: "14%", groupGap: 2, denseMax: 14, normalMax: 20 };
+  const CHART_HEIGHTS = { standard: 280, dense: 320 };
+  const BAR_CURSOR_FILL = "rgba(31,51,71,0.04)";
+  const SHARED_CATEGORY_BLUE_TINTS = ["#CFE0F8", "#9EBAE3", "#6D95D1", "#3F73B8", "#295996"];
   const TREND_TEAM_LINES = [
     ["api", "API", "api"],
     ["legacy", "Legacy FE", "legacy"],
@@ -52,6 +54,10 @@
 
   function toNumber(value) {
     return typeof value === "number" && Number.isFinite(value) ? value : 0;
+  }
+
+  function toWhole(value) {
+    return Math.round(toNumber(value));
   }
 
   function totalForPoint(point) {
@@ -154,7 +160,7 @@
     const style = { margin, color: color || colors.text };
     if (fontSize) style.fontSize = fontSize;
     if (fontWeight) style.fontWeight = fontWeight;
-    return h("p", { key, style }, text);
+    return h("p", { key, style }, String(text ?? ""));
   }
 
   function trendLineDefs(colors) {
@@ -204,7 +210,7 @@
           color: colors.tooltip.text,
           borderRadius: "6px",
           padding: "8px 10px",
-          boxShadow: "0 8px 18px rgba(0,0,0,0.12)"
+          boxShadow: "0 4px 14px rgba(0,0,0,0.1)"
         }
       },
       blocks
@@ -216,7 +222,7 @@
       Legend,
       {
         verticalAlign: "top",
-        height: 36,
+        height: 30,
         wrapperStyle: { color: colors.text, cursor: "pointer" },
         payload: defs.map((item) => ({
           value: item.name,
@@ -246,7 +252,23 @@
   }
 
   function axisTick(colors) {
-    return { fill: colors.text, fontSize: 11 };
+    return { fill: colors.text, fontSize: 12, fontWeight: 500 };
+  }
+
+  function buildCategoryColorsFromRows(rows, categoryKey) {
+    const uniqueLabels = [];
+    const seen = new Set();
+    (Array.isArray(rows) ? rows : []).forEach((row) => {
+      const label = String(row?.[categoryKey] || "");
+      if (!label || seen.has(label)) return;
+      seen.add(label);
+      uniqueLabels.push(label);
+    });
+    const mapped = {};
+    uniqueLabels.forEach((label, index) => {
+      mapped[label] = SHARED_CATEGORY_BLUE_TINTS[index % SHARED_CATEGORY_BLUE_TINTS.length];
+    });
+    return mapped;
   }
 
   function twoLineCategoryTickFactory(colors) {
@@ -296,7 +318,8 @@
     yAxisProps,
     tooltipProps,
     legendNode,
-    barNodes
+    barNodes,
+    gridVertical = false
   }) {
     return h(
       ResponsiveContainer,
@@ -311,7 +334,7 @@
           barGap: BAR_LAYOUT.groupGap,
           maxBarSize: layout.maxBarSize
         },
-        h(CartesianGrid, { stroke: colors.grid, vertical: false }),
+        h(CartesianGrid, { stroke: colors.grid, vertical: gridVertical }),
         h(XAxis, xAxisProps),
         h(YAxis, yAxisProps),
         h(Tooltip, tooltipProps),
@@ -329,8 +352,19 @@
     return Math.max(min, Math.ceil(Math.max(...finiteValues) * pad));
   }
 
-  function buildNiceNumberAxis(_maxValue) {
-    return { upper: 300, ticks: [0, 50, 100, 150, 200, 250, 300] };
+  function buildNiceNumberAxis(maxValue) {
+    const max = Math.max(0, toNumber(maxValue));
+    if (max <= 1) return { upper: 1, ticks: [0, 1] };
+    const targetSteps = 6;
+    const roughStep = max / targetSteps;
+    const magnitude = 10 ** Math.floor(Math.log10(roughStep));
+    const normalized = roughStep / magnitude;
+    const niceBase = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+    const step = niceBase * magnitude;
+    const upper = Math.max(step, Math.ceil(max / step) * step);
+    const ticks = [];
+    for (let value = 0; value <= upper; value += step) ticks.push(value);
+    return { upper, ticks };
   }
 
   function groupedBarGeometry(rowsCount, seriesCount = 2) {
@@ -338,11 +372,11 @@
     let categoryGap = BAR_LAYOUT.categoryGap;
     let targetGroupWidth = 68;
     if (rowsCount <= 8) {
-      categoryGap = "2%";
-      targetGroupWidth = 120;
+      categoryGap = "30%";
+      targetGroupWidth = 88;
     } else if (rowsCount <= 14) {
-      categoryGap = "8%";
-      targetGroupWidth = 92;
+      categoryGap = "14%";
+      targetGroupWidth = 102;
     }
     const rawBarSize = (targetGroupWidth - BAR_LAYOUT.groupGap * (safeSeriesCount - 1)) / safeSeriesCount;
     const barSize = Math.max(12, Math.round(rawBarSize));
@@ -358,8 +392,8 @@
   function barBaseStyle(colors) {
     return {
       stroke: colors.text,
-      strokeOpacity: 0.42,
-      strokeWidth: 1.15
+      strokeOpacity: 0.22,
+      strokeWidth: 0.85
     };
   }
 
@@ -382,14 +416,14 @@
         LineChart,
         {
           data: rows,
-          margin: { top: 18, right: 20, bottom: 42, left: 20 }
+          margin: { top: 12, right: 12, bottom: 32, left: 12 }
         },
         h(CartesianGrid, { stroke: colors.grid, vertical: false }),
         h(XAxis, {
           dataKey: "dateShort",
           stroke: colors.text,
           tick: { fill: colors.text, fontSize: 11 },
-          tickMargin: 8
+          tickMargin: 6
         }),
         h(YAxis, {
           stroke: colors.text,
@@ -434,8 +468,11 @@
     tooltipProps,
     showLegend = true,
     chartLayout = "horizontal",
+    colorByCategoryKey = "",
+    categoryColors = null,
+    gridVertical = false,
     height = CHART_HEIGHTS.standard,
-    margin = { top: 18, right: 20, bottom: 52, left: 20 }
+    margin = { top: 12, right: 12, bottom: 34, left: 12 }
   }) {
     const [hiddenKeys, setHiddenKeys] = React.useState(() => new Set());
     const stackIds = defs
@@ -447,27 +484,23 @@
       ? { categoryGap: "10%", barSize: null, maxBarSize: 96 }
       : isHorizontalSingleSeries
         ? { categoryGap: "18%", barSize: 30, maxBarSize: 30 }
-      : groupedBarGeometry(rows.length, defs.length);
-    const barNodes = defs.map((def) =>
-      h(Bar, {
-        key: def.dataKey,
-        dataKey: def.dataKey,
-        name: def.name,
-        fill: def.fill,
-        stackId: def.stackId,
-        barSize: Number.isFinite(geometry.barSize) ? geometry.barSize : undefined,
-        ...barBaseStyle(colors),
-        activeBar: ACTIVE_BAR_STYLE,
-        hide: hiddenKeys.has(def.dataKey),
-        isAnimationActive: false
-      }, def.showValueLabel
-        ? h(LabelList, {
+        : groupedBarGeometry(rows.length, defs.length);
+    const effectiveCategoryColors =
+      colorByCategoryKey && (!categoryColors || Object.keys(categoryColors).length === 0)
+        ? buildCategoryColorsFromRows(rows, colorByCategoryKey)
+        : categoryColors;
+    const barNodes = defs.map((def) => {
+      const barChildren = [];
+      if (def.showValueLabel) {
+        barChildren.push(
+          h(LabelList, {
+            key: `value-label-${def.dataKey}`,
             dataKey: def.dataKey,
             position: chartLayout === "vertical" ? "right" : "top",
             formatter: (value, entry) => {
               const numericValue = Number(value);
               const roundedValue = Number.isFinite(numericValue)
-                ? Number(numericValue.toFixed(1))
+                ? Math.round(numericValue)
                 : 0;
               const sampleCount = Number(entry?.payload?.[`meta_${def.dataKey}`]?.n);
               const n = Number.isFinite(sampleCount) ? sampleCount : 0;
@@ -477,8 +510,52 @@
             fontSize: 11,
             offset: 8
           })
-        : null)
-    );
+        );
+      }
+      if (def.showSeriesLabel) {
+        barChildren.push(
+          h(LabelList, {
+            key: `series-label-${def.dataKey}`,
+            dataKey: def.dataKey,
+            position: chartLayout === "vertical" ? "right" : "top",
+            formatter: (value) => (toWhole(value) > 0 ? String(def.seriesLabel || def.name || "") : ""),
+            fill: "rgba(31,51,71,0.75)",
+            fontSize: 9,
+            offset: 2
+          })
+        );
+      }
+      const shouldColorByCategory = !isFullyStacked && colorByCategoryKey && effectiveCategoryColors;
+      if (shouldColorByCategory) {
+        rows.forEach((row, index) => {
+          const categoryValue = String(row?.[colorByCategoryKey] || "");
+          const fill = effectiveCategoryColors?.[categoryValue] || def.fill;
+          barChildren.push(
+            h(Cell, {
+              key: `cell-${def.dataKey}-${index}`,
+              fill
+            })
+          );
+        });
+      }
+      return h(Bar, {
+        key: def.dataKey,
+        dataKey: def.dataKey,
+        name: def.name,
+        fill: def.fill,
+        stackId: def.stackId,
+        barSize: Number.isFinite(geometry.barSize) ? geometry.barSize : undefined,
+        radius: isFullyStacked
+          ? undefined
+          : chartLayout === "vertical"
+            ? [0, 4, 4, 0]
+            : [4, 4, 0, 0],
+        ...barBaseStyle(colors),
+        activeBar: ACTIVE_BAR_STYLE,
+        hide: hiddenKeys.has(def.dataKey),
+        isAnimationActive: false
+      }, ...barChildren);
+    });
     return renderBarChartShell({
       rows,
       colors,
@@ -502,7 +579,8 @@
       legendNode: showLegend
         ? renderLegendNode({ colors, defs, type: "rect", hiddenKeys, setHiddenKeys })
         : null,
-      barNodes
+      barNodes,
+      gridVertical
     });
   }
 
@@ -540,7 +618,7 @@
       rows,
       colors,
       height: CHART_HEIGHTS.dense,
-      margin: { top: 18, right: 20, bottom: 52, left: 20 },
+      margin: { top: 12, right: 12, bottom: 38, left: 12 },
       layout: { categoryGap, maxBarSize: isAllTeams ? BAR_LAYOUT.denseMax : singleTeamMaxBarSize },
       xAxisProps: {
         dataKey: "bucketLabel",
@@ -550,7 +628,7 @@
         textAnchor: "end",
         interval: 0,
         minTickGap: isAllTeams ? 0 : 16,
-        height: isAllTeams ? 92 : 56,
+        height: isAllTeams ? 78 : 48,
         tickFormatter: (value, index) => {
           if (!isAllTeams) return value;
           const row = rows[index] || {};
@@ -602,7 +680,7 @@
   function renderUatPriorityAgingChart({ containerId, rows, buckets: _buckets, colors }) {
     const chartRows = Array.isArray(rows) ? rows : [];
     const sampleByBucket = Object.fromEntries(
-      chartRows.map((row) => [String(row.bucketLabel || ""), toNumber(row.total)])
+      chartRows.map((row) => [String(row.bucketLabel || ""), toWhole(row.total)])
     );
     const prioritySeries = ["medium", "high", "highest"].map((key) => ({
       dataKey: key,
@@ -619,32 +697,36 @@
       chartRows.length > 0 && prioritySeries.length > 0,
       {
         rows: chartRows,
-        defs: prioritySeries.map((series) => ({ ...series, stackId: "uatAging" })),
+        defs: prioritySeries,
         colors,
         yUpper,
+        showLegend: false,
+        colorByCategoryKey: "bucketLabel",
         xAxisProps: {
           dataKey: "bucketLabel",
           interval: 0,
-          height: 60,
+          height: 52,
           tickFormatter: (value) => {
             const key = String(value || "");
-            const sample = toNumber(sampleByBucket[key]);
+            const sample = toWhole(sampleByBucket[key]);
             return `${key}\n(n=${sample})`;
           }
         },
         tooltipProps: {
           content: createTooltipContent(colors, (row, payload) => [
             tooltipTitleLine("title", row.bucketLabel || "", colors),
-            makeTooltipLine("total", `Total: ${toNumber(row.total)}`, colors, { margin: "0 0 6px" }),
-            ...payload.map((item) =>
-              makeTooltipLine(
-                item.dataKey,
-                `${item.name}: ${toNumber(item.value)}`,
-                colors
+            makeTooltipLine("total", `Total: ${toWhole(row.total)}`, colors, { margin: "0 0 6px" }),
+            ...payload
+              .filter((item) => toWhole(item?.value) > 0)
+              .map((item) =>
+                makeTooltipLine(
+                  item.dataKey,
+                  `${item.name}: ${toWhole(item.value)}`,
+                  colors
+                )
               )
-            )
           ]),
-          cursor: { fill: BAR_CURSOR_FILL }
+          cursor: { fill: "rgba(31,51,71,0.05)" }
         }
       }
     );
@@ -674,21 +756,22 @@
       xAxisProps: {
         dataKey: "label",
         interval: 0,
-        height: 40
+        height: 34
       },
       tooltipProps: {
         content: createTooltipContent(colors, (row, payload) => [
           tooltipTitleLine("label", row.label || "", colors),
           ...payload.map((item) => {
             const isDev = item?.dataKey === "devMedian";
-            const count = isDev ? toNumber(row.devCount) : toNumber(row.uatCount);
+            const count = isDev ? toWhole(row.devCount) : toWhole(row.uatCount);
+            if (count <= 0) return null;
             const avg = isDev ? toNumber(row.devAvg) : toNumber(row.uatAvg);
             return makeTooltipLine(
               item.dataKey,
-              `${item.name}: ${toNumber(item.value).toFixed(2)} days (avg ${avg.toFixed(2)}, n ${count})`,
+              `${item.name}: ${toWhole(item.value)}d, avg ${toWhole(avg)}d, n ${count}`,
               colors
             );
-          })
+          }).filter(Boolean)
         ]),
         cursor: { fill: BAR_CURSOR_FILL }
       }
@@ -697,7 +780,6 @@
 
   function renderDoneWorkByTeamChart({ containerId, rows, colors, yUpper, yTicks, measureLabel }) {
     const chartRows = Array.isArray(rows) ? rows : [];
-    const twoLineCategoryTick = twoLineCategoryTickFactory(colors);
     renderGroupedBars("doneWork", containerId, chartRows.length > 0, {
       rows: chartRows,
       defs: [
@@ -706,7 +788,7 @@
       colors,
       yUpper,
       height: CHART_HEIGHTS.dense,
-      margin: { top: 30, right: 20, bottom: 52, left: 20 },
+      margin: { top: 14, right: 12, bottom: 34, left: 12 },
       xAxisProps: {
         type: "number",
         domain: [0, yUpper],
@@ -716,16 +798,15 @@
       chartLayout: "vertical",
       showLegend: false,
       yAxisProps: {
-        dataKey: "teamWithSample",
+        dataKey: "team",
         type: "category",
-        width: 190,
-        tick: twoLineCategoryTick
+        width: 150
       },
       tooltipProps: {
         content: createTooltipContent(colors, (row) => [
           tooltipTitleLine("team", row.team || "", colors),
-          makeTooltipLine("value", `${measureLabel || "Done"}: ${toNumber(row.value)}`, colors),
-          makeTooltipLine("count", `done ideas: ${toNumber(row.doneCount)}`, colors, {
+          makeTooltipLine("value", `${measureLabel || "Done"}: ${toWhole(row.value)}`, colors),
+          makeTooltipLine("count", `done ideas: ${toWhole(row.doneCount)}`, colors, {
             color: "rgba(31,51,71,0.75)"
           })
         ]),
@@ -740,19 +821,25 @@
     rows,
     defs,
     colors,
-    metricLabel = "Median",
     yUpperOverride = null,
     showLegend = true,
     timeWindowLabel = "",
     orientation = "columns",
     categoryKey = "team",
-    categoryTickTwoLine = false
+    categoryTickTwoLine = false,
+    colorByCategoryKey = "",
+    categoryColors = null,
+    gridVertical = false,
+    tooltipCursor = { fill: BAR_CURSOR_FILL }
   }) {
     const chartRows = Array.isArray(rows) ? rows : [];
     const seriesDefs = (Array.isArray(defs) ? defs : []).map((def) => ({
       key: def.key,
       name: def.name || def.label || def.key,
-      color: def.color
+      color: def.color,
+      showValueLabel: Boolean(def.showValueLabel),
+      showSeriesLabel: Boolean(def.showSeriesLabel),
+      seriesLabel: def.seriesLabel || def.name || def.label || def.key
     }));
     const yValues = seriesDefs.flatMap((series) => chartRows.map((row) => toNumber(row?.[series.key])));
     const yUpper =
@@ -763,20 +850,24 @@
     const niceAxis = isHorizontal ? buildNiceNumberAxis(yUpper) : null;
     const niceYAxis = !isHorizontal ? buildNiceNumberAxis(yUpper) : null;
     const twoLineCategoryTick = twoLineCategoryTickFactory(colors);
-
     renderGroupedBars(kind, containerId, chartRows.length > 0 && seriesDefs.length > 0, {
       rows: chartRows,
       defs: seriesDefs.map((series) => ({
         dataKey: series.key,
         name: series.name,
         fill: series.color,
-        showValueLabel: Boolean(series.showValueLabel)
+        showValueLabel: Boolean(series.showValueLabel),
+        showSeriesLabel: Boolean(series.showSeriesLabel),
+        seriesLabel: series.seriesLabel || series.name
       })),
       colors,
       yUpper,
       showLegend,
+      colorByCategoryKey,
+      categoryColors,
+      gridVertical,
       height: CHART_HEIGHTS.dense,
-      margin: { top: 30, right: 20, bottom: 52, left: 20 },
+      margin: { top: 14, right: 12, bottom: 34, left: 12 },
       xAxisProps: {
         ...(isHorizontal
           ? {
@@ -785,7 +876,7 @@
               ticks: niceAxis.ticks,
               allowDecimals: false
             }
-          : { dataKey: categoryKey, interval: 0, height: 40 })
+          : { dataKey: categoryKey, interval: 0, height: 34 })
       },
       yAxisProps: isHorizontal
         ? {
@@ -800,22 +891,29 @@
         content: createTooltipContent(colors, (row, payload) => [
           tooltipTitleLine(
             "team",
-            `${row.team || "Team"} • ${timeWindowLabel || metricLabel}`,
+            timeWindowLabel
+              ? `${row?.[categoryKey] || row.team || "Category"} • ${timeWindowLabel}`
+              : `${row?.[categoryKey] || row.team || "Category"}`,
             colors
           ),
           ...payload.map((item) => {
             const key = item?.dataKey;
             const meta = row?.[`meta_${key}`] || {};
-            const medianDays = toNumber(meta.median).toFixed(2);
-            const avgDays = toNumber(meta.average).toFixed(2);
+            const valueDays = toWhole(item?.value);
+            if (valueDays <= 0) return null;
+            const sample = toWhole(meta.n);
+            if (sample <= 0) return null;
+            const medianDays = toWhole(meta.median);
+            const avgDays = toWhole(meta.average);
+            const seriesName = meta.team || item.name;
             return makeTooltipLine(
               key,
-              `${item.name}: median ${medianDays} days, avg ${avgDays} days, n ${toNumber(meta.n)}`,
+              `${seriesName}: median = ${medianDays} days, avg = ${avgDays} days, n = ${sample}`,
               colors
             );
-          })
+          }).filter(Boolean)
         ]),
-        cursor: { fill: BAR_CURSOR_FILL }
+        cursor: tooltipCursor
       }
     });
   }
@@ -825,13 +923,16 @@
       containerId,
       rows,
       colors,
-      metricLabel = "Median",
       yUpperOverride = null,
       showLegend = true,
       timeWindowLabel = "",
       orientation = "columns",
       categoryKey = "team",
-      categoryTickTwoLine = false
+      categoryTickTwoLine = false,
+      colorByCategoryKey = "",
+      categoryColors = null,
+      gridVertical = false,
+      tooltipCursor = { fill: BAR_CURSOR_FILL }
     }) =>
       renderMultiSeriesBars({
         kind,
@@ -839,20 +940,24 @@
         rows,
         defs,
         colors,
-        metricLabel,
         yUpperOverride,
         showLegend,
         timeWindowLabel,
         orientation,
         categoryKey,
-        categoryTickTwoLine
+        categoryTickTwoLine,
+        colorByCategoryKey,
+        categoryColors,
+        gridVertical,
+        tooltipCursor
       });
   }
 
   const renderCycleTimeParkingLotToDoneChart = ({ seriesDefs, ...rest }) =>
     renderNamedMultiSeriesBars("productCycle", seriesDefs)(rest);
-  const renderLifecycleTimeSpentPerPhaseChart = ({ phaseDefs, ...rest }) =>
-    renderNamedMultiSeriesBars("lifecycleDays", phaseDefs)(rest);
+
+  const renderLifecycleTimeSpentPerPhaseChart = ({ seriesDefs, ...rest }) =>
+    renderNamedMultiSeriesBars("lifecycleDays", seriesDefs)(rest);
 
   window.DashboardCharts = {
     renderBugTrendAcrossTeamsChart,
