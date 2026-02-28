@@ -806,10 +806,7 @@
       tooltipProps: {
         content: createTooltipContent(colors, (row) => [
           tooltipTitleLine("team", row.team || "", colors),
-          makeTooltipLine("value", `${measureLabel || "Done"}: ${toWhole(row.value)}`, colors),
-          makeTooltipLine("count", `done ideas: ${toWhole(row.doneCount)}`, colors, {
-            color: "rgba(31,51,71,0.75)"
-          })
+          makeTooltipLine("value", `${measureLabel || "Done"}: ${toWhole(row.value)}`, colors)
         ]),
         cursor: { fill: BAR_CURSOR_FILL }
       }
