@@ -14,6 +14,20 @@
     <main>
       <section id="trend-panel" class="panel" aria-label="Backlog trend chart">
         <h1>Interactive chart - Bug trend across teams</h1>
+        <div class="panel-subtitle panel-subtitle--with-help">
+          <span>Bug trend across teams</span>
+          <span class="help-wrap">
+            <span class="help-tip" tabindex="0" role="button" aria-label="Bug trend chart explainer">?</span>
+            <div class="help-popover" role="tooltip">
+              <p><strong>Bug trend chart</strong> tracks open backlog over time by team.</p>
+              <ul>
+                <li>Each line is a team-level backlog trend.</li>
+                <li>Use it to spot sustained growth, flattening, or cleanup momentum.</li>
+                <li>Hover points to inspect values by date.</li>
+              </ul>
+            </div>
+          </span>
+        </div>
         <p id="trend-updated" class="panel-subtitle">Last updated: --</p>
         <div class="chart">
           <div id="bug-trend-chart" class="chart-canvas chart-canvas--standard"></div>
@@ -23,6 +37,20 @@
 
       <section id="composition-panel" class="panel" aria-label="Backlog stacked bars">
         <h2>Interactive chart - Bug composition by priority</h2>
+        <div class="panel-subtitle panel-subtitle--with-help">
+          <span>Backlog composition by priority</span>
+          <span class="help-wrap">
+            <span class="help-tip" tabindex="0" role="button" aria-label="Bug composition chart explainer">?</span>
+            <div class="help-popover" role="tooltip">
+              <p><strong>Composition chart</strong> shows how open work is distributed across priority bands.</p>
+              <ul>
+                <li>Each bar segment is a priority level.</li>
+                <li>Use Team filter to compare where urgency is concentrated.</li>
+                <li>Higher upper segments indicate more critical unresolved load.</li>
+              </ul>
+            </div>
+          </span>
+        </div>
         <p id="composition-updated" class="panel-subtitle">Last updated: --</p>
         <div class="radio-control-groups" aria-label="Composition controls">
           <fieldset class="radio-group-card">
@@ -42,7 +70,20 @@
 
       <section id="uat-panel" class="panel" aria-label="UAT aging by priority">
         <h2>Interactive chart - UAT open by priority</h2>
-        <p id="uat-context" class="panel-subtitle">Broadcast, -- currently in UAT</p>
+        <div class="panel-subtitle panel-subtitle--with-help">
+          <span id="uat-context">Broadcast, -- currently in UAT</span>
+          <span class="help-wrap">
+            <span class="help-tip" tabindex="0" role="button" aria-label="UAT aging chart explainer">?</span>
+            <div class="help-popover" role="tooltip">
+              <p><strong>UAT aging chart</strong> groups items currently in UAT into time-in-stage buckets.</p>
+              <ul>
+                <li>Buckets are weekly/monthly aging windows.</li>
+                <li>Colors split counts by priority within each bucket.</li>
+                <li>Rising older buckets signal verification bottlenecks.</li>
+              </ul>
+            </div>
+          </span>
+        </div>
         <p id="uat-updated" class="panel-subtitle">Last updated: --</p>
         <div class="chart">
           <div id="uat-open-by-priority-chart" class="chart-canvas chart-canvas--standard"></div>
@@ -52,15 +93,21 @@
 
       <section id="management-panel" class="panel" aria-label="Broadcast flow by priority">
         <h2>Interactive chart - Development time vs UAT time</h2>
-        <p id="management-context" class="panel-subtitle">Broadcast, -- historical flow tickets (sample)</p>
-        <p id="management-updated" class="panel-subtitle">Last updated: --</p>
-        <div class="radio-control-groups" aria-label="Management controls">
-          <fieldset class="radio-group-card">
-            <legend>Issue scope</legend>
-            <label><input type="radio" name="management-uat-scope" value="all" checked /> All issues</label>
-            <label><input type="radio" name="management-uat-scope" value="bugs_only" /> Bugs only</label>
-          </fieldset>
+        <div class="panel-subtitle panel-subtitle--with-help">
+          <span id="management-context">Broadcast, -- historical flow tickets (sample)</span>
+          <span class="help-wrap">
+            <span class="help-tip" tabindex="0" role="button" aria-label="Development vs UAT chart explainer">?</span>
+            <div class="help-popover" role="tooltip">
+              <p><strong>Development vs UAT</strong> compares delivery time by priority.</p>
+              <ul>
+                <li>Bars show median days in Dev and UAT for each priority band.</li>
+                <li>Source: completed flow items using changelog-derived stage timing.</li>
+                <li>If UAT bars are consistently higher, QA/UAT is the likely bottleneck.</li>
+              </ul>
+            </div>
+          </span>
         </div>
+        <p id="management-updated" class="panel-subtitle">Last updated: --</p>
         <div class="chart">
           <div id="development-time-vs-uat-time-chart" class="chart-canvas chart-canvas--standard"></div>
         </div>
@@ -69,7 +116,21 @@
 
       <section id="product-cycle-panel" class="panel" aria-label="Product cycle time by team">
         <h2 id="product-cycle-title">Cycle time: leaving parking lot to done</h2>
-        <p id="product-cycle-context" class="panel-subtitle">--</p>
+        <div class="panel-subtitle panel-subtitle--with-help">
+          <span id="product-cycle-context">--</span>
+          <span class="help-wrap">
+            <span class="help-tip" tabindex="0" role="button" aria-label="Product cycle chart explainer">?</span>
+            <div class="help-popover" role="tooltip">
+              <p><strong>Cycle time per team</strong> is computed from lifecycle timestamps.</p>
+              <ul>
+                <li>Lead time: Parking + Design + Ready + Development + Feedback.</li>
+                <li>Cycle time: Development + Feedback only.</li>
+                <li>Sample can be Finished work or Full backlog (includes in-progress aging).</li>
+                <li>Values are aggregated by team (Median primary, Average companion).</li>
+              </ul>
+            </div>
+          </span>
+        </div>
         <p id="product-cycle-updated" class="panel-subtitle">Last updated: --</p>
         <div class="radio-control-groups" aria-label="Product cycle controls">
           <fieldset class="radio-group-card">
@@ -92,7 +153,20 @@
 
       <section id="done-work-panel" class="panel" aria-label="Done work by team">
         <h2>Done work by team (in ideas)</h2>
-        <p id="done-work-context" class="panel-subtitle">--</p>
+        <div class="panel-subtitle panel-subtitle--with-help">
+          <span id="done-work-context">--</span>
+          <span class="help-wrap">
+            <span class="help-tip" tabindex="0" role="button" aria-label="Done work chart explainer">?</span>
+            <div class="help-popover" role="tooltip">
+              <p><strong>Done work chart</strong> shows completed ideas by team for the selected year.</p>
+              <ul>
+                <li>Values are counts of ideas marked done.</li>
+                <li>Use it to compare delivery volume across teams.</li>
+                <li>Interpret together with cycle/quality charts to avoid rewarding volume alone.</li>
+              </ul>
+            </div>
+          </span>
+        </div>
         <p id="done-work-updated" class="panel-subtitle">Last updated: --</p>
         <div class="radio-control-groups" aria-label="Done work controls">
           <fieldset class="radio-group-card">
@@ -109,35 +183,21 @@
 
       <section id="lifecycle-days-panel" class="panel" aria-label="Lifecycle phase days by team">
         <h2>Lifecycle time spent per phase</h2>
-        <p class="panel-subtitle panel-subtitle--with-help">
+        <div class="panel-subtitle panel-subtitle--with-help">
           <span id="lifecycle-days-context">--</span>
           <span class="help-wrap">
             <span class="help-tip" tabindex="0" role="button" aria-label="Lifecycle chart explainer">?</span>
             <div class="help-popover" role="tooltip">
-              <p><strong>Lifecycle chart</strong> shows time spent per stage (not just lead/cycle totals), by team.</p>
-              <p><strong>Stages</strong></p>
+              <p><strong>Lifecycle by stage</strong> breaks total flow time into stage-level durations by team.</p>
               <ul>
-                <li>Parking, Design, Ready, Development.</li>
-              </ul>
-              <p><strong>What each bar means</strong></p>
-              <ul>
-                <li>For the selected stage/team, the bar is the chosen summary statistic (Median or Average) of days spent in that stage.</li>
-              </ul>
-              <p><strong>Filters</strong></p>
-              <ul>
-                <li>Year: 2025 or 2026.</li>
-                <li>Measured in: Median or Average.</li>
-              </ul>
-              <p><strong>How it is computed</strong></p>
-              <ul>
-                <li>For each idea, we reconstruct stage durations from lifecycle timestamps/events.</li>
-                <li>We aggregate per team, per stage.</li>
-                <li>Finished work uses completed timelines; full backlog includes ongoing ideas using current-time tail where needed.</li>
-                <li>All time combines 2025+2026 aggregates (weighted by sample size).</li>
+                <li>Stages: Parking, Design, Ready, Development.</li>
+                <li>Each bar is stage duration for a team (selected metric).</li>
+                <li>Built from lifecycle transitions, then aggregated by team/stage.</li>
+                <li>Use with cycle/lead chart to locate where time accumulates.</li>
               </ul>
             </div>
           </span>
-        </p>
+        </div>
         <p id="lifecycle-days-updated" class="panel-subtitle">Last updated: --</p>
         <div class="radio-control-groups" aria-label="Lifecycle controls">
           <fieldset class="radio-group-card">

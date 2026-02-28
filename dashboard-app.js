@@ -42,7 +42,7 @@ const PUBLIC_AGGREGATE_CHART_CONFIG = {
   }
 };
 
-const state = { snapshot: null, productCycle: null, mode: "all", managementUatScope: "all", compositionTeamScope: "bc", productCycleWindowScope: "cycle", productCycleYearScope: "2026", doneWorkYearScope: "2026", lifecycleDaysYearScope: "2026" };
+const state = { snapshot: null, productCycle: null, mode: "all", compositionTeamScope: "bc", productCycleWindowScope: "cycle", productCycleYearScope: "2026", doneWorkYearScope: "2026", lifecycleDaysYearScope: "2026" };
 
 const dashboardUiUtils = window.DashboardViewUtils;
 if (!dashboardUiUtils) {
@@ -854,8 +854,7 @@ function renderDevelopmentTimeVsUatTimeChart() {
 
   status.hidden = true;
 
-  const scope = state.managementUatScope === "bugs_only" ? "bugs_only" : "all";
-  syncRadioValue("management-uat-scope", scope);
+  const scope = "all";
   const flowVariants = state.snapshot?.kpis?.broadcast?.flow_by_priority_variants;
   const scopedFlow = flowVariants && typeof flowVariants === "object" ? flowVariants[scope] : null;
   const flow = scopedFlow || state.snapshot?.kpis?.broadcast?.flow_by_priority;
@@ -928,10 +927,6 @@ function renderDevelopmentTimeVsUatTimeChart() {
     yTicks
   });
 
-  if (scope === "bugs_only" && !scopedFlow) {
-    status.hidden = false;
-    status.textContent = "Bugs-only flow bars are unavailable in this snapshot; showing all-issues bars.";
-  }
 }
 
 async function loadSnapshot() {
@@ -954,7 +949,6 @@ async function loadSnapshot() {
       setStatusMessageForIds(["product-cycle-status", "lifecycle-days-status"], message);
     }
     bindRadioState("composition-team-scope", "compositionTeamScope", (value) => value || "bc", renderBugCompositionByPriorityChart);
-    bindRadioState("management-uat-scope", "managementUatScope", (value) => (value === "bugs_only" ? "bugs_only" : "all"), renderDevelopmentTimeVsUatTimeChart);
     bindRadioState("product-cycle-window-scope", "productCycleWindowScope", normalizeProductCycleWindow, renderCycleTimeParkingLotToDoneChart);
     bindRadioState("product-cycle-year-scope", "productCycleYearScope", normalizeProductCycleYearScope, renderCycleTimeParkingLotToDoneChart);
     bindRadioState("done-work-year-scope", "doneWorkYearScope", normalizeProductCycleYearScope, renderDoneWorkByTeamChart);

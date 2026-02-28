@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-02-27T20:53:34.187Z",
+  "updatedAt": "2026-02-28T11:58:35.411Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-02-27T20:53:34.187Z",
+    "syncedAt": "2026-02-28T11:58:35.411Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). UAT aging is generated from current UAT issues and changelog-derived status entry timestamps.",
     "trendDates": {
       "source": "sprint_anchor",
@@ -11,7 +11,7 @@
       "firstDate": "2025-06-23",
       "lastDate": "2026-02-16",
       "startBoundary": "2025-06-23",
-      "endBoundary": "2026-02-27",
+      "endBoundary": "2026-02-28",
       "totalResolvedBeforeConstraints": 18,
       "usedFallbackDates": false,
       "fallbackReason": "",
@@ -30,7 +30,7 @@
       "status": "UAT",
       "label": "Broadcast"
     },
-    "generatedAt": "2026-02-27T20:53:33.622Z",
+    "generatedAt": "2026-02-28T11:58:34.826Z",
     "totalIssues": 18,
     "buckets": [
       {
@@ -67,8 +67,8 @@
     "priorities": {
       "highest": {
         "count": 4,
-        "avgDays": 21.3,
-        "maxDays": 43,
+        "avgDays": 22,
+        "maxDays": 44,
         "buckets": {
           "d0_7": 1,
           "d8_14": 0,
@@ -79,20 +79,20 @@
       },
       "high": {
         "count": 5,
-        "avgDays": 40.6,
-        "maxDays": 77,
+        "avgDays": 41.6,
+        "maxDays": 78,
         "buckets": {
           "d0_7": 1,
-          "d8_14": 1,
-          "d15_30": 0,
+          "d8_14": 0,
+          "d15_30": 1,
           "d31_60": 1,
           "d61_plus": 2
         }
       },
       "medium": {
         "count": 9,
-        "avgDays": 49,
-        "maxDays": 77,
+        "avgDays": 49.9,
+        "maxDays": 78,
         "buckets": {
           "d0_7": 1,
           "d8_14": 0,
@@ -133,23 +133,23 @@
         "highest": {
           "avg_dev_days": 9.12,
           "median_dev_days": 0.87,
-          "avg_uat_days": 18.26,
-          "median_uat_days": 17.79,
+          "avg_uat_days": 18.62,
+          "median_uat_days": 18.41,
           "n_dev": 7,
           "n_uat": 7
         },
         "high": {
           "avg_dev_days": 29.33,
           "median_dev_days": 0.99,
-          "avg_uat_days": 65.59,
-          "median_uat_days": 72.75,
+          "avg_uat_days": 66.22,
+          "median_uat_days": 73.38,
           "n_dev": 5,
           "n_uat": 5
         },
         "medium": {
           "avg_dev_days": 30.3,
           "median_dev_days": 5.97,
-          "avg_uat_days": 54.66,
+          "avg_uat_days": 55,
           "median_uat_days": 42.5,
           "n_dev": 11,
           "n_uat": 11
@@ -160,23 +160,23 @@
           "highest": {
             "avg_dev_days": 9.12,
             "median_dev_days": 0.87,
-            "avg_uat_days": 18.26,
-            "median_uat_days": 17.79,
+            "avg_uat_days": 18.62,
+            "median_uat_days": 18.41,
             "n_dev": 7,
             "n_uat": 7
           },
           "high": {
             "avg_dev_days": 29.33,
             "median_dev_days": 0.99,
-            "avg_uat_days": 65.59,
-            "median_uat_days": 72.75,
+            "avg_uat_days": 66.22,
+            "median_uat_days": 73.38,
             "n_dev": 5,
             "n_uat": 5
           },
           "medium": {
             "avg_dev_days": 30.3,
             "median_dev_days": 5.97,
-            "avg_uat_days": 54.66,
+            "avg_uat_days": 55,
             "median_uat_days": 42.5,
             "n_dev": 11,
             "n_uat": 11
@@ -186,24 +186,24 @@
           "highest": {
             "avg_dev_days": 9.12,
             "median_dev_days": 0.87,
-            "avg_uat_days": 18.26,
-            "median_uat_days": 17.79,
+            "avg_uat_days": 18.62,
+            "median_uat_days": 18.41,
             "n_dev": 7,
             "n_uat": 7
           },
           "high": {
             "avg_dev_days": 36.66,
             "median_dev_days": 1.04,
-            "avg_uat_days": 52.06,
-            "median_uat_days": 47.63,
+            "avg_uat_days": 52.69,
+            "median_uat_days": 48.26,
             "n_dev": 4,
             "n_uat": 4
           },
           "medium": {
             "avg_dev_days": 0.72,
             "median_dev_days": 0.94,
-            "avg_uat_days": 45.76,
-            "median_uat_days": 43.17,
+            "avg_uat_days": 46.23,
+            "median_uat_days": 43.48,
             "n_dev": 4,
             "n_uat": 4
           }
@@ -213,13 +213,13 @@
         "current": {
           "all": {
             "count": 18,
-            "oldest_age_days": 179.74,
-            "avg_age_days": 60.98
+            "oldest_age_days": 180.37,
+            "avg_age_days": 61.61
           },
           "bugs_only": {
             "count": 11,
-            "oldest_age_days": 74.84,
-            "avg_age_days": 34.93
+            "oldest_age_days": 75.47,
+            "avg_age_days": 35.56
           }
         }
       }
@@ -228,24 +228,24 @@
       "broadcast": {
         "dev_time_days_avg": 15.65,
         "dev_time_days_median": 1.29,
-        "uat_time_days_avg": 52.85,
-        "uat_time_days_median": 36.07,
+        "uat_time_days_avg": 53.32,
+        "uat_time_days_median": 36.38,
         "dev_vs_uat_ratio": 0.05,
         "uat_time_by_priority": {
           "highest": {
             "n_with_uat": 7,
-            "uat_time_days_avg": 18.26,
-            "uat_time_days_median": 17.79
+            "uat_time_days_avg": 18.62,
+            "uat_time_days_median": 18.41
           },
           "high": {
             "n_with_uat": 5,
-            "uat_time_days_avg": 65.59,
-            "uat_time_days_median": 72.75
+            "uat_time_days_avg": 66.22,
+            "uat_time_days_median": 73.38
           },
           "medium": {
             "n_with_uat": 8,
-            "uat_time_days_avg": 75.15,
-            "uat_time_days_median": 58.3
+            "uat_time_days_avg": 75.63,
+            "uat_time_days_median": 58.92
           },
           "other": {
             "n_with_uat": 0,
@@ -256,32 +256,32 @@
         "high_priority": {
           "dev_time_days_avg": 27.29,
           "dev_time_days_median": 1.17,
-          "uat_time_days_avg": 65.59,
-          "uat_time_days_median": 72.75
+          "uat_time_days_avg": 66.22,
+          "uat_time_days_median": 73.38
         }
       }
     },
     "kpi_9": {
       "broadcast": {
-        "uat_over_14d_pct": 77.78,
+        "uat_over_14d_pct": 83.33,
         "uat_loop_rate_pct": 39.13,
         "uat_by_priority": {
           "highest": {
             "uat_current_count": 4,
-            "uat_current_oldest_age_days": 43,
-            "uat_current_age_days_avg": 21.25,
-            "uat_current_age_days_median": 21
+            "uat_current_oldest_age_days": 44,
+            "uat_current_age_days_avg": 22,
+            "uat_current_age_days_median": 22
           },
           "high": {
             "uat_current_count": 5,
-            "uat_current_oldest_age_days": 77,
-            "uat_current_age_days_avg": 40.6,
-            "uat_current_age_days_median": 37
+            "uat_current_oldest_age_days": 78,
+            "uat_current_age_days_avg": 41.6,
+            "uat_current_age_days_median": 38
           },
           "medium": {
             "uat_current_count": 9,
-            "uat_current_oldest_age_days": 77,
-            "uat_current_age_days_avg": 49,
+            "uat_current_oldest_age_days": 78,
+            "uat_current_age_days_avg": 49.89,
             "uat_current_age_days_median": 46
           },
           "other": {
@@ -292,9 +292,9 @@
           }
         },
         "high_priority": {
-          "uat_current_age_days_avg": 40.6,
-          "uat_current_age_days_median": 37,
-          "uat_current_oldest_age_days": 77
+          "uat_current_age_days_avg": 41.6,
+          "uat_current_age_days_median": 38,
+          "uat_current_oldest_age_days": 78
         }
       }
     }
@@ -1060,11 +1060,11 @@
       "bc": {
         "date": "2026-02-16",
         "highest": 5,
-        "high": 75,
+        "high": 76,
         "medium": 116,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 183,
+        "longstanding_30d_plus": 184,
         "longstanding_60d_plus": 168
       }
     }
