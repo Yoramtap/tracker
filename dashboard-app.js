@@ -642,6 +642,7 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
     return {
       ...row,
       teamWithSampleBase: `${row.team} (n=${rowSampleCount})`,
+      sampleCount: rowSampleCount,
       doneCount
     };
   });
@@ -656,13 +657,10 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
     selectedSeriesScope
   );
   const yUpper = Math.max(50, Math.ceil(rawYUpper / 50) * 50);
-  const rowsWithSample = rowsWithCounts.map((row) => {
-    const done = toNumber(row.doneCount);
-    return {
-      ...row,
-      teamWithSample: String(row.teamWithSampleBase).replace(/\)$/, `,d=${done})`)
-    };
-  });
+  const rowsWithSample = rowsWithCounts;
+  const categorySecondaryLabels = Object.fromEntries(
+    rowsWithSample.map((row) => [String(row.team || ""), `n=${toCount(row.sampleCount)}, done=${toNumber(row.doneCount)}`])
+  );
   const seriesDefs = [];
   if (selectedSeriesScope.lead) {
     seriesDefs.push({
@@ -697,7 +695,9 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
     showLegend: true,
     timeWindowLabel: "Lead and cycle time",
     orientation: "columns",
-    categoryKey: "teamWithSample"
+    categoryKey: "team",
+    categoryTickTwoLine: true,
+    categorySecondaryLabels
   });
 }
 

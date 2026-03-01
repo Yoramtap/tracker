@@ -296,6 +296,37 @@
           : "";
       const line1 = raw;
       const line2 = mappedLine2 || fallbackLine2;
+      if (secondaryLabels && textAnchor === "middle") {
+        // Keep primary category where default x-axis labels normally sit; place meta line below.
+        return h(
+          "g",
+          { transform: `translate(${x},${y})` },
+          h(
+            "text",
+            {
+              x: 0,
+              y: 12,
+              textAnchor: "middle",
+              fill: colors.text,
+              fontSize: 12
+            },
+            line1
+          ),
+          line2
+            ? h(
+                "text",
+                {
+                  x: 0,
+                  y: 28,
+                  textAnchor: "middle",
+                  fill: "rgba(31,51,71,0.78)",
+                  fontSize: 11
+                },
+                line2
+              )
+            : null
+        );
+      }
       return h(
         "g",
         { transform: `translate(${x},${y})` },
@@ -928,8 +959,8 @@ function renderBarChartShell({
     });
     const twoLineCategoryTickColumns = twoLineCategoryTickFactory(colors, {
       textAnchor: "middle",
-      dy: 10,
-      line2Dy: 12,
+      dy: 0,
+      line2Dy: 0,
       secondaryLabels: categorySecondaryLabels
     });
     renderGroupedBars(kind, containerId, chartRows.length > 0 && seriesDefs.length > 0, {
@@ -963,7 +994,7 @@ function renderBarChartShell({
           : {
               dataKey: categoryKey,
               interval: 0,
-              height: categoryTickTwoLine ? 56 : 34,
+              height: categoryTickTwoLine ? 72 : 34,
               tick: categoryTickTwoLine ? twoLineCategoryTickColumns : axisTick(colors)
             })
       },
