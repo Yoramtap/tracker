@@ -287,7 +287,6 @@
       const { x, y, payload } = props || {};
       const raw = String(payload?.value || "");
       const splitIndex = raw.indexOf(" (n=");
-      const fallbackLine1 = splitIndex > 0 ? raw.slice(0, splitIndex) : raw;
       const fallbackLine2 = splitIndex > 0 ? raw.slice(splitIndex + 1) : "";
       const mappedLine2 =
         secondaryLabels && typeof secondaryLabels === "object"
@@ -1023,58 +1022,23 @@ function renderBarChartShell({
     });
   }
 
-  function renderNamedMultiSeriesBars(kind, defs) {
-    return ({
-      containerId,
-      rows,
-      colors,
-      yUpperOverride = null,
-      showLegend = true,
-      timeWindowLabel = "",
-      orientation = "columns",
-      categoryKey = "team",
-      categoryTickTwoLine = false,
-      categorySecondaryLabels = null,
-      overlayDots = [],
-      colorByCategoryKey = "",
-      categoryColors = null,
-      gridVertical = false,
-      tooltipCursor = { fill: BAR_CURSOR_FILL }
-    }) =>
-      renderMultiSeriesBars({
-        kind,
-        containerId,
-        rows,
-        defs,
-        colors,
-        yUpperOverride,
-        showLegend,
-        timeWindowLabel,
-        orientation,
-        categoryKey,
-        categoryTickTwoLine,
-        categorySecondaryLabels,
-        overlayDots,
-        colorByCategoryKey,
-        categoryColors,
-        gridVertical,
-        tooltipCursor
-      });
-  }
-
-  const renderCycleTimeParkingLotToDoneChart = ({ seriesDefs, ...rest }) =>
-    renderNamedMultiSeriesBars("productCycle", seriesDefs)(rest);
-
-  const renderLifecycleTimeSpentPerPhaseChart = ({ seriesDefs, ...rest }) =>
-    renderNamedMultiSeriesBars("lifecycleDays", seriesDefs)(rest);
-
   window.DashboardCharts = {
     renderBugTrendAcrossTeamsChart,
     renderBugCompositionByPriorityChart,
     renderUatPriorityAgingChart,
     renderDevelopmentTimeVsUatTimeChart,
-    renderCycleTimeParkingLotToDoneChart,
-    renderLifecycleTimeSpentPerPhaseChart,
+    renderCycleTimeParkingLotToDoneChart: ({ seriesDefs, ...rest }) =>
+      renderMultiSeriesBars({
+        kind: "productCycle",
+        defs: seriesDefs,
+        ...rest
+      }),
+    renderLifecycleTimeSpentPerPhaseChart: ({ seriesDefs, ...rest }) =>
+      renderMultiSeriesBars({
+        kind: "lifecycleDays",
+        defs: seriesDefs,
+        ...rest
+      }),
     clearChart
   };
 })();
