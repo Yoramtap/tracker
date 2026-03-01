@@ -660,7 +660,7 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
     const done = toNumber(row.doneCount);
     return {
       ...row,
-      teamWithSample: String(row.teamWithSampleBase).replace(/\)$/, `, done=${done})`)
+      teamWithSample: String(row.teamWithSampleBase).replace(/\)$/, `,d=${done})`)
     };
   });
   const seriesDefs = [];
