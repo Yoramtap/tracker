@@ -4,7 +4,7 @@ const UAT_PRIORITY_KEYS = ["medium", "high", "highest"];
 
 const PRODUCT_CYCLE_COMPARE_YEARS = ["2025", "2026"];
 const PRODUCT_CYCLE_YEAR_SCOPE_OPTIONS = ["2025", "2026"];
-const PRODUCT_CYCLE_WINDOW_SCOPE_OPTIONS = ["lead", "cycle"];
+const PRODUCT_CYCLE_SERIES_SCOPE_KEYS = ["lead", "cycle"];
 const LIFECYCLE_YEAR_OPTIONS = ["2025", "2026"];
 const PRODUCT_CYCLE_TEAM_ORDER = ["api", "frontend", "broadcast", "orchestration", "titanium", "shift"];
 const LIFECYCLE_STAGE_GROUPS = [
@@ -27,7 +27,6 @@ const LAST_UPDATED_IDS = ["trend-updated", "composition-updated", "uat-updated",
 const PRODUCT_CYCLE_UPDATED_IDS = ["product-cycle-updated", "done-work-updated", "lifecycle-days-updated"];
 const PUBLIC_AGGREGATE_CHART_CONFIG = {
   productCycle: {
-    windowRadioName: "product-cycle-window-scope",
     statusId: "product-cycle-status",
     contextId: "product-cycle-context",
     containerId: "cycle-time-parking-lot-to-done-chart",
@@ -42,7 +41,15 @@ const PUBLIC_AGGREGATE_CHART_CONFIG = {
   }
 };
 
-const state = { snapshot: null, productCycle: null, mode: "all", compositionTeamScope: "bc", productCycleWindowScope: "cycle", productCycleYearScope: "2026", doneWorkYearScope: "2026", lifecycleDaysYearScope: "2026" };
+const state = {
+  snapshot: null,
+  productCycle: null,
+  mode: "all",
+  compositionTeamScope: "bc",
+  productCycleYearScope: "2026",
+  doneWorkYearScope: "2026",
+  lifecycleDaysYearScope: "2026"
+};
 
 const dashboardUiUtils = window.DashboardViewUtils;
 if (!dashboardUiUtils) {
@@ -189,10 +196,6 @@ function metricLabel(metric) {
   return metric === "average" ? "Average" : "Median";
 }
 
-function normalizeProductCycleWindow(value) {
-  return PRODUCT_CYCLE_WINDOW_SCOPE_OPTIONS.includes(value) ? value : "cycle";
-}
-
 function normalizeProductCycleYearScope(value) {
   return PRODUCT_CYCLE_YEAR_SCOPE_OPTIONS.includes(value) ? value : "2026";
 }
@@ -210,29 +213,13 @@ function productCycleIdeaScopeMeta(ideaScope) {
   };
 }
 
-function productCycleWindowMeta(windowScope) {
-  if (windowScope === "lead") {
-    return {
-      key: "lead",
-      title: "Lead time: parking lot, design, ready for delivery, delivery, feedback",
-      contextLabel: "Lead time per team in days",
-      sampleLabel: "lead sample"
-    };
-  }
-  if (windowScope === "cycle") {
-    return {
-      key: "cycle",
-      title: "Cycle time: delivery and feedback to done",
-      contextLabel: "Cycle time per team in days",
-      sampleLabel: "cycle sample"
-    };
-  }
-  return {
-    key: "cycle",
-    title: "Cycle time: delivery and feedback to done",
-    contextLabel: "Cycle time per team in days",
-    sampleLabel: "cycle sample"
-  };
+function selectedProductCycleLabel(seriesScope) {
+  const leadOn = Boolean(seriesScope?.lead);
+  const cycleOn = Boolean(seriesScope?.cycle);
+  if (leadOn && cycleOn) return "Lead time split by component per team in days (stacked)";
+  if (leadOn) return "Lead time (excluding cycle) per team in days";
+  if (cycleOn) return "Cycle time per team in days";
+  return "Lead and cycle time per team in days";
 }
 
 function readCycleWindowStats(teamNode, windowScope, ideaScope) {
@@ -352,22 +339,58 @@ function computeMaxFromRows(rows, defs) {
   return maxValue;
 }
 
-function buildCycleRowsForYLock({ publicAggregates, teams, years, effortScope, windowScope, metric, ideaScope }) {
-  const defs = (Array.isArray(years) ? years : []).map((year) => ({
-    key: `year_${year}`
-  }));
-  return buildMetricRowsByDefs({
-    teams,
-    defs,
-    metric,
-    readSource: (team, key) => {
-      const year = key.slice(5);
-      const teamNode = publicAggregates?.cycleTime?.byYear?.[year]?.[effortScope]?.teams?.[team] || {};
-      const stats = readCycleWindowStats(teamNode, windowScope, ideaScope);
-      if (stats && Object.keys(stats).length > 0) return stats;
-      return getLifecycleWindowStats(publicAggregates, year, team, windowScope);
-    }
+function readProductCycleTeamWindowStats(publicAggregates, year, effortScope, ideaScope, team, windowScope) {
+  const teamNode = publicAggregates?.cycleTime?.byYear?.[year]?.[effortScope]?.teams?.[team] || {};
+  const directStats = readCycleWindowStats(teamNode, windowScope, ideaScope);
+  if (directStats && Object.keys(directStats).length > 0) return directStats;
+  return getLifecycleWindowStats(publicAggregates, year, team, windowScope);
+}
+
+function buildProductCycleStackedRowsForYear({
+  publicAggregates,
+  teams,
+  year,
+  effortScope,
+  metric,
+  ideaScope
+}) {
+  return teams.map((team) => {
+    const leadStats = readMetricStats(
+      readProductCycleTeamWindowStats(publicAggregates, year, effortScope, ideaScope, team, "lead"),
+      metric
+    );
+    const cycleStats = readMetricStats(
+      readProductCycleTeamWindowStats(publicAggregates, year, effortScope, ideaScope, team, "cycle"),
+      metric
+    );
+    const leadExclusiveValue = Math.max(0, toNumber(leadStats.value) - toNumber(cycleStats.value));
+    const leadExclusiveMedian = Math.max(0, toNumber(leadStats.median) - toNumber(cycleStats.median));
+    const leadExclusiveAverage = Math.max(0, toNumber(leadStats.average) - toNumber(cycleStats.average));
+    return {
+      team,
+      lead_excl_cycle: leadExclusiveValue,
+      cycle: toNumber(cycleStats.value),
+      meta_lead_excl_cycle: {
+        n: leadStats.n,
+        median: leadExclusiveMedian,
+        average: leadExclusiveAverage,
+        team: "Lead (excluding cycle)"
+      },
+      meta_cycle: {
+        n: cycleStats.n,
+        median: cycleStats.median,
+        average: cycleStats.average,
+        team: "Cycle time"
+      }
+    };
   });
+}
+
+function computeProductCycleStackedRowTotal(row, seriesScope) {
+  let total = 0;
+  if (seriesScope?.lead) total += toNumber(row?.lead_excl_cycle);
+  if (seriesScope?.cycle) total += toNumber(row?.cycle);
+  return total;
 }
 
 function lifecycleSelectedYears(yearScope) {
@@ -423,29 +446,32 @@ function readLifecycleStatsForScope(publicAggregates, yearScope, ideaScope, effo
   );
 }
 
-function computeLockedProductCycleYUpper(
+function computeLockedProductCycleStackedYUpper(
   publicAggregates,
   teams,
   years,
   effortScope,
   metric,
-  ideaScope
+  ideaScope,
+  seriesScope
 ) {
   let maxValue = 0;
-  for (const windowScope of PRODUCT_CYCLE_WINDOW_SCOPE_OPTIONS) {
-    const rows = buildCycleRowsForYLock({
+  for (const year of Array.isArray(years) ? years : []) {
+    const rows = buildProductCycleStackedRowsForYear({
       publicAggregates,
       teams,
-      years,
+      year,
       effortScope,
-      windowScope,
       metric,
       ideaScope
     });
-    const defs = (Array.isArray(years) ? years : []).map((year) => ({ key: `year_${year}` }));
-    maxValue = Math.max(maxValue, computeMaxFromRows(rows, defs));
+    const rowMax = rows.reduce(
+      (value, row) => Math.max(value, computeProductCycleStackedRowTotal(row, seriesScope)),
+      0
+    );
+    maxValue = Math.max(maxValue, rowMax);
   }
-  return Math.min(300, Math.max(1, Math.ceil(maxValue * 1.15)));
+  return Math.max(1, Math.ceil(maxValue * 1.15));
 }
 
 function buildLifecycleRowsByPhaseAndTeam(publicAggregates, year, teams, metric) {
@@ -551,16 +577,14 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
   publicAggregates,
   effortScope,
   metric,
-  windowScope,
   yearScope
 ) {
   const status = document.getElementById("product-cycle-status");
   const context = document.getElementById("product-cycle-context");
   const titleNode = document.getElementById("product-cycle-title");
   if (!status || !context) return;
-  const windowMeta = productCycleWindowMeta(windowScope);
   const ideaScopeMeta = productCycleIdeaScopeMeta("full_backlog");
-  if (titleNode) titleNode.textContent = windowMeta.title;
+  if (titleNode) titleNode.textContent = "Lead and cycle time by team";
 
   const teams = orderProductCycleTeams(getProductCycleTeamsFromAggregates(publicAggregates));
   if (teams.length === 0) {
@@ -571,62 +595,87 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
 
   const metricLabelValue = metricLabel(metric);
   const selectedYear = yearScope;
+  const selectedSeriesScope = { lead: true, cycle: true };
+  const selectedSeries = PRODUCT_CYCLE_SERIES_SCOPE_KEYS.filter((key) => selectedSeriesScope[key]);
+
   const totalsNode = publicAggregates?.cycleTime?.totalsByYear?.[selectedYear]?.[effortScope] || {};
   const samplesNode = totalsNode?.samples && typeof totalsNode.samples === "object" ? totalsNode.samples : {};
-  const sampleCount = toCount(
-    samplesNode?.[ideaScopeMeta.key]?.[windowMeta.key] ??
-      samplesNode?.[windowMeta.key] ??
-      (windowMeta.key === "cycle"
-        ? totalsNode.cycle_sample
-        : publicAggregates?.lifecyclePhaseDays?.totalsByYear?.[selectedYear]?.cycle_sample || 0)
+  const leadSampleCount = toCount(
+    samplesNode?.[ideaScopeMeta.key]?.lead ??
+      samplesNode?.lead ??
+      totalsNode.lead_sample ??
+      publicAggregates?.lifecyclePhaseDays?.totalsByYear?.[selectedYear]?.lead_sample ??
+      0
   );
+  const cycleSampleCount = toCount(
+    samplesNode?.[ideaScopeMeta.key]?.cycle ??
+      samplesNode?.cycle ??
+      totalsNode.cycle_sample ??
+      publicAggregates?.lifecyclePhaseDays?.totalsByYear?.[selectedYear]?.cycle_sample ??
+      0
+  );
+  const selectedSamples = selectedSeries.map((key) => (key === "lead" ? leadSampleCount : cycleSampleCount));
+  const sampleCount = selectedSamples.length ? Math.max(...selectedSamples) : 0;
+  const sampleLabel =
+    selectedSeries.length === 2 ? `${leadSampleCount}/${cycleSampleCount} (lead/cycle)` : String(sampleCount);
 
-  context.textContent = `${windowMeta.contextLabel} • ${selectedYear} • ${ideaScopeMeta.label} • sample size: ${sampleCount} • unmapped excluded`;
+  context.textContent = `${selectedProductCycleLabel(selectedSeriesScope)} • ${selectedYear} • ${ideaScopeMeta.label} • sample size: ${sampleLabel} • unmapped excluded`;
 
   if (sampleCount === 0) {
     status.hidden = false;
-    status.textContent = `No completed ${windowMeta.contextLabel.toLowerCase()} items found for ${selectedYear}.`;
+    status.textContent = `No completed product-cycle items found for ${selectedYear}.`;
     clearChartContainer("cycle-time-parking-lot-to-done-chart");
     return;
   }
 
   const themeColors = getThemeColors();
-  const seriesDefs = [
-    {
-      key: `year_${selectedYear}`,
-      name: String(selectedYear),
-      color: themeColors.teams.api,
-      showValueLabel: false
-    }
-  ];
-  const rows = buildMetricRowsByDefs({
+  const rows = buildProductCycleStackedRowsForYear({
+    publicAggregates,
     teams,
-    defs: seriesDefs,
+    year: selectedYear,
+    effortScope,
     metric,
-    readSource: (team, key) => {
-      const year = key.slice(5);
-      const teamNode = publicAggregates?.cycleTime?.byYear?.[year]?.[effortScope]?.teams?.[team] || {};
-      const stats = readCycleWindowStats(teamNode, windowMeta.key, ideaScopeMeta.key);
-      if (stats && Object.keys(stats).length > 0) return stats;
-      return getLifecycleWindowStats(publicAggregates, year, team, windowMeta.key);
-    }
+    ideaScope: ideaScopeMeta.key
   });
-  const sortKey = seriesDefs[0]?.key;
   const rowsWithSample = rows.map((row) => {
-    const sampleCount = toCount(row?.[`meta_${sortKey}`]?.n);
+    const leadN = toCount(row?.meta_lead_excl_cycle?.n);
+    const cycleN = toCount(row?.meta_cycle?.n);
+    const rowSampleCount = selectedSeries.length === 2 ? Math.max(leadN, cycleN) : selectedSeries[0] === "lead" ? leadN : cycleN;
     return {
       ...row,
-      teamWithSample: `${row.team} (n=${sampleCount})`
+      teamWithSample: `${row.team} (n=${rowSampleCount})`
     };
   });
-  const yUpper = computeLockedProductCycleYUpper(
+  // Keep axis fixed across year toggles, but snap to a clean boundary.
+  const rawYUpper = computeLockedProductCycleStackedYUpper(
     publicAggregates,
     teams,
     PRODUCT_CYCLE_COMPARE_YEARS,
     effortScope,
     metric,
-    ideaScopeMeta.key
+    ideaScopeMeta.key,
+    selectedSeriesScope
   );
+  const yUpper = Math.max(50, Math.ceil(rawYUpper / 50) * 50);
+  const seriesDefs = [];
+  if (selectedSeriesScope.lead) {
+    seriesDefs.push({
+      key: "lead_excl_cycle",
+      name: "Lead (excluding cycle)",
+      color: readThemeColor("--product-cycle-lead", "#c58b4e"),
+      stackId: "duration",
+      showValueLabel: false
+    });
+  }
+  if (selectedSeriesScope.cycle) {
+    seriesDefs.push({
+      key: "cycle",
+      name: "Cycle time",
+      color: readThemeColor("--product-cycle-cycle", "#4e86b9"),
+      stackId: "duration",
+      showValueLabel: false
+    });
+  }
 
   const renderChart = getRenderer(
     "product-cycle-status",
@@ -641,8 +690,8 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
     colors: themeColors,
     metricLabel: metricLabelValue,
     yUpperOverride: yUpper,
-    showLegend: false,
-    timeWindowLabel: windowMeta.key === "lead" ? "Lead time" : "Cycle time",
+    showLegend: true,
+    timeWindowLabel: "Lead and cycle time",
     orientation: "horizontal",
     categoryKey: "teamWithSample",
     categoryTickTwoLine: true
@@ -786,12 +835,10 @@ function renderDoneWorkByTeamChart() {
 
 function renderCycleTimeParkingLotToDoneChart() {
   const config = PUBLIC_AGGREGATE_CHART_CONFIG.productCycle;
-  const windowScope = normalizeProductCycleWindow(state.productCycleWindowScope);
   const yearScope = normalizeProductCycleYearScope(state.productCycleYearScope);
   const effortScope = "all";
   const metric = "median";
 
-  syncRadioValue(config.windowRadioName, windowScope);
   syncRadioValue("product-cycle-year-scope", yearScope);
 
   withPublicAggregates({
@@ -804,7 +851,6 @@ function renderCycleTimeParkingLotToDoneChart() {
         publicAggregates,
         effortScope,
         metric,
-        windowScope,
         yearScope
       )
   });
@@ -949,7 +995,6 @@ async function loadSnapshot() {
       setStatusMessageForIds(["product-cycle-status", "lifecycle-days-status"], message);
     }
     bindRadioState("composition-team-scope", "compositionTeamScope", (value) => value || "bc", renderBugCompositionByPriorityChart);
-    bindRadioState("product-cycle-window-scope", "productCycleWindowScope", normalizeProductCycleWindow, renderCycleTimeParkingLotToDoneChart);
     bindRadioState("product-cycle-year-scope", "productCycleYearScope", normalizeProductCycleYearScope, renderCycleTimeParkingLotToDoneChart);
     bindRadioState("done-work-year-scope", "doneWorkYearScope", normalizeProductCycleYearScope, renderDoneWorkByTeamChart);
     bindRadioState("lifecycle-days-year-scope", "lifecycleDaysYearScope", (value) => normalizeOption(value, LIFECYCLE_YEAR_OPTIONS, "2026"), renderLifecycleTimeSpentPerPhaseChart);

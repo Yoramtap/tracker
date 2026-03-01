@@ -835,6 +835,7 @@
       key: def.key,
       name: def.name || def.label || def.key,
       color: def.color,
+      stackId: def.stackId,
       showValueLabel: Boolean(def.showValueLabel),
       showSeriesLabel: Boolean(def.showSeriesLabel),
       seriesLabel: def.seriesLabel || def.name || def.label || def.key
@@ -854,6 +855,7 @@
         dataKey: series.key,
         name: series.name,
         fill: series.color,
+        stackId: series.stackId,
         showValueLabel: Boolean(series.showValueLabel),
         showSeriesLabel: Boolean(series.showSeriesLabel),
         seriesLabel: series.seriesLabel || series.name
