@@ -468,7 +468,7 @@ function computeLockedProductCycleStackedYUpper(
     );
     maxValue = Math.max(maxValue, rowMax);
   }
-  return Math.max(1, Math.ceil(maxValue * 1.15));
+  return Math.max(1, Math.ceil(maxValue));
 }
 
 function buildLifecycleRowsByPhaseAndTeam(publicAggregates, year, teams, metric) {
