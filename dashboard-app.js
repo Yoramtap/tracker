@@ -19,12 +19,11 @@ const MODE_PANEL_IDS = {
   uat: "uat-panel",
   management: "management-panel",
   "product-cycle": "product-cycle-panel",
-  "done-work": "done-work-panel",
   "lifecycle-days": "lifecycle-days-panel"
 };
-const CHART_STATUS_IDS = ["composition-status", "trend-status", "uat-status", "management-status", "product-cycle-status", "done-work-status", "lifecycle-days-status"];
-const LAST_UPDATED_IDS = ["trend-updated", "composition-updated", "uat-updated", "management-updated", "product-cycle-updated", "done-work-updated", "lifecycle-days-updated"];
-const PRODUCT_CYCLE_UPDATED_IDS = ["product-cycle-updated", "done-work-updated", "lifecycle-days-updated"];
+const CHART_STATUS_IDS = ["composition-status", "trend-status", "uat-status", "management-status", "product-cycle-status", "lifecycle-days-status"];
+const LAST_UPDATED_IDS = ["trend-updated", "composition-updated", "uat-updated", "management-updated", "product-cycle-updated", "lifecycle-days-updated"];
+const PRODUCT_CYCLE_UPDATED_IDS = ["product-cycle-updated", "lifecycle-days-updated"];
 const PUBLIC_AGGREGATE_CHART_CONFIG = {
   productCycle: {
     statusId: "product-cycle-status",
@@ -47,7 +46,6 @@ const state = {
   mode: "all",
   compositionTeamScope: "bc",
   productCycleYearScope: "2026",
-  doneWorkYearScope: "2026",
   lifecycleDaysYearScope: "2026"
 };
 
@@ -257,30 +255,6 @@ function readDoneCountForTeam(publicAggregates, year, team) {
   const leadN = toCount(teamNode?.idea_scopes?.finished_work?.lead?.n);
   const cycleN = toCount(teamNode?.idea_scopes?.finished_work?.cycle?.n);
   return Math.max(leadN, cycleN);
-}
-
-function buildDoneWorkRowsForYear(publicAggregates, year, teams) {
-  return teams
-    .map((team) => {
-      const doneCount = readDoneCountForTeam(publicAggregates, year, team);
-      return {
-        team,
-        doneCount,
-        value: doneCount
-      };
-    });
-}
-
-function buildDoneWorkAxisLockedAcrossYears(publicAggregates, teams) {
-  const values = PRODUCT_CYCLE_COMPARE_YEARS.flatMap((year) =>
-    buildDoneWorkRowsForYear(publicAggregates, year, teams).map((row) => toNumber(row.value))
-  );
-  const maxValue = Math.max(0, ...values);
-  const roughStep = maxValue <= 20 ? 5 : maxValue <= 60 ? 10 : maxValue <= 150 ? 25 : 50;
-  const upper = Math.max(roughStep, Math.ceil(maxValue / roughStep) * roughStep);
-  const ticks = [];
-  for (let value = 0; value <= upper; value += roughStep) ticks.push(value);
-  return { upper, ticks };
 }
 
 function toSeriesKey(label) {
@@ -789,53 +763,6 @@ function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggrega
   context.textContent = `${chartTitleText} • ${yearLabel} • sample size: ${lifecycleSampleSize} • unmapped excluded`;
 }
 
-function renderDoneWorkByTeamChart() {
-  const status = document.getElementById("done-work-status");
-  const context = document.getElementById("done-work-context");
-  if (!status || !context) return;
-
-  const year = normalizeProductCycleYearScope(state.doneWorkYearScope);
-  syncRadioValue("done-work-year-scope", year);
-
-  withPublicAggregates({
-    statusId: "done-work-status",
-    contextId: "done-work-context",
-    containerId: "done-work-by-team-chart",
-    missingMessage: "No done-work aggregates found in product-cycle-snapshot.json.",
-    onReady: ({ publicAggregates }) => {
-      const teams = orderProductCycleTeams(getProductCycleTeamsFromAggregates(publicAggregates));
-      if (teams.length === 0) {
-        status.hidden = false;
-        status.textContent = "No teams available for done-work chart.";
-        clearChartContainer("done-work-by-team-chart");
-        return;
-      }
-
-      const rows = buildDoneWorkRowsForYear(publicAggregates, year, teams);
-
-      const axis = buildDoneWorkAxisLockedAcrossYears(publicAggregates, teams);
-      const measureLabel = "Done ideas";
-      const sampleSize = rows.reduce((sum, row) => sum + toCount(row.doneCount), 0);
-      context.textContent = `Done work by team • ${year} • ${measureLabel} • sample size: ${sampleSize} • unmapped excluded`;
-
-      const renderChart = getRenderer(
-        "done-work-status",
-        "renderDoneWorkByTeamChart",
-        "Done-work chart unavailable: Recharts renderer missing."
-      );
-      if (!renderChart) return;
-      renderChart({
-        containerId: "done-work-by-team-chart",
-        rows,
-        colors: getThemeColors(),
-        yUpper: axis.upper,
-        yTicks: axis.ticks,
-        measureLabel
-      });
-    }
-  });
-}
-
 function renderCycleTimeParkingLotToDoneChart() {
   const config = PUBLIC_AGGREGATE_CHART_CONFIG.productCycle;
   const yearScope = normalizeProductCycleYearScope(state.productCycleYearScope);
@@ -999,7 +926,6 @@ async function loadSnapshot() {
     }
     bindRadioState("composition-team-scope", "compositionTeamScope", (value) => value || "bc", renderBugCompositionByPriorityChart);
     bindRadioState("product-cycle-year-scope", "productCycleYearScope", normalizeProductCycleYearScope, renderCycleTimeParkingLotToDoneChart);
-    bindRadioState("done-work-year-scope", "doneWorkYearScope", normalizeProductCycleYearScope, renderDoneWorkByTeamChart);
     bindRadioState("lifecycle-days-year-scope", "lifecycleDaysYearScope", (value) => normalizeOption(value, LIFECYCLE_YEAR_OPTIONS, "2026"), renderLifecycleTimeSpentPerPhaseChart);
     setTextForIds(LAST_UPDATED_IDS, `Last updated: ${formatUpdatedAt(state.snapshot?.updatedAt)}`);
     setTextForIds(
@@ -1021,7 +947,6 @@ async function loadSnapshot() {
       { run: renderUatOpenByPriorityChart },
       { run: renderDevelopmentTimeVsUatTimeChart },
       { run: renderCycleTimeParkingLotToDoneChart },
-      { run: renderDoneWorkByTeamChart },
       { run: renderLifecycleTimeSpentPerPhaseChart }
     ].forEach(({ skipMode, run }) => {
       if (!skipMode || state.mode !== skipMode) run();

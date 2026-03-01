@@ -50,7 +50,6 @@
     uat: null,
     management: null,
     productCycle: null,
-    doneWork: null,
     lifecycleDays: null
   };
   const rootContainerIds = {};
@@ -881,40 +880,6 @@ function renderBarChartShell({
     });
   }
 
-  function renderDoneWorkByTeamChart({ containerId, rows, colors, yUpper, yTicks, measureLabel }) {
-    const chartRows = Array.isArray(rows) ? rows : [];
-    renderGroupedBars("doneWork", containerId, chartRows.length > 0, {
-      rows: chartRows,
-      defs: [
-        { dataKey: "value", name: measureLabel || "Done", fill: colors.teams.api }
-      ],
-      colors,
-      yUpper,
-      height: CHART_HEIGHTS.dense,
-      margin: { top: 14, right: 12, bottom: 34, left: 12 },
-      xAxisProps: {
-        type: "number",
-        domain: [0, yUpper],
-        ticks: Array.isArray(yTicks) && yTicks.length > 1 ? yTicks : undefined,
-        allowDecimals: false
-      },
-      chartLayout: "vertical",
-      showLegend: false,
-      yAxisProps: {
-        dataKey: "team",
-        type: "category",
-        width: HORIZONTAL_CATEGORY_AXIS_WIDTH
-      },
-      tooltipProps: {
-        content: createTooltipContent(colors, (row) => [
-          tooltipTitleLine("team", row.team || "", colors),
-          makeTooltipLine("value", `${measureLabel || "Done"}: ${toWhole(row.value)}`, colors)
-        ]),
-        cursor: { fill: BAR_CURSOR_FILL }
-      }
-    });
-  }
-
   function renderMultiSeriesBars({
     kind,
     containerId,
@@ -1108,7 +1073,6 @@ function renderBarChartShell({
     renderBugCompositionByPriorityChart,
     renderUatPriorityAgingChart,
     renderDevelopmentTimeVsUatTimeChart,
-    renderDoneWorkByTeamChart,
     renderCycleTimeParkingLotToDoneChart,
     renderLifecycleTimeSpentPerPhaseChart,
     clearChart
