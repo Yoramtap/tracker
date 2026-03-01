@@ -216,8 +216,8 @@ function productCycleIdeaScopeMeta(ideaScope) {
 function selectedProductCycleLabel(seriesScope) {
   const leadOn = Boolean(seriesScope?.lead);
   const cycleOn = Boolean(seriesScope?.cycle);
-  if (leadOn && cycleOn) return "Lead time split by component per team in days (stacked)";
-  if (leadOn) return "Lead time (excluding cycle) per team in days";
+  if (leadOn && cycleOn) return "Lead and cycle time per team in days";
+  if (leadOn) return "Lead time per team in days";
   if (cycleOn) return "Cycle time per team in days";
   return "Lead and cycle time per team in days";
 }
@@ -363,18 +363,15 @@ function buildProductCycleStackedRowsForYear({
       readProductCycleTeamWindowStats(publicAggregates, year, effortScope, ideaScope, team, "cycle"),
       metric
     );
-    const leadExclusiveValue = Math.max(0, toNumber(leadStats.value) - toNumber(cycleStats.value));
-    const leadExclusiveMedian = Math.max(0, toNumber(leadStats.median) - toNumber(cycleStats.median));
-    const leadExclusiveAverage = Math.max(0, toNumber(leadStats.average) - toNumber(cycleStats.average));
     return {
       team,
-      lead_excl_cycle: leadExclusiveValue,
+      lead: toNumber(leadStats.value),
       cycle: toNumber(cycleStats.value),
-      meta_lead_excl_cycle: {
+      meta_lead: {
         n: leadStats.n,
-        median: leadExclusiveMedian,
-        average: leadExclusiveAverage,
-        team: "Lead (excluding cycle)"
+        median: leadStats.median,
+        average: leadStats.average,
+        team: "Lead time"
       },
       meta_cycle: {
         n: cycleStats.n,
@@ -388,9 +385,9 @@ function buildProductCycleStackedRowsForYear({
 
 function computeProductCycleStackedRowTotal(row, seriesScope) {
   let total = 0;
-  if (seriesScope?.lead) total += toNumber(row?.lead_excl_cycle);
-  if (seriesScope?.cycle) total += toNumber(row?.cycle);
-  return total;
+  if (seriesScope?.lead) total = Math.max(total, toNumber(row?.lead));
+  if (seriesScope?.cycle) total = Math.max(total, toNumber(row?.cycle));
+  return Math.max(0, total);
 }
 
 function lifecycleSelectedYears(yearScope) {
@@ -638,7 +635,7 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
     ideaScope: ideaScopeMeta.key
   });
   const rowsWithSample = rows.map((row) => {
-    const leadN = toCount(row?.meta_lead_excl_cycle?.n);
+    const leadN = toCount(row?.meta_lead?.n);
     const cycleN = toCount(row?.meta_cycle?.n);
     const rowSampleCount = selectedSeries.length === 2 ? Math.max(leadN, cycleN) : selectedSeries[0] === "lead" ? leadN : cycleN;
     return {
@@ -660,10 +657,9 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
   const seriesDefs = [];
   if (selectedSeriesScope.lead) {
     seriesDefs.push({
-      key: "lead_excl_cycle",
-      name: "Lead (excluding cycle)",
+      key: "lead",
+      name: "Lead time",
       color: readThemeColor("--product-cycle-lead", "#c58b4e"),
-      stackId: "duration",
       showValueLabel: false
     });
   }
@@ -672,7 +668,6 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
       key: "cycle",
       name: "Cycle time",
       color: readThemeColor("--product-cycle-cycle", "#4e86b9"),
-      stackId: "duration",
       showValueLabel: false
     });
   }
@@ -692,9 +687,8 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
     yUpperOverride: yUpper,
     showLegend: true,
     timeWindowLabel: "Lead and cycle time",
-    orientation: "horizontal",
-    categoryKey: "teamWithSample",
-    categoryTickTwoLine: true
+    orientation: "columns",
+    categoryKey: "team"
   });
 }
 
