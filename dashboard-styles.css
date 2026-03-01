@@ -84,7 +84,13 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+.panel-subtitle--with-help > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .help-wrap {

@@ -688,7 +688,7 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
     showLegend: true,
     timeWindowLabel: "Lead and cycle time",
     orientation: "columns",
-    categoryKey: "team"
+    categoryKey: "teamWithSample"
   });
 }
 

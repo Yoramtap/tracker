@@ -272,13 +272,22 @@
     return mapped;
   }
 
-  function twoLineCategoryTickFactory(colors) {
+  function twoLineCategoryTickFactory(
+    colors,
+    { textAnchor = "end", dy = 3, line2Dy = 14, secondaryLabels = null } = {}
+  ) {
     return function twoLineCategoryTick(props) {
       const { x, y, payload } = props || {};
       const raw = String(payload?.value || "");
       const splitIndex = raw.indexOf(" (n=");
-      const line1 = splitIndex > 0 ? raw.slice(0, splitIndex) : raw;
-      const line2 = splitIndex > 0 ? raw.slice(splitIndex + 1) : "";
+      const fallbackLine1 = splitIndex > 0 ? raw.slice(0, splitIndex) : raw;
+      const fallbackLine2 = splitIndex > 0 ? raw.slice(splitIndex + 1) : "";
+      const mappedLine2 =
+        secondaryLabels && typeof secondaryLabels === "object"
+          ? String(secondaryLabels[raw] || "")
+          : "";
+      const line1 = raw;
+      const line2 = mappedLine2 || fallbackLine2;
       return h(
         "g",
         { transform: `translate(${x},${y})` },
@@ -287,13 +296,15 @@
           {
             x: 0,
             y: 0,
-            dy: 3,
-            textAnchor: "end",
+            dy,
+            textAnchor,
             fill: colors.text,
             fontSize: 12
           },
           h("tspan", { x: 0, dy: 0 }, line1),
-          line2 ? h("tspan", { x: 0, dy: 14, fill: "rgba(31,51,71,0.75)", fontSize: 11 }, line2) : null
+          line2
+            ? h("tspan", { x: 0, dy: line2Dy, fill: "rgba(31,51,71,0.75)", fontSize: 11 }, line2)
+            : null
         )
       );
     };
@@ -825,6 +836,7 @@
     orientation = "columns",
     categoryKey = "team",
     categoryTickTwoLine = false,
+    categorySecondaryLabels = null,
     colorByCategoryKey = "",
     categoryColors = null,
     gridVertical = false,
@@ -848,7 +860,17 @@
     const isHorizontal = orientation === "horizontal";
     const niceAxis = isHorizontal ? buildNiceNumberAxis(yUpper) : null;
     const niceYAxis = !isHorizontal ? buildNiceNumberAxis(yUpper) : null;
-    const twoLineCategoryTick = twoLineCategoryTickFactory(colors);
+    const twoLineCategoryTickHorizontal = twoLineCategoryTickFactory(colors, {
+      textAnchor: "end",
+      dy: 3,
+      line2Dy: 14
+    });
+    const twoLineCategoryTickColumns = twoLineCategoryTickFactory(colors, {
+      textAnchor: "middle",
+      dy: 10,
+      line2Dy: 12,
+      secondaryLabels: categorySecondaryLabels
+    });
     renderGroupedBars(kind, containerId, chartRows.length > 0 && seriesDefs.length > 0, {
       rows: chartRows,
       defs: seriesDefs.map((series) => ({
@@ -876,14 +898,19 @@
               ticks: niceAxis.ticks,
               allowDecimals: false
             }
-          : { dataKey: categoryKey, interval: 0, height: 34 })
+          : {
+              dataKey: categoryKey,
+              interval: 0,
+              height: categoryTickTwoLine ? 56 : 34,
+              tick: categoryTickTwoLine ? twoLineCategoryTickColumns : axisTick(colors)
+            })
       },
       yAxisProps: isHorizontal
         ? {
             dataKey: categoryKey,
             type: "category",
             width: HORIZONTAL_CATEGORY_AXIS_WIDTH,
-            tick: categoryTickTwoLine ? twoLineCategoryTick : undefined
+            tick: categoryTickTwoLine ? twoLineCategoryTickHorizontal : undefined
           }
         : { domain: [0, niceYAxis.upper], ticks: niceYAxis.ticks, allowDecimals: false },
       chartLayout: isHorizontal ? "vertical" : "horizontal",
@@ -929,6 +956,7 @@
       orientation = "columns",
       categoryKey = "team",
       categoryTickTwoLine = false,
+      categorySecondaryLabels = null,
       colorByCategoryKey = "",
       categoryColors = null,
       gridVertical = false,
@@ -946,6 +974,7 @@
         orientation,
         categoryKey,
         categoryTickTwoLine,
+        categorySecondaryLabels,
         colorByCategoryKey,
         categoryColors,
         gridVertical,
