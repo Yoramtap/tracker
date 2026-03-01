@@ -14,6 +14,8 @@
     Line,
     BarChart,
     Bar,
+    ReferenceDot,
+    ReferenceLine,
     Cell,
     LabelList,
     CartesianGrid,
@@ -157,10 +159,16 @@
     return rows;
   }
 
-  function makeTooltipLine(key, text, colors, { margin = "2px 0", fontSize = "12px", fontWeight, color } = {}) {
+  function makeTooltipLine(
+    key,
+    text,
+    colors,
+    { margin = "2px 0", fontSize = "12px", fontWeight, color, lineHeight = "1.4" } = {}
+  ) {
     const style = { margin, color: color || colors.text };
     if (fontSize) style.fontSize = fontSize;
     if (fontWeight) style.fontWeight = fontWeight;
+    if (lineHeight) style.lineHeight = lineHeight;
     return h("p", { key, style }, String(text ?? ""));
   }
 
@@ -319,7 +327,7 @@
     };
   }
 
-  function renderBarChartShell({
+function renderBarChartShell({
     rows,
     colors,
     height,
@@ -331,6 +339,7 @@
     tooltipProps,
     legendNode,
     barNodes,
+    overlayNodes = [],
     gridVertical = false
   }) {
     return h(
@@ -351,7 +360,8 @@
         h(YAxis, yAxisProps),
         h(Tooltip, tooltipProps),
         legendNode,
-        ...barNodes
+        ...barNodes,
+        ...overlayNodes
       )
     );
   }
@@ -482,6 +492,7 @@
     chartLayout = "horizontal",
     colorByCategoryKey = "",
     categoryColors = null,
+    overlayDots = [],
     gridVertical = false,
     height = CHART_HEIGHTS.standard,
     margin = { top: 12, right: 12, bottom: 34, left: 12 }
@@ -568,6 +579,54 @@
         isAnimationActive: false
       }, ...barChildren);
     });
+    const overlayNodes = chartLayout === "horizontal"
+      ? (Array.isArray(overlayDots) ? overlayDots : []).flatMap((dot, index) => {
+          const keyBase = `overlay-dot-${index}`;
+          const x = dot?.x;
+          const y = toNumber(dot?.y);
+          const yBase = toNumber(dot?.yBase);
+          const r = Math.max(2, toNumber(dot?.r));
+          const haloR = Math.max(r + 3, toNumber(dot?.haloR));
+          const fill = dot?.fill || colors.teams.api;
+          const stem = Number.isFinite(yBase) && Number.isFinite(y) && y > yBase;
+          const nodes = [];
+          if (stem) {
+            nodes.push(
+              h(ReferenceLine, {
+                key: `${keyBase}-stem`,
+                segment: [{ x, y: yBase }, { x, y }],
+                stroke: dot?.stemColor || "rgba(31,51,71,0.5)",
+                strokeWidth: Number.isFinite(dot?.stemWidth) ? dot.stemWidth : 1
+              })
+            );
+          }
+          nodes.push(
+            h(ReferenceDot, {
+              key: `${keyBase}-halo`,
+              x,
+              y,
+              r: haloR,
+              fill,
+              fillOpacity: Number.isFinite(dot?.haloOpacity) ? dot.haloOpacity : 0.22,
+              stroke: "none",
+              isFront: true
+            })
+          );
+          nodes.push(
+            h(ReferenceDot, {
+              key: `${keyBase}-core`,
+              x,
+              y,
+              r,
+              fill,
+              stroke: dot?.stroke || "rgba(255,255,255,0.95)",
+              strokeWidth: Number.isFinite(dot?.strokeWidth) ? dot.strokeWidth : 1.4,
+              isFront: true
+            })
+          );
+          return nodes;
+        })
+      : [];
     return renderBarChartShell({
       rows,
       colors,
@@ -592,6 +651,7 @@
         ? renderLegendNode({ colors, defs, type: "rect", hiddenKeys, setHiddenKeys })
         : null,
       barNodes,
+      overlayNodes,
       gridVertical
     });
   }
@@ -837,6 +897,7 @@
     categoryKey = "team",
     categoryTickTwoLine = false,
     categorySecondaryLabels = null,
+    overlayDots = [],
     colorByCategoryKey = "",
     categoryColors = null,
     gridVertical = false,
@@ -887,6 +948,7 @@
       showLegend,
       colorByCategoryKey,
       categoryColors,
+      overlayDots,
       gridVertical,
       height: CHART_HEIGHTS.dense,
       margin: { top: 14, right: 12, bottom: 34, left: 12 },
@@ -915,31 +977,51 @@
         : { domain: [0, niceYAxis.upper], ticks: niceYAxis.ticks, allowDecimals: false },
       chartLayout: isHorizontal ? "vertical" : "horizontal",
       tooltipProps: {
-        content: createTooltipContent(colors, (row, payload) => [
-          tooltipTitleLine(
-            "team",
-            timeWindowLabel
-              ? `${row?.[categoryKey] || row.team || "Category"} • ${timeWindowLabel}`
-              : `${row?.[categoryKey] || row.team || "Category"}`,
-            colors
-          ),
-          ...payload.map((item) => {
+        content: createTooltipContent(colors, (row, payload) => {
+          const categoryLabel = row?.teamWithSampleBase || row?.[categoryKey] || row.team || "Category";
+          const teamLabel = String(categoryLabel).replace(/\s*\(.*\)\s*$/, "");
+          const nMatch = String(categoryLabel).match(/\(n=(\d+)\)/);
+          const teamSample = nMatch ? toWhole(Number(nMatch[1])) : null;
+          const hasDone = Number.isFinite(row?.doneCount);
+          const lines = [
+            tooltipTitleLine(
+              "team",
+              hasDone ? teamLabel : (timeWindowLabel ? `${categoryLabel} • ${timeWindowLabel}` : `${categoryLabel}`),
+              colors
+            )
+          ];
+          if (hasDone) {
+            const teamSampleText = Number.isFinite(teamSample) ? String(toWhole(teamSample)) : "-";
+            lines.push(
+              makeTooltipLine(
+                "meta",
+                `Sample: n=${teamSampleText}, done=${toWhole(row.doneCount)}`,
+                colors,
+                { margin: "2px 0 6px", fontSize: "12px", fontWeight: 600, lineHeight: "1.45" }
+              )
+            );
+          }
+          payload.forEach((item) => {
             const key = item?.dataKey;
             const meta = row?.[`meta_${key}`] || {};
             const valueDays = toWhole(item?.value);
-            if (valueDays <= 0) return null;
+            if (valueDays <= 0) return;
             const sample = toWhole(meta.n);
-            if (sample <= 0) return null;
+            if (sample <= 0) return;
             const medianDays = toWhole(meta.median);
             const avgDays = toWhole(meta.average);
             const seriesName = meta.team || item.name;
-            return makeTooltipLine(
-              key,
-              `${seriesName}: median = ${medianDays} days, avg = ${avgDays} days, n = ${sample}`,
-              colors
+            lines.push(
+              makeTooltipLine(
+                key,
+                `${seriesName}: median ${medianDays}d, avg ${avgDays}d, n=${sample}`,
+                colors,
+                { margin: "2px 0", fontSize: "12px", lineHeight: "1.45" }
+              )
             );
-          }).filter(Boolean)
-        ]),
+          });
+          return lines;
+        }),
         cursor: tooltipCursor
       }
     });
@@ -957,6 +1039,7 @@
       categoryKey = "team",
       categoryTickTwoLine = false,
       categorySecondaryLabels = null,
+      overlayDots = [],
       colorByCategoryKey = "",
       categoryColors = null,
       gridVertical = false,
@@ -975,6 +1058,7 @@
         categoryKey,
         categoryTickTwoLine,
         categorySecondaryLabels,
+        overlayDots,
         colorByCategoryKey,
         categoryColors,
         gridVertical,

@@ -634,13 +634,15 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
     metric,
     ideaScope: ideaScopeMeta.key
   });
-  const rowsWithSample = rows.map((row) => {
+  const rowsWithCounts = rows.map((row) => {
     const leadN = toCount(row?.meta_lead?.n);
     const cycleN = toCount(row?.meta_cycle?.n);
     const rowSampleCount = selectedSeries.length === 2 ? Math.max(leadN, cycleN) : selectedSeries[0] === "lead" ? leadN : cycleN;
+    const doneCount = readDoneCountForTeam(publicAggregates, selectedYear, row.team);
     return {
       ...row,
-      teamWithSample: `${row.team} (n=${rowSampleCount})`
+      teamWithSampleBase: `${row.team} (n=${rowSampleCount})`,
+      doneCount
     };
   });
   // Keep axis fixed across year toggles, but snap to a clean boundary.
@@ -654,6 +656,13 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(
     selectedSeriesScope
   );
   const yUpper = Math.max(50, Math.ceil(rawYUpper / 50) * 50);
+  const rowsWithSample = rowsWithCounts.map((row) => {
+    const done = toNumber(row.doneCount);
+    return {
+      ...row,
+      teamWithSample: String(row.teamWithSampleBase).replace(/\)$/, `, done=${done})`)
+    };
+  });
   const seriesDefs = [];
   if (selectedSeriesScope.lead) {
     seriesDefs.push({
