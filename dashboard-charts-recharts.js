@@ -118,13 +118,6 @@
     return viewportWidthPx() <= 680;
   }
 
-  function legendRowsForViewport(itemCount) {
-    const count = Math.max(1, toWhole(itemCount));
-    const width = viewportWidthPx();
-    const itemsPerRow = width <= 420 ? 2 : width <= 680 ? 3 : width <= 1024 ? 4 : 6;
-    return Math.max(1, Math.ceil(count / itemsPerRow));
-  }
-
   function tickIntervalForMobileLabels(pointsCount) {
     const count = Math.max(0, toWhole(pointsCount));
     if (count <= 8) return 0;
@@ -460,8 +453,6 @@
   }
 
   function renderLegendNode({ colors, defs, hiddenKeys, setHiddenKeys, compact = false }) {
-    const legendRows = legendRowsForViewport(Array.isArray(defs) ? defs.length : 0);
-    const shouldOpenByDefault = !compact && legendRows <= 2;
     const shortLabel = (value) => {
       const raw = String(value || "");
       if (!compact) return raw;
@@ -475,7 +466,7 @@
       "details",
       {
         className: "series-drawer",
-        open: shouldOpenByDefault
+        open: true
       },
       h(
         "summary",

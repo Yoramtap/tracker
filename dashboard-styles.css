@@ -109,13 +109,13 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   border-radius: 999px;
   border: 2px solid rgba(31, 51, 71, 0.6);
   background: rgba(247, 251, 255, 0.96);
   color: rgba(31, 51, 71, 0.98);
-  font-size: 0.72rem;
+  font-size: 0.88rem;
   font-weight: 700;
   line-height: 1;
   cursor: help;
@@ -193,12 +193,12 @@ h2 {
 }
 
 .series-drawer {
-  border: 1px solid rgba(31, 51, 71, 0.26);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.9);
-  width: min(100%, 760px);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  width: 100%;
   margin: 0 auto;
-  padding: 10px 10px;
+  padding: 2px 0;
   position: relative;
 }
 
@@ -230,12 +230,12 @@ h2 {
 }
 
 .series-drawer__item {
-  border: 1px solid rgba(31, 51, 71, 0.2);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.88);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--text);
-  padding: 6px 10px;
-  min-height: 36px;
+  padding: 2px 6px;
+  min-height: 30px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -393,8 +393,8 @@ h2 {
 }
 
 .help-wrap--in-toggle .help-tip {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   font-size: 0.88rem;
 }
 
@@ -444,8 +444,8 @@ h2 {
   }
 
   .help-wrap--in-toggle .help-tip {
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
   }
 
   .help-wrap--in-toggle .help-popover {
@@ -465,7 +465,7 @@ h2 {
 
   .series-drawer {
     width: 100%;
-    padding: 10px 8px;
+    padding: 2px 0;
   }
 
   .series-drawer__summary {
@@ -480,8 +480,8 @@ h2 {
   }
 
   .series-drawer__item {
-    min-height: 42px;
-    padding: 8px 10px;
+    min-height: 36px;
+    padding: 4px 8px;
     width: 100%;
     justify-content: flex-start;
   }
