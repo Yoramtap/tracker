@@ -420,7 +420,7 @@
                 margin: "2px 0",
                 color: line?.style?.color || colors.text,
                 fontSize: line?.style?.fontSize || "12px",
-                fontWeight: line?.style?.fontWeight || 500,
+                fontWeight: 500,
                 lineHeight: line?.style?.lineHeight || "1.4"
               }
             },
@@ -1343,10 +1343,15 @@
             const teamSampleText = Number.isFinite(teamSample) ? String(toWhole(teamSample)) : "-";
             lines.push(
               makeTooltipLine(
-                "meta",
-                `Sample: n=${teamSampleText}, done=${toWhole(row.doneCount)}`,
+                "sample",
+                "Sample",
                 colors,
-                { margin: "2px 0 6px", fontSize: "12px", fontWeight: 600, lineHeight: "1.45" }
+                {
+                  margin: "2px 0 6px",
+                  fontSize: "12px",
+                  lineHeight: "1.45",
+                  subItems: [`n = ${teamSampleText}`, `done = ${toWhole(row.doneCount)}`]
+                }
               )
             );
           }
@@ -1363,9 +1368,18 @@
             lines.push(
               makeTooltipLine(
                 key,
-                `${seriesName}: median ${medianDays}d, avg ${avgDays}d, n=${sample}`,
+                String(seriesName),
                 colors,
-                { margin: "2px 0", fontSize: "12px", lineHeight: "1.45" }
+                {
+                  margin: "2px 0",
+                  fontSize: "12px",
+                  lineHeight: "1.45",
+                  subItems: [
+                    `median = ${medianDays} days`,
+                    `average = ${avgDays} days`,
+                    `n = ${sample}`
+                  ]
+                }
               )
             );
           });
