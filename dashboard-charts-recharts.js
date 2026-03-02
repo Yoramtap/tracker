@@ -77,11 +77,29 @@
     return Number.isFinite(fallback) && fallback > 0 ? fallback : 1280;
   }
 
+  function viewportHeightPx() {
+    if (typeof window === "undefined") return 900;
+    const direct = Number(window.innerHeight);
+    if (Number.isFinite(direct) && direct > 0) return direct;
+    const fallback = Number(document?.documentElement?.clientHeight);
+    return Number.isFinite(fallback) && fallback > 0 ? fallback : 900;
+  }
+
+  function chartModeFromUrl() {
+    if (typeof window === "undefined") return "all";
+    const params = new URLSearchParams(window.location.search);
+    const chart = String(params.get("chart") || "").toLowerCase();
+    if (chart === "trend") return "trend";
+    return "all";
+  }
+
   function trendLayoutForViewport(pointsCount) {
     const width = viewportWidthPx();
+    const isTrendOnly = chartModeFromUrl() === "trend";
+    const trendOnlyHeight = Math.max(360, Math.min(920, Math.round(viewportHeightPx() * 0.62)));
     if (width <= 680) {
       return {
-        chartHeight: 224,
+        chartHeight: isTrendOnly ? Math.max(300, Math.min(680, Math.round(viewportHeightPx() * 0.5))) : 224,
         margin: { top: 10, right: 8, bottom: 24, left: 8 },
         xTickFontSize: 10,
         yTickFontSize: 10,
@@ -93,7 +111,7 @@
     }
     if (width <= 1024) {
       return {
-        chartHeight: 252,
+        chartHeight: isTrendOnly ? Math.max(340, Math.min(760, Math.round(viewportHeightPx() * 0.56))) : 252,
         margin: { top: 12, right: 10, bottom: 28, left: 10 },
         xTickFontSize: 11,
         yTickFontSize: 11,
@@ -104,7 +122,7 @@
       };
     }
     return {
-      chartHeight: CHART_HEIGHTS.standard,
+      chartHeight: isTrendOnly ? trendOnlyHeight : CHART_HEIGHTS.standard,
       margin: { top: 12, right: 12, bottom: 32, left: 12 },
       xTickFontSize: 11,
       yTickFontSize: 11,
