@@ -407,6 +407,34 @@
     return mapped;
   }
 
+  function hexToRgb(hex) {
+    const value = String(hex || "").trim();
+    const short = /^#([0-9a-f]{3})$/i.exec(value);
+    if (short) {
+      const chars = short[1].split("");
+      return chars.map((char) => Number.parseInt(char + char, 16));
+    }
+    const full = /^#([0-9a-f]{6})$/i.exec(value);
+    if (!full) return null;
+    const parsed = full[1];
+    return [
+      Number.parseInt(parsed.slice(0, 2), 16),
+      Number.parseInt(parsed.slice(2, 4), 16),
+      Number.parseInt(parsed.slice(4, 6), 16)
+    ];
+  }
+
+  function blendHexWithWhite(hex, factor = 0) {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return String(hex || "");
+    const clamped = Math.max(0, Math.min(1, Number(factor) || 0));
+    const [r, g, b] = rgb.map((channel) =>
+      Math.round(channel + (255 - channel) * clamped)
+    );
+    const toHex = (value) => value.toString(16).padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+
   function twoLineCategoryTickFactory(
     colors,
     { textAnchor = "end", dy = 3, line2Dy = 14, secondaryLabels = null } = {}
@@ -726,7 +754,10 @@
       if (shouldColorByCategory) {
         rows.forEach((row, index) => {
           const categoryValue = String(row?.[colorByCategoryKey] || "");
-          const fill = effectiveCategoryColors?.[categoryValue] || def.fill;
+          const fill =
+            def?.categoryColors?.[categoryValue] ||
+            effectiveCategoryColors?.[categoryValue] ||
+            def.fill;
           barChildren.push(
             h(Cell, {
               key: `cell-${def.dataKey}-${index}`,
@@ -988,6 +1019,17 @@
 
   function renderDevelopmentTimeVsUatTimeChart({ containerId, rows, colors, devColor, uatColor, yTicks }) {
     const chartRows = Array.isArray(rows) ? rows : [];
+    const priorityBaseByLabel = {
+      Highest: colors.priorities?.highest || "#cc7a73",
+      High: colors.priorities?.high || "#d6a66b",
+      Medium: colors.priorities?.medium || "#8f98a9"
+    };
+    const devTintByLabel = Object.fromEntries(
+      Object.entries(priorityBaseByLabel).map(([label, hex]) => [label, blendHexWithWhite(hex, 0.34)])
+    );
+    const uatTintByLabel = Object.fromEntries(
+      Object.entries(priorityBaseByLabel).map(([label, hex]) => [label, blendHexWithWhite(hex, 0.04)])
+    );
     const yUpper = computeYUpper(
       [
         ...chartRows.map((row) => toNumber(row.devMedian)),
@@ -998,12 +1040,13 @@
     renderGroupedBars("management", containerId, chartRows.length > 0, {
       rows: chartRows,
       defs: [
-        { dataKey: "devMedian", name: "Median Dev", fill: devColor },
-        { dataKey: "uatMedian", name: "Median UAT", fill: uatColor }
+        { dataKey: "devMedian", name: "Median Dev", fill: devColor, categoryColors: devTintByLabel },
+        { dataKey: "uatMedian", name: "Median UAT", fill: uatColor, categoryColors: uatTintByLabel }
       ],
       colors,
       yUpper,
       height: singleChartHeightForMode("management", CHART_HEIGHTS.standard),
+      colorByCategoryKey: "label",
       yAxisProps:
         Array.isArray(yTicks) && yTicks.length > 1
           ? { domain: [0, yTicks[yTicks.length - 1]], ticks: yTicks, allowDecimals: false }
