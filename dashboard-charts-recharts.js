@@ -115,6 +115,32 @@
     return Math.max(largeMin, Math.min(920, Math.round(viewportHeight * 0.62)));
   }
 
+  function isCompactViewport() {
+    return viewportWidthPx() <= 680;
+  }
+
+  function legendRowsForViewport(itemCount) {
+    const count = Math.max(1, toWhole(itemCount));
+    const width = viewportWidthPx();
+    const itemsPerRow = width <= 420 ? 2 : width <= 680 ? 3 : width <= 1024 ? 4 : 6;
+    return Math.max(1, Math.ceil(count / itemsPerRow));
+  }
+
+  function legendHeightForDefs(defsCount, compact) {
+    const rows = legendRowsForViewport(defsCount);
+    const rowHeight = compact ? 28 : 24;
+    const base = compact ? 36 : 30;
+    return Math.max(base, rows * rowHeight + 6);
+  }
+
+  function tickIntervalForMobileLabels(pointsCount) {
+    const count = Math.max(0, toWhole(pointsCount));
+    if (count <= 8) return 0;
+    if (count <= 12) return 1;
+    if (count <= 18) return 2;
+    return 3;
+  }
+
   function trendLayoutForViewport(pointsCount) {
     const width = viewportWidthPx();
     if (width <= 680) {
@@ -317,7 +343,7 @@
   }
 
   function renderLegendNode({ colors, defs, type, hiddenKeys, setHiddenKeys, compact = false }) {
-    const legendHeight = compact ? 52 : 30;
+    const legendHeight = legendHeightForDefs(Array.isArray(defs) ? defs.length : 0, compact);
     return h(
       Legend,
       {
@@ -813,6 +839,8 @@ function renderBarChartShell({
   function CompositionChartView({ rows, colors, scope }) {
     const [hiddenKeys, setHiddenKeys] = React.useState(() => new Set());
     const isAllTeams = scope === "all";
+    const compactViewport = isCompactViewport();
+    const xInterval = compactViewport ? tickIntervalForMobileLabels(rows.length) : 0;
     const categoryGap =
       isAllTeams || rows.length > 14 ? BAR_LAYOUT.categoryGap : rows.length <= 8 ? "2%" : "8%";
     const singleTeamMaxBarSize = rows.length <= 12 ? 34 : rows.length <= 20 ? 28 : BAR_LAYOUT.normalMax;
@@ -843,12 +871,12 @@ function renderBarChartShell({
       xAxisProps: {
         dataKey: "bucketLabel",
         stroke: colors.text,
-        tick: axisTick(colors),
+        tick: { ...axisTick(colors), fontSize: compactViewport ? 11 : 12 },
         angle: isAllTeams ? -90 : -25,
         textAnchor: "end",
-        interval: 0,
-        minTickGap: isAllTeams ? 0 : 16,
-        height: isAllTeams ? 78 : 48,
+        interval: xInterval,
+        minTickGap: isAllTeams ? (compactViewport ? 8 : 0) : compactViewport ? 10 : 16,
+        height: isAllTeams ? (compactViewport ? 86 : 78) : compactViewport ? 44 : 48,
         tickFormatter: (value, index) => {
           if (!isAllTeams) return value;
           const row = rows[index] || {};
@@ -899,9 +927,13 @@ function renderBarChartShell({
 
   function renderUatPriorityAgingChart({ containerId, rows, buckets: _buckets, colors }) {
     const chartRows = Array.isArray(rows) ? rows : [];
-    const sampleByBucket = Object.fromEntries(
-      chartRows.map((row) => [String(row.bucketLabel || ""), toWhole(row.total)])
-    );
+    const compactViewport = isCompactViewport();
+    const bucketShortLabels = {
+      "1-2 weeks": "1-2w",
+      "1 month": "1m",
+      "2 months": "2m",
+      "more than two months": "2m+"
+    };
     const prioritySeries = ["medium", "high", "highest"].map((key) => ({
       dataKey: key,
       name: PRIORITY_CONFIG.find((item) => item.key === key)?.label || key,
@@ -926,11 +958,12 @@ function renderBarChartShell({
         xAxisProps: {
           dataKey: "bucketLabel",
           interval: 0,
-          height: 52,
+          height: compactViewport ? 42 : 52,
+          tick: { ...axisTick(colors), fontSize: compactViewport ? 11 : 12 },
           tickFormatter: (value) => {
             const key = String(value || "");
-            const sample = toWhole(sampleByBucket[key]);
-            return `${key}\n(n=${sample})`;
+            if (!compactViewport) return key;
+            return bucketShortLabels[key] || key;
           }
         },
         tooltipProps: {
@@ -1021,6 +1054,7 @@ function renderBarChartShell({
     tooltipCursor = { fill: BAR_CURSOR_FILL }
   }) {
     const chartRows = Array.isArray(rows) ? rows : [];
+    const compactViewport = isCompactViewport();
     const seriesDefs = (Array.isArray(defs) ? defs : []).map((def) => ({
       key: def.key,
       name: def.name || def.label || def.key,
@@ -1036,6 +1070,7 @@ function renderBarChartShell({
         ? Math.ceil(yUpperOverride)
         : computeYUpper(yValues, { min: 1, pad: 1.15 });
     const isHorizontal = orientation === "horizontal";
+    const effectiveCategoryTickTwoLine = categoryTickTwoLine && !compactViewport;
     const niceAxis = isHorizontal ? buildNiceNumberAxis(yUpper) : null;
     const niceYAxis = !isHorizontal ? buildNiceNumberAxis(yUpper) : null;
     const twoLineCategoryTickHorizontal = twoLineCategoryTickFactory(colors, {
@@ -1079,9 +1114,14 @@ function renderBarChartShell({
             }
           : {
               dataKey: categoryKey,
-              interval: 0,
-              height: categoryTickTwoLine ? 72 : 34,
-              tick: categoryTickTwoLine ? twoLineCategoryTickColumns : axisTick(colors)
+              interval: compactViewport ? tickIntervalForMobileLabels(chartRows.length) : 0,
+              angle: compactViewport ? -28 : 0,
+              textAnchor: compactViewport ? "end" : "middle",
+              height: effectiveCategoryTickTwoLine ? 72 : compactViewport ? 52 : 34,
+              minTickGap: compactViewport ? 10 : 4,
+              tick: effectiveCategoryTickTwoLine
+                ? twoLineCategoryTickColumns
+                : { ...axisTick(colors), fontSize: compactViewport ? 11 : 12 }
             })
       },
       yAxisProps: isHorizontal
@@ -1089,7 +1129,7 @@ function renderBarChartShell({
             dataKey: categoryKey,
             type: "category",
             width: HORIZONTAL_CATEGORY_AXIS_WIDTH,
-            tick: categoryTickTwoLine ? twoLineCategoryTickHorizontal : undefined
+            tick: effectiveCategoryTickTwoLine ? twoLineCategoryTickHorizontal : undefined
           }
         : { domain: [0, niceYAxis.upper], ticks: niceYAxis.ticks, allowDecimals: false },
       chartLayout: isHorizontal ? "vertical" : "horizontal",
