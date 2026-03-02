@@ -271,13 +271,21 @@
     key,
     text,
     colors,
-    { margin = "2px 0", fontSize = "12px", fontWeight, color, lineHeight = "1.4" } = {}
+    { margin = "2px 0", fontSize = "12px", fontWeight, color, lineHeight = "1.4", subItems = null, isTitle = false } = {}
   ) {
-    const style = { margin, color: color || colors.text };
-    if (fontSize) style.fontSize = fontSize;
-    if (fontWeight) style.fontWeight = fontWeight;
-    if (lineHeight) style.lineHeight = lineHeight;
-    return h("p", { key, style }, String(text ?? ""));
+    return {
+      key,
+      text: String(text ?? ""),
+      style: {
+        margin,
+        color: color || colors.text,
+        fontSize: fontSize || undefined,
+        fontWeight: fontWeight || undefined,
+        lineHeight: lineHeight || undefined
+      },
+      subItems: Array.isArray(subItems) ? subItems : null,
+      isTitle: Boolean(isTitle)
+    };
   }
 
   function trendLineDefs(colors) {
@@ -298,7 +306,12 @@
   }
 
   function tooltipTitleLine(key, text, colors) {
-    return makeTooltipLine(key, text, colors, { margin: "0 0 6px", fontWeight: 600, fontSize: null });
+    return makeTooltipLine(key, text, colors, {
+      margin: "0 0 6px",
+      fontWeight: 700,
+      fontSize: null,
+      isTitle: true
+    });
   }
 
   function createTooltipContent(colors, buildLines) {
@@ -318,6 +331,27 @@
   }
 
   function renderTooltipCard(colors, blocks) {
+    const normalizeLine = (entry, index) => {
+      if (!entry) return null;
+      if (typeof entry === "string") return { key: `line-${index}`, text: entry, subItems: null, isTitle: false, style: {} };
+      if (typeof entry === "object" && "text" in entry) return entry;
+      return null;
+    };
+    const asSubItems = (line) => {
+      if (!line || line.isTitle) return [];
+      if (Array.isArray(line.subItems) && line.subItems.length > 0) {
+        return line.subItems.map((item) => String(item || "").trim()).filter(Boolean);
+      }
+      const text = String(line.text || "");
+      const parts = text.split(",").map((part) => part.trim()).filter(Boolean);
+      if (parts.length <= 1) return [];
+      line.text = parts[0];
+      return parts.slice(1);
+    };
+    const lines = (Array.isArray(blocks) ? blocks : [])
+      .map(normalizeLine)
+      .filter(Boolean);
+
     return h(
       "div",
       {
@@ -330,7 +364,61 @@
           boxShadow: "0 4px 14px rgba(0,0,0,0.1)"
         }
       },
-      blocks
+      h(
+        "ul",
+        {
+          style: {
+            margin: 0,
+            paddingLeft: "18px",
+            listStyleType: "disc"
+          }
+        },
+        lines.map((line, index) => {
+          const subItems = asSubItems(line);
+          return h(
+            "li",
+            {
+              key: line.key || `tooltip-li-${index}`,
+              style: {
+                margin: "2px 0",
+                color: line?.style?.color || colors.text,
+                fontSize: line?.style?.fontSize || "12px",
+                fontWeight: line?.style?.fontWeight || (line.isTitle ? 700 : 500),
+                lineHeight: line?.style?.lineHeight || "1.4"
+              }
+            },
+            h("span", null, line.text),
+            subItems.length > 0
+              ? h(
+                  "ul",
+                  {
+                    style: {
+                      margin: "4px 0 0",
+                      paddingLeft: "16px",
+                      listStyleType: "circle"
+                    }
+                  },
+                  subItems.map((sub, subIndex) =>
+                    h(
+                      "li",
+                      {
+                        key: `${line.key || index}-sub-${subIndex}`,
+                        style: {
+                          margin: "1px 0",
+                          fontSize: "11px",
+                          fontWeight: 500,
+                          lineHeight: "1.35",
+                          color: "rgba(31,51,71,0.9)"
+                        }
+                      },
+                      sub
+                    )
+                  )
+                )
+              : null
+          );
+        })
+      )
     );
   }
 
