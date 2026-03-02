@@ -576,47 +576,58 @@ function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggrega
   const yearLabel = year;
 
   const themeColors = getThemeColors();
-  const hashTeamColor = (teamName) => {
+  const nonSignalPalette = [
+    "#6f9fc6",
+    "#8a79bc",
+    "#b88f56",
+    "#5f86ad",
+    "#7f74a8",
+    "#6f7f92",
+    "#8e7f5f",
+    "#5e78a1",
+    "#7a6e9f",
+    "#9a855f",
+    "#6588b3",
+    "#746a8f"
+  ];
+  const hashTeam = (teamName) => {
     const text = String(teamName || "").trim().toLowerCase();
     let hash = 0;
-    for (let i = 0; i < text.length; i += 1) {
-      hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+    for (let i = 0; i < text.length; i += 1) hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+    return hash;
+  };
+  const pickUniqueColor = (teamName, used) => {
+    const start = hashTeam(teamName) % nonSignalPalette.length;
+    for (let offset = 0; offset < nonSignalPalette.length; offset += 1) {
+      const candidate = nonSignalPalette[(start + offset) % nonSignalPalette.length];
+      if (!used.has(candidate)) return candidate;
     }
-    // Keep non-core teams in a neutral, non-signal palette (avoid red/green hues).
-    const safePalette = [
-      "#6f9fc6", // blue
-      "#8a79bc", // violet
-      "#6f7f92", // slate
-      "#b88f56", // amber-brown
-      "#5f86ad", // steel blue
-      "#7f74a8" // muted purple
-    ];
-    return safePalette[hash % safePalette.length];
+    const hueCandidates = [208, 220, 232, 244, 256, 268, 282, 36, 30, 24];
+    const hash = hashTeam(teamName);
+    const hue = hueCandidates[hash % hueCandidates.length];
+    const lightness = 44 + ((hash >> 3) % 14);
+    return `hsl(${hue} 38% ${lightness}%)`;
   };
-  const bugPaletteFallback = [
-    themeColors.teams.api,
-    themeColors.teams.legacy,
-    themeColors.teams.react,
-    themeColors.teams.bc
-  ];
-  const resolveTeamColor = (teamName, index) => {
-    const raw = String(teamName || "").trim();
+  const orderedTeams = orderProductCycleTeams(teams);
+  const teamColorMap = {};
+  const usedColors = new Set();
+  orderedTeams.forEach((team) => {
+    const raw = String(team || "").trim();
     const key = raw.toLowerCase();
-    if (key === "api" || key.includes("api")) return themeColors.teams.api;
-    if (key === "legacy" || key.includes("legacy") || key.includes("frontend")) return themeColors.teams.legacy;
-    if (key === "react" || key.includes("react")) return "#5f86ad";
-    if (key === "broadcast" || key === "bc" || key.includes("broadcast")) return themeColors.teams.bc;
-    const uniqueFallback = hashTeamColor(raw || `team-${index}`);
-    const clashWithCore = bugPaletteFallback.some((color) => String(color).toLowerCase() === String(uniqueFallback).toLowerCase());
-    return clashWithCore ? hashTeamColor(`${raw}-alt-${index}`) : uniqueFallback;
-  };
-  const teamColorMap = Object.fromEntries(
-    orderProductCycleTeams(teams).map((team, index) => [team, resolveTeamColor(team, index)])
-  );
+    let color = "";
+    if (key === "api" || key.includes("api")) color = themeColors.teams.api;
+    else if (key === "legacy" || key.includes("legacy")) color = themeColors.teams.legacy;
+    else if (key === "react" || key.includes("react")) color = "#5f86ad";
+    else if (key === "broadcast" || key === "bc" || key.includes("broadcast")) color = themeColors.teams.bc;
+    else color = pickUniqueColor(raw, usedColors);
+    if (usedColors.has(color)) color = pickUniqueColor(`${raw}-unique`, usedColors);
+    teamColorMap[team] = color;
+    usedColors.add(color);
+  });
   const { teamDefs: lifecycleTeamDefsBase, rows } = buildLifecycleRowsByPhaseAndTeam(publicAggregates, year, teams);
-  const teamDefs = lifecycleTeamDefsBase.map((teamDef, index) => ({
+  const teamDefs = lifecycleTeamDefsBase.map((teamDef) => ({
     ...teamDef,
-    color: bugPaletteFallback[index % bugPaletteFallback.length],
+    color: themeColors.teams.api,
     showSeriesLabel: false,
     metaTeamColorMap: teamColorMap
   }));
