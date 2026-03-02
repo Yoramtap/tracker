@@ -198,7 +198,7 @@ h2 {
   background: rgba(255, 255, 255, 0.9);
   width: min(100%, 760px);
   margin: 0 auto;
-  padding: 12px 10px 10px;
+  padding: 10px 10px;
   position: relative;
 }
 
@@ -209,14 +209,11 @@ h2 {
   font-size: 0.78rem;
   font-weight: 600;
   color: rgba(31, 51, 71, 0.86);
-  display: inline-block;
+  display: none;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   padding: 0 6px;
-  position: absolute;
-  top: -10px;
-  left: 10px;
-  background: var(--canvas-bg);
+  position: static;
 }
 
 .series-drawer__summary::-webkit-details-marker {
@@ -475,13 +472,11 @@ h2 {
 
   .series-drawer {
     width: 100%;
-    padding: 12px 8px 10px;
+    padding: 10px 8px;
   }
 
   .series-drawer__summary {
     font-size: 0.8rem;
-    top: -10px;
-    left: 10px;
   }
 
   .series-drawer__items {

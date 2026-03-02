@@ -582,8 +582,16 @@ function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggrega
     for (let i = 0; i < text.length; i += 1) {
       hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
     }
-    const hue = hash % 360;
-    return `hsl(${hue} 45% 52%)`;
+    // Keep non-core teams in a neutral, non-signal palette (avoid red/green hues).
+    const safePalette = [
+      "#6f9fc6", // blue
+      "#8a79bc", // violet
+      "#6f7f92", // slate
+      "#b88f56", // amber-brown
+      "#5f86ad", // steel blue
+      "#7f74a8" // muted purple
+    ];
+    return safePalette[hash % safePalette.length];
   };
   const bugPaletteFallback = [
     themeColors.teams.api,
@@ -596,7 +604,7 @@ function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggrega
     const key = raw.toLowerCase();
     if (key === "api" || key.includes("api")) return themeColors.teams.api;
     if (key === "legacy" || key.includes("legacy") || key.includes("frontend")) return themeColors.teams.legacy;
-    if (key === "react" || key.includes("react")) return themeColors.teams.react;
+    if (key === "react" || key.includes("react")) return "#5f86ad";
     if (key === "broadcast" || key === "bc" || key.includes("broadcast")) return themeColors.teams.bc;
     const uniqueFallback = hashTeamColor(raw || `team-${index}`);
     const clashWithCore = bugPaletteFallback.some((color) => String(color).toLowerCase() === String(uniqueFallback).toLowerCase());
