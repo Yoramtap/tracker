@@ -483,17 +483,27 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(publicAggregat
 
   const themeColors = getThemeColors();
   const nonSignalTeamPalette = [
-    "#6f9fc6",
-    "#8a79bc",
-    "#b88f56",
-    "#5f86ad",
-    "#7f74a8",
-    "#6f7f92",
-    "#8e7f5f",
-    "#6588b3",
-    "#7a6e9f",
-    "#9a855f"
+    "#4f8fcb", // blue
+    "#c78b2e", // amber
+    "#7b63c7", // violet
+    "#2f9fb4", // cyan
+    "#5e6b84", // slate
+    "#b07aa1", // mauve
+    "#8a6a4a", // brown
+    "#4a758e" // deep teal
   ];
+  const explicitTeamColors = {
+    api: "#4f8fcb",
+    frontend: "#c78b2e",
+    legacy: "#c78b2e",
+    react: "#2f9fb4",
+    broadcast: "#7b63c7",
+    bc: "#7b63c7",
+    orchestration: "#5e6b84",
+    titanium: "#b07aa1",
+    shift: "#8a6a4a",
+    unmapped: "#4a758e"
+  };
   const hashTeam = (teamName) => {
     const text = String(teamName || "").trim().toLowerCase();
     let hash = 0;
@@ -522,10 +532,11 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(publicAggregat
   const resolveTeamBaseColor = (teamName, index) => {
     const raw = String(teamName || "").trim();
     const key = raw.toLowerCase();
-    if (key === "api" || key.includes("api")) return themeColors.teams.api;
-    if (key === "legacy" || key.includes("legacy") || key.includes("frontend")) return themeColors.teams.legacy;
-    if (key === "react" || key.includes("react")) return themeColors.teams.react;
-    if (key === "broadcast" || key === "bc" || key.includes("broadcast")) return themeColors.teams.bc;
+    if (explicitTeamColors[key]) return explicitTeamColors[key];
+    if (key.includes("api")) return explicitTeamColors.api;
+    if (key.includes("legacy") || key.includes("frontend")) return explicitTeamColors.frontend;
+    if (key.includes("react")) return explicitTeamColors.react;
+    if (key.includes("broadcast")) return explicitTeamColors.broadcast;
     return nonSignalTeamPalette[hashTeam(raw || `team-${index}`) % nonSignalTeamPalette.length];
   };
   const teamColorMap = Object.fromEntries(
@@ -635,19 +646,27 @@ function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggrega
 
   const themeColors = getThemeColors();
   const nonSignalPalette = [
-    "#6f9fc6",
-    "#8a79bc",
-    "#b88f56",
-    "#5f86ad",
-    "#7f74a8",
-    "#6f7f92",
-    "#8e7f5f",
-    "#5e78a1",
-    "#7a6e9f",
-    "#9a855f",
-    "#6588b3",
-    "#746a8f"
+    "#4f8fcb",
+    "#c78b2e",
+    "#7b63c7",
+    "#2f9fb4",
+    "#5e6b84",
+    "#b07aa1",
+    "#8a6a4a",
+    "#4a758e"
   ];
+  const explicitTeamColors = {
+    api: "#4f8fcb",
+    frontend: "#c78b2e",
+    legacy: "#c78b2e",
+    react: "#2f9fb4",
+    broadcast: "#7b63c7",
+    bc: "#7b63c7",
+    orchestration: "#5e6b84",
+    titanium: "#b07aa1",
+    shift: "#8a6a4a",
+    unmapped: "#4a758e"
+  };
   const hashTeam = (teamName) => {
     const text = String(teamName || "").trim().toLowerCase();
     let hash = 0;
@@ -673,10 +692,11 @@ function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggrega
     const raw = String(team || "").trim();
     const key = raw.toLowerCase();
     let color = "";
-    if (key === "api" || key.includes("api")) color = themeColors.teams.api;
-    else if (key === "legacy" || key.includes("legacy")) color = themeColors.teams.legacy;
-    else if (key === "react" || key.includes("react")) color = "#5f86ad";
-    else if (key === "broadcast" || key === "bc" || key.includes("broadcast")) color = themeColors.teams.bc;
+    if (explicitTeamColors[key]) color = explicitTeamColors[key];
+    else if (key.includes("api")) color = explicitTeamColors.api;
+    else if (key.includes("legacy") || key.includes("frontend")) color = explicitTeamColors.frontend;
+    else if (key.includes("react")) color = explicitTeamColors.react;
+    else if (key.includes("broadcast")) color = explicitTeamColors.broadcast;
     else color = pickUniqueColor(raw, usedColors);
     if (usedColors.has(color)) color = pickUniqueColor(`${raw}-unique`, usedColors);
     teamColorMap[team] = color;
