@@ -62,6 +62,59 @@
     return Math.round(toNumber(value));
   }
 
+  function trendTickInterval(pointsCount) {
+    const count = Math.max(0, toWhole(pointsCount));
+    if (count <= 8) return 0;
+    if (count <= 16) return 1;
+    return 2;
+  }
+
+  function viewportWidthPx() {
+    if (typeof window === "undefined") return 1280;
+    const direct = Number(window.innerWidth);
+    if (Number.isFinite(direct) && direct > 0) return direct;
+    const fallback = Number(document?.documentElement?.clientWidth);
+    return Number.isFinite(fallback) && fallback > 0 ? fallback : 1280;
+  }
+
+  function trendLayoutForViewport(pointsCount) {
+    const width = viewportWidthPx();
+    if (width <= 680) {
+      return {
+        chartHeight: 224,
+        margin: { top: 10, right: 8, bottom: 24, left: 8 },
+        xTickFontSize: 10,
+        yTickFontSize: 10,
+        xTickMargin: 4,
+        minTickGap: 8,
+        legendCompact: true,
+        xAxisInterval: trendTickInterval(pointsCount)
+      };
+    }
+    if (width <= 1024) {
+      return {
+        chartHeight: 252,
+        margin: { top: 12, right: 10, bottom: 28, left: 10 },
+        xTickFontSize: 11,
+        yTickFontSize: 11,
+        xTickMargin: 5,
+        minTickGap: 6,
+        legendCompact: false,
+        xAxisInterval: pointsCount > 14 ? 1 : 0
+      };
+    }
+    return {
+      chartHeight: CHART_HEIGHTS.standard,
+      margin: { top: 12, right: 12, bottom: 32, left: 12 },
+      xTickFontSize: 11,
+      yTickFontSize: 11,
+      xTickMargin: 6,
+      minTickGap: 4,
+      legendCompact: false,
+      xAxisInterval: 0
+    };
+  }
+
   function totalForPoint(point) {
     return (
       toNumber(point?.highest) +
@@ -225,13 +278,19 @@
     );
   }
 
-  function renderLegendNode({ colors, defs, type, hiddenKeys, setHiddenKeys }) {
+  function renderLegendNode({ colors, defs, type, hiddenKeys, setHiddenKeys, compact = false }) {
+    const legendHeight = compact ? 52 : 30;
     return h(
       Legend,
       {
         verticalAlign: "top",
-        height: 30,
-        wrapperStyle: { color: colors.text, cursor: "pointer" },
+        height: legendHeight,
+        wrapperStyle: {
+          color: colors.text,
+          cursor: "pointer",
+          fontSize: compact ? 11 : 12,
+          lineHeight: compact ? "1.25" : "1.3"
+        },
         payload: defs.map((item) => ({
           value: item.name,
           type,
@@ -250,7 +309,8 @@
               style: {
                 color: "var(--text, #1f3347)",
                 opacity: hiddenKeys.has(entry?.dataKey) ? 0.45 : 1,
-                textDecoration: hiddenKeys.has(entry?.dataKey) ? "line-through" : "none"
+                textDecoration: hiddenKeys.has(entry?.dataKey) ? "line-through" : "none",
+                fontSize: compact ? 11 : 12
               }
             },
             value
@@ -459,26 +519,29 @@ function renderBarChartShell({
   function TrendChartView({ rows, colors, yUpper }) {
     const [hiddenKeys, setHiddenKeys] = React.useState(() => new Set());
     const lineDefs = trendLineDefs(colors);
+    const layout = trendLayoutForViewport(rows.length);
 
     return h(
       ResponsiveContainer,
-      { width: "100%", height: CHART_HEIGHTS.standard },
+      { width: "100%", height: layout.chartHeight },
       h(
         LineChart,
         {
           data: rows,
-          margin: { top: 12, right: 12, bottom: 32, left: 12 }
+          margin: layout.margin
         },
         h(CartesianGrid, { stroke: colors.grid, vertical: false }),
         h(XAxis, {
           dataKey: "dateShort",
           stroke: colors.text,
-          tick: { fill: colors.text, fontSize: 11 },
-          tickMargin: 6
+          tick: { fill: colors.text, fontSize: layout.xTickFontSize },
+          tickMargin: layout.xTickMargin,
+          interval: layout.xAxisInterval,
+          minTickGap: layout.minTickGap
         }),
         h(YAxis, {
           stroke: colors.text,
-          tick: { fill: colors.text, fontSize: 11 },
+          tick: { fill: colors.text, fontSize: layout.yTickFontSize },
           domain: [0, yUpper]
         }),
         h(Tooltip, {
@@ -490,7 +553,14 @@ function renderBarChartShell({
           ]),
           cursor: { stroke: colors.active, strokeWidth: 1.5, strokeDasharray: "3 3" }
         }),
-        renderLegendNode({ colors, defs: lineDefs, type: "line", hiddenKeys, setHiddenKeys }),
+        renderLegendNode({
+          colors,
+          defs: lineDefs,
+          type: "line",
+          hiddenKeys,
+          setHiddenKeys,
+          compact: layout.legendCompact
+        }),
         lineDefs.map((line) =>
           h(Line, {
             key: line.dataKey,
