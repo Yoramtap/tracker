@@ -1,22 +1,22 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-03-01T23:17:10.417Z",
+  "updatedAt": "2026-03-03T08:33:36.386Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-03-01T23:17:10.417Z",
+    "syncedAt": "2026-03-03T08:33:36.386Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). UAT aging is generated from current UAT issues and changelog-derived status entry timestamps.",
     "trendDates": {
       "source": "sprint_anchor",
-      "count": 18,
+      "count": 19,
       "firstDate": "2025-06-23",
-      "lastDate": "2026-02-16",
+      "lastDate": "2026-03-02",
       "startBoundary": "2025-06-23",
-      "endBoundary": "2026-03-01",
-      "totalResolvedBeforeConstraints": 18,
+      "endBoundary": "2026-03-03",
+      "totalResolvedBeforeConstraints": 19,
       "usedFallbackDates": false,
       "fallbackReason": "",
       "sprintAnchorStart": "2025-06-23",
-      "sprintCurrentStart": "2026-02-16"
+      "sprintCurrentStart": "2026-03-02"
     },
     "trendPriority": {
       "mode": "as_of_date",
@@ -30,8 +30,8 @@
       "status": "UAT",
       "label": "Broadcast"
     },
-    "generatedAt": "2026-03-01T23:17:09.851Z",
-    "totalIssues": 15,
+    "generatedAt": "2026-03-03T08:33:35.923Z",
+    "totalIssues": 9,
     "buckets": [
       {
         "id": "d0_7",
@@ -67,8 +67,8 @@
     "priorities": {
       "highest": {
         "count": 2,
-        "avgDays": 9.5,
-        "maxDays": 19,
+        "avgDays": 11,
+        "maxDays": 21,
         "buckets": {
           "d0_7": 1,
           "d8_14": 0,
@@ -78,27 +78,27 @@
         }
       },
       "high": {
-        "count": 5,
-        "avgDays": 42.8,
-        "maxDays": 79,
+        "count": 4,
+        "avgDays": 25.5,
+        "maxDays": 76,
         "buckets": {
-          "d0_7": 1,
+          "d0_7": 2,
           "d8_14": 0,
           "d15_30": 1,
-          "d31_60": 1,
-          "d61_plus": 2
+          "d31_60": 0,
+          "d61_plus": 1
         }
       },
       "medium": {
-        "count": 8,
-        "avgDays": 56.9,
-        "maxDays": 79,
+        "count": 3,
+        "avgDays": 51.7,
+        "maxDays": 81,
         "buckets": {
           "d0_7": 0,
           "d8_14": 0,
-          "d15_30": 2,
-          "d31_60": 2,
-          "d61_plus": 4
+          "d15_30": 1,
+          "d31_60": 1,
+          "d61_plus": 1
         }
       },
       "low": {
@@ -125,85 +125,312 @@
           "d61_plus": 0
         }
       }
+    },
+    "facility_by_bucket": {
+      "d0_7": {
+        "total": 3,
+        "missing": 0,
+        "by_facility": {
+          "NL NLCP": 1,
+          "NO OBC": 1,
+          "US ND2": 1
+        }
+      },
+      "d8_14": {
+        "total": 0,
+        "missing": 0,
+        "by_facility": {}
+      },
+      "d15_30": {
+        "total": 3,
+        "missing": 1,
+        "by_facility": {
+          "ME MEIP1": 1,
+          "Unspecified": 1,
+          "US USCP": 1
+        }
+      },
+      "d31_60": {
+        "total": 1,
+        "missing": 1,
+        "by_facility": {
+          "Unspecified": 1
+        }
+      },
+      "d61_plus": {
+        "total": 2,
+        "missing": 1,
+        "by_facility": {
+          "Unspecified": 1,
+          "US EN1": 1
+        }
+      }
+    },
+    "facility_by_bucket_priority": {
+      "d0_7": {
+        "highest": {
+          "total": 1,
+          "missing": 0,
+          "by_facility": {
+            "NO OBC": 1
+          }
+        },
+        "high": {
+          "total": 2,
+          "missing": 0,
+          "by_facility": {
+            "NL NLCP": 1,
+            "US ND2": 1
+          }
+        },
+        "medium": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        },
+        "low": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        },
+        "lowest": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        }
+      },
+      "d8_14": {
+        "highest": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        },
+        "high": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        },
+        "medium": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        },
+        "low": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        },
+        "lowest": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        }
+      },
+      "d15_30": {
+        "highest": {
+          "total": 1,
+          "missing": 1,
+          "by_facility": {
+            "Unspecified": 1
+          }
+        },
+        "high": {
+          "total": 1,
+          "missing": 0,
+          "by_facility": {
+            "ME MEIP1": 1
+          }
+        },
+        "medium": {
+          "total": 1,
+          "missing": 0,
+          "by_facility": {
+            "US USCP": 1
+          }
+        },
+        "low": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        },
+        "lowest": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        }
+      },
+      "d31_60": {
+        "highest": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        },
+        "high": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        },
+        "medium": {
+          "total": 1,
+          "missing": 1,
+          "by_facility": {
+            "Unspecified": 1
+          }
+        },
+        "low": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        },
+        "lowest": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        }
+      },
+      "d61_plus": {
+        "highest": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        },
+        "high": {
+          "total": 1,
+          "missing": 0,
+          "by_facility": {
+            "US EN1": 1
+          }
+        },
+        "medium": {
+          "total": 1,
+          "missing": 1,
+          "by_facility": {
+            "Unspecified": 1
+          }
+        },
+        "low": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        },
+        "lowest": {
+          "total": 0,
+          "missing": 0,
+          "by_facility": {}
+        }
+      }
     }
   },
   "kpis": {
     "broadcast": {
       "flow_by_priority": {
         "highest": {
-          "avg_dev_days": 9.12,
-          "median_dev_days": 0.87,
-          "avg_uat_days": 18.48,
-          "median_uat_days": 19.89,
-          "n_dev": 7,
-          "n_uat": 7
+          "avg_dev_days": 7.98,
+          "median_dev_days": 0.47,
+          "avg_uat_days": 16.63,
+          "median_uat_days": 15.03,
+          "n_dev": 8,
+          "n_uat": 8
         },
         "high": {
-          "avg_dev_days": 29.33,
-          "median_dev_days": 0.99,
-          "avg_uat_days": 67.69,
-          "median_uat_days": 74.85,
-          "n_dev": 5,
-          "n_uat": 5
+          "avg_dev_days": 24.52,
+          "median_dev_days": 0.94,
+          "avg_uat_days": 57.74,
+          "median_uat_days": 51.12,
+          "n_dev": 6,
+          "n_uat": 6
         },
         "medium": {
-          "avg_dev_days": 30.84,
+          "avg_dev_days": 31.12,
           "median_dev_days": 7,
-          "avg_uat_days": 56.31,
-          "median_uat_days": 42.5,
+          "avg_uat_days": 80.78,
+          "median_uat_days": 75.17,
           "n_dev": 11,
           "n_uat": 11
+        }
+      },
+      "flow_by_priority_facility": {
+        "highest": {
+          "total": 8,
+          "missing": 5,
+          "by_facility": {
+            "Unspecified": 5,
+            "US ND2": 2,
+            "NO OBC": 1
+          }
+        },
+        "high": {
+          "total": 6,
+          "missing": 1,
+          "by_facility": {
+            "ME MEIP1": 1,
+            "NL NLCP": 1,
+            "NZ NZCP": 1,
+            "Unspecified": 1,
+            "US EN1": 1,
+            "US ND2": 1
+          }
+        },
+        "medium": {
+          "total": 11,
+          "missing": 8,
+          "by_facility": {
+            "Unspecified": 8,
+            "AU AHS": 1,
+            "NL NLCP": 1,
+            "US USCP": 1
+          }
         }
       },
       "flow_by_priority_variants": {
         "all": {
           "highest": {
-            "avg_dev_days": 9.12,
-            "median_dev_days": 0.87,
-            "avg_uat_days": 18.48,
-            "median_uat_days": 19.89,
-            "n_dev": 7,
-            "n_uat": 7
+            "avg_dev_days": 7.98,
+            "median_dev_days": 0.47,
+            "avg_uat_days": 16.63,
+            "median_uat_days": 15.03,
+            "n_dev": 8,
+            "n_uat": 8
           },
           "high": {
-            "avg_dev_days": 29.33,
-            "median_dev_days": 0.99,
-            "avg_uat_days": 67.69,
-            "median_uat_days": 74.85,
-            "n_dev": 5,
-            "n_uat": 5
+            "avg_dev_days": 24.52,
+            "median_dev_days": 0.94,
+            "avg_uat_days": 57.74,
+            "median_uat_days": 51.12,
+            "n_dev": 6,
+            "n_uat": 6
           },
           "medium": {
-            "avg_dev_days": 30.84,
+            "avg_dev_days": 31.12,
             "median_dev_days": 7,
-            "avg_uat_days": 56.31,
-            "median_uat_days": 42.5,
+            "avg_uat_days": 80.78,
+            "median_uat_days": 75.17,
             "n_dev": 11,
             "n_uat": 11
           }
         },
         "bugs_only": {
           "highest": {
-            "avg_dev_days": 9.12,
-            "median_dev_days": 0.87,
-            "avg_uat_days": 18.48,
-            "median_uat_days": 19.89,
-            "n_dev": 7,
-            "n_uat": 7
+            "avg_dev_days": 7.98,
+            "median_dev_days": 0.47,
+            "avg_uat_days": 16.63,
+            "median_uat_days": 15.03,
+            "n_dev": 8,
+            "n_uat": 8
           },
           "high": {
             "avg_dev_days": 36.66,
             "median_dev_days": 1.04,
-            "avg_uat_days": 54.16,
-            "median_uat_days": 49.73,
+            "avg_uat_days": 55.52,
+            "median_uat_days": 51.12,
             "n_dev": 4,
             "n_uat": 4
           },
           "medium": {
             "avg_dev_days": 0.72,
             "median_dev_days": 0.94,
-            "avg_uat_days": 47.33,
-            "median_uat_days": 44.22,
+            "avg_uat_days": 48.11,
+            "median_uat_days": 44.91,
             "n_dev": 4,
             "n_uat": 4
           }
@@ -212,40 +439,40 @@
       "uat_now_count": {
         "current": {
           "all": {
-            "count": 15,
-            "oldest_age_days": 181.84,
-            "avg_age_days": 68.99
+            "count": 9,
+            "oldest_age_days": 183.23,
+            "avg_age_days": 43.53
           },
           "bugs_only": {
-            "count": 9,
-            "oldest_age_days": 76.94,
-            "avg_age_days": 35.41
+            "count": 7,
+            "oldest_age_days": 78.32,
+            "avg_age_days": 29.54
           }
         }
       }
     },
     "kpi_8": {
       "broadcast": {
-        "dev_time_days_avg": 15.46,
-        "dev_time_days_median": 1.01,
-        "uat_time_days_avg": 51.77,
+        "dev_time_days_avg": 17.61,
+        "dev_time_days_median": 0.99,
+        "uat_time_days_avg": 54.72,
         "uat_time_days_median": 31.26,
-        "dev_vs_uat_ratio": 0.05,
+        "dev_vs_uat_ratio": 0.06,
         "uat_time_by_priority": {
           "highest": {
-            "n_with_uat": 7,
-            "uat_time_days_avg": 18.48,
-            "uat_time_days_median": 19.89
+            "n_with_uat": 8,
+            "uat_time_days_avg": 16.63,
+            "uat_time_days_median": 15.03
           },
           "high": {
-            "n_with_uat": 5,
-            "uat_time_days_avg": 67.69,
-            "uat_time_days_median": 74.85
+            "n_with_uat": 6,
+            "uat_time_days_avg": 57.74,
+            "uat_time_days_median": 51.12
           },
           "medium": {
-            "n_with_uat": 9,
-            "uat_time_days_avg": 68.82,
-            "uat_time_days_median": 45.94
+            "n_with_uat": 11,
+            "uat_time_days_avg": 80.78,
+            "uat_time_days_median": 75.17
           },
           "other": {
             "n_with_uat": 0,
@@ -254,35 +481,35 @@
           }
         },
         "high_priority": {
-          "dev_time_days_avg": 27.29,
-          "dev_time_days_median": 1.17,
-          "uat_time_days_avg": 67.69,
-          "uat_time_days_median": 74.85
+          "dev_time_days_avg": 20.63,
+          "dev_time_days_median": 0.94,
+          "uat_time_days_avg": 57.74,
+          "uat_time_days_median": 51.12
         }
       }
     },
     "kpi_9": {
       "broadcast": {
-        "uat_over_14d_pct": 86.67,
-        "uat_loop_rate_pct": 43.48,
+        "uat_over_14d_pct": 66.67,
+        "uat_loop_rate_pct": 40,
         "uat_by_priority": {
           "highest": {
             "uat_current_count": 2,
-            "uat_current_oldest_age_days": 19,
-            "uat_current_age_days_avg": 9.5,
-            "uat_current_age_days_median": 9.5
+            "uat_current_oldest_age_days": 21,
+            "uat_current_age_days_avg": 11,
+            "uat_current_age_days_median": 11
           },
           "high": {
-            "uat_current_count": 5,
-            "uat_current_oldest_age_days": 79,
-            "uat_current_age_days_avg": 42.8,
-            "uat_current_age_days_median": 40
+            "uat_current_count": 4,
+            "uat_current_oldest_age_days": 76,
+            "uat_current_age_days_avg": 25.5,
+            "uat_current_age_days_median": 12.5
           },
           "medium": {
-            "uat_current_count": 8,
-            "uat_current_oldest_age_days": 79,
-            "uat_current_age_days_avg": 56.88,
-            "uat_current_age_days_median": 61
+            "uat_current_count": 3,
+            "uat_current_oldest_age_days": 81,
+            "uat_current_age_days_avg": 51.67,
+            "uat_current_age_days_median": 47
           },
           "other": {
             "uat_current_count": 0,
@@ -292,9 +519,9 @@
           }
         },
         "high_priority": {
-          "uat_current_age_days_avg": 42.8,
-          "uat_current_age_days_median": 40,
-          "uat_current_oldest_age_days": 79
+          "uat_current_age_days_avg": 25.5,
+          "uat_current_age_days_median": 12.5,
+          "uat_current_oldest_age_days": 76
         }
       }
     }
@@ -1039,23 +1266,29 @@
         "high": 2,
         "medium": 8,
         "low": 5,
-        "lowest": 0
+        "lowest": 0,
+        "longstanding_30d_plus": 0,
+        "longstanding_60d_plus": 0
       },
       "legacy": {
         "date": "2026-02-16",
         "highest": 0,
-        "high": 3,
+        "high": 2,
         "medium": 6,
         "low": 31,
-        "lowest": 0
+        "lowest": 0,
+        "longstanding_30d_plus": 0,
+        "longstanding_60d_plus": 0
       },
       "react": {
         "date": "2026-02-16",
         "highest": 0,
-        "high": 0,
+        "high": 1,
         "medium": 6,
         "low": 0,
-        "lowest": 0
+        "lowest": 0,
+        "longstanding_30d_plus": 0,
+        "longstanding_60d_plus": 0
       },
       "bc": {
         "date": "2026-02-16",
@@ -1066,6 +1299,43 @@
         "lowest": 0,
         "longstanding_30d_plus": 182,
         "longstanding_60d_plus": 167
+      }
+    },
+    {
+      "date": "2026-03-02",
+      "api": {
+        "date": "2026-03-02",
+        "highest": 0,
+        "high": 2,
+        "medium": 8,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2026-03-02",
+        "highest": 0,
+        "high": 2,
+        "medium": 6,
+        "low": 31,
+        "lowest": 0
+      },
+      "react": {
+        "date": "2026-03-02",
+        "highest": 0,
+        "high": 1,
+        "medium": 6,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2026-03-02",
+        "highest": 4,
+        "high": 77,
+        "medium": 116,
+        "low": 8,
+        "lowest": 0,
+        "longstanding_30d_plus": 180,
+        "longstanding_60d_plus": 165
       }
     }
   ]

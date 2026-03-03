@@ -144,6 +144,10 @@ function renderUatOpenByPriorityChart() {
   }
 
   const groupedByLabel = new Map();
+  const facilityByBucketPriority =
+    uat?.facility_by_bucket_priority && typeof uat.facility_by_bucket_priority === "object"
+      ? uat.facility_by_bucket_priority
+      : {};
   for (const bucket of buckets) {
     const label = uatBucketWeekLabel(bucket);
     if (!groupedByLabel.has(label)) {
@@ -153,7 +157,8 @@ function renderUatOpenByPriorityChart() {
         total: 0,
         medium: 0,
         high: 0,
-        highest: 0
+        highest: 0,
+        priorityFacilityCounter: {}
       });
     }
     const row = groupedByLabel.get(label);
@@ -162,9 +167,11 @@ function renderUatOpenByPriorityChart() {
       row[priorityKey] += value;
       row.total += value;
     }
+    mergePriorityFacilityBreakdown(row.priorityFacilityCounter, facilityByBucketPriority[bucket.id]);
+    row.facilityPriorityGroups = row.priorityFacilityCounter;
     row.bucketWithSample = `${row.bucketLabel} (n=${row.total})`;
   }
-  const bucketOrder = ["1-2 weeks", "1 month", "2 months", "more than two months"];
+  const bucketOrder = ["1-2 weeks", "1 month", "2 months", "More than 2 months"];
   const chartRows = bucketOrder
     .map((label) => groupedByLabel.get(label))
     .filter(Boolean);
@@ -188,8 +195,48 @@ function uatBucketWeekLabel(bucket) {
   if (id === "d0_7" || id === "d8_14") return "1-2 weeks";
   if (id === "d15_30") return "1 month";
   if (id === "d31_60") return "2 months";
-  if (id === "d61_plus") return "more than two months";
+  if (id === "d61_plus") return "More than 2 months";
   return String(bucket?.label || id || "Unknown");
+}
+
+function buildFacilityTooltipItems(summary, maxItems = 4) {
+  const source = summary && typeof summary === "object" ? summary : {};
+  const counts = source.byFacility && typeof source.byFacility === "object" ? source.byFacility : {};
+  const entries = Object.entries(counts)
+    .map(([facility, count]) => [String(facility || "").trim(), toNumber(count)])
+    .filter(([facility, count]) => facility && count > 0)
+    .sort((left, right) => {
+      if (right[1] !== left[1]) return right[1] - left[1];
+      return left[0].localeCompare(right[0]);
+    });
+  if (entries.length === 0) return [];
+  const top = entries.slice(0, Math.max(1, maxItems));
+  const remaining = entries.slice(top.length).reduce((sum, [, count]) => sum + count, 0);
+  const items = top.map(([facility, count]) => `${facility}: ${count}`);
+  if (remaining > 0) items.push(`Other: ${remaining}`);
+  return items;
+}
+
+function mergePriorityFacilityBreakdown(target, sourceByPriority) {
+  if (!target || typeof target !== "object") return target;
+  const safeSource = sourceByPriority && typeof sourceByPriority === "object" ? sourceByPriority : {};
+  const priorityLabels = { highest: "Highest", high: "High", medium: "Medium" };
+  for (const priorityKey of UAT_PRIORITY_KEYS) {
+    const label = priorityLabels[priorityKey] || priorityKey;
+    const counts =
+      safeSource?.[priorityKey]?.by_facility && typeof safeSource[priorityKey].by_facility === "object"
+        ? safeSource[priorityKey].by_facility
+        : {};
+    for (const [facility, count] of Object.entries(counts)) {
+      const facilityName = String(facility || "").trim();
+      if (!facilityName) continue;
+      if (!target[facilityName] || typeof target[facilityName] !== "object") {
+        target[facilityName] = {};
+      }
+      target[facilityName][label] = toNumber(target[facilityName][label]) + toNumber(count);
+    }
+  }
+  return target;
 }
 
 function toFiniteMetric(value) {
@@ -828,6 +875,11 @@ function renderDevelopmentTimeVsUatTimeChart() {
   );
   const uat = state.snapshot?.uatAging;
   const uatScopeLabel = String(uat?.scope?.label || "Broadcast");
+  const flowFacilityByPriority =
+    state.snapshot?.kpis?.broadcast?.flow_by_priority_facility &&
+    typeof state.snapshot.kpis.broadcast.flow_by_priority_facility === "object"
+      ? state.snapshot.kpis.broadcast.flow_by_priority_facility
+      : {};
   context.textContent = `Development time vs UAT time • ${uatScopeLabel} • sample size: ${totalFlowTickets}`;
 
   const rows = labels.map((label, idx) => ({
@@ -837,7 +889,10 @@ function renderDevelopmentTimeVsUatTimeChart() {
     devAvg: toNumber(devAvg[idx]),
     uatAvg: toNumber(uatAvg[idx]),
     devCount: devCounts[idx],
-    uatCount: uatCounts[idx]
+    uatCount: uatCounts[idx],
+    facilityTooltipItems: buildFacilityTooltipItems(flowFacilityByPriority?.[bands[idx]]).map(
+      (item) => `${label} · ${item}`
+    )
   }));
 
   const yValues = [...devMedian, ...uatMedian].filter(Number.isFinite);

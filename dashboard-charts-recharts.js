@@ -1102,7 +1102,7 @@
       "1-2 weeks": "1-2w",
       "1 month": "1m",
       "2 months": "2m",
-      "more than two months": "2m+"
+      "More than 2 months": "2m+"
     };
     const prioritySeries = ["medium", "high", "highest"].map((key) => ({
       dataKey: key,
@@ -1138,19 +1138,54 @@
           }
         },
         tooltipProps: {
-          content: createTooltipContent(colors, (row, payload) => [
-            tooltipTitleLine("title", row.bucketLabel || "", colors),
-            makeTooltipLine("total", `Total: ${toWhole(row.total)}`, colors, { margin: "0 0 6px" }),
-            ...payload
-              .filter((item) => toWhole(item?.value) > 0)
-              .map((item) =>
-                makeTooltipLine(
-                  item.dataKey,
-                  `${item.name}: ${toWhole(item.value)}`,
-                  colors
-                )
-              )
-          ]),
+          content: createTooltipContent(colors, (row, payload) => {
+            const groups =
+              row?.facilityPriorityGroups && typeof row.facilityPriorityGroups === "object"
+                ? row.facilityPriorityGroups
+                : {};
+            const priorityOrder = ["Highest", "High", "Medium", "Low", "Lowest"];
+            const facilityEntries = Object.entries(groups)
+              .map(([facility, byPriority]) => {
+                const map = byPriority && typeof byPriority === "object" ? byPriority : {};
+                const priorityCounts = priorityOrder
+                  .map((priority) => [priority, toWhole(map[priority])])
+                  .filter(([, count]) => count > 0);
+                const items = priorityCounts.map(([priority, count]) => `${priority}: ${count}`);
+                const total = priorityCounts.reduce((sum, [, count]) => sum + count, 0);
+                return [String(facility || "").trim(), total, items];
+              })
+              .filter(([facility, total]) => facility && total > 0)
+              .sort((left, right) => {
+                const leftIsUnspecified = left[0] === "Unspecified";
+                const rightIsUnspecified = right[0] === "Unspecified";
+                if (leftIsUnspecified && !rightIsUnspecified) return 1;
+                if (!leftIsUnspecified && rightIsUnspecified) return -1;
+                if (right[1] !== left[1]) return right[1] - left[1];
+                return left[0].localeCompare(right[0]);
+              });
+
+            return [
+              tooltipTitleLine("title", row.bucketLabel || "", colors),
+              tooltipTitleLine("total", `Total: ${toWhole(row.total)}`, colors),
+              ...facilityEntries.map(([facility, _total, items], index) =>
+                makeTooltipLine(`facility-${index}`, facility, colors, {
+                  margin: "0 0 4px",
+                  subItems: items
+                })
+              ),
+              ...(facilityEntries.length === 0
+                ? payload
+                    .filter((item) => toWhole(item?.value) > 0)
+                    .map((item) =>
+                      makeTooltipLine(
+                        item.dataKey,
+                        `${item.name}: ${toWhole(item.value)}`,
+                        colors
+                      )
+                    )
+                : [])
+            ];
+          }),
           cursor: { fill: "rgba(31,51,71,0.05)" }
         }
       }
@@ -1215,7 +1250,15 @@
                 ]
               }
             );
-          }).filter(Boolean)
+          }).filter(Boolean),
+          ...(Array.isArray(row?.facilityTooltipItems) && row.facilityTooltipItems.length > 0
+            ? [
+                makeTooltipLine("facilities", "Priority · Facility", colors, {
+                  margin: "4px 0 0",
+                  subItems: row.facilityTooltipItems
+                })
+              ]
+            : [])
         ]),
         cursor: { fill: BAR_CURSOR_FILL }
       }
