@@ -110,6 +110,28 @@
         <p id="management-status" class="panel-status" hidden></p>
       </section>
 
+      <section id="contributors-panel" class="panel" aria-label="Top contributors by ticket status">
+        <h2>Interactive chart - Top contributors</h2>
+        <div class="panel-subtitle panel-subtitle--with-help">
+          <span id="contributors-context">Contributors label scope • status mix</span>
+          <span class="help-wrap">
+            <span class="help-tip" tabindex="0" role="button" aria-label="Top contributors chart explainer">?</span>
+            <div class="help-popover" role="tooltip">
+              <p><strong>Top contributors</strong> ranks assigned contributors by total ticket count.</p>
+              <ul>
+                <li>Bars are single-color totals; hover to see status breakdown details.</li>
+                <li>Unassigned and Duplicate-status tickets are excluded from this chart.</li>
+              </ul>
+            </div>
+          </span>
+        </div>
+        <p id="contributors-updated" class="panel-subtitle">Last updated: --</p>
+        <div class="chart">
+          <div id="top-contributors-chart" class="chart-canvas chart-canvas--dense"></div>
+        </div>
+        <p id="contributors-status" class="panel-status" hidden></p>
+      </section>
+
       <section id="product-cycle-panel" class="panel" aria-label="Product cycle time by team">
         <h2 id="product-cycle-title">Lead and cycle time by team</h2>
         <div class="panel-subtitle panel-subtitle--with-help">

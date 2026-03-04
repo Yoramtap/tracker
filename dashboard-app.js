@@ -15,11 +15,12 @@ const MODE_PANEL_IDS = {
   composition: "composition-panel",
   uat: "uat-panel",
   management: "management-panel",
+  contributors: "contributors-panel",
   "product-cycle": "product-cycle-panel",
   "lifecycle-days": "lifecycle-days-panel"
 };
-const CHART_STATUS_IDS = ["composition-status", "trend-status", "uat-status", "management-status", "product-cycle-status", "lifecycle-days-status"];
-const LAST_UPDATED_IDS = ["trend-updated", "composition-updated", "uat-updated", "management-updated", "product-cycle-updated", "lifecycle-days-updated"];
+const CHART_STATUS_IDS = ["composition-status", "trend-status", "uat-status", "management-status", "contributors-status", "product-cycle-status", "lifecycle-days-status"];
+const LAST_UPDATED_IDS = ["trend-updated", "composition-updated", "uat-updated", "management-updated", "contributors-updated", "product-cycle-updated", "lifecycle-days-updated"];
 const PRODUCT_CYCLE_UPDATED_IDS = ["product-cycle-updated", "lifecycle-days-updated"];
 const PUBLIC_AGGREGATE_CHART_CONFIG = {
   productCycle: {
@@ -39,6 +40,7 @@ const PUBLIC_AGGREGATE_CHART_CONFIG = {
 
 const state = {
   snapshot: null,
+  contributors: null,
   productCycle: null,
   mode: "all",
   compositionTeamScope: "bc",
@@ -749,12 +751,34 @@ function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggrega
     teamColorMap[team] = color;
     usedColors.add(color);
   });
+  const toRgb = (hex) => {
+    const value = String(hex || "").trim();
+    const full = /^#([0-9a-f]{6})$/i.exec(value);
+    if (!full) return null;
+    const parsed = full[1];
+    return [
+      Number.parseInt(parsed.slice(0, 2), 16),
+      Number.parseInt(parsed.slice(2, 4), 16),
+      Number.parseInt(parsed.slice(4, 6), 16)
+    ];
+  };
+  const blendWithWhite = (hex, factor) => {
+    const rgb = toRgb(hex);
+    if (!rgb) return hex;
+    const clamped = Math.max(0, Math.min(1, Number(factor) || 0));
+    const [r, g, b] = rgb.map((channel) => Math.round(channel + (255 - channel) * clamped));
+    const toHex = (value) => value.toString(16).padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  };
+  const lifecycleTintByTeam = Object.fromEntries(
+    Object.entries(teamColorMap).map(([team, color]) => [team, blendWithWhite(color, 0.34)])
+  );
   const { teamDefs: lifecycleTeamDefsBase, rows } = buildLifecycleRowsByPhaseAndTeam(publicAggregates, year, teams);
   const teamDefs = lifecycleTeamDefsBase.map((teamDef) => ({
     ...teamDef,
     color: themeColors.teams.api,
     showSeriesLabel: false,
-    metaTeamColorMap: teamColorMap
+    metaTeamColorMap: lifecycleTintByTeam
   }));
   const plottedValues = teamDefs
     .flatMap((teamDef) => rows.map((row) => row[teamDef.key]))
@@ -933,6 +957,80 @@ function renderDevelopmentTimeVsUatTimeChart() {
 
 }
 
+function renderTopContributorsChart() {
+  const status = document.getElementById("contributors-status");
+  const context = document.getElementById("contributors-context");
+  if (!status || !context) return;
+  status.hidden = true;
+
+  const contributorsSnapshot = state.contributors;
+  const rowsSource = Array.isArray(contributorsSnapshot?.top_contributors)
+    ? contributorsSnapshot.top_contributors
+    : [];
+  if (rowsSource.length === 0) {
+    status.hidden = false;
+    status.textContent = "No contributor data found in contributors-snapshot.json.";
+    clearChartContainer("top-contributors-chart");
+    return;
+  }
+  const rows = rowsSource
+    .filter((row) => String(row?.contributor?.id || "").trim() !== "unassigned")
+    .slice(0, 12)
+    .map((row) => {
+      const statusCounts = row?.status_counts && typeof row.status_counts === "object" ? row.status_counts : {};
+      const ticketStateItems = Object.entries(statusCounts)
+        .filter(([, count]) => toNumber(count) > 0)
+        .sort((left, right) => {
+          const leftCount = toNumber(left[1]);
+          const rightCount = toNumber(right[1]);
+          if (rightCount !== leftCount) return rightCount - leftCount;
+          return String(left[0]).localeCompare(String(right[0]));
+        })
+        .map(([statusName, count]) => `${statusName} = ${toNumber(count)}`);
+
+      return {
+        contributor: String(row?.contributor?.name || row?.contributor?.id || "Unknown"),
+        activeIssues: toNumber(row?.active_issues),
+        doneIssues: toNumber(row?.done_issues),
+        totalIssues: toNumber(row?.total_issues),
+        notDoneIssues: Math.max(0, toNumber(row?.total_issues) - toNumber(row?.done_issues)),
+        ticketStateItems
+      };
+    })
+    .sort((left, right) => {
+      if (right.totalIssues !== left.totalIssues) return right.totalIssues - left.totalIssues;
+      if (right.activeIssues !== left.activeIssues) return right.activeIssues - left.activeIssues;
+      if (right.doneIssues !== left.doneIssues) return right.doneIssues - left.doneIssues;
+      return left.contributor.localeCompare(right.contributor);
+    });
+
+  if (rows.length === 0) {
+    status.hidden = false;
+    status.textContent = "No assigned contributor data found after excluding Unassigned.";
+    clearChartContainer("top-contributors-chart");
+    return;
+  }
+
+  const summary = contributorsSnapshot?.summary || {};
+  const total = toNumber(summary.total_issues);
+  const notDone = toNumber(summary.active_issues);
+  const done = toNumber(summary.done_issues);
+  context.textContent = `Contributors label scope • ${notDone} not done / ${done} done / ${total} total issues • Unassigned excluded • Duplicates removed`;
+
+  const renderChart = getRenderer(
+    "contributors-status",
+    "renderTopContributorsChart",
+    "Contributors chart unavailable: Recharts renderer missing."
+  );
+  if (!renderChart) return;
+  renderChart({
+    containerId: "top-contributors-chart",
+    rows,
+    colors: getThemeColors(),
+    barColor: readThemeColor("--team-react", "#5ba896")
+  });
+}
+
 async function loadSnapshot() {
   setStatusMessageForIds(CHART_STATUS_IDS);
   state.mode = getModeFromUrl();
@@ -940,9 +1038,10 @@ async function loadSnapshot() {
   alignToggleHelpIcons();
 
   try {
-    const [snapshotResponse, productCycleResponse] = await Promise.all([
+    const [snapshotResponse, productCycleResponse, contributorsResponse] = await Promise.all([
       fetch("./backlog-snapshot.json", { cache: "no-store" }),
-      fetch("./product-cycle-snapshot.json", { cache: "no-store" })
+      fetch("./product-cycle-snapshot.json", { cache: "no-store" }),
+      fetch("./contributors-snapshot.json", { cache: "no-store" })
     ]);
     if (!snapshotResponse.ok) throw new Error(`backlog-snapshot.json HTTP ${snapshotResponse.status}`);
     state.snapshot = await snapshotResponse.json();
@@ -952,6 +1051,14 @@ async function loadSnapshot() {
       state.productCycle = null;
       const message = `Failed to load product-cycle-snapshot.json: HTTP ${productCycleResponse.status}`;
       setStatusMessageForIds(["product-cycle-status", "lifecycle-days-status"], message);
+    }
+    if (contributorsResponse.ok) {
+      state.contributors = await contributorsResponse.json();
+    } else {
+      state.contributors = null;
+      const message = `Failed to load contributors-snapshot.json: HTTP ${contributorsResponse.status}`;
+      setStatusMessage("contributors-status", message);
+      clearChartContainer("top-contributors-chart");
     }
     bindRadioState("composition-team-scope", "compositionTeamScope", (value) => value || "bc", renderBugCompositionByPriorityChart);
     bindRadioState(
@@ -967,6 +1074,10 @@ async function loadSnapshot() {
       renderLifecycleTimeSpentPerPhaseChart
     );
     setTextForIds(LAST_UPDATED_IDS, `Last updated: ${formatUpdatedAt(state.snapshot?.updatedAt)}`);
+    setTextForIds(
+      ["contributors-updated"],
+      `Last updated: ${formatUpdatedAt(state.contributors?.updatedAt || state.snapshot?.updatedAt)}`
+    );
     setTextForIds(
       PRODUCT_CYCLE_UPDATED_IDS,
       `Last updated: ${formatUpdatedAt(state.productCycle?.generatedAt || state.snapshot?.updatedAt)}`
@@ -985,6 +1096,7 @@ async function loadSnapshot() {
       { skipMode: "trend", run: renderBugCompositionByPriorityChart },
       { run: renderUatOpenByPriorityChart },
       { run: renderDevelopmentTimeVsUatTimeChart },
+      { run: renderTopContributorsChart },
       { run: renderCycleTimeParkingLotToDoneChart },
       { run: renderLifecycleTimeSpentPerPhaseChart }
     ].forEach(({ skipMode, run }) => {

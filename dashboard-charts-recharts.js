@@ -49,6 +49,7 @@
     composition: null,
     uat: null,
     management: null,
+    contributors: null,
     productCycle: null,
     lifecycleDays: null
   };
@@ -93,6 +94,7 @@
     if (chart === "composition") return "composition";
     if (chart === "uat") return "uat";
     if (chart === "dev-uat-ratio") return "management";
+    if (chart === "contributors") return "contributors";
     if (chart === "product-cycle" || chart === "cycle-time") return "product-cycle";
     if (chart === "lifecycle-days") return "lifecycle-days";
     return "all";
@@ -696,7 +698,8 @@
     legendDrawerNode,
     barNodes,
     overlayNodes = [],
-    gridVertical = false
+    gridVertical = false,
+    gridHorizontal = true
   }) {
     return h(
       "div",
@@ -715,7 +718,7 @@
             barGap: BAR_LAYOUT.groupGap,
             maxBarSize: layout.maxBarSize
           },
-          h(CartesianGrid, { stroke: colors.grid, vertical: gridVertical }),
+          h(CartesianGrid, { stroke: colors.grid, vertical: gridVertical, horizontal: gridHorizontal }),
           h(XAxis, xAxisProps),
           h(YAxis, yAxisProps),
           h(Tooltip, tooltipProps),
@@ -867,6 +870,7 @@
     categoryColors = null,
     overlayDots = [],
     gridVertical = false,
+    gridHorizontal = true,
     height = CHART_HEIGHTS.standard,
     margin = { top: 12, right: 12, bottom: 34, left: 12 }
   }) {
@@ -1039,7 +1043,8 @@
         : null,
       barNodes,
       overlayNodes,
-      gridVertical
+      gridVertical,
+      gridHorizontal
     });
   }
 
@@ -1477,11 +1482,76 @@
     });
   }
 
+  function renderTopContributorsChart({ containerId, rows, colors, barColor }) {
+    const chartRows = Array.isArray(rows) ? rows : [];
+    const fillColor = String(barColor || "").trim() || colors.teams.react;
+    const contributorMetaLabels = Object.fromEntries(
+      chartRows.map((row) => [
+        String(row?.contributor || ""),
+        `n=${toWhole(row?.totalIssues)}, done=${toWhole(row?.doneIssues)}`
+      ])
+    );
+    const yValues = chartRows.map((row) => toNumber(row?.totalIssues));
+    const yUpper = computeYUpper(yValues, { min: 1, pad: 1.12 });
+    const nice = buildNiceNumberAxis(yUpper);
+    renderGroupedBars("contributors", containerId, chartRows.length > 0, {
+      rows: chartRows,
+      defs: [
+        {
+          dataKey: "totalIssues",
+          name: "Ticket totals",
+          fill: fillColor
+        }
+      ],
+      colors,
+      yUpper: nice.upper,
+      showLegend: false,
+      height: singleChartHeightForMode("contributors", CHART_HEIGHTS.dense),
+      margin: { top: 14, right: 12, bottom: 30, left: 12 },
+      chartLayout: "vertical",
+      xAxisProps: {
+        type: "number",
+        domain: [0, nice.upper],
+        ticks: nice.ticks,
+        allowDecimals: false
+      },
+      yAxisProps: {
+        dataKey: "contributor",
+        type: "category",
+        width: HORIZONTAL_CATEGORY_AXIS_WIDTH,
+        tick: twoLineCategoryTickFactory(colors, {
+          textAnchor: "end",
+          dy: 3,
+          line2Dy: 14,
+          secondaryLabels: contributorMetaLabels
+        })
+      },
+      tooltipProps: {
+        content: createTooltipContent(colors, (row) => {
+          return [
+            tooltipTitleLine("name", row?.contributor || "Contributor", colors),
+            makeTooltipLine("totals", `Ticket totals = ${toWhole(row?.totalIssues)}`, colors, {
+              margin: "2px 0 6px",
+              subItems: [
+                ...(Array.isArray(row?.ticketStateItems) && row.ticketStateItems.length > 0
+                  ? row.ticketStateItems
+                  : [`Done = ${toWhole(row?.doneIssues)}`, `Not done = ${toWhole(row?.notDoneIssues ?? row?.activeIssues)}`])
+              ]
+            })
+          ];
+        }),
+        cursor: { fill: BAR_CURSOR_FILL }
+      },
+      gridHorizontal: false
+    });
+  }
+
   window.DashboardCharts = {
     renderBugTrendAcrossTeamsChart,
     renderBugCompositionByPriorityChart,
     renderUatPriorityAgingChart,
     renderDevelopmentTimeVsUatTimeChart,
+    renderTopContributorsChart,
     renderCycleTimeParkingLotToDoneChart: ({ seriesDefs, ...rest }) =>
       renderMultiSeriesBars({
         kind: "productCycle",
