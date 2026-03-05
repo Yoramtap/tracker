@@ -102,6 +102,16 @@ h2 {
   overflow-wrap: anywhere;
 }
 
+.panel-context-inline {
+  display: none;
+}
+
+.meta-icon-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .help-wrap {
   position: relative;
   display: inline-flex;
@@ -123,6 +133,11 @@ h2 {
   line-height: 1;
   cursor: help;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.92) inset;
+}
+
+.help-tip--info {
+  font-size: 0.8rem;
+  font-weight: 800;
 }
 
 .help-popover {
@@ -393,6 +408,13 @@ h2 {
   position: static;
   top: auto;
   right: auto;
+}
+
+.meta-icon-group--in-toggle {
+  margin-left: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .help-wrap--in-toggle .help-tip {

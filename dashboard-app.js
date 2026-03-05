@@ -100,9 +100,20 @@ function applyModeVisibility() {
 function moveHelpIntoToggleCard(panelId) {
   const panel = document.getElementById(panelId);
   if (!panel) return;
-  const helpWrap = panel.querySelector(".panel-subtitle--with-help .help-wrap");
   const card = panel.querySelector(".radio-group-card");
-  if (!helpWrap || !card) return;
+  if (!card) return;
+  const iconGroup = panel.querySelector(".panel-subtitle--with-help .meta-icon-group");
+  if (iconGroup) {
+    if (iconGroup.classList.contains("meta-icon-group--in-toggle")) return;
+    iconGroup.classList.add("meta-icon-group--in-toggle");
+    iconGroup.querySelectorAll(".help-wrap").forEach((wrap) => {
+      wrap.classList.add("help-wrap--in-toggle");
+    });
+    card.appendChild(iconGroup);
+    return;
+  }
+  const helpWrap = panel.querySelector(".panel-subtitle--with-help .help-wrap");
+  if (!helpWrap) return;
   if (helpWrap.classList.contains("help-wrap--in-toggle")) return;
   helpWrap.classList.add("help-wrap--in-toggle");
   card.appendChild(helpWrap);
@@ -112,6 +123,83 @@ function alignToggleHelpIcons() {
   moveHelpIntoToggleCard("composition-panel");
   moveHelpIntoToggleCard("product-cycle-panel");
   moveHelpIntoToggleCard("lifecycle-days-panel");
+}
+
+function createInfoWrap(infoTextId) {
+  const wrap = document.createElement("span");
+  wrap.className = "help-wrap help-wrap--info";
+  const tip = document.createElement("span");
+  tip.className = "help-tip help-tip--info";
+  tip.tabIndex = 0;
+  tip.role = "button";
+  tip.setAttribute("aria-label", "Chart scope details");
+  tip.textContent = "i";
+  const popover = document.createElement("div");
+  popover.className = "help-popover help-popover--info";
+  popover.role = "tooltip";
+  const paragraph = document.createElement("p");
+  paragraph.id = infoTextId;
+  paragraph.className = "context-info-text";
+  paragraph.textContent = "--";
+  popover.appendChild(paragraph);
+  wrap.appendChild(tip);
+  wrap.appendChild(popover);
+  return wrap;
+}
+
+function updateInfoTextForContextNode(contextNode) {
+  if (!contextNode) return;
+  const targetId = String(contextNode.dataset.infoTextId || "").trim();
+  if (!targetId) return;
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  const text = String(contextNode.textContent || "").trim();
+  target.textContent = text || "--";
+}
+
+function ensureContextInfoIcons() {
+  const subtitleRows = Array.from(document.querySelectorAll(".panel-subtitle--with-help"));
+  subtitleRows.forEach((row, index) => {
+    const contextNode = Array.from(row.children).find((child) => {
+      return (
+        child.tagName === "SPAN" &&
+        !child.classList.contains("help-wrap") &&
+        !child.classList.contains("meta-icon-group")
+      );
+    });
+    if (!contextNode) return;
+    contextNode.classList.add("panel-context-inline");
+
+    let iconGroup = row.querySelector(":scope > .meta-icon-group");
+    if (!iconGroup) {
+      iconGroup = document.createElement("span");
+      iconGroup.className = "meta-icon-group";
+      const directHelpWraps = Array.from(row.querySelectorAll(":scope > .help-wrap"));
+      directHelpWraps.forEach((wrap) => iconGroup.appendChild(wrap));
+      row.appendChild(iconGroup);
+    }
+
+    let infoWrap = iconGroup.querySelector(".help-wrap--info");
+    if (!infoWrap) {
+      const infoTextId = `chart-context-info-${index + 1}`;
+      infoWrap = createInfoWrap(infoTextId);
+      iconGroup.insertBefore(infoWrap, iconGroup.firstChild);
+      contextNode.dataset.infoTextId = infoTextId;
+    } else {
+      const infoParagraph = infoWrap.querySelector(".context-info-text");
+      if (infoParagraph?.id) {
+        contextNode.dataset.infoTextId = infoParagraph.id;
+      }
+    }
+
+    updateInfoTextForContextNode(contextNode);
+  });
+}
+
+function setContextText(node, text) {
+  if (!node) return;
+  node.textContent = text;
+  updateInfoTextForContextNode(node);
 }
 
 function renderBugCompositionByPriorityChart() {
@@ -182,7 +270,10 @@ function renderUatOpenByPriorityChart() {
     .filter(Boolean);
 
   if (context) {
-    context.textContent = `Time spent in UAT in weeks by priority • ${scopeLabel} • sample size: ${toNumber(uat.totalIssues)}`;
+    setContextText(
+      context,
+      `Time spent in UAT in weeks by priority • ${scopeLabel} • sample size: ${toNumber(uat.totalIssues)}`
+    );
   }
 
   const renderChart = window.DashboardCharts?.renderUatPriorityAgingChart;
@@ -506,7 +597,10 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(publicAggregat
   const sampleCount = Math.max(leadSampleCount, cycleSampleCount);
   const sampleLabel = `${cycleSampleCount}/${leadSampleCount} (cycle/lead)`;
 
-  context.textContent = `Lead and cycle time per team in weeks • ${selectedYear} • Full backlog • sample size: ${sampleLabel} • unmapped excluded`;
+  setContextText(
+    context,
+    `Lead and cycle time per team in weeks • ${selectedYear} • Full backlog • sample size: ${sampleLabel} • unmapped excluded`
+  );
 
   if (sampleCount === 0) {
     status.hidden = false;
@@ -800,7 +894,10 @@ function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggrega
     orientation: "columns",
     showLegend: false
   });
-  context.textContent = `${chartTitleText} • ${yearLabel} • sample size: ${lifecycleSampleSize} • unmapped excluded`;
+  setContextText(
+    context,
+    `${chartTitleText} • ${yearLabel} • sample size: ${lifecycleSampleSize} • unmapped excluded`
+  );
 }
 
 function renderCycleTimeParkingLotToDoneChart() {
@@ -889,7 +986,10 @@ function renderDevelopmentTimeVsUatTimeChart() {
   const totalFlowTickets = rows.reduce((sum, row) => sum + Math.max(row.devCount, row.uatCount), 0);
   const uat = state.snapshot?.uatAging;
   const uatScopeLabel = String(uat?.scope?.label || "Broadcast");
-  context.textContent = `Development time vs UAT time • ${uatScopeLabel} • ongoing work • sample size: ${totalFlowTickets}`;
+  setContextText(
+    context,
+    `Development time vs UAT time • ${uatScopeLabel} • ongoing work • sample size: ${totalFlowTickets}`
+  );
 
   const yValues = [...devMedian, ...uatMedian].filter(Number.isFinite);
   const variantCandidates = [
@@ -987,7 +1087,10 @@ function renderDevelopmentVsUatByFacilityChart() {
   const uat = state.snapshot?.uatAging;
   const uatScopeLabel = String(uat?.scope?.label || "Broadcast");
   const scopeLabel = scope === "done" ? "done work" : "ongoing work";
-  context.textContent = `Development vs UAT by facility • ${uatScopeLabel} • ${scopeLabel} • sample size: ${totalFlowTickets}`;
+  setContextText(
+    context,
+    `Development vs UAT by facility • ${uatScopeLabel} • ${scopeLabel} • sample size: ${totalFlowTickets}`
+  );
 
   const renderChart = getRenderer(
     "management-facility-status",
@@ -1069,7 +1172,10 @@ function renderTopContributorsChart() {
   const total = toNumber(summary.total_issues);
   const notDone = toNumber(summary.active_issues);
   const done = toNumber(summary.done_issues);
-  context.textContent = `Contributors label scope • ${notDone} not done / ${done} done / ${total} total issues • Unassigned excluded • Duplicates removed`;
+  setContextText(
+    context,
+    `Contributors label scope • ${notDone} not done / ${done} done / ${total} total issues • Unassigned excluded • Duplicates removed`
+  );
 
   const renderChart = getRenderer(
     "contributors-status",
@@ -1089,6 +1195,7 @@ async function loadSnapshot() {
   setStatusMessageForIds(CHART_STATUS_IDS);
   state.mode = getModeFromUrl();
   applyModeVisibility();
+  ensureContextInfoIcons();
   alignToggleHelpIcons();
 
   try {
