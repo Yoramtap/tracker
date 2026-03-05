@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-03-05T15:03:36.767Z",
+  "updatedAt": "2026-03-05T15:08:52.632Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-03-05T15:03:36.767Z",
+    "syncedAt": "2026-03-05T15:08:52.632Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). UAT aging is generated from current UAT issues and changelog-derived status entry timestamps.",
     "trendDates": {
       "source": "sprint_anchor",
@@ -30,7 +30,7 @@
       "status": "UAT",
       "label": "Broadcast"
     },
-    "generatedAt": "2026-03-05T15:03:34.855Z",
+    "generatedAt": "2026-03-05T15:08:50.122Z",
     "totalIssues": 9,
     "buckets": [
       {
@@ -548,8 +548,8 @@
           "highest": {
             "avg_dev_days": 0.43,
             "median_dev_days": 0.43,
-            "avg_uat_days": 14.62,
-            "median_uat_days": 14.62,
+            "avg_uat_days": 14.63,
+            "median_uat_days": 14.63,
             "n_dev": 2,
             "n_uat": 2
           },
@@ -682,7 +682,7 @@
         "ongoing": {
           "Unspecified": {
             "avg_dev_days": 9.67,
-            "avg_uat_days": 76.63,
+            "avg_uat_days": 76.64,
             "n_dev": 3,
             "n_uat": 3,
             "n": 3,

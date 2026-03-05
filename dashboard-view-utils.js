@@ -23,13 +23,6 @@
     });
   }
 
-  function setTextForIds(ids, text) {
-    for (const id of ids) {
-      const node = document.getElementById(id);
-      if (node) node.textContent = text;
-    }
-  }
-
   function setStatusMessage(statusId, message = "") {
     const node = document.getElementById(statusId);
     if (!node) return null;
@@ -109,7 +102,6 @@
     toNumber,
     formatDateShort,
     formatUpdatedAt,
-    setTextForIds,
     setStatusMessage,
     setStatusMessageForIds,
     readThemeColor,

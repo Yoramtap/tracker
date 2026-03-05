@@ -12,22 +12,21 @@
   </head>
   <body>
     <main>
-      <section id="trend-panel" class="panel" aria-label="Backlog trend chart">
-        <h1>Interactive chart - Bug trend across teams</h1>
+      <section id="trend-panel" class="panel" aria-label="Bug backlog trend by team">
+        <h1>Bug backlog trend by team</h1>
         <div class="panel-subtitle panel-subtitle--with-help">
-          <span>Bug trend across teams</span>
-          <span class="help-wrap">
-            <span class="help-tip" tabindex="0" role="button" aria-label="Bug trend chart explainer">?</span>
+          <span id="trend-context" class="panel-context">Open bugs across tracked teams plus BC aging overlays</span>
+          <details class="help-wrap">
+            <summary class="help-tip" aria-label="Bug backlog trend chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
-              <p><strong>Bug trend chart</strong> tracks open backlog over time by team.</p>
+              <p><strong>Bug backlog trend</strong> tracks open backlog over time by team.</p>
               <ul>
                 <li>Each line is one team.</li>
-                <li>Use it to see whether backlog is growing or shrinking.</li>
+                <li>Dashed BC lines show long-standing backlog overlays.</li>
               </ul>
             </div>
-          </span>
+          </details>
         </div>
-        <p id="trend-updated" class="panel-subtitle">Last updated: --</p>
         <div class="chart">
           <div id="bug-trend-chart" class="chart-canvas chart-canvas--standard"></div>
         </div>
@@ -35,11 +34,11 @@
       </section>
 
       <section id="composition-panel" class="panel" aria-label="Backlog stacked bars">
-        <h2>Interactive chart - Bug composition by priority</h2>
+        <h2>Bug composition by priority</h2>
         <div class="panel-subtitle panel-subtitle--with-help">
-          <span>Backlog composition by priority</span>
-          <span class="help-wrap">
-            <span class="help-tip" tabindex="0" role="button" aria-label="Bug composition chart explainer">?</span>
+          <span id="composition-context" class="panel-context">Open bug mix across the last 10 snapshots</span>
+          <details class="help-wrap">
+            <summary class="help-tip" aria-label="Bug composition chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
               <p><strong>Composition chart</strong> shows how open work is distributed across priority bands.</p>
               <ul>
@@ -47,9 +46,8 @@
                 <li>Use Team filter to compare where urgent load sits.</li>
               </ul>
             </div>
-          </span>
+          </details>
         </div>
-        <p id="composition-updated" class="panel-subtitle">Last updated: --</p>
         <div class="radio-control-groups" aria-label="Composition controls">
           <fieldset class="radio-group-card">
             <legend>Team</legend>
@@ -67,11 +65,11 @@
       </section>
 
       <section id="uat-panel" class="panel" aria-label="UAT aging by priority">
-        <h2>Interactive chart - UAT open by priority (ongoing work)</h2>
+        <h2>UAT aging by priority</h2>
         <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="uat-context">Broadcast, -- currently in UAT</span>
-          <span class="help-wrap">
-            <span class="help-tip" tabindex="0" role="button" aria-label="UAT aging chart explainer">?</span>
+          <span id="uat-context" class="panel-context">Broadcast, -- currently in UAT</span>
+          <details class="help-wrap">
+            <summary class="help-tip" aria-label="UAT aging chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
               <p><strong>UAT aging chart</strong> groups ongoing items currently in UAT into time-in-stage buckets.</p>
               <ul>
@@ -79,9 +77,8 @@
                 <li>Growth in older buckets signals UAT bottlenecks.</li>
               </ul>
             </div>
-          </span>
+          </details>
         </div>
-        <p id="uat-updated" class="panel-subtitle">Last updated: --</p>
         <div class="chart">
           <div id="uat-open-by-priority-chart" class="chart-canvas chart-canvas--standard"></div>
         </div>
@@ -89,11 +86,11 @@
       </section>
 
       <section id="management-panel" class="panel" aria-label="Broadcast flow by priority">
-        <h2>Interactive chart - Development time vs UAT time (ongoing work)</h2>
+        <h2>Development time vs UAT time</h2>
         <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="management-context">Broadcast, -- ongoing flow tickets (sample)</span>
-          <span class="help-wrap">
-            <span class="help-tip" tabindex="0" role="button" aria-label="Development vs UAT chart explainer">?</span>
+          <span id="management-context" class="panel-context">Broadcast, -- ongoing flow tickets (sample)</span>
+          <details class="help-wrap">
+            <summary class="help-tip" aria-label="Development vs UAT chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
               <p><strong>Development vs UAT</strong> compares ongoing delivery time by priority.</p>
               <ul>
@@ -101,9 +98,8 @@
                 <li>Higher UAT bars usually indicate QA/UAT bottleneck.</li>
               </ul>
             </div>
-          </span>
+          </details>
         </div>
-        <p id="management-updated" class="panel-subtitle">Last updated: --</p>
         <div class="chart">
           <div id="development-time-vs-uat-time-chart" class="chart-canvas chart-canvas--standard"></div>
         </div>
@@ -111,11 +107,11 @@
       </section>
 
       <section id="management-facility-panel" class="panel" aria-label="Broadcast flow by facility">
-        <h2>Interactive chart - Development vs UAT by facility</h2>
+        <h2>Development vs UAT by facility</h2>
         <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="management-facility-context">Broadcast, -- ongoing work (sample)</span>
-          <span class="help-wrap">
-            <span class="help-tip" tabindex="0" role="button" aria-label="Development vs UAT by facility chart explainer">?</span>
+          <span id="management-facility-context" class="panel-context">Broadcast, -- ongoing work (sample)</span>
+          <details class="help-wrap">
+            <summary class="help-tip" aria-label="Development vs UAT by facility chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
               <p><strong>Development vs UAT by facility</strong> compares average stage time per facility.</p>
               <ul>
@@ -123,9 +119,8 @@
                 <li>Tooltip includes issue links for drill-down.</li>
               </ul>
             </div>
-          </span>
+          </details>
         </div>
-        <p id="management-facility-updated" class="panel-subtitle">Last updated: --</p>
         <div class="radio-control-groups" aria-label="Development vs UAT controls">
           <fieldset class="radio-group-card">
             <legend>Scope</legend>
@@ -140,11 +135,11 @@
       </section>
 
       <section id="contributors-panel" class="panel" aria-label="Top contributors by ticket status">
-        <h2>Interactive chart - Top contributors</h2>
+        <h2>Top contributors</h2>
         <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="contributors-context">Contributors label scope • status mix</span>
-          <span class="help-wrap">
-            <span class="help-tip" tabindex="0" role="button" aria-label="Top contributors chart explainer">?</span>
+          <span id="contributors-context" class="panel-context">Contributors label scope • status mix</span>
+          <details class="help-wrap">
+            <summary class="help-tip" aria-label="Top contributors chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
               <p><strong>Top contributors</strong> ranks assigned contributors by total ticket count.</p>
               <ul>
@@ -152,9 +147,8 @@
                 <li>Unassigned and Duplicate-status tickets are excluded from this chart.</li>
               </ul>
             </div>
-          </span>
+          </details>
         </div>
-        <p id="contributors-updated" class="panel-subtitle">Last updated: --</p>
         <div class="chart">
           <div id="top-contributors-chart" class="chart-canvas chart-canvas--dense"></div>
         </div>
@@ -164,9 +158,9 @@
       <section id="product-cycle-panel" class="panel" aria-label="Product cycle time by team">
         <h2 id="product-cycle-title">Lead and cycle time by team</h2>
         <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="product-cycle-context">--</span>
-          <span class="help-wrap">
-            <span class="help-tip" tabindex="0" role="button" aria-label="Product cycle chart explainer">?</span>
+          <span id="product-cycle-context" class="panel-context">--</span>
+          <details class="help-wrap">
+            <summary class="help-tip" aria-label="Product cycle chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
               <p><strong>Cycle time per team</strong> is computed from lifecycle timestamps.</p>
               <ul>
@@ -175,9 +169,8 @@
                 <li>Aggregated by team using selected sample scope.</li>
               </ul>
             </div>
-          </span>
+          </details>
         </div>
-        <p id="product-cycle-updated" class="panel-subtitle">Last updated: --</p>
         <div class="radio-control-groups" aria-label="Product cycle controls">
           <fieldset class="radio-group-card">
             <legend>Year</legend>
@@ -192,22 +185,21 @@
         <p id="product-cycle-status" class="panel-status" hidden></p>
       </section>
 
-      <section id="lifecycle-days-panel" class="panel" aria-label="Lifecycle phase days by team">
-        <h2>Lifecycle time spent per phase</h2>
+      <section id="lifecycle-days-panel" class="panel" aria-label="Lifecycle stage days by team">
+        <h2>Lifecycle time spent per stage</h2>
         <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="lifecycle-days-context">--</span>
-          <span class="help-wrap">
-            <span class="help-tip" tabindex="0" role="button" aria-label="Lifecycle chart explainer">?</span>
+          <span id="lifecycle-days-context" class="panel-context">--</span>
+          <details class="help-wrap">
+            <summary class="help-tip" aria-label="Lifecycle chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
-              <p><strong>Lifecycle by stage</strong> breaks total flow time into stage-level durations by team.</p>
+              <p><strong>Lifecycle by stage</strong> breaks total flow time into grouped stage durations by team.</p>
               <ul>
                 <li>Stages: Parking, Design, Ready, Development.</li>
-                <li>Each bar is team time in that stage (selected metric).</li>
+                <li>Each grouped bar shows team time in that stage.</li>
               </ul>
             </div>
-          </span>
+          </details>
         </div>
-        <p id="lifecycle-days-updated" class="panel-subtitle">Last updated: --</p>
         <div class="radio-control-groups" aria-label="Lifecycle controls">
           <fieldset class="radio-group-card">
             <legend>Year</legend>
@@ -226,8 +218,14 @@
     <script src="./vendor/react-dom.production.min.js"></script>
     <script src="./vendor/prop-types.min.js"></script>
     <script src="./vendor/recharts.umd.js"></script>
-    <script src="./dashboard-charts-recharts.js"></script>
     <script src="./dashboard-view-utils.js"></script>
+    <script src="./dashboard-data-utils.js"></script>
+    <script src="./dashboard-chart-primitives.js"></script>
+    <script src="./dashboard-chart-layout.js"></script>
+    <script src="./dashboard-chart-core.js"></script>
+    <script src="./dashboard-charts-backlog.js"></script>
+    <script src="./dashboard-charts-delivery.js"></script>
+    <script src="./dashboard-charts-recharts.js"></script>
     <script src="./dashboard-app.js"></script>
   </body>
 </html>

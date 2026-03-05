@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-03-05T15:03:36.766Z",
+  "updatedAt": "2026-03-05T15:08:52.631Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-03-05T15:03:36.766Z",
+    "syncedAt": "2026-03-05T15:08:52.631Z",
     "project": "TFC",
     "label": "Contributors",
     "jql": "project = \"TFC\" AND labels = \"Contributors\"",

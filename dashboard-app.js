@@ -4,13 +4,6 @@ const UAT_PRIORITY_KEYS = ["medium", "high", "highest"];
 
 const PRODUCT_CYCLE_COMPARE_YEARS = ["2025", "2026"];
 const MANAGEMENT_FLOW_SCOPES = ["ongoing", "done"];
-const PRODUCT_CYCLE_TEAM_ORDER = ["api", "frontend", "broadcast", "orchestration", "titanium", "shift"];
-const LIFECYCLE_STAGE_GROUPS = [
-  { keys: ["parking_lot"], label: "Parking" },
-  { keys: ["design"], label: "Design" },
-  { keys: ["ready_for_development"], label: "Ready" },
-  { keys: ["in_development", "feedback"], label: "Development" }
-];
 const MODE_PANEL_IDS = {
   trend: "trend-panel",
   composition: "composition-panel",
@@ -22,8 +15,6 @@ const MODE_PANEL_IDS = {
   "lifecycle-days": "lifecycle-days-panel"
 };
 const CHART_STATUS_IDS = ["composition-status", "trend-status", "uat-status", "management-status", "management-facility-status", "contributors-status", "product-cycle-status", "lifecycle-days-status"];
-const LAST_UPDATED_IDS = ["trend-updated", "composition-updated", "uat-updated", "management-updated", "management-facility-updated", "contributors-updated", "product-cycle-updated", "lifecycle-days-updated"];
-const PRODUCT_CYCLE_UPDATED_IDS = ["product-cycle-updated", "lifecycle-days-updated"];
 const PUBLIC_AGGREGATE_CHART_CONFIG = {
   productCycle: {
     statusId: "product-cycle-status",
@@ -55,10 +46,13 @@ const dashboardUiUtils = window.DashboardViewUtils;
 if (!dashboardUiUtils) {
   throw new Error("Dashboard UI helpers not loaded.");
 }
+const dashboardDataUtils = window.DashboardDataUtils;
+if (!dashboardDataUtils) {
+  throw new Error("Dashboard data helpers not loaded.");
+}
 const {
   toNumber,
   formatUpdatedAt,
-  setTextForIds,
   setStatusMessage,
   setStatusMessageForIds,
   readThemeColor,
@@ -66,6 +60,21 @@ const {
   clearChartContainer,
   getModeFromUrl
 } = dashboardUiUtils;
+const {
+  buildLifecycleRowsByPhaseAndTeam,
+  buildProductCycleStackedRowsForYear,
+  buildTeamColorMap,
+  buildTintMap,
+  computeLockedLifecycleYUpper,
+  computeLockedProductCycleStackedYUpper,
+  getProductCycleTeamsFromAggregates,
+  mergePriorityFacilityBreakdown,
+  orderProductCycleTeams,
+  readDoneCountForTeam,
+  readFlowMetricByBands,
+  toCount,
+  uatBucketWeekLabel
+} = dashboardDataUtils;
 
 function normalizeOption(value, options, fallback) {
   return options.includes(value) ? value : fallback;
@@ -78,12 +87,22 @@ function getRenderer(statusId, rendererName, missingMessage) {
   return null;
 }
 
+function renderNamedChart({ statusId, rendererName, missingMessage, props }) {
+  const renderChart = getRenderer(statusId, rendererName, missingMessage);
+  if (!renderChart) return false;
+  renderChart(props);
+  return true;
+}
+
 function renderSnapshotChart({ statusId, rendererName, missingMessage, containerId, extra = {} }) {
   setStatusMessage(statusId);
   if (!state.snapshot || !Array.isArray(state.snapshot.combinedPoints)) return;
-  const renderChart = getRenderer(statusId, rendererName, missingMessage);
-  if (!renderChart) return;
-  renderChart({ containerId, snapshot: state.snapshot, colors: getThemeColors(), ...extra });
+  renderNamedChart({
+    statusId,
+    rendererName,
+    missingMessage,
+    props: { containerId, snapshot: state.snapshot, colors: getThemeColors(), ...extra }
+  });
 }
 
 function applyModeVisibility() {
@@ -97,114 +116,63 @@ function applyModeVisibility() {
   }
 }
 
-function moveHelpIntoToggleCard(panelId) {
-  const panel = document.getElementById(panelId);
-  if (!panel) return;
-  const card = panel.querySelector(".radio-group-card");
-  if (!card) return;
-  const iconGroup = panel.querySelector(".panel-subtitle--with-help .meta-icon-group");
-  if (iconGroup) {
-    if (iconGroup.classList.contains("meta-icon-group--in-toggle")) return;
-    iconGroup.classList.add("meta-icon-group--in-toggle");
-    iconGroup.querySelectorAll(".help-wrap").forEach((wrap) => {
-      wrap.classList.add("help-wrap--in-toggle");
-    });
-    card.appendChild(iconGroup);
-    return;
-  }
-  const helpWrap = panel.querySelector(".panel-subtitle--with-help .help-wrap");
-  if (!helpWrap) return;
-  if (helpWrap.classList.contains("help-wrap--in-toggle")) return;
-  helpWrap.classList.add("help-wrap--in-toggle");
-  card.appendChild(helpWrap);
-}
-
-function alignToggleHelpIcons() {
-  moveHelpIntoToggleCard("composition-panel");
-  moveHelpIntoToggleCard("product-cycle-panel");
-  moveHelpIntoToggleCard("lifecycle-days-panel");
-}
-
-function createInfoWrap(infoTextId) {
-  const wrap = document.createElement("span");
-  wrap.className = "help-wrap help-wrap--info";
-  const tip = document.createElement("span");
-  tip.className = "help-tip help-tip--info";
-  tip.tabIndex = 0;
-  tip.role = "button";
-  tip.setAttribute("aria-label", "Chart scope details");
-  tip.textContent = "i";
-  const popover = document.createElement("div");
-  popover.className = "help-popover help-popover--info";
-  popover.role = "tooltip";
-  const paragraph = document.createElement("p");
-  paragraph.id = infoTextId;
-  paragraph.className = "context-info-text";
-  paragraph.textContent = "--";
-  popover.appendChild(paragraph);
-  wrap.appendChild(tip);
-  wrap.appendChild(popover);
-  return wrap;
-}
-
-function updateInfoTextForContextNode(contextNode) {
-  if (!contextNode) return;
-  const targetId = String(contextNode.dataset.infoTextId || "").trim();
-  if (!targetId) return;
-  const target = document.getElementById(targetId);
-  if (!target) return;
-  const text = String(contextNode.textContent || "").trim();
-  target.textContent = text || "--";
-}
-
-function ensureContextInfoIcons() {
-  const subtitleRows = Array.from(document.querySelectorAll(".panel-subtitle--with-help"));
-  subtitleRows.forEach((row, index) => {
-    const contextNode = Array.from(row.children).find((child) => {
-      return (
-        child.tagName === "SPAN" &&
-        !child.classList.contains("help-wrap") &&
-        !child.classList.contains("meta-icon-group")
-      );
-    });
-    if (!contextNode) return;
-    contextNode.classList.add("panel-context-inline");
-
-    let iconGroup = row.querySelector(":scope > .meta-icon-group");
-    if (!iconGroup) {
-      iconGroup = document.createElement("span");
-      iconGroup.className = "meta-icon-group";
-      const directHelpWraps = Array.from(row.querySelectorAll(":scope > .help-wrap"));
-      directHelpWraps.forEach((wrap) => iconGroup.appendChild(wrap));
-      row.appendChild(iconGroup);
-    }
-
-    let infoWrap = iconGroup.querySelector(".help-wrap--info");
-    if (!infoWrap) {
-      const infoTextId = `chart-context-info-${index + 1}`;
-      infoWrap = createInfoWrap(infoTextId);
-      iconGroup.insertBefore(infoWrap, iconGroup.firstChild);
-      contextNode.dataset.infoTextId = infoTextId;
-    } else {
-      const infoParagraph = infoWrap.querySelector(".context-info-text");
-      if (infoParagraph?.id) {
-        contextNode.dataset.infoTextId = infoParagraph.id;
-      }
-    }
-
-    updateInfoTextForContextNode(contextNode);
-  });
-}
-
 function setContextText(node, text) {
   if (!node) return;
   node.textContent = text;
-  updateInfoTextForContextNode(node);
+}
+
+function contextWithUpdated(text, updatedAt) {
+  const baseText = String(text || "").trim();
+  const updatedText = formatUpdatedAt(updatedAt);
+  if (!baseText) return `Updated ${updatedText}`;
+  return `${baseText} • updated ${updatedText}`;
+}
+
+function getPanelNodes(statusId, contextId = "") {
+  const status = document.getElementById(statusId);
+  const context = contextId ? document.getElementById(contextId) : null;
+  if (!status) return null;
+  if (contextId && !context) return null;
+  return { status, context };
+}
+
+function withPanel(statusId, contextId, onReady, { resetStatus = true } = {}) {
+  const panel = getPanelNodes(statusId, contextId);
+  if (!panel) return;
+  if (resetStatus) resetPanelStatus(panel.status);
+  onReady(panel);
+}
+
+function resetPanelStatus(status) {
+  if (!status) return;
+  status.hidden = true;
+}
+
+function showPanelStatus(status, message, { containerId = "" } = {}) {
+  if (!status) return;
+  status.hidden = false;
+  status.textContent = message;
+  if (containerId) clearChartContainer(containerId);
 }
 
 function renderBugCompositionByPriorityChart() {
   const scope = state.compositionTeamScope || "bc";
   syncRadioValue("composition-team-scope", scope);
+  const compositionContext = document.getElementById("composition-context");
+  const scopeLabelMap = {
+    bc: "BC",
+    api: "API",
+    legacy: "Legacy",
+    react: "React",
+    all: "All"
+  };
+  setContextText(
+    compositionContext,
+    contextWithUpdated(
+      `${scopeLabelMap[scope] || "BC"} • last 10 snapshots`,
+      state.snapshot?.updatedAt
+    )
+  );
   renderSnapshotChart({
     statusId: "composition-status",
     rendererName: "renderBugCompositionByPriorityChart",
@@ -214,365 +182,91 @@ function renderBugCompositionByPriorityChart() {
   });
 }
 
-function renderUatOpenByPriorityChart() {
-  const status = document.getElementById("uat-status");
-  const context = document.getElementById("uat-context");
-  if (!status) return;
-
-  status.hidden = true;
-  if (!state.snapshot || !state.snapshot.uatAging) {
-    status.hidden = false;
-    status.textContent = "No UAT aging data found in backlog-snapshot.json.";
-    return;
-  }
-
-  const uat = state.snapshot.uatAging;
-  const scopeLabel = String(uat?.scope?.label || "Broadcast");
-  const buckets = Array.isArray(uat.buckets) ? uat.buckets : [];
-
-  if (buckets.length === 0) {
-    status.hidden = false;
-    status.textContent = "UAT aging buckets are missing from backlog-snapshot.json.";
-    return;
-  }
-
-  const groupedByLabel = new Map();
-  const facilityByBucketPriority =
-    uat?.facility_by_bucket_priority && typeof uat.facility_by_bucket_priority === "object"
-      ? uat.facility_by_bucket_priority
-      : {};
-  for (const bucket of buckets) {
-    const label = uatBucketWeekLabel(bucket);
-    if (!groupedByLabel.has(label)) {
-      groupedByLabel.set(label, {
-        bucketId: label,
-        bucketLabel: label,
-        total: 0,
-        medium: 0,
-        high: 0,
-        highest: 0,
-        priorityFacilityCounter: {}
-      });
+function renderUatAgingByPriorityChart() {
+  withPanel("uat-status", "uat-context", ({ status, context }) => {
+    if (!state.snapshot || !state.snapshot.uatAging) {
+      showPanelStatus(status, "No UAT aging data found in backlog-snapshot.json.");
+      return;
     }
-    const row = groupedByLabel.get(label);
-    for (const priorityKey of UAT_PRIORITY_KEYS) {
-      const value = toNumber(uat?.priorities?.[priorityKey]?.buckets?.[bucket.id]);
-      row[priorityKey] += value;
-      row.total += value;
+
+    const uat = state.snapshot.uatAging;
+    const scopeLabel = String(uat?.scope?.label || "Broadcast");
+    const buckets = Array.isArray(uat.buckets) ? uat.buckets : [];
+
+    if (buckets.length === 0) {
+      showPanelStatus(status, "UAT aging buckets are missing from backlog-snapshot.json.");
+      return;
     }
-    mergePriorityFacilityBreakdown(row.priorityFacilityCounter, facilityByBucketPriority[bucket.id]);
-    row.facilityPriorityGroups = row.priorityFacilityCounter;
-    row.bucketWithSample = `${row.bucketLabel} (n=${row.total})`;
-  }
-  const bucketOrder = ["1-2 weeks", "1 month", "2 months", "More than 2 months"];
-  const chartRows = bucketOrder
-    .map((label) => groupedByLabel.get(label))
-    .filter(Boolean);
 
-  if (context) {
-    setContextText(
-      context,
-      `Time spent in UAT in weeks by priority • ${scopeLabel} • sample size: ${toNumber(uat.totalIssues)}`
-    );
-  }
-
-  const renderChart = window.DashboardCharts?.renderUatPriorityAgingChart;
-  if (!renderChart) return;
-  renderChart({
-    containerId: "uat-open-by-priority-chart",
-    rows: chartRows,
-    buckets: chartRows,
-    colors: getThemeColors()
-  });
-}
-
-function uatBucketWeekLabel(bucket) {
-  const id = String(bucket?.id || "").trim();
-  if (id === "d0_7" || id === "d8_14") return "1-2 weeks";
-  if (id === "d15_30") return "1 month";
-  if (id === "d31_60") return "2 months";
-  if (id === "d61_plus") return "More than 2 months";
-  return String(bucket?.label || id || "Unknown");
-}
-
-function mergePriorityFacilityBreakdown(target, sourceByPriority) {
-  if (!target || typeof target !== "object") return target;
-  const safeSource = sourceByPriority && typeof sourceByPriority === "object" ? sourceByPriority : {};
-  const priorityLabels = { highest: "Highest", high: "High", medium: "Medium" };
-  for (const priorityKey of UAT_PRIORITY_KEYS) {
-    const label = priorityLabels[priorityKey] || priorityKey;
-    const counts =
-      safeSource?.[priorityKey]?.by_facility && typeof safeSource[priorityKey].by_facility === "object"
-        ? safeSource[priorityKey].by_facility
+    const groupedByLabel = new Map();
+    const facilityByBucketPriority =
+      uat?.facility_by_bucket_priority && typeof uat.facility_by_bucket_priority === "object"
+        ? uat.facility_by_bucket_priority
         : {};
-    for (const [facility, count] of Object.entries(counts)) {
-      const facilityName = String(facility || "").trim();
-      if (!facilityName) continue;
-      if (!target[facilityName] || typeof target[facilityName] !== "object") {
-        target[facilityName] = {};
-      }
-      target[facilityName][label] = toNumber(target[facilityName][label]) + toNumber(count);
-    }
-  }
-  return target;
-}
-
-function toFiniteMetric(value) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) return null;
-  return Number(number.toFixed(2));
-}
-
-function toCount(value) {
-  const number = Number(value);
-  if (!Number.isFinite(number) || number < 0) return 0;
-  return Math.trunc(number);
-}
-
-function readCycleWindowStats(teamNode, windowScope) {
-  if (!teamNode || typeof teamNode !== "object") return {};
-  const byIdeaScope = teamNode?.idea_scopes?.full_backlog;
-  if (byIdeaScope && typeof byIdeaScope === "object") {
-    return byIdeaScope[windowScope] || {};
-  }
-  if (teamNode.lead || teamNode.cycle) {
-    return teamNode[windowScope] || {};
-  }
-  return {};
-}
-
-function getLifecycleWindowStats(publicAggregates, year, team, windowScope) {
-  const phasesNode = publicAggregates?.lifecyclePhaseDays?.byYear?.[year]?.teams?.[team] || {};
-  const phaseKeys =
-    windowScope === "lead"
-      ? ["parking_lot", "design", "ready_for_development", "in_development", "feedback"]
-      : ["in_development", "feedback"];
-  const stats = phaseKeys.map((key) => phasesNode?.[key] || {});
-  const medians = stats.map((item) => Number(item?.median)).filter(Number.isFinite);
-  const averages = stats.map((item) => Number(item?.average)).filter(Number.isFinite);
-  const counts = stats.map((item) => Number(item?.n)).filter(Number.isFinite);
-  if (medians.length === 0 && averages.length === 0) return {};
-  return {
-    n: counts.length ? Math.min(...counts) : 0,
-    median: medians.length ? Number(medians.reduce((sum, value) => sum + value, 0).toFixed(2)) : null,
-    average: averages.length ? Number(averages.reduce((sum, value) => sum + value, 0).toFixed(2)) : null
-  };
-}
-
-function readDoneCountForTeam(publicAggregates, year, team) {
-  const teamNode = publicAggregates?.cycleTime?.byYear?.[year]?.all?.teams?.[team] || {};
-  const leadN = toCount(teamNode?.idea_scopes?.finished_work?.lead?.n);
-  const cycleN = toCount(teamNode?.idea_scopes?.finished_work?.cycle?.n);
-  return Math.max(leadN, cycleN);
-}
-
-function orderProductCycleTeams(teams) {
-  return [...teams].sort((left, right) => {
-    const a = String(left || "").toLowerCase();
-    const b = String(right || "").toLowerCase();
-    const ai = PRODUCT_CYCLE_TEAM_ORDER.indexOf(a);
-    const bi = PRODUCT_CYCLE_TEAM_ORDER.indexOf(b);
-    const aRank = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
-    const bRank = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
-    if (aRank !== bRank) return aRank - bRank;
-    return a.localeCompare(b);
-  });
-}
-
-function readMetricStats(source) {
-  const median = toFiniteMetric(source?.median);
-  const average = toFiniteMetric(source?.average);
-  const count = toCount(source?.n);
-  return {
-    value: toNumber(average),
-    n: count,
-    median: toNumber(median),
-    average: toNumber(average)
-  };
-}
-
-function readProductCycleTeamWindowStats(publicAggregates, year, team, windowScope) {
-  const teamNode = publicAggregates?.cycleTime?.byYear?.[year]?.all?.teams?.[team] || {};
-  const directStats = readCycleWindowStats(teamNode, windowScope);
-  if (directStats && Object.keys(directStats).length > 0) return directStats;
-  return getLifecycleWindowStats(publicAggregates, year, team, windowScope);
-}
-
-function buildProductCycleStackedRowsForYear({ publicAggregates, teams, year }) {
-  return teams.map((team) => {
-    const leadStats = readMetricStats(readProductCycleTeamWindowStats(publicAggregates, year, team, "lead"));
-    const cycleStats = readMetricStats(readProductCycleTeamWindowStats(publicAggregates, year, team, "cycle"));
-    return {
-      team,
-      lead: toNumber(leadStats.value),
-      cycle: toNumber(cycleStats.value),
-      meta_lead: {
-        n: leadStats.n,
-        median: leadStats.median,
-        average: leadStats.average,
-        team: "Lead time"
-      },
-      meta_cycle: {
-        n: cycleStats.n,
-        median: cycleStats.median,
-        average: cycleStats.average,
-        team: "Cycle time"
-      }
-    };
-  });
-}
-
-function combineLifecycleStats(nodes) {
-  const valid = (Array.isArray(nodes) ? nodes : []).filter((node) => node && typeof node === "object");
-  if (valid.length === 0) return {};
-  const weighted = valid
-    .map((node) => ({
-      n: toCount(node?.n),
-      median: Number(node?.median),
-      average: Number(node?.average)
-    }))
-    .filter((item) => item.n > 0);
-  if (weighted.length === 0) return {};
-  const totalN = weighted.reduce((sum, item) => sum + item.n, 0);
-  const weightedMedian = weighted
-    .filter((item) => Number.isFinite(item.median))
-    .reduce((sum, item) => sum + item.median * item.n, 0);
-  const weightedAverage = weighted
-    .filter((item) => Number.isFinite(item.average))
-    .reduce((sum, item) => sum + item.average * item.n, 0);
-  return {
-    n: totalN,
-    median: Number.isFinite(weightedMedian) ? Number((weightedMedian / totalN).toFixed(2)) : null,
-    average: Number.isFinite(weightedAverage) ? Number((weightedAverage / totalN).toFixed(2)) : null
-  };
-}
-
-function readLifecycleStatsForYear(publicAggregates, year, team, key) {
-  return (
-    publicAggregates?.lifecyclePhaseDays?.byYear?.[year]?.idea_scopes?.full_backlog?.byEffort?.all?.teams?.[team]?.[key] ||
-    publicAggregates?.lifecyclePhaseDays?.byYear?.[year]?.idea_scopes?.full_backlog?.teams?.[team]?.[key] ||
-    publicAggregates?.lifecyclePhaseDays?.byYear?.[year]?.byEffort?.all?.teams?.[team]?.[key] ||
-    publicAggregates?.lifecyclePhaseDays?.byYear?.[year]?.teams?.[team]?.[key] ||
-    {}
-  );
-}
-
-function computeLockedProductCycleStackedYUpper(publicAggregates, teams, years) {
-  let maxValue = 0;
-  for (const year of Array.isArray(years) ? years : []) {
-    const rows = buildProductCycleStackedRowsForYear({ publicAggregates, teams, year });
-    const rowMax = rows.reduce((value, row) => Math.max(value, toNumber(row?.lead), toNumber(row?.cycle)), 0);
-    maxValue = Math.max(maxValue, rowMax);
-  }
-  return Math.max(1, Math.ceil(maxValue));
-}
-
-function buildLifecycleRowsByPhaseAndTeam(publicAggregates, year, teams) {
-  const orderedTeams = orderProductCycleTeams(teams);
-  const rows = LIFECYCLE_STAGE_GROUPS.map((stage) => {
-    const stageValues = [];
-    orderedTeams.forEach((team) => {
-      const combinedStats = combineLifecycleStats(
-        stage.keys.map((stageKey) =>
-          readLifecycleStatsForYear(publicAggregates, year, team, stageKey)
-        )
-      );
-      const stats = readMetricStats(combinedStats);
-      if (stats.value > 0) {
-        stageValues.push({
-          team,
-          value: stats.value,
-          n: stats.n,
-          median: stats.median,
-          average: stats.average
+    for (const bucket of buckets) {
+      const label = uatBucketWeekLabel(bucket);
+      if (!groupedByLabel.has(label)) {
+        groupedByLabel.set(label, {
+          bucketId: label,
+          bucketLabel: label,
+          total: 0,
+          medium: 0,
+          high: 0,
+          highest: 0,
+          priorityFacilityCounter: {}
         });
       }
-    });
-    const row = {
-      phaseLabel: stage.label,
-      phaseKey: stage.keys.join("+")
-    };
-    stageValues.forEach((entry, index) => {
-      const slotKey = `slot_${index}`;
-      row[slotKey] = entry.value;
-      row[`meta_${slotKey}`] = {
-        team: entry.team,
-        n: entry.n,
-        median: entry.median,
-        average: entry.average
-      };
-    });
-    return row;
-  });
-  const maxSlots = rows.reduce((max, row) => {
-    const slotCount = Object.keys(row).filter((key) => key.startsWith("slot_")).length;
-    return Math.max(max, slotCount);
-  }, 0);
-  const teamDefs = Array.from({ length: maxSlots }, (_, index) => ({
-    key: `slot_${index}`,
-    name: `Team ${index + 1}`
-  }));
-  return { teamDefs, rows };
-}
-
-function computeLockedLifecycleYUpper(publicAggregates, teams) {
-  const maxValues = [];
-  for (const year of PRODUCT_CYCLE_COMPARE_YEARS) {
-    const { teamDefs, rows } = buildLifecycleRowsByPhaseAndTeam(publicAggregates, year, teams);
-    const keys = teamDefs.map((def) => def?.key).filter(Boolean);
-    let maxValue = 0;
-    for (const row of rows) {
-      for (const key of keys) {
-        const value = Number(row?.[key]);
-        if (Number.isFinite(value)) maxValue = Math.max(maxValue, value);
+      const row = groupedByLabel.get(label);
+      for (const priorityKey of UAT_PRIORITY_KEYS) {
+        const value = toNumber(uat?.priorities?.[priorityKey]?.buckets?.[bucket.id]);
+        row[priorityKey] += value;
+        row.total += value;
       }
+      mergePriorityFacilityBreakdown(row.priorityFacilityCounter, facilityByBucketPriority[bucket.id]);
+      row.facilityPriorityGroups = row.priorityFacilityCounter;
+      row.bucketWithSample = `${row.bucketLabel} (n=${row.total})`;
     }
-    maxValues.push(maxValue);
-  }
-  const maxValue = Math.max(0, ...maxValues);
-  return Math.max(1, Math.ceil(maxValue * 1.15));
-}
+    const bucketOrder = ["1-2 weeks", "1 month", "2 months", "More than 2 months"];
+    const chartRows = bucketOrder
+      .map((label) => groupedByLabel.get(label))
+      .filter(Boolean);
 
-function readFlowMetricByBands(flow, bands, key) {
-  return bands.map((band) => {
-    const value = flow?.[band]?.[key];
-    return Number.isFinite(value) ? value : null;
+    if (context) {
+      setContextText(
+        context,
+        contextWithUpdated(
+          `${scopeLabel} • n=${toNumber(uat.totalIssues)}`,
+          state.snapshot?.updatedAt
+        )
+      );
+    }
+
+    renderNamedChart({
+      statusId: "uat-status",
+      rendererName: "renderUatPriorityAgingChart",
+      missingMessage: "UAT chart unavailable: Recharts renderer missing.",
+      props: {
+        containerId: "uat-open-by-priority-chart",
+        rows: chartRows,
+        buckets: chartRows,
+        colors: getThemeColors()
+      }
+    });
   });
 }
 
-function getProductCycleTeamsFromAggregates(publicAggregates) {
-  const configured = Array.isArray(state.productCycle?.teams)
-    ? state.productCycle.teams.filter((team) => typeof team === "string" && team.trim())
-    : [];
-  if (configured.length > 0) {
-    return configured.filter((team) => team !== "UNMAPPED");
-  }
-
-  const found = new Set();
-  for (const yearNode of Object.values(publicAggregates?.cycleTime?.byYear || {})) {
-    for (const effortNode of Object.values(yearNode || {})) {
-      for (const team of Object.keys(effortNode?.teams || {})) found.add(team);
-    }
-  }
-  for (const yearNode of Object.values(publicAggregates?.lifecyclePhaseDays?.byYear || {})) {
-    for (const team of Object.keys(yearNode?.teams || {})) found.add(team);
-  }
-
-  const ordered = Array.from(found).sort((a, b) => a.localeCompare(b));
-  return ordered.filter((team) => team !== "UNMAPPED");
-}
-
-function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(publicAggregates, yearScope) {
-  const status = document.getElementById("product-cycle-status");
-  const context = document.getElementById("product-cycle-context");
+function renderLeadAndCycleTimeByTeamChartFromPublicAggregates(publicAggregates, yearScope) {
+  const panel = getPanelNodes("product-cycle-status", "product-cycle-context");
   const titleNode = document.getElementById("product-cycle-title");
-  if (!status || !context) return;
+  if (!panel) return;
+  const { status, context } = panel;
   if (titleNode) titleNode.textContent = "Lead and cycle time by team";
 
-  const teams = orderProductCycleTeams(getProductCycleTeamsFromAggregates(publicAggregates));
+  const teams = orderProductCycleTeams(
+    getProductCycleTeamsFromAggregates(publicAggregates, state.productCycle?.teams)
+  );
   if (teams.length === 0) {
-    status.hidden = false;
-    status.textContent = "No product cycle aggregates found in product-cycle-snapshot.json.";
+    showPanelStatus(status, "No product cycle aggregates found in product-cycle-snapshot.json.");
     return;
   }
 
@@ -599,83 +293,23 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(publicAggregat
 
   setContextText(
     context,
-    `Lead and cycle time per team in weeks • ${selectedYear} • Full backlog • sample size: ${sampleLabel} • unmapped excluded`
+    contextWithUpdated(
+      `${selectedYear} • n=${sampleLabel}`,
+      state.productCycle?.generatedAt || state.snapshot?.updatedAt
+    )
   );
 
   if (sampleCount === 0) {
-    status.hidden = false;
-    status.textContent = `No completed product-cycle items found for ${selectedYear}.`;
-    clearChartContainer("cycle-time-parking-lot-to-done-chart");
+    showPanelStatus(status, `No completed product-cycle items found for ${selectedYear}.`, {
+      containerId: "cycle-time-parking-lot-to-done-chart"
+    });
     return;
   }
 
   const themeColors = getThemeColors();
-  const nonSignalTeamPalette = [
-    "#4f8fcb", // blue
-    "#c78b2e", // amber
-    "#7b63c7", // violet
-    "#2f9fb4", // cyan
-    "#5e6b84", // slate
-    "#b07aa1", // mauve
-    "#8a6a4a", // brown
-    "#4a758e" // deep teal
-  ];
-  const explicitTeamColors = {
-    api: "#4f8fcb",
-    frontend: "#c78b2e",
-    legacy: "#c78b2e",
-    react: "#2f9fb4",
-    broadcast: "#7b63c7",
-    bc: "#7b63c7",
-    orchestration: "#5e6b84",
-    titanium: "#b07aa1",
-    shift: "#8a6a4a",
-    unmapped: "#4a758e"
-  };
-  const hashTeam = (teamName) => {
-    const text = String(teamName || "").trim().toLowerCase();
-    let hash = 0;
-    for (let i = 0; i < text.length; i += 1) hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
-    return hash;
-  };
-  const toRgb = (hex) => {
-    const value = String(hex || "").trim();
-    const full = /^#([0-9a-f]{6})$/i.exec(value);
-    if (!full) return null;
-    const parsed = full[1];
-    return [
-      Number.parseInt(parsed.slice(0, 2), 16),
-      Number.parseInt(parsed.slice(2, 4), 16),
-      Number.parseInt(parsed.slice(4, 6), 16)
-    ];
-  };
-  const blendWithWhite = (hex, factor) => {
-    const rgb = toRgb(hex);
-    if (!rgb) return hex;
-    const clamped = Math.max(0, Math.min(1, Number(factor) || 0));
-    const [r, g, b] = rgb.map((channel) => Math.round(channel + (255 - channel) * clamped));
-    const toHex = (value) => value.toString(16).padStart(2, "0");
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-  };
-  const resolveTeamBaseColor = (teamName, index) => {
-    const raw = String(teamName || "").trim();
-    const key = raw.toLowerCase();
-    if (explicitTeamColors[key]) return explicitTeamColors[key];
-    if (key.includes("api")) return explicitTeamColors.api;
-    if (key.includes("legacy") || key.includes("frontend")) return explicitTeamColors.frontend;
-    if (key.includes("react")) return explicitTeamColors.react;
-    if (key.includes("broadcast")) return explicitTeamColors.broadcast;
-    return nonSignalTeamPalette[hashTeam(raw || `team-${index}`) % nonSignalTeamPalette.length];
-  };
-  const teamColorMap = Object.fromEntries(
-    teams.map((team, index) => [team, resolveTeamBaseColor(team, index)])
-  );
-  const leadTintByTeam = Object.fromEntries(
-    Object.entries(teamColorMap).map(([team, color]) => [team, blendWithWhite(color, 0.35)])
-  );
-  const cycleTintByTeam = Object.fromEntries(
-    Object.entries(teamColorMap).map(([team, color]) => [team, blendWithWhite(color, 0.02)])
-  );
+  const teamColorMap = buildTeamColorMap(teams);
+  const leadTintByTeam = buildTintMap(teamColorMap, 0.35);
+  const cycleTintByTeam = buildTintMap(teamColorMap, 0.02);
   const rows = buildProductCycleStackedRowsForYear({ publicAggregates, teams, year: selectedYear });
   const rowsWithCounts = rows.map((row) => {
     const leadN = toCount(row?.meta_lead?.n);
@@ -717,141 +351,58 @@ function renderCycleTimeParkingLotToDoneChartFromPublicAggregates(publicAggregat
     }
   ];
 
-  const renderChart = getRenderer(
-    "product-cycle-status",
-    "renderCycleTimeParkingLotToDoneChart",
-    "Product cycle chart unavailable: Recharts renderer missing."
-  );
-  if (!renderChart) return;
-  renderChart({
-    containerId: "cycle-time-parking-lot-to-done-chart",
-    rows: rowsWithSample,
-    seriesDefs,
-    colors: themeColors,
-    metricLabel: "Average",
-    yUpperOverride: yUpper,
-    showLegend: true,
-    timeWindowLabel: "Lead and cycle time",
-    orientation: "columns",
-    colorByCategoryKey: "team",
-    categoryKey: "team",
-    categoryTickTwoLine: true,
-    categorySecondaryLabels
+  renderNamedChart({
+    statusId: "product-cycle-status",
+    rendererName: "renderLeadAndCycleTimeByTeamChart",
+    missingMessage: "Product cycle chart unavailable: Recharts renderer missing.",
+    props: {
+      containerId: "cycle-time-parking-lot-to-done-chart",
+      rows: rowsWithSample,
+      seriesDefs,
+      colors: themeColors,
+      metricLabel: "Average",
+      yUpperOverride: yUpper,
+      showLegend: true,
+      timeWindowLabel: "Lead and cycle time",
+      orientation: "columns",
+      colorByCategoryKey: "team",
+      categoryKey: "team",
+      categoryAxisHeight: 72,
+      categoryTickTwoLine: true,
+      categorySecondaryLabels
+    }
   });
 }
 
 function withPublicAggregates({ statusId, contextId, containerId, missingMessage, onReady }) {
-  const status = document.getElementById(statusId);
-  const context = contextId ? document.getElementById(contextId) : null;
-  if (!status || (contextId && !context)) return;
-
-  status.hidden = true;
-  const value = state.productCycle?.publicAggregates;
-  const publicAggregates = value && typeof value === "object" ? value : null;
-  if (!publicAggregates) {
-    status.hidden = false;
-    status.textContent = missingMessage;
-    clearChartContainer(containerId);
-    return;
-  }
-  onReady({ status, context, publicAggregates });
+  withPanel(statusId, contextId, ({ status, context }) => {
+    const value = state.productCycle?.publicAggregates;
+    const publicAggregates = value && typeof value === "object" ? value : null;
+    if (!publicAggregates) {
+      showPanelStatus(status, missingMessage, { containerId });
+      return;
+    }
+    onReady({ status, context, publicAggregates });
+  });
 }
 
-function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggregates, year) {
-  const status = document.getElementById("lifecycle-days-status");
-  const context = document.getElementById("lifecycle-days-context");
-  if (!status || !context) return;
+function renderLifecycleTimeSpentPerStageChartFromPublicAggregates(publicAggregates, year) {
+  const panel = getPanelNodes("lifecycle-days-status", "lifecycle-days-context");
+  if (!panel) return;
+  const { status, context } = panel;
 
-  const teams = getProductCycleTeamsFromAggregates(publicAggregates);
+  const teams = getProductCycleTeamsFromAggregates(publicAggregates, state.productCycle?.teams);
   if (teams.length === 0) {
-    status.hidden = false;
-    status.textContent = "No lifecycle aggregates found in product-cycle-snapshot.json.";
+    showPanelStatus(status, "No lifecycle aggregates found in product-cycle-snapshot.json.");
     return;
   }
 
-  const chartTitleText = "Lifecycle time spent per stage (weeks)";
   const yearLabel = year;
 
   const themeColors = getThemeColors();
-  const nonSignalPalette = [
-    "#4f8fcb",
-    "#c78b2e",
-    "#7b63c7",
-    "#2f9fb4",
-    "#5e6b84",
-    "#b07aa1",
-    "#8a6a4a",
-    "#4a758e"
-  ];
-  const explicitTeamColors = {
-    api: "#4f8fcb",
-    frontend: "#c78b2e",
-    legacy: "#c78b2e",
-    react: "#2f9fb4",
-    broadcast: "#7b63c7",
-    bc: "#7b63c7",
-    orchestration: "#5e6b84",
-    titanium: "#b07aa1",
-    shift: "#8a6a4a",
-    unmapped: "#4a758e"
-  };
-  const hashTeam = (teamName) => {
-    const text = String(teamName || "").trim().toLowerCase();
-    let hash = 0;
-    for (let i = 0; i < text.length; i += 1) hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
-    return hash;
-  };
-  const pickUniqueColor = (teamName, used) => {
-    const start = hashTeam(teamName) % nonSignalPalette.length;
-    for (let offset = 0; offset < nonSignalPalette.length; offset += 1) {
-      const candidate = nonSignalPalette[(start + offset) % nonSignalPalette.length];
-      if (!used.has(candidate)) return candidate;
-    }
-    const hueCandidates = [208, 220, 232, 244, 256, 268, 282, 36, 30, 24];
-    const hash = hashTeam(teamName);
-    const hue = hueCandidates[hash % hueCandidates.length];
-    const lightness = 44 + ((hash >> 3) % 14);
-    return `hsl(${hue} 38% ${lightness}%)`;
-  };
   const orderedTeams = orderProductCycleTeams(teams);
-  const teamColorMap = {};
-  const usedColors = new Set();
-  orderedTeams.forEach((team) => {
-    const raw = String(team || "").trim();
-    const key = raw.toLowerCase();
-    let color = "";
-    if (explicitTeamColors[key]) color = explicitTeamColors[key];
-    else if (key.includes("api")) color = explicitTeamColors.api;
-    else if (key.includes("legacy") || key.includes("frontend")) color = explicitTeamColors.frontend;
-    else if (key.includes("react")) color = explicitTeamColors.react;
-    else if (key.includes("broadcast")) color = explicitTeamColors.broadcast;
-    else color = pickUniqueColor(raw, usedColors);
-    if (usedColors.has(color)) color = pickUniqueColor(`${raw}-unique`, usedColors);
-    teamColorMap[team] = color;
-    usedColors.add(color);
-  });
-  const toRgb = (hex) => {
-    const value = String(hex || "").trim();
-    const full = /^#([0-9a-f]{6})$/i.exec(value);
-    if (!full) return null;
-    const parsed = full[1];
-    return [
-      Number.parseInt(parsed.slice(0, 2), 16),
-      Number.parseInt(parsed.slice(2, 4), 16),
-      Number.parseInt(parsed.slice(4, 6), 16)
-    ];
-  };
-  const blendWithWhite = (hex, factor) => {
-    const rgb = toRgb(hex);
-    if (!rgb) return hex;
-    const clamped = Math.max(0, Math.min(1, Number(factor) || 0));
-    const [r, g, b] = rgb.map((channel) => Math.round(channel + (255 - channel) * clamped));
-    const toHex = (value) => value.toString(16).padStart(2, "0");
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-  };
-  const lifecycleTintByTeam = Object.fromEntries(
-    Object.entries(teamColorMap).map(([team, color]) => [team, blendWithWhite(color, 0.34)])
-  );
+  const teamColorMap = buildTeamColorMap(orderedTeams, { ensureUnique: true });
+  const lifecycleTintByTeam = buildTintMap(teamColorMap, 0.34);
   const { teamDefs: lifecycleTeamDefsBase, rows } = buildLifecycleRowsByPhaseAndTeam(publicAggregates, year, teams);
   const teamDefs = lifecycleTeamDefsBase.map((teamDef) => ({
     ...teamDef,
@@ -862,6 +413,9 @@ function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggrega
   const plottedValues = teamDefs
     .flatMap((teamDef) => rows.map((row) => row[teamDef.key]))
     .filter((value) => Number.isFinite(value) && value > 0);
+  const categorySecondaryLabels = Object.fromEntries(
+    rows.map((row) => [String(row.phaseLabel || ""), ""])
+  );
   const lifecycleSampleSize = rows.reduce(
     (sum, row) =>
       sum +
@@ -870,37 +424,42 @@ function renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggrega
   );
 
   if (plottedValues.length === 0) {
-    status.hidden = false;
-    status.textContent = `No lifecycle stage time data found for ${yearLabel}.`;
-    clearChartContainer("lifecycle-time-spent-per-phase-chart");
+    showPanelStatus(status, `No lifecycle stage time data found for ${yearLabel}.`, {
+      containerId: "lifecycle-time-spent-per-phase-chart"
+    });
     return;
   }
-  const renderChart = getRenderer(
-    "lifecycle-days-status",
-    "renderLifecycleTimeSpentPerPhaseChart",
-    "Lifecycle chart unavailable: Recharts renderer missing."
-  );
-  if (!renderChart) return;
-  const yUpper = computeLockedLifecycleYUpper(publicAggregates, teams);
-  renderChart({
-    containerId: "lifecycle-time-spent-per-phase-chart",
-    rows,
-    seriesDefs: teamDefs,
-    colors: themeColors,
-    metricLabel: "Average",
-    yUpperOverride: yUpper,
-    categoryKey: "phaseLabel",
-    timeWindowLabel: "",
-    orientation: "columns",
-    showLegend: false
+  const yUpper = computeLockedLifecycleYUpper(publicAggregates, teams, PRODUCT_CYCLE_COMPARE_YEARS);
+  renderNamedChart({
+    statusId: "lifecycle-days-status",
+    rendererName: "renderLifecycleTimeSpentPerStageChart",
+    missingMessage: "Lifecycle chart unavailable: Recharts renderer missing.",
+    props: {
+      containerId: "lifecycle-time-spent-per-phase-chart",
+      rows,
+      seriesDefs: teamDefs,
+      colors: themeColors,
+      metricLabel: "Average",
+      yUpperOverride: yUpper,
+      categoryKey: "phaseLabel",
+      categoryAxisHeight: 72,
+      categoryTickTwoLine: true,
+      categorySecondaryLabels,
+      timeWindowLabel: "",
+      orientation: "columns",
+      showLegend: false
+    }
   });
   setContextText(
     context,
-    `${chartTitleText} • ${yearLabel} • sample size: ${lifecycleSampleSize} • unmapped excluded`
+    contextWithUpdated(
+      `${yearLabel} • n=${lifecycleSampleSize}`,
+      state.productCycle?.generatedAt || state.snapshot?.updatedAt
+    )
   );
 }
 
-function renderCycleTimeParkingLotToDoneChart() {
+function renderLeadAndCycleTimeByTeamChart() {
   const config = PUBLIC_AGGREGATE_CHART_CONFIG.productCycle;
   const yearScope = normalizeOption(state.productCycleYearScope, PRODUCT_CYCLE_COMPARE_YEARS, "2026");
 
@@ -911,7 +470,7 @@ function renderCycleTimeParkingLotToDoneChart() {
     contextId: config.contextId,
     containerId: config.containerId,
     missingMessage: config.missingMessage,
-    onReady: ({ publicAggregates }) => renderCycleTimeParkingLotToDoneChartFromPublicAggregates(publicAggregates, yearScope)
+    onReady: ({ publicAggregates }) => renderLeadAndCycleTimeByTeamChartFromPublicAggregates(publicAggregates, yearScope)
   });
 }
 
@@ -936,7 +495,7 @@ function bindRadioState(name, stateKey, normalizeValue, onChangeRender) {
   });
 }
 
-function renderLifecycleTimeSpentPerPhaseChart() {
+function renderLifecycleTimeSpentPerStageChart() {
   const config = PUBLIC_AGGREGATE_CHART_CONFIG.lifecycleDays;
   const year = normalizeOption(state.lifecycleDaysYearScope, PRODUCT_CYCLE_COMPARE_YEARS, "2026");
   syncRadioValue(config.yearRadioName, year);
@@ -945,249 +504,324 @@ function renderLifecycleTimeSpentPerPhaseChart() {
     contextId: config.contextId,
     containerId: config.containerId,
     missingMessage: config.missingMessage,
-    onReady: ({ publicAggregates }) => renderLifecycleTimeSpentPerPhaseChartFromPublicAggregates(publicAggregates, year)
+    onReady: ({ publicAggregates }) => renderLifecycleTimeSpentPerStageChartFromPublicAggregates(publicAggregates, year)
   });
 }
 
 function renderDevelopmentTimeVsUatTimeChart() {
-  const status = document.getElementById("management-status");
-  const context = document.getElementById("management-context");
-  if (!status || !context) return;
+  withPanel("management-status", "management-context", ({ status, context }) => {
+    const scope = "ongoing";
+    const flowVariants = state.snapshot?.kpis?.broadcast?.flow_by_priority_variants;
+    const scopedFlow = flowVariants && typeof flowVariants === "object" ? flowVariants[scope] : null;
+    const flow = scopedFlow || state.snapshot?.kpis?.broadcast?.flow_by_priority;
+    if (!flow || typeof flow !== "object") {
+      showPanelStatus(status, "No Broadcast flow_by_priority data found in backlog-snapshot.json.");
+      return;
+    }
 
-  status.hidden = true;
-  const scope = "ongoing";
-  const flowVariants = state.snapshot?.kpis?.broadcast?.flow_by_priority_variants;
-  const scopedFlow = flowVariants && typeof flowVariants === "object" ? flowVariants[scope] : null;
-  const flow = scopedFlow || state.snapshot?.kpis?.broadcast?.flow_by_priority;
-  if (!flow || typeof flow !== "object") {
-    status.hidden = false;
-    status.textContent = "No Broadcast flow_by_priority data found in backlog-snapshot.json.";
-    return;
-  }
+    const bands = ["medium", "high", "highest"];
+    const labels = ["Medium", "High", "Highest"];
+    const devMedian = readFlowMetricByBands(flow, bands, "median_dev_days");
+    const uatMedian = readFlowMetricByBands(flow, bands, "median_uat_days");
+    const devAvg = readFlowMetricByBands(flow, bands, "avg_dev_days");
+    const uatAvg = readFlowMetricByBands(flow, bands, "avg_uat_days");
+    const devCounts = bands.map((band) => toNumber(flow?.[band]?.n_dev));
+    const uatCounts = bands.map((band) => toNumber(flow?.[band]?.n_uat));
+    const rows = labels.map((label, idx) => ({
+      label,
+      devMedian: toNumber(devMedian[idx]),
+      uatMedian: toNumber(uatMedian[idx]),
+      devAvg: toNumber(devAvg[idx]),
+      uatAvg: toNumber(uatAvg[idx]),
+      devCount: devCounts[idx],
+      uatCount: uatCounts[idx]
+    }));
 
-  const bands = ["medium", "high", "highest"];
-  const labels = ["Medium", "High", "Highest"];
-  const devMedian = readFlowMetricByBands(flow, bands, "median_dev_days");
-  const uatMedian = readFlowMetricByBands(flow, bands, "median_uat_days");
-  const devAvg = readFlowMetricByBands(flow, bands, "avg_dev_days");
-  const uatAvg = readFlowMetricByBands(flow, bands, "avg_uat_days");
-  const devCounts = bands.map((band) => toNumber(flow?.[band]?.n_dev));
-  const uatCounts = bands.map((band) => toNumber(flow?.[band]?.n_uat));
-  const rows = labels.map((label, idx) => ({
-    label,
-    devMedian: toNumber(devMedian[idx]),
-    uatMedian: toNumber(uatMedian[idx]),
-    devAvg: toNumber(devAvg[idx]),
-    uatAvg: toNumber(uatAvg[idx]),
-    devCount: devCounts[idx],
-    uatCount: uatCounts[idx]
-  }));
+    const totalFlowTickets = rows.reduce((sum, row) => sum + Math.max(row.devCount, row.uatCount), 0);
+    const uat = state.snapshot?.uatAging;
+    const uatScopeLabel = String(uat?.scope?.label || "Broadcast");
+    setContextText(
+      context,
+      contextWithUpdated(
+        `${uatScopeLabel} • ongoing • n=${totalFlowTickets}`,
+        state.snapshot?.updatedAt
+      )
+    );
 
-  const totalFlowTickets = rows.reduce((sum, row) => sum + Math.max(row.devCount, row.uatCount), 0);
-  const uat = state.snapshot?.uatAging;
-  const uatScopeLabel = String(uat?.scope?.label || "Broadcast");
-  setContextText(
-    context,
-    `Development time vs UAT time • ${uatScopeLabel} • ongoing work • sample size: ${totalFlowTickets}`
-  );
+    const yValues = [...devMedian, ...uatMedian].filter(Number.isFinite);
+    const variantCandidates = [
+      flowVariants?.ongoing,
+      flowVariants?.all,
+      flowVariants?.bugs_only,
+      state.snapshot?.kpis?.broadcast?.flow_by_priority
+    ].filter((candidate) => candidate && typeof candidate === "object");
+    const variantYValues = variantCandidates.flatMap((candidate) =>
+      ["medium", "high", "highest"].flatMap((band) =>
+        [candidate?.[band]?.median_dev_days, candidate?.[band]?.median_uat_days].filter(Number.isFinite)
+      )
+    );
+    const maxY = [...yValues, ...variantYValues].length
+      ? Math.max(...yValues, ...variantYValues)
+      : 1;
+    const paddedMaxY = Math.max(1, Math.ceil(maxY * 1.12));
+    const yStep = paddedMaxY <= 40 ? 10 : paddedMaxY <= 100 ? 20 : 25;
+    const yUpperNice = Math.ceil(paddedMaxY / yStep) * yStep;
+    const yTicks = [];
+    for (let value = 0; value <= yUpperNice; value += yStep) yTicks.push(value);
 
-  const yValues = [...devMedian, ...uatMedian].filter(Number.isFinite);
-  const variantCandidates = [
-    flowVariants?.ongoing,
-    flowVariants?.all,
-    flowVariants?.bugs_only,
-    state.snapshot?.kpis?.broadcast?.flow_by_priority
-  ].filter((candidate) => candidate && typeof candidate === "object");
-  const variantYValues = variantCandidates.flatMap((candidate) =>
-    ["medium", "high", "highest"].flatMap((band) =>
-      [candidate?.[band]?.median_dev_days, candidate?.[band]?.median_uat_days].filter(Number.isFinite)
-    )
-  );
-  const maxY = [...yValues, ...variantYValues].length
-    ? Math.max(...yValues, ...variantYValues)
-    : 1;
-  const paddedMaxY = Math.max(1, Math.ceil(maxY * 1.12));
-  const yStep = paddedMaxY <= 40 ? 10 : paddedMaxY <= 100 ? 20 : 25;
-  const yUpperNice = Math.ceil(paddedMaxY / yStep) * yStep;
-  const yTicks = [];
-  for (let value = 0; value <= yUpperNice; value += yStep) yTicks.push(value);
-
-  const renderChart = getRenderer(
-    "management-status",
-    "renderDevelopmentTimeVsUatTimeChart",
-    "Management chart unavailable: Recharts renderer missing."
-  );
-  if (!renderChart) return;
-  renderChart({
-    containerId: "development-time-vs-uat-time-chart",
-    rows,
-    colors: getThemeColors(),
-    devColor: readThemeColor("--mgmt-dev", "#2f5f83"),
-    uatColor: readThemeColor("--mgmt-uat", "#7fa8c4"),
-    yTicks
+    renderNamedChart({
+      statusId: "management-status",
+      rendererName: "renderDevelopmentTimeVsUatTimeChart",
+      missingMessage: "Management chart unavailable: Recharts renderer missing.",
+      props: {
+        containerId: "development-time-vs-uat-time-chart",
+        rows,
+        colors: getThemeColors(),
+        devColor: readThemeColor("--mgmt-dev", "#2f5f83"),
+        uatColor: readThemeColor("--mgmt-uat", "#7fa8c4"),
+        yTicks
+      }
+    });
   });
-
 }
 
 function renderDevelopmentVsUatByFacilityChart() {
-  const status = document.getElementById("management-facility-status");
-  const context = document.getElementById("management-facility-context");
-  if (!status || !context) return;
+  withPanel("management-facility-status", "management-facility-context", ({ status, context }) => {
+    const scope = normalizeOption(state.managementFlowScope, MANAGEMENT_FLOW_SCOPES, "ongoing");
+    syncRadioValue("management-facility-flow-scope", scope);
 
-  status.hidden = true;
-  const scope = normalizeOption(state.managementFlowScope, MANAGEMENT_FLOW_SCOPES, "ongoing");
-  syncRadioValue("management-facility-flow-scope", scope);
+    const flowByFacilityVariants = state.snapshot?.kpis?.broadcast?.flow_by_facility_variants;
+    const scopedFlowByFacility =
+      flowByFacilityVariants && typeof flowByFacilityVariants === "object"
+        ? flowByFacilityVariants[scope]
+        : null;
+    const flowByFacility =
+      scopedFlowByFacility ||
+      state.snapshot?.kpis?.broadcast?.flow_by_facility ||
+      null;
+    if (!flowByFacility || typeof flowByFacility !== "object") {
+      showPanelStatus(status, "No Broadcast flow_by_facility data found in backlog-snapshot.json.");
+      return;
+    }
 
-  const flowByFacilityVariants = state.snapshot?.kpis?.broadcast?.flow_by_facility_variants;
-  const scopedFlowByFacility =
-    flowByFacilityVariants && typeof flowByFacilityVariants === "object"
-      ? flowByFacilityVariants[scope]
-      : null;
-  const flowByFacility =
-    scopedFlowByFacility ||
-    state.snapshot?.kpis?.broadcast?.flow_by_facility ||
-    null;
-  if (!flowByFacility || typeof flowByFacility !== "object") {
-    status.hidden = false;
-    status.textContent = "No Broadcast flow_by_facility data found in backlog-snapshot.json.";
-    return;
-  }
+    const rows = Object.entries(flowByFacility)
+      .map(([facility, metrics]) => {
+        const node = metrics && typeof metrics === "object" ? metrics : {};
+        const nDev = toNumber(node.n_dev);
+        const nUat = toNumber(node.n_uat);
+        const n = toNumber(node.n || Math.max(nDev, nUat));
+        return {
+          label: String(facility || "Unspecified"),
+          devAvg: toNumber(node.avg_dev_days),
+          uatAvg: toNumber(node.avg_uat_days),
+          devCount: nDev,
+          uatCount: nUat,
+          sampleCount: n,
+          issueIds: Array.isArray(node.issue_ids) ? node.issue_ids : []
+        };
+      })
+      .filter((row) => row.sampleCount > 0)
+      .sort((left, right) => {
+        const leftIsUnspecified = String(left.label || "").trim().toLowerCase() === "unspecified";
+        const rightIsUnspecified = String(right.label || "").trim().toLowerCase() === "unspecified";
+        if (leftIsUnspecified && !rightIsUnspecified) return 1;
+        if (!leftIsUnspecified && rightIsUnspecified) return -1;
+        return left.label.localeCompare(right.label);
+      });
+    if (rows.length === 0) {
+      showPanelStatus(status, `No ${scope} facility rows found in flow_by_facility data.`);
+      return;
+    }
 
-  const rows = Object.entries(flowByFacility)
-    .map(([facility, metrics]) => {
-      const node = metrics && typeof metrics === "object" ? metrics : {};
-      const nDev = toNumber(node.n_dev);
-      const nUat = toNumber(node.n_uat);
-      const n = toNumber(node.n || Math.max(nDev, nUat));
-      return {
-        label: String(facility || "Unspecified"),
-        devAvg: toNumber(node.avg_dev_days),
-        uatAvg: toNumber(node.avg_uat_days),
-        devCount: nDev,
-        uatCount: nUat,
-        sampleCount: n,
-        issueIds: Array.isArray(node.issue_ids) ? node.issue_ids : []
-      };
-    })
-    .filter((row) => row.sampleCount > 0)
-    .sort((left, right) => {
-      const leftIsUnspecified = String(left.label || "").trim().toLowerCase() === "unspecified";
-      const rightIsUnspecified = String(right.label || "").trim().toLowerCase() === "unspecified";
-      if (leftIsUnspecified && !rightIsUnspecified) return 1;
-      if (!leftIsUnspecified && rightIsUnspecified) return -1;
-      return left.label.localeCompare(right.label);
+    const totalFlowTickets = rows.reduce((sum, row) => sum + row.sampleCount, 0);
+    const uat = state.snapshot?.uatAging;
+    const uatScopeLabel = String(uat?.scope?.label || "Broadcast");
+    setContextText(
+      context,
+      contextWithUpdated(
+        `${uatScopeLabel} • ${scope === "done" ? "done" : "ongoing"} • n=${totalFlowTickets}`,
+        state.snapshot?.updatedAt
+      )
+    );
+
+    renderNamedChart({
+      statusId: "management-facility-status",
+      rendererName: "renderDevelopmentVsUatByFacilityChart",
+      missingMessage: "Facility chart unavailable: Recharts renderer missing.",
+      props: {
+        containerId: "development-vs-uat-by-facility-chart",
+        rows,
+        colors: getThemeColors(),
+        jiraBrowseBase: "https://nepgroup.atlassian.net/browse/",
+        devColor:
+          scope === "done"
+            ? readThemeColor("--mgmt-done-dev", "#2f7d4d")
+            : readThemeColor("--mgmt-dev", "#2f5f83"),
+        uatColor:
+          scope === "done"
+            ? readThemeColor("--mgmt-done-uat", "#82bd95")
+            : readThemeColor("--mgmt-uat", "#7fa8c4")
+      }
     });
-  if (rows.length === 0) {
-    status.hidden = false;
-    status.textContent = `No ${scope} facility rows found in flow_by_facility data.`;
-    return;
-  }
-
-  const totalFlowTickets = rows.reduce((sum, row) => sum + row.sampleCount, 0);
-  const uat = state.snapshot?.uatAging;
-  const uatScopeLabel = String(uat?.scope?.label || "Broadcast");
-  const scopeLabel = scope === "done" ? "done work" : "ongoing work";
-  setContextText(
-    context,
-    `Development vs UAT by facility • ${uatScopeLabel} • ${scopeLabel} • sample size: ${totalFlowTickets}`
-  );
-
-  const renderChart = getRenderer(
-    "management-facility-status",
-    "renderDevelopmentVsUatByFacilityChart",
-    "Facility chart unavailable: Recharts renderer missing."
-  );
-  if (!renderChart) return;
-  renderChart({
-    containerId: "development-vs-uat-by-facility-chart",
-    rows,
-    colors: getThemeColors(),
-    jiraBrowseBase: "https://nepgroup.atlassian.net/browse/",
-    devColor:
-      scope === "done"
-        ? readThemeColor("--mgmt-done-dev", "#2f7d4d")
-        : readThemeColor("--mgmt-dev", "#2f5f83"),
-    uatColor:
-      scope === "done"
-        ? readThemeColor("--mgmt-done-uat", "#82bd95")
-        : readThemeColor("--mgmt-uat", "#7fa8c4")
   });
 }
 
 function renderTopContributorsChart() {
-  const status = document.getElementById("contributors-status");
-  const context = document.getElementById("contributors-context");
-  if (!status || !context) return;
-  status.hidden = true;
+  withPanel("contributors-status", "contributors-context", ({ status, context }) => {
+    const contributorsSnapshot = state.contributors;
+    const rowsSource = Array.isArray(contributorsSnapshot?.top_contributors)
+      ? contributorsSnapshot.top_contributors
+      : [];
+    if (rowsSource.length === 0) {
+      showPanelStatus(status, "No contributor data found in contributors-snapshot.json.", {
+        containerId: "top-contributors-chart"
+      });
+      return;
+    }
+    const rows = rowsSource
+      .filter((row) => String(row?.contributor?.id || "").trim() !== "unassigned")
+      .slice(0, 12)
+      .map((row) => {
+        const statusCounts = row?.status_counts && typeof row.status_counts === "object" ? row.status_counts : {};
+        const ticketStateItems = Object.entries(statusCounts)
+          .filter(([, count]) => toNumber(count) > 0)
+          .sort((left, right) => {
+            const leftCount = toNumber(left[1]);
+            const rightCount = toNumber(right[1]);
+            if (rightCount !== leftCount) return rightCount - leftCount;
+            return String(left[0]).localeCompare(String(right[0]));
+          })
+          .map(([statusName, count]) => `${statusName} = ${toNumber(count)}`);
 
-  const contributorsSnapshot = state.contributors;
-  const rowsSource = Array.isArray(contributorsSnapshot?.top_contributors)
-    ? contributorsSnapshot.top_contributors
-    : [];
-  if (rowsSource.length === 0) {
-    status.hidden = false;
-    status.textContent = "No contributor data found in contributors-snapshot.json.";
-    clearChartContainer("top-contributors-chart");
-    return;
-  }
-  const rows = rowsSource
-    .filter((row) => String(row?.contributor?.id || "").trim() !== "unassigned")
-    .slice(0, 12)
-    .map((row) => {
-      const statusCounts = row?.status_counts && typeof row.status_counts === "object" ? row.status_counts : {};
-      const ticketStateItems = Object.entries(statusCounts)
-        .filter(([, count]) => toNumber(count) > 0)
-        .sort((left, right) => {
-          const leftCount = toNumber(left[1]);
-          const rightCount = toNumber(right[1]);
-          if (rightCount !== leftCount) return rightCount - leftCount;
-          return String(left[0]).localeCompare(String(right[0]));
-        })
-        .map(([statusName, count]) => `${statusName} = ${toNumber(count)}`);
+        return {
+          contributor: String(row?.contributor?.name || row?.contributor?.id || "Unknown"),
+          activeIssues: toNumber(row?.active_issues),
+          doneIssues: toNumber(row?.done_issues),
+          totalIssues: toNumber(row?.total_issues),
+          notDoneIssues: Math.max(0, toNumber(row?.total_issues) - toNumber(row?.done_issues)),
+          ticketStateItems
+        };
+      })
+      .sort((left, right) => {
+        if (right.totalIssues !== left.totalIssues) return right.totalIssues - left.totalIssues;
+        if (right.activeIssues !== left.activeIssues) return right.activeIssues - left.activeIssues;
+        if (right.doneIssues !== left.doneIssues) return right.doneIssues - left.doneIssues;
+        return left.contributor.localeCompare(right.contributor);
+      });
 
-      return {
-        contributor: String(row?.contributor?.name || row?.contributor?.id || "Unknown"),
-        activeIssues: toNumber(row?.active_issues),
-        doneIssues: toNumber(row?.done_issues),
-        totalIssues: toNumber(row?.total_issues),
-        notDoneIssues: Math.max(0, toNumber(row?.total_issues) - toNumber(row?.done_issues)),
-        ticketStateItems
-      };
-    })
-    .sort((left, right) => {
-      if (right.totalIssues !== left.totalIssues) return right.totalIssues - left.totalIssues;
-      if (right.activeIssues !== left.activeIssues) return right.activeIssues - left.activeIssues;
-      if (right.doneIssues !== left.doneIssues) return right.doneIssues - left.doneIssues;
-      return left.contributor.localeCompare(right.contributor);
+    if (rows.length === 0) {
+      showPanelStatus(status, "No assigned contributor data found after excluding Unassigned.", {
+        containerId: "top-contributors-chart"
+      });
+      return;
+    }
+
+    const summary = contributorsSnapshot?.summary || {};
+    const total = toNumber(summary.total_issues);
+    const notDone = toNumber(summary.active_issues);
+    const done = toNumber(summary.done_issues);
+    setContextText(
+      context,
+      contextWithUpdated(
+        `${notDone} not done • ${done} done • ${total} total`,
+        state.contributors?.updatedAt || state.snapshot?.updatedAt
+      )
+    );
+
+    renderNamedChart({
+      statusId: "contributors-status",
+      rendererName: "renderTopContributorsChart",
+      missingMessage: "Contributors chart unavailable: Recharts renderer missing.",
+      props: {
+        containerId: "top-contributors-chart",
+        rows,
+        colors: getThemeColors(),
+        barColor: readThemeColor("--team-react", "#5ba896")
+      }
     });
+  });
+}
 
-  if (rows.length === 0) {
-    status.hidden = false;
-    status.textContent = "No assigned contributor data found after excluding Unassigned.";
-    clearChartContainer("top-contributors-chart");
+async function loadOptionalJson(response, { stateKey, errorMessage, statusIds = [], clearContainers = [] }) {
+  if (response.ok) {
+    state[stateKey] = await response.json();
     return;
   }
 
-  const summary = contributorsSnapshot?.summary || {};
-  const total = toNumber(summary.total_issues);
-  const notDone = toNumber(summary.active_issues);
-  const done = toNumber(summary.done_issues);
-  setContextText(
-    context,
-    `Contributors label scope • ${notDone} not done / ${done} done / ${total} total issues • Unassigned excluded • Duplicates removed`
-  );
+  state[stateKey] = null;
+  setStatusMessageForIds(statusIds, `${errorMessage}: HTTP ${response.status}`);
+  clearContainers.forEach(clearChartContainer);
+}
 
-  const renderChart = getRenderer(
-    "contributors-status",
-    "renderTopContributorsChart",
-    "Contributors chart unavailable: Recharts renderer missing."
+function bindDashboardControls() {
+  [
+    {
+      name: "composition-team-scope",
+      stateKey: "compositionTeamScope",
+      normalizeValue: (value) => value || "bc",
+      onChangeRender: renderBugCompositionByPriorityChart
+    },
+    {
+      name: "management-facility-flow-scope",
+      stateKey: "managementFlowScope",
+      normalizeValue: (value) => normalizeOption(value, MANAGEMENT_FLOW_SCOPES, "ongoing"),
+      onChangeRender: renderDevelopmentVsUatByFacilityChart
+    },
+    {
+      name: "product-cycle-year-scope",
+      stateKey: "productCycleYearScope",
+      normalizeValue: (value) => normalizeOption(value, PRODUCT_CYCLE_COMPARE_YEARS, "2026"),
+      onChangeRender: renderLeadAndCycleTimeByTeamChart
+    },
+    {
+      name: "lifecycle-days-year-scope",
+      stateKey: "lifecycleDaysYearScope",
+      normalizeValue: (value) => normalizeOption(value, PRODUCT_CYCLE_COMPARE_YEARS, "2026"),
+      onChangeRender: renderLifecycleTimeSpentPerStageChart
+    }
+  ].forEach(({ name, stateKey, normalizeValue, onChangeRender }) => {
+    bindRadioState(name, stateKey, normalizeValue, onChangeRender);
+  });
+}
+
+function updateDashboardContextLabels() {
+  setContextText(
+    document.getElementById("trend-context"),
+    contextWithUpdated(
+      "",
+      state.snapshot?.updatedAt
+    )
   );
-  if (!renderChart) return;
-  renderChart({
-    containerId: "top-contributors-chart",
-    rows,
-    colors: getThemeColors(),
-    barColor: readThemeColor("--team-react", "#5ba896")
+  setContextText(
+    document.getElementById("composition-context"),
+    contextWithUpdated(
+      "BC • 10 snapshots",
+      state.snapshot?.updatedAt
+    )
+  );
+}
+
+function renderVisibleCharts() {
+  [
+    {
+      skipMode: "composition",
+      run: () =>
+        renderSnapshotChart({
+          statusId: "trend-status",
+          rendererName: "renderBugBacklogTrendByTeamChart",
+          missingMessage: "Trend chart unavailable: Recharts did not load. Check local script paths.",
+          containerId: "bug-trend-chart"
+        })
+    },
+    { skipMode: "trend", run: renderBugCompositionByPriorityChart },
+    { run: renderUatAgingByPriorityChart },
+    { run: renderDevelopmentTimeVsUatTimeChart },
+    { run: renderDevelopmentVsUatByFacilityChart },
+    { run: renderTopContributorsChart },
+    { run: renderLeadAndCycleTimeByTeamChart },
+    { run: renderLifecycleTimeSpentPerStageChart }
+  ].forEach(({ skipMode, run }) => {
+    if (!skipMode || state.mode !== skipMode) run();
   });
 }
 
@@ -1195,8 +829,6 @@ async function loadSnapshot() {
   setStatusMessageForIds(CHART_STATUS_IDS);
   state.mode = getModeFromUrl();
   applyModeVisibility();
-  ensureContextInfoIcons();
-  alignToggleHelpIcons();
 
   try {
     const [snapshotResponse, productCycleResponse, contributorsResponse] = await Promise.all([
@@ -1206,70 +838,22 @@ async function loadSnapshot() {
     ]);
     if (!snapshotResponse.ok) throw new Error(`backlog-snapshot.json HTTP ${snapshotResponse.status}`);
     state.snapshot = await snapshotResponse.json();
-    if (productCycleResponse.ok) {
-      state.productCycle = await productCycleResponse.json();
-    } else {
-      state.productCycle = null;
-      const message = `Failed to load product-cycle-snapshot.json: HTTP ${productCycleResponse.status}`;
-      setStatusMessageForIds(["product-cycle-status", "lifecycle-days-status"], message);
-    }
-    if (contributorsResponse.ok) {
-      state.contributors = await contributorsResponse.json();
-    } else {
-      state.contributors = null;
-      const message = `Failed to load contributors-snapshot.json: HTTP ${contributorsResponse.status}`;
-      setStatusMessage("contributors-status", message);
-      clearChartContainer("top-contributors-chart");
-    }
-    bindRadioState("composition-team-scope", "compositionTeamScope", (value) => value || "bc", renderBugCompositionByPriorityChart);
-    bindRadioState(
-      "management-facility-flow-scope",
-      "managementFlowScope",
-      (value) => normalizeOption(value, MANAGEMENT_FLOW_SCOPES, "ongoing"),
-      renderDevelopmentVsUatByFacilityChart
-    );
-    bindRadioState(
-      "product-cycle-year-scope",
-      "productCycleYearScope",
-      (value) => normalizeOption(value, PRODUCT_CYCLE_COMPARE_YEARS, "2026"),
-      renderCycleTimeParkingLotToDoneChart
-    );
-    bindRadioState(
-      "lifecycle-days-year-scope",
-      "lifecycleDaysYearScope",
-      (value) => normalizeOption(value, PRODUCT_CYCLE_COMPARE_YEARS, "2026"),
-      renderLifecycleTimeSpentPerPhaseChart
-    );
-    setTextForIds(LAST_UPDATED_IDS, `Last updated: ${formatUpdatedAt(state.snapshot?.updatedAt)}`);
-    setTextForIds(
-      ["contributors-updated"],
-      `Last updated: ${formatUpdatedAt(state.contributors?.updatedAt || state.snapshot?.updatedAt)}`
-    );
-    setTextForIds(
-      PRODUCT_CYCLE_UPDATED_IDS,
-      `Last updated: ${formatUpdatedAt(state.productCycle?.generatedAt || state.snapshot?.updatedAt)}`
-    );
-    [
-      {
-        skipMode: "composition",
-        run: () =>
-          renderSnapshotChart({
-            statusId: "trend-status",
-            rendererName: "renderBugTrendAcrossTeamsChart",
-            missingMessage: "Trend chart unavailable: Recharts did not load. Check local script paths.",
-            containerId: "bug-trend-chart"
-          })
-      },
-      { skipMode: "trend", run: renderBugCompositionByPriorityChart },
-      { run: renderUatOpenByPriorityChart },
-      { run: renderDevelopmentTimeVsUatTimeChart },
-      { run: renderDevelopmentVsUatByFacilityChart },
-      { run: renderTopContributorsChart },
-      { run: renderCycleTimeParkingLotToDoneChart },
-      { run: renderLifecycleTimeSpentPerPhaseChart }
-    ].forEach(({ skipMode, run }) => {
-      if (!skipMode || state.mode !== skipMode) run();
-    });
+    await Promise.all([
+      loadOptionalJson(productCycleResponse, {
+        stateKey: "productCycle",
+        errorMessage: "Failed to load product-cycle-snapshot.json",
+        statusIds: ["product-cycle-status", "lifecycle-days-status"]
+      }),
+      loadOptionalJson(contributorsResponse, {
+        stateKey: "contributors",
+        errorMessage: "Failed to load contributors-snapshot.json",
+        statusIds: ["contributors-status"],
+        clearContainers: ["top-contributors-chart"]
+      })
+    ]);
+    bindDashboardControls();
+    updateDashboardContextLabels();
+    renderVisibleCharts();
   } catch (error) {
     const message = `Failed to load backlog-snapshot.json: ${
       error instanceof Error ? error.message : String(error)
