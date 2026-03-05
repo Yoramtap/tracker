@@ -487,7 +487,6 @@
           event.preventDefault();
           event.stopPropagation();
           const node = event.currentTarget;
-          if (node && node.style) node.style.display = "none";
           dismissTooltipFromTap(node);
         }
       },
