@@ -97,6 +97,14 @@
     return weeks === 1 ? "1 week" : `${weeks} weeks`;
   }
 
+  function formatAverageLabel(value, unit = "days") {
+    if (unit === "weeks") {
+      const text = formatWeeksFromDays(value).replace("<1 week", "< 1 week");
+      return `${text} avg`;
+    }
+    return `${toWhole(value)} ${unit} avg`;
+  }
+
   function buildWeekAxis(maxValueWeeks, options = {}) {
     const majorStep = Math.max(1, toWhole(options?.majorStep || 0));
     const fixedStep = Number.isFinite(majorStep) && majorStep > 0 ? majorStep : null;
@@ -374,6 +382,13 @@
       }
       return rawText;
     };
+    const flattenSingleSubItem = (line, subItems) => {
+      if (!line || line.isTitle) return String(line?.text || "");
+      if (!Array.isArray(subItems) || subItems.length !== 1) return normalizeMainText(line);
+      const [onlyItem] = subItems;
+      if (typeof onlyItem !== "string") return normalizeMainText(line);
+      return `${normalizeMainText(line)}, ${onlyItem}`;
+    };
     const lines = (Array.isArray(blocks) ? blocks : []).map(normalizeLine).filter(Boolean);
 
     return h(
@@ -423,6 +438,9 @@
         }
 
         const subItems = asSubItems(line);
+        const flattenedText = flattenSingleSubItem(line, subItems);
+        const showNestedItems =
+          subItems.length > 1 || (subItems.length === 1 && !flattenedText.includes(String(subItems[0])));
         return h(
           "ul",
           {
@@ -444,8 +462,8 @@
                 lineHeight: line?.style?.lineHeight || "1.4"
               }
             },
-            h("span", null, normalizeMainText(line)),
-            subItems.length > 0
+            h("span", null, flattenedText),
+            showNestedItems
               ? h(
                   "ul",
                   {
@@ -1058,8 +1076,6 @@
         content: createTooltipContent(colors, (row, payload) => {
           const categoryLabel = row?.teamWithSampleBase || row?.[categoryKey] || row.team || "Category";
           const teamLabel = String(categoryLabel).replace(/\s*\(.*\)\s*$/, "");
-          const nMatch = String(categoryLabel).match(/\(n=(\d+)\)/);
-          const teamSample = nMatch ? toWhole(Number(nMatch[1])) : null;
           const hasDone = Number.isFinite(row?.doneCount);
           const lines = [
             tooltipTitleLine(
@@ -1068,17 +1084,6 @@
               colors
             )
           ];
-          if (hasDone) {
-            const teamSampleText = Number.isFinite(teamSample) ? String(toWhole(teamSample)) : "-";
-            lines.push(
-              makeTooltipLine("sample", "Sample", colors, {
-                margin: "2px 0 6px",
-                fontSize: "12px",
-                lineHeight: "1.45",
-                subItems: [`n = ${teamSampleText}`, `done = ${toWhole(row.doneCount)}`]
-              })
-            );
-          }
           payload.forEach((item) => {
             const key = item?.dataKey;
             const meta = row?.[`meta_${key}`] || {};
@@ -1086,16 +1091,14 @@
             if (valueDays <= 0) return;
             const sampleRaw = Number(meta.n);
             const sampleText = Number.isFinite(sampleRaw) && sampleRaw >= 0 ? String(toWhole(sampleRaw)) : "-";
-            const avgDays = toWhole(meta.average);
             const seriesName = meta.team || item.name;
             lines.push(
-              makeTooltipLine(key, String(seriesName), colors, {
+              makeTooltipLine(key, `${String(seriesName)} n=${sampleText}`, colors, {
                 margin: "2px 0",
                 fontSize: "12px",
                 lineHeight: "1.45",
                 subItems: [
-                  displayInWeeks ? `average = ${formatWeeksFromDays(meta.average)}` : `average = ${avgDays} days`,
-                  `n = ${sampleText}`
+                  displayInWeeks ? formatAverageLabel(meta.average, "weeks") : formatAverageLabel(meta.average, "days")
                 ]
               })
             );
@@ -1490,8 +1493,7 @@
               return makeTooltipLine(item.dataKey, String(item.name || ""), colors, {
                 subItems: [
                   `median = ${toWhole(item.value)} days`,
-                  `average = ${toWhole(avg)} days`,
-                  `n = ${Number.isFinite(countRaw) && countRaw >= 0 ? toWhole(countRaw) : "-"}`
+                  `${formatAverageLabel(avg, "days")} • n=${Number.isFinite(countRaw) && countRaw >= 0 ? toWhole(countRaw) : "-"}`
                 ]
               });
             })
@@ -1596,9 +1598,13 @@
           }
           return [
             tooltipTitleLine("label", row?.label || "", colors),
-            makeTooltipLine("sample", `n = ${toWhole(row?.sampleCount)}`, colors),
-            makeTooltipLine("dev", `Weeks in Development: ${formatWeeksFromDays(devAvg)} (avg)`, colors),
-            makeTooltipLine("uat", `Weeks in UAT: ${formatWeeksFromDays(uatAvg)} (avg)`, colors),
+            makeTooltipLine("sample", `Sample n=${toWhole(row?.sampleCount)}`, colors),
+            makeTooltipLine("dev", `Weeks in Development n=${toWhole(row?.devCount)}`, colors, {
+              subItems: [formatAverageLabel(devAvg, "weeks")]
+            }),
+            makeTooltipLine("uat", `Weeks in UAT n=${toWhole(row?.uatCount)}`, colors, {
+              subItems: [formatAverageLabel(uatAvg, "weeks")]
+            }),
             makeTooltipLine("issues", "Issues", colors, {
               margin: "6px 0 0",
               subItems: issueSubItems.length > 0 ? issueSubItems : ["-"]
@@ -1659,7 +1665,7 @@
       tooltipProps: {
         content: createTooltipContent(colors, (row) => [
           tooltipTitleLine("name", row?.contributor || "Contributor", colors),
-          makeTooltipLine("totals", `Ticket totals = ${toWhole(row?.totalIssues)}`, colors, {
+          makeTooltipLine("totals", `Ticket totals n=${toWhole(row?.totalIssues)}`, colors, {
             margin: "2px 0 6px",
             subItems: [
               ...(Array.isArray(row?.ticketStateItems) && row.ticketStateItems.length > 0
