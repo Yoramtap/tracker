@@ -136,22 +136,9 @@ h2 {
 }
 
 .help-tip--info {
-  border-width: 1.5px;
-  border-color: rgba(41, 84, 126, 0.72);
-  background: linear-gradient(180deg, rgba(244, 250, 255, 0.98), rgba(227, 239, 250, 0.98));
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.96) inset,
-    0 2px 5px rgba(17, 40, 64, 0.14);
-  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
-}
-
-.help-tip--info:hover,
-.help-tip--info:focus-visible {
-  border-color: rgba(31, 102, 191, 0.86);
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.96) inset,
-    0 3px 8px rgba(17, 40, 64, 0.22);
-  transform: translateY(-1px);
+  border: 2px solid rgba(31, 51, 71, 0.6);
+  background: rgba(247, 251, 255, 0.96);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.92) inset;
 }
 
 .help-tip-icon {
