@@ -11,14 +11,6 @@
   if (!dashboardUiUtils) {
     throw new Error("Dashboard UI helpers not loaded.");
   }
-  const dashboardChartPrimitives = window.DashboardChartPrimitives;
-  if (!dashboardChartPrimitives) {
-    throw new Error("Dashboard chart primitives not loaded.");
-  }
-  const dashboardChartLayout = window.DashboardChartLayout;
-  if (!dashboardChartLayout) {
-    throw new Error("Dashboard chart layout helpers not loaded.");
-  }
 
   const h = React.createElement;
   const {
@@ -36,7 +28,12 @@
     YAxis,
     Tooltip
   } = Recharts;
-  const { toNumber, formatDateShort } = dashboardUiUtils;
+  const { toNumber, formatDateShort, getModeFromUrl } = dashboardUiUtils;
+  const SHARED_CATEGORY_BLUE_TINTS = ["#CFE0F8", "#9EBAE3", "#6D95D1", "#3F73B8", "#295996"];
+  const BAR_LAYOUT = { categoryGap: "14%", groupGap: 2, denseMax: 14, normalMax: 20 };
+  const CHART_HEIGHTS = { standard: 280, dense: 320 };
+  const HORIZONTAL_CATEGORY_AXIS_WIDTH = 190;
+  const BAR_CURSOR_FILL = "rgba(31,51,71,0.04)";
   const roots = {
     trend: null,
     composition: null,
@@ -48,33 +45,612 @@
     lifecycleDays: null
   };
   const rootContainerIds = {};
-  const {
-    axisTick,
-    baseYAxisProps,
-    buildCategoryColorsFromRows,
-    createTooltipContent,
-    makeTooltipLine,
-    renderLegendNode,
-    twoLineCategoryTickFactory,
-    tooltipTitleLine
-  } = dashboardChartPrimitives;
-  const {
-    BAR_CURSOR_FILL,
-    BAR_LAYOUT,
-    CHART_HEIGHTS,
-    HORIZONTAL_CATEGORY_AXIS_WIDTH,
-    buildNiceNumberAxis,
-    buildWeekAxis,
-    computeYUpper,
-    formatWeeksFromDays,
-    groupedBarGeometry,
-    isCompactViewport,
-    singleChartHeightForMode,
-    tickIntervalForMobileLabels,
-    toWhole,
-    toWholeWeeksForChart,
-    trendLayoutForViewport
-  } = dashboardChartLayout;
+  const TEAM_CONFIG = [
+    { key: "api", label: "API" },
+    { key: "legacy", label: "Legacy FE" },
+    { key: "react", label: "React FE" },
+    { key: "bc", label: "BC" }
+  ];
+  const PRIORITY_CONFIG = [
+    { key: "medium", label: "Medium" },
+    { key: "high", label: "High" },
+    { key: "highest", label: "Highest" }
+  ];
+  const PRIORITY_STACK_ORDER = [
+    { key: "lowest", label: "Lowest" },
+    { key: "low", label: "Low" },
+    { key: "medium", label: "Medium" },
+    { key: "high", label: "High" },
+    { key: "highest", label: "Highest" }
+  ].reverse();
+  const MAX_SPRINT_POINTS = 10;
+  const TREND_TEAM_LINES = [
+    ["api", "API", "api"],
+    ["legacy", "Legacy FE", "legacy"],
+    ["react", "React FE", "react"],
+    ["bc", "BC", "bc"]
+  ];
+  const TREND_LONG_LINES = [
+    { dataKey: "bcLong30", name: "BC long-standing (30d+)", stroke: "#8e9aaa", strokeDasharray: "4 3" },
+    { dataKey: "bcLong60", name: "BC long-standing (60d+)", stroke: "#6f7f92", strokeDasharray: "7 4" }
+  ];
+
+  function toWhole(value) {
+    return Math.round(toNumber(value));
+  }
+
+  function toWeeks(valueInDays) {
+    return toNumber(valueInDays) / 7;
+  }
+
+  function toWholeWeeksForChart(valueInDays) {
+    const days = toNumber(valueInDays);
+    if (days <= 0) return 0;
+    if (days < 7) return 1;
+    return Math.max(1, Math.round(toWeeks(days)));
+  }
+
+  function formatWeeksFromDays(valueInDays) {
+    const days = toNumber(valueInDays);
+    if (days <= 0) return "0 weeks";
+    if (days < 7) return "<1 week";
+    const weeks = Math.max(1, Math.round(toWeeks(days)));
+    return weeks === 1 ? "1 week" : `${weeks} weeks`;
+  }
+
+  function buildWeekAxis(maxValueWeeks, options = {}) {
+    const majorStep = Math.max(1, toWhole(options?.majorStep || 0));
+    const fixedStep = Number.isFinite(majorStep) && majorStep > 0 ? majorStep : null;
+    const maxWeeks = Math.max(1, Math.ceil(toNumber(maxValueWeeks)));
+    if (fixedStep) {
+      const axisWeeks = Math.max(fixedStep, Math.ceil(maxWeeks / fixedStep) * fixedStep);
+      const ticks = [0];
+      for (let week = fixedStep; week <= axisWeeks; week += fixedStep) ticks.push(week);
+      return { upper: axisWeeks, ticks };
+    }
+
+    const targetSteps = 6;
+    const roughStep = maxWeeks / targetSteps;
+    let step = 1;
+    if (roughStep > 1 && roughStep <= 2) step = 2;
+    else if (roughStep > 2 && roughStep <= 5) step = 5;
+    else if (roughStep > 5) step = 10;
+
+    const upper = Math.max(step, Math.ceil(maxWeeks / step) * step);
+    const ticks = [];
+    for (let week = 0; week <= upper; week += step) ticks.push(week);
+    return { upper, ticks };
+  }
+
+  function trendTickInterval(pointsCount) {
+    const count = Math.max(0, toWhole(pointsCount));
+    if (count <= 8) return 0;
+    if (count <= 16) return 1;
+    return 2;
+  }
+
+  function viewportWidthPx() {
+    if (typeof window === "undefined") return 1280;
+    const direct = Number(window.innerWidth);
+    if (Number.isFinite(direct) && direct > 0) return direct;
+    const fallback = Number(document?.documentElement?.clientWidth);
+    return Number.isFinite(fallback) && fallback > 0 ? fallback : 1280;
+  }
+
+  function viewportHeightPx() {
+    if (typeof window === "undefined") return 900;
+    const direct = Number(window.innerHeight);
+    if (Number.isFinite(direct) && direct > 0) return direct;
+    const fallback = Number(document?.documentElement?.clientHeight);
+    return Number.isFinite(fallback) && fallback > 0 ? fallback : 900;
+  }
+
+  function singleChartHeightForMode(modeKey, baseHeight) {
+    if (getModeFromUrl() !== modeKey) return baseHeight;
+    const width = viewportWidthPx();
+    const viewportHeight = viewportHeightPx();
+    const smallMin = Math.max(300, Math.round(baseHeight * 1.05));
+    const mediumMin = Math.max(340, Math.round(baseHeight * 1.1));
+    const largeMin = Math.max(360, Math.round(baseHeight * 1.15));
+
+    if (width <= 680) {
+      return Math.max(smallMin, Math.min(680, Math.round(viewportHeight * 0.5)));
+    }
+    if (width <= 1024) {
+      return Math.max(mediumMin, Math.min(760, Math.round(viewportHeight * 0.56)));
+    }
+    return Math.max(largeMin, Math.min(920, Math.round(viewportHeight * 0.62)));
+  }
+
+  function isCompactViewport() {
+    return viewportWidthPx() <= 680;
+  }
+
+  function tickIntervalForMobileLabels(pointsCount) {
+    const count = Math.max(0, toWhole(pointsCount));
+    if (count <= 8) return 0;
+    if (count <= 12) return 1;
+    if (count <= 18) return 2;
+    return 3;
+  }
+
+  function trendLayoutForViewport(pointsCount) {
+    const width = viewportWidthPx();
+    if (width <= 680) {
+      return {
+        chartHeight: singleChartHeightForMode("trend", 224),
+        margin: { top: 10, right: 8, bottom: 24, left: 8 },
+        xTickFontSize: 10,
+        yTickFontSize: 10,
+        xTickMargin: 4,
+        minTickGap: 8,
+        legendCompact: true,
+        xAxisInterval: trendTickInterval(pointsCount)
+      };
+    }
+    if (width <= 1024) {
+      return {
+        chartHeight: singleChartHeightForMode("trend", 252),
+        margin: { top: 12, right: 10, bottom: 28, left: 10 },
+        xTickFontSize: 11,
+        yTickFontSize: 11,
+        xTickMargin: 5,
+        minTickGap: 6,
+        legendCompact: false,
+        xAxisInterval: pointsCount > 14 ? 1 : 0
+      };
+    }
+    return {
+      chartHeight: singleChartHeightForMode("trend", CHART_HEIGHTS.standard),
+      margin: { top: 12, right: 12, bottom: 32, left: 12 },
+      xTickFontSize: 11,
+      yTickFontSize: 11,
+      xTickMargin: 6,
+      minTickGap: 4,
+      legendCompact: false,
+      xAxisInterval: 0
+    };
+  }
+
+  function computeYUpper(values, { min = 1, pad = 1.12 } = {}) {
+    const finiteValues = (Array.isArray(values) ? values : []).filter(Number.isFinite);
+    if (finiteValues.length === 0) return min;
+    return Math.max(min, Math.ceil(Math.max(...finiteValues) * pad));
+  }
+
+  function buildNiceNumberAxis(maxValue) {
+    const max = Math.max(0, toNumber(maxValue));
+    if (max <= 1) return { upper: 1, ticks: [0, 1] };
+    const targetSteps = 6;
+    const roughStep = max / targetSteps;
+    const magnitude = 10 ** Math.floor(Math.log10(roughStep));
+    const normalized = roughStep / magnitude;
+    const niceBase = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+    const step = niceBase * magnitude;
+    const upper = Math.max(step, Math.ceil(max / step) * step);
+    const ticks = [];
+    for (let value = 0; value <= upper; value += step) ticks.push(value);
+    return { upper, ticks };
+  }
+
+  function groupedBarGeometry(rowsCount, seriesCount = 2) {
+    const safeSeriesCount = Math.max(1, Math.floor(toNumber(seriesCount) || 1));
+    let categoryGap = BAR_LAYOUT.categoryGap;
+    let targetGroupWidth = 68;
+    if (rowsCount <= 8) {
+      categoryGap = "30%";
+      targetGroupWidth = 88;
+    } else if (rowsCount <= 14) {
+      categoryGap = "14%";
+      targetGroupWidth = 102;
+    }
+    const rawBarSize = (targetGroupWidth - BAR_LAYOUT.groupGap * (safeSeriesCount - 1)) / safeSeriesCount;
+    const barSize = Math.max(12, Math.round(rawBarSize));
+    return {
+      categoryGap,
+      barSize,
+      maxBarSize: Math.max(barSize, Math.round(barSize * 1.25))
+    };
+  }
+
+  function makeTooltipLine(
+    key,
+    text,
+    colors,
+    {
+      margin = "2px 0",
+      fontSize = "12px",
+      fontWeight,
+      color,
+      lineHeight = "1.4",
+      subItems = null,
+      isTitle = false
+    } = {}
+  ) {
+    return {
+      key,
+      text: String(text ?? ""),
+      style: {
+        margin,
+        color: color || colors.text,
+        fontSize: fontSize || undefined,
+        fontWeight: fontWeight || undefined,
+        lineHeight: lineHeight || undefined
+      },
+      subItems: Array.isArray(subItems) ? subItems : null,
+      isTitle: Boolean(isTitle)
+    };
+  }
+
+  function tooltipTitleLine(key, text, colors) {
+    return makeTooltipLine(key, text, colors, {
+      margin: "0 0 6px",
+      fontWeight: 700,
+      fontSize: null,
+      isTitle: true
+    });
+  }
+
+  function createTooltipContent(colors, buildLines) {
+    return function renderTooltip({ active, payload }) {
+      if (!active || !Array.isArray(payload) || payload.length === 0) return null;
+      const row = payload[0]?.payload || {};
+      return renderTooltipCard(colors, buildLines(row, payload));
+    };
+  }
+
+  function isCoarsePointerDevice() {
+    return (
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(pointer: coarse)").matches
+    );
+  }
+
+  function dismissTooltipFromTap(node) {
+    if (!node || typeof node.closest !== "function" || typeof window === "undefined") return;
+    const wrapper = node.closest(".recharts-wrapper");
+    if (!wrapper) return;
+    try {
+      wrapper.dispatchEvent(
+        new MouseEvent("mouseleave", {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        })
+      );
+    } catch {
+      // no-op
+    }
+    try {
+      wrapper.dispatchEvent(
+        new Event("touchend", {
+          bubbles: true,
+          cancelable: true
+        })
+      );
+    } catch {
+      // no-op
+    }
+  }
+
+  function toggleLegendKey(prevSet, key) {
+    const next = new Set(prevSet);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    return next;
+  }
+
+  function renderTooltipCard(colors, blocks) {
+    const suppressHoverPropagation = (event) => {
+      if (!event) return;
+      event.stopPropagation();
+    };
+    const suppressHoverPropagationCapture = (event) => {
+      if (!event) return;
+      event.stopPropagation();
+      if (typeof event.preventDefault === "function") event.preventDefault();
+    };
+    const normalizeLine = (entry, index) => {
+      if (!entry) return null;
+      if (typeof entry === "string") {
+        return { key: `line-${index}`, text: entry, subItems: null, isTitle: false, style: {} };
+      }
+      if (typeof entry === "object" && "text" in entry) return entry;
+      return null;
+    };
+    const asSubItems = (line) => {
+      if (!line || line.isTitle) return [];
+      if (Array.isArray(line.subItems) && line.subItems.length > 0) {
+        return line.subItems
+          .map((item) => (typeof item === "string" ? item.trim() : item))
+          .filter((item) => {
+            if (item === null || item === undefined) return false;
+            if (typeof item === "string") return item.length > 0;
+            return true;
+          });
+      }
+      const rawText = String(line.text || "").trim();
+      const colonIndex = rawText.indexOf(":");
+      if (colonIndex > 0) {
+        const label = rawText.slice(0, colonIndex).trim();
+        const detail = rawText.slice(colonIndex + 1).trim();
+        const parts = detail.split(",").map((part) => part.trim()).filter(Boolean);
+        if (parts.length > 1) {
+          line.text = label;
+          return parts;
+        }
+      }
+      return [];
+    };
+    const normalizeMainText = (line) => {
+      if (!line || line.isTitle) return String(line?.text || "");
+      const rawText = String(line.text || "").trim();
+      const colonIndex = rawText.indexOf(":");
+      if (colonIndex > 0) {
+        const label = rawText.slice(0, colonIndex).trim();
+        const detail = rawText.slice(colonIndex + 1).trim();
+        const parts = detail.split(",").map((part) => part.trim()).filter(Boolean);
+        if (parts.length > 1) return label;
+      }
+      return rawText;
+    };
+    const lines = (Array.isArray(blocks) ? blocks : []).map(normalizeLine).filter(Boolean);
+
+    return h(
+      "div",
+      {
+        style: {
+          border: `1px solid ${colors.tooltip.border}`,
+          background: colors.tooltip.bg,
+          color: colors.tooltip.text,
+          borderRadius: "6px",
+          padding: "8px 10px",
+          boxShadow: "0 4px 14px rgba(0,0,0,0.1)"
+        },
+        onMouseEnter: suppressHoverPropagation,
+        onMouseMove: suppressHoverPropagation,
+        onMouseOver: suppressHoverPropagation,
+        onMouseEnterCapture: suppressHoverPropagationCapture,
+        onMouseMoveCapture: suppressHoverPropagationCapture,
+        onMouseOverCapture: suppressHoverPropagationCapture,
+        onPointerEnter: suppressHoverPropagation,
+        onPointerMove: suppressHoverPropagation,
+        onPointerEnterCapture: suppressHoverPropagationCapture,
+        onPointerMoveCapture: suppressHoverPropagationCapture,
+        onClick: (event) => {
+          if (!isCoarsePointerDevice()) return;
+          event.preventDefault();
+          event.stopPropagation();
+          dismissTooltipFromTap(event.currentTarget);
+        }
+      },
+      ...lines.map((line, index) => {
+        if (line.isTitle) {
+          return h(
+            "p",
+            {
+              key: line.key || `tooltip-title-${index}`,
+              style: {
+                margin: "0 0 6px",
+                color: line?.style?.color || colors.text,
+                fontSize: line?.style?.fontSize || "12px",
+                fontWeight: line?.style?.fontWeight || 700,
+                lineHeight: line?.style?.lineHeight || "1.4"
+              }
+            },
+            String(line.text || "")
+          );
+        }
+
+        const subItems = asSubItems(line);
+        return h(
+          "ul",
+          {
+            key: line.key || `tooltip-ul-${index}`,
+            style: {
+              margin: 0,
+              paddingLeft: "18px",
+              listStyleType: "disc"
+            }
+          },
+          h(
+            "li",
+            {
+              style: {
+                margin: "2px 0",
+                color: line?.style?.color || colors.text,
+                fontSize: line?.style?.fontSize || "12px",
+                fontWeight: 500,
+                lineHeight: line?.style?.lineHeight || "1.4"
+              }
+            },
+            h("span", null, normalizeMainText(line)),
+            subItems.length > 0
+              ? h(
+                  "ul",
+                  {
+                    style: {
+                      margin: "4px 0 0",
+                      paddingLeft: "16px",
+                      listStyleType: "circle"
+                    }
+                  },
+                  subItems.map((sub, subIndex) =>
+                    h(
+                      "li",
+                      {
+                        key: `${line.key || index}-sub-${subIndex}`,
+                        style: {
+                          margin: "1px 0",
+                          fontSize: "11px",
+                          fontWeight: 500,
+                          lineHeight: "1.35",
+                          color: "rgba(31,51,71,0.9)"
+                        }
+                      },
+                      React.isValidElement(sub) ? sub : String(sub)
+                    )
+                  )
+                )
+              : null
+          )
+        );
+      })
+    );
+  }
+
+  function renderLegendNode({ colors, defs, hiddenKeys, setHiddenKeys, compact = false }) {
+    const shortLabel = (value) => {
+      const raw = String(value || "");
+      if (!compact) return raw;
+      if (raw === "BC long-standing (30d+)") return "BC 30d+";
+      if (raw === "BC long-standing (60d+)") return "BC 60d+";
+      if (raw === "Median Dev") return "Dev";
+      if (raw === "Median UAT") return "UAT";
+      return raw;
+    };
+    return h(
+      "details",
+      {
+        className: "series-drawer",
+        open: true
+      },
+      h("summary", { className: "series-drawer__summary" }, "Series"),
+      h(
+        "div",
+        { className: "series-drawer__items" },
+        defs.map((item) => {
+          const key = item?.dataKey || "";
+          const hidden = hiddenKeys.has(key);
+          const swatchColor = item?.stroke || item?.fill || colors.text;
+          return h(
+            "button",
+            {
+              type: "button",
+              className: "series-drawer__item",
+              "aria-pressed": hidden ? "false" : "true",
+              title: hidden ? `Show ${item.name}` : `Hide ${item.name}`,
+              onClick: () => setHiddenKeys((prev) => toggleLegendKey(prev, key))
+            },
+            h("span", {
+              className: "series-drawer__swatch",
+              style: { background: swatchColor, opacity: hidden ? 0.35 : 1 }
+            }),
+            h(
+              "span",
+              {
+                className: "series-drawer__label",
+                style: {
+                  color: "var(--text, #1f3347)",
+                  opacity: hidden ? 0.45 : 1,
+                  textDecoration: hidden ? "line-through" : "none",
+                  fontSize: compact ? 11 : 12
+                }
+              },
+              shortLabel(item.name)
+            )
+          );
+        })
+      )
+    );
+  }
+
+  function axisTick(colors) {
+    return { fill: colors.text, fontSize: 12, fontWeight: 500 };
+  }
+
+  function buildCategoryColorsFromRows(rows, categoryKey) {
+    const uniqueLabels = [];
+    const seen = new Set();
+    (Array.isArray(rows) ? rows : []).forEach((row) => {
+      const label = String(row?.[categoryKey] || "");
+      if (!label || seen.has(label)) return;
+      seen.add(label);
+      uniqueLabels.push(label);
+    });
+    const mapped = {};
+    uniqueLabels.forEach((label, index) => {
+      mapped[label] = SHARED_CATEGORY_BLUE_TINTS[index % SHARED_CATEGORY_BLUE_TINTS.length];
+    });
+    return mapped;
+  }
+
+  function twoLineCategoryTickFactory(
+    colors,
+    { textAnchor = "end", dy = 3, line2Dy = 14, secondaryLabels = null } = {}
+  ) {
+    return function twoLineCategoryTick(props) {
+      const { x, y, payload } = props || {};
+      const raw = String(payload?.value || "");
+      const splitIndex = raw.indexOf(" (n=");
+      const fallbackLine2 = splitIndex > 0 ? raw.slice(splitIndex + 1) : "";
+      const mappedLine2 =
+        secondaryLabels && typeof secondaryLabels === "object"
+          ? String(secondaryLabels[raw] || "")
+          : "";
+      const line1 = raw;
+      const line2 = mappedLine2 || fallbackLine2;
+      if (secondaryLabels && textAnchor === "middle") {
+        return h(
+          "g",
+          { transform: `translate(${x},${y})` },
+          h(
+            "text",
+            {
+              x: 0,
+              y: 12,
+              textAnchor: "middle",
+              fill: colors.text,
+              fontSize: 12
+            },
+            line1
+          ),
+          line2
+            ? h(
+                "text",
+                {
+                  x: 0,
+                  y: 28,
+                  textAnchor: "middle",
+                  fill: "rgba(31,51,71,0.78)",
+                  fontSize: 11
+                },
+                line2
+              )
+            : null
+        );
+      }
+      return h(
+        "g",
+        { transform: `translate(${x},${y})` },
+        h(
+          "text",
+          {
+            x: 0,
+            y: 0,
+            dy,
+            textAnchor,
+            fill: colors.text,
+            fontSize: 12
+          },
+          h("tspan", { x: 0, dy: 0 }, line1),
+          line2
+            ? h("tspan", { x: 0, dy: line2Dy, fill: "rgba(31,51,71,0.75)", fontSize: 11 }, line2)
+            : null
+        )
+      );
+    };
+  }
+
+  function baseYAxisProps(colors, domain = null) {
+    return {
+      stroke: colors.text,
+      tick: axisTick(colors),
+      allowDecimals: false,
+      ...(domain ? { domain } : {})
+    };
+  }
 
   function ensureRoot(kind, containerId) {
     const container = document.getElementById(containerId);
@@ -556,6 +1132,573 @@
     });
   }
 
+  function totalForPoint(point) {
+    return (
+      toNumber(point?.highest) +
+      toNumber(point?.high) +
+      toNumber(point?.medium) +
+      toNumber(point?.low) +
+      toNumber(point?.lowest)
+    );
+  }
+
+  function buildTrendData(snapshot) {
+    const allPoints = Array.isArray(snapshot?.combinedPoints) ? snapshot.combinedPoints : [];
+    const points = allPoints.slice(-MAX_SPRINT_POINTS);
+    return points.map((point) => {
+      const api = point?.api || {};
+      const legacy = point?.legacy || {};
+      const react = point?.react || {};
+      const bc = point?.bc || {};
+      return {
+        date: point.date,
+        dateShort: formatDateShort(point.date),
+        api: totalForPoint(api),
+        legacy: totalForPoint(legacy),
+        react: totalForPoint(react),
+        bc: totalForPoint(bc),
+        bcLong30: toNumber(bc.longstanding_30d_plus),
+        bcLong60: toNumber(bc.longstanding_60d_plus)
+      };
+    });
+  }
+
+  function buildCompositionData(snapshot, scope) {
+    const allPoints = Array.isArray(snapshot?.combinedPoints) ? snapshot.combinedPoints : [];
+    const points = allPoints.slice(-MAX_SPRINT_POINTS);
+
+    if (scope === "all") {
+      const rows = [];
+      points.forEach((point) => {
+        TEAM_CONFIG.forEach((team) => {
+          const metrics = point?.[team.key];
+          if (!metrics) return;
+          rows.push({
+            bucketLabel: `${point.date} ${team.label}`.trim(),
+            team: team.label,
+            date: point.date,
+            highest: toNumber(metrics.highest),
+            high: toNumber(metrics.high),
+            medium: toNumber(metrics.medium),
+            low: toNumber(metrics.low),
+            lowest: toNumber(metrics.lowest),
+            total: totalForPoint(metrics)
+          });
+        });
+      });
+      return rows;
+    }
+
+    return points.map((point) => {
+      const metrics = point?.[scope] || {};
+      return {
+        bucketLabel: point.date,
+        team:
+          TEAM_CONFIG.find((team) => team.key === scope)?.label ||
+          String(scope || "").toUpperCase(),
+        date: point.date,
+        highest: toNumber(metrics.highest),
+        high: toNumber(metrics.high),
+        medium: toNumber(metrics.medium),
+        low: toNumber(metrics.low),
+        lowest: toNumber(metrics.lowest),
+        total: totalForPoint(metrics)
+      };
+    });
+  }
+
+  function trendLineDefs(colors) {
+    return [
+      ...TREND_TEAM_LINES.map(([dataKey, name, colorKey]) => ({
+        dataKey,
+        name,
+        stroke: colors.teams[colorKey],
+        strokeWidth: 2.5,
+        dot: { r: 3 }
+      })),
+      ...TREND_LONG_LINES.map((line) => ({
+        ...line,
+        strokeWidth: 2,
+        dot: { r: 3 }
+      }))
+    ];
+  }
+
+  function TrendChartView({ rows, colors, yUpper }) {
+    const [hiddenKeys, setHiddenKeys] = React.useState(() => new Set());
+    const lineDefs = trendLineDefs(colors);
+    const layout = trendLayoutForViewport(rows.length);
+
+    return h(
+      "div",
+      { className: "chart-series-shell" },
+      renderLegendNode({
+        colors,
+        defs: lineDefs,
+        hiddenKeys,
+        setHiddenKeys,
+        compact: layout.legendCompact
+      }),
+      h(
+        ResponsiveContainer,
+        { width: "100%", height: layout.chartHeight },
+        h(
+          LineChart,
+          {
+            data: rows,
+            margin: layout.margin
+          },
+          h(CartesianGrid, { stroke: colors.grid, vertical: false }),
+          h(XAxis, {
+            dataKey: "dateShort",
+            stroke: colors.text,
+            tick: { fill: colors.text, fontSize: layout.xTickFontSize },
+            tickMargin: layout.xTickMargin,
+            interval: layout.xAxisInterval,
+            minTickGap: layout.minTickGap
+          }),
+          h(YAxis, {
+            stroke: colors.text,
+            tick: { fill: colors.text, fontSize: layout.yTickFontSize },
+            domain: [0, yUpper]
+          }),
+          h(Tooltip, {
+            content: createTooltipContent(colors, (row, payload) => [
+              tooltipTitleLine("date", row.date || "", colors),
+              ...payload.map((item) =>
+                makeTooltipLine(item.dataKey, `${item.name}: ${toNumber(item.value)}`, colors)
+              )
+            ]),
+            cursor: { stroke: colors.active, strokeWidth: 1.5, strokeDasharray: "3 3" }
+          }),
+          lineDefs.map((lineDef) =>
+            h(Line, {
+              key: lineDef.dataKey,
+              type: "monotone",
+              dataKey: lineDef.dataKey,
+              name: lineDef.name,
+              stroke: lineDef.stroke,
+              strokeDasharray: lineDef.strokeDasharray,
+              strokeWidth: lineDef.strokeWidth,
+              dot: lineDef.dot,
+              activeDot: activeLineDot(colors),
+              hide: hiddenKeys.has(lineDef.dataKey)
+            })
+          )
+        )
+      )
+    );
+  }
+
+  function CompositionChartView({ rows, colors, scope }) {
+    const [hiddenKeys, setHiddenKeys] = React.useState(() => new Set());
+    const isAllTeams = scope === "all";
+    const compactViewport = isCompactViewport();
+    const yUpper = computeYUpper(rows.map((row) => toNumber(row?.total)), { min: 1, pad: 1.08 });
+    const niceYAxis = buildNiceNumberAxis(yUpper);
+    const xInterval = compactViewport ? tickIntervalForMobileLabels(rows.length) : 0;
+    const categoryGap =
+      isAllTeams || rows.length > 14 ? BAR_LAYOUT.categoryGap : rows.length <= 8 ? "2%" : "8%";
+    const singleTeamMaxBarSize =
+      rows.length <= 12 ? 34 : rows.length <= 20 ? 28 : BAR_LAYOUT.normalMax;
+    const priorityDefs = PRIORITY_STACK_ORDER.map((priority) => ({
+      dataKey: priority.key,
+      name: priority.label,
+      fill: colors.priorities[priority.key],
+      stackId: "backlog"
+    }));
+    const barNodes = priorityDefs.map((priority) =>
+      h(Bar, {
+        key: priority.dataKey,
+        dataKey: priority.dataKey,
+        name: priority.name,
+        stackId: "backlog",
+        fill: priority.fill,
+        ...barBaseStyle(colors),
+        activeBar: ACTIVE_BAR_STYLE,
+        hide: hiddenKeys.has(priority.dataKey),
+        isAnimationActive: false
+      })
+    );
+    return renderBarChartShell({
+      rows,
+      colors,
+      height: singleChartHeightForMode("composition", CHART_HEIGHTS.dense),
+      margin: { top: 12, right: 12, bottom: 38, left: 12 },
+      layout: { categoryGap, maxBarSize: isAllTeams ? BAR_LAYOUT.denseMax : singleTeamMaxBarSize },
+      xAxisProps: {
+        dataKey: "bucketLabel",
+        stroke: colors.text,
+        tick: { ...axisTick(colors), fontSize: compactViewport ? 11 : 12 },
+        angle: isAllTeams ? -90 : -25,
+        textAnchor: "end",
+        interval: xInterval,
+        minTickGap: isAllTeams ? (compactViewport ? 8 : 0) : compactViewport ? 10 : 16,
+        height: isAllTeams ? (compactViewport ? 86 : 78) : compactViewport ? 44 : 48,
+        tickFormatter: (value, index) => {
+          if (!isAllTeams) return value;
+          const row = rows[index] || {};
+          return row.team || "";
+        }
+      },
+      yAxisProps: {
+        ...baseYAxisProps(colors, [0, niceYAxis.upper]),
+        ticks: niceYAxis.ticks
+      },
+      tooltipProps: {
+        content: createTooltipContent(colors, (row, payload) => [
+          tooltipTitleLine("title", `${row.team || ""} · ${row.date || ""}`, colors),
+          makeTooltipLine("total", `Total: ${toNumber(row.total)}`, colors, { margin: "0 0 6px" }),
+          ...payload.map((item) =>
+            makeTooltipLine(item.dataKey, `${item.name}: ${toNumber(item.value)}`, colors)
+          )
+        ]),
+        cursor: { fill: BAR_CURSOR_FILL }
+      },
+      legendDrawerNode: renderLegendNode({ colors, defs: priorityDefs, hiddenKeys, setHiddenKeys }),
+      barNodes
+    });
+  }
+
+  function renderBugBacklogTrendByTeamChart({ containerId, snapshot, colors }) {
+    const rows = buildTrendData(snapshot);
+    renderWithRoot("trend", containerId, rows.length > 0, (root) => {
+      const yUpper = computeYUpper(
+        [
+          ...rows.map((row) => row.api),
+          ...rows.map((row) => row.legacy),
+          ...rows.map((row) => row.react),
+          ...rows.map((row) => row.bc),
+          ...rows.map((row) => row.bcLong30),
+          ...rows.map((row) => row.bcLong60)
+        ],
+        { min: 10, pad: 1.08 }
+      );
+      root.render(h(TrendChartView, { rows, colors, yUpper }));
+    });
+  }
+
+  function renderBugCompositionByPriorityChart({ containerId, snapshot, colors, scope = "bc" }) {
+    const rows = buildCompositionData(snapshot, scope);
+    renderWithRoot("composition", containerId, rows.length > 0, (root) => {
+      root.render(h(CompositionChartView, { rows, colors, scope }));
+    });
+  }
+
+  function renderUatPriorityAgingChart({ containerId, rows, buckets: _buckets, colors }) {
+    const chartRows = Array.isArray(rows) ? rows : [];
+    const compactViewport = isCompactViewport();
+    const bucketShortLabels = {
+      "1-2 weeks": "1-2w",
+      "1 month": "1m",
+      "2 months": "2m",
+      "More than 2 months": "2m+"
+    };
+    const prioritySeries = PRIORITY_CONFIG.map((priority) => ({
+      dataKey: priority.key,
+      name: priority.label,
+      fill: colors.priorities?.[priority.key] || colors.teams.bc,
+      stackId: "uat-priority"
+    }));
+    const yUpper = computeYUpper(chartRows.map((row) => toNumber(row?.total)), { min: 1, pad: 1.12 });
+    renderGroupedBars("uat", containerId, chartRows.length > 0 && prioritySeries.length > 0, {
+      rows: chartRows,
+      defs: prioritySeries,
+      colors,
+      yUpper,
+      height: singleChartHeightForMode("uat", CHART_HEIGHTS.standard),
+      showLegend: true,
+      colorByCategoryKey: "bucketLabel",
+      xAxisProps: {
+        dataKey: "bucketLabel",
+        interval: 0,
+        height: compactViewport ? 42 : 52,
+        tick: { ...axisTick(colors), fontSize: compactViewport ? 11 : 12 },
+        tickFormatter: (value) => {
+          const key = String(value || "");
+          if (!compactViewport) return key;
+          return bucketShortLabels[key] || key;
+        }
+      },
+      tooltipProps: {
+        content: createTooltipContent(colors, (row, payload) => {
+          const groups =
+            row?.facilityPriorityGroups && typeof row.facilityPriorityGroups === "object"
+              ? row.facilityPriorityGroups
+              : {};
+          const priorityOrder = ["Highest", "High", "Medium", "Low", "Lowest"];
+          const facilityEntries = Object.entries(groups)
+            .map(([facility, byPriority]) => {
+              const map = byPriority && typeof byPriority === "object" ? byPriority : {};
+              const priorityCounts = priorityOrder
+                .map((priority) => [priority, toWhole(map[priority])])
+                .filter(([, count]) => count > 0);
+              const items = priorityCounts.map(([priority, count]) => `${priority}: ${count}`);
+              const total = priorityCounts.reduce((sum, [, count]) => sum + count, 0);
+              return [String(facility || "").trim(), total, items];
+            })
+            .filter(([facility, total]) => facility && total > 0)
+            .sort((left, right) => {
+              const leftIsUnspecified = left[0] === "Unspecified";
+              const rightIsUnspecified = right[0] === "Unspecified";
+              if (leftIsUnspecified && !rightIsUnspecified) return 1;
+              if (!leftIsUnspecified && rightIsUnspecified) return -1;
+              if (right[1] !== left[1]) return right[1] - left[1];
+              return left[0].localeCompare(right[0]);
+            });
+
+          return [
+            tooltipTitleLine("title", row.bucketLabel || "", colors),
+            tooltipTitleLine("total", `Total: ${toWhole(row.total)}`, colors),
+            ...facilityEntries.map(([facility, _total, items], index) =>
+              makeTooltipLine(`facility-${index}`, facility, colors, {
+                margin: "0 0 4px",
+                subItems: items
+              })
+            ),
+            ...(facilityEntries.length === 0
+              ? payload
+                  .filter((item) => toWhole(item?.value) > 0)
+                  .map((item) =>
+                    makeTooltipLine(item.dataKey, `${item.name}: ${toWhole(item.value)}`, colors)
+                  )
+              : [])
+          ];
+        }),
+        cursor: { fill: "rgba(31,51,71,0.05)" }
+      }
+    });
+  }
+
+  function renderDevelopmentTimeVsUatTimeChart({
+    containerId,
+    rows,
+    colors,
+    devColor,
+    uatColor,
+    yTicks
+  }) {
+    const chartRows = Array.isArray(rows) ? rows : [];
+    const yUpper = computeYUpper(
+      [
+        ...chartRows.map((row) => toNumber(row.devMedian)),
+        ...chartRows.map((row) => toNumber(row.uatMedian))
+      ],
+      { min: 1, pad: 1.12 }
+    );
+    renderGroupedBars("management", containerId, chartRows.length > 0, {
+      rows: chartRows,
+      defs: [
+        { dataKey: "devMedian", name: "Days in Development", fill: devColor },
+        { dataKey: "uatMedian", name: "Days in UAT", fill: uatColor }
+      ],
+      colors,
+      yUpper,
+      height: singleChartHeightForMode("management", CHART_HEIGHTS.standard),
+      yAxisProps:
+        Array.isArray(yTicks) && yTicks.length > 1
+          ? { domain: [0, yTicks[yTicks.length - 1]], ticks: yTicks, allowDecimals: false }
+          : undefined,
+      xAxisProps: {
+        dataKey: "label",
+        interval: 0,
+        height: 36
+      },
+      tooltipProps: {
+        content: createTooltipContent(colors, (row, payload) => [
+          tooltipTitleLine("label", row.label || "", colors),
+          ...payload
+            .map((item) => {
+              const isDev = item?.dataKey === "devMedian";
+              const countRaw = Number(isDev ? row.devCount : row.uatCount);
+              const avg = isDev ? toNumber(row.devAvg) : toNumber(row.uatAvg);
+              return makeTooltipLine(item.dataKey, String(item.name || ""), colors, {
+                subItems: [
+                  `median = ${toWhole(item.value)} days`,
+                  `average = ${toWhole(avg)} days`,
+                  `n = ${Number.isFinite(countRaw) && countRaw >= 0 ? toWhole(countRaw) : "-"}`
+                ]
+              });
+            })
+            .filter(Boolean)
+        ]),
+        cursor: { fill: BAR_CURSOR_FILL }
+      }
+    });
+  }
+
+  function renderDevelopmentVsUatByFacilityChart({
+    containerId,
+    rows,
+    colors,
+    devColor,
+    uatColor,
+    jiraBrowseBase = "https://nepgroup.atlassian.net/browse/"
+  }) {
+    const chartRows = Array.isArray(rows) ? rows : [];
+    const compactViewport = isCompactViewport();
+    const weekRows = chartRows.map((row) => ({
+      ...row,
+      devWeeks: toWholeWeeksForChart(row?.devAvg),
+      uatWeeks: toWholeWeeksForChart(row?.uatAvg)
+    }));
+    const categorySecondaryLabels = Object.fromEntries(
+      chartRows.map((row) => [String(row?.label || ""), `n=${toWhole(row?.sampleCount)}`])
+    );
+    const yUpper = computeYUpper(
+      [...weekRows.map((row) => toNumber(row?.devWeeks)), ...weekRows.map((row) => toNumber(row?.uatWeeks))],
+      { min: 1, pad: 1.15 }
+    );
+    const weekAxis = buildWeekAxis(yUpper, { majorStep: yUpper <= 12 ? 2 : 4 });
+    const xInterval = compactViewport ? tickIntervalForMobileLabels(chartRows.length) : 0;
+    renderGroupedBars("managementFacility", containerId, chartRows.length > 0, {
+      rows: weekRows,
+      defs: [
+        {
+          dataKey: "devWeeks",
+          name: "Weeks in Development",
+          fill: devColor
+        },
+        {
+          dataKey: "uatWeeks",
+          name: "Weeks in UAT",
+          fill: uatColor
+        }
+      ],
+      colors,
+      yUpper: weekAxis.upper,
+      height: singleChartHeightForMode("management-facility", CHART_HEIGHTS.standard),
+      yAxisProps: {
+        domain: [0, weekAxis.upper],
+        ticks: weekAxis.ticks,
+        allowDecimals: false,
+        tickFormatter: (value) => String(toWhole(value))
+      },
+      xAxisProps: {
+        dataKey: "label",
+        interval: xInterval,
+        minTickGap: compactViewport ? 14 : 6,
+        height: compactViewport ? 44 : 56,
+        angle: compactViewport ? -28 : 0,
+        textAnchor: compactViewport ? "end" : "middle",
+        tick: compactViewport
+          ? { ...axisTick(colors), fontSize: 11 }
+          : twoLineCategoryTickFactory(colors, {
+              textAnchor: "middle",
+              secondaryLabels: categorySecondaryLabels
+            })
+      },
+      tooltipProps: {
+        content: createTooltipContent(colors, (row) => {
+          const devAvg = toNumber(row?.devAvg);
+          const uatAvg = toNumber(row?.uatAvg);
+          const issueIds = Array.isArray(row?.issueIds) ? row.issueIds : [];
+          const issueDisplayLimit = 8;
+          const issueSubItems = issueIds
+            .slice(0, issueDisplayLimit)
+            .map((issueId, index) => {
+              const key = String(issueId || "").trim();
+              if (!key) return null;
+              const url = `${String(jiraBrowseBase || "").replace(/\/$/, "")}/${encodeURIComponent(key)}`;
+              return h(
+                "a",
+                {
+                  key: `issue-link-${key}-${index}`,
+                  href: url,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  style: {
+                    color: colors.text,
+                    textDecoration: "underline"
+                  }
+                },
+                key
+              );
+            })
+            .filter(Boolean);
+          if (issueIds.length > issueDisplayLimit) {
+            issueSubItems.push(`+${issueIds.length - issueDisplayLimit} more`);
+          }
+          return [
+            tooltipTitleLine("label", row?.label || "", colors),
+            makeTooltipLine("sample", `n = ${toWhole(row?.sampleCount)}`, colors),
+            makeTooltipLine("dev", `Weeks in Development: ${formatWeeksFromDays(devAvg)} (avg)`, colors),
+            makeTooltipLine("uat", `Weeks in UAT: ${formatWeeksFromDays(uatAvg)} (avg)`, colors),
+            makeTooltipLine("issues", "Issues", colors, {
+              margin: "6px 0 0",
+              subItems: issueSubItems.length > 0 ? issueSubItems : ["-"]
+            })
+          ];
+        }),
+        wrapperStyle: { pointerEvents: "auto" },
+        cursor: { fill: BAR_CURSOR_FILL }
+      }
+    });
+  }
+
+  function renderTopContributorsChart({ containerId, rows, colors, barColor }) {
+    const chartRows = Array.isArray(rows) ? rows : [];
+    const compactViewport = isCompactViewport();
+    const fillColor = String(barColor || "").trim() || colors.teams.react;
+    const contributorAxisWidth = compactViewport ? 132 : HORIZONTAL_CATEGORY_AXIS_WIDTH;
+    const contributorMetaLabels = Object.fromEntries(
+      chartRows.map((row) => [
+        String(row?.contributor || ""),
+        `n=${toWhole(row?.totalIssues)}, done=${toWhole(row?.doneIssues)}`
+      ])
+    );
+    const yUpper = computeYUpper(chartRows.map((row) => toNumber(row?.totalIssues)), { min: 1, pad: 1.12 });
+    const nice = buildNiceNumberAxis(yUpper);
+    renderGroupedBars("contributors", containerId, chartRows.length > 0, {
+      rows: chartRows,
+      defs: [
+        {
+          dataKey: "totalIssues",
+          name: "Ticket totals",
+          fill: fillColor
+        }
+      ],
+      colors,
+      yUpper: nice.upper,
+      showLegend: false,
+      height: singleChartHeightForMode("contributors", CHART_HEIGHTS.dense),
+      margin: { top: 14, right: 12, bottom: 30, left: 12 },
+      chartLayout: "vertical",
+      xAxisProps: {
+        type: "number",
+        domain: [0, nice.upper],
+        ticks: nice.ticks,
+        allowDecimals: false
+      },
+      yAxisProps: {
+        dataKey: "contributor",
+        type: "category",
+        width: contributorAxisWidth,
+        tick: twoLineCategoryTickFactory(colors, {
+          textAnchor: "end",
+          dy: 3,
+          line2Dy: 14,
+          secondaryLabels: contributorMetaLabels
+        })
+      },
+      tooltipProps: {
+        content: createTooltipContent(colors, (row) => [
+          tooltipTitleLine("name", row?.contributor || "Contributor", colors),
+          makeTooltipLine("totals", `Ticket totals = ${toWhole(row?.totalIssues)}`, colors, {
+            margin: "2px 0 6px",
+            subItems: [
+              ...(Array.isArray(row?.ticketStateItems) && row.ticketStateItems.length > 0
+                ? row.ticketStateItems
+                : [`Done = ${toWhole(row?.doneIssues)}`, `Not done = ${toWhole(row?.notDoneIssues ?? row?.activeIssues)}`])
+            ]
+          })
+        ]),
+        cursor: { fill: BAR_CURSOR_FILL }
+      },
+      gridHorizontal: false
+    });
+  }
+
   window.DashboardChartCore = {
     ACTIVE_BAR_STYLE,
     BAR_CURSOR_FILL,
@@ -597,5 +1740,31 @@
     tooltipTitleLine,
     trendLayoutForViewport,
     twoLineCategoryTickFactory
+  };
+
+  window.DashboardCharts = {
+    clearChart,
+    renderBugBacklogTrendByTeamChart,
+    renderBugCompositionByPriorityChart,
+    renderUatPriorityAgingChart,
+    renderDevelopmentTimeVsUatTimeChart,
+    renderDevelopmentVsUatByFacilityChart,
+    renderTopContributorsChart,
+    renderLeadAndCycleTimeByTeamChart: ({ seriesDefs, ...rest }) =>
+      renderMultiSeriesBars({
+        kind: "productCycle",
+        modeKey: "product-cycle",
+        defs: seriesDefs,
+        valueUnit: "weeks",
+        ...rest
+      }),
+    renderLifecycleTimeSpentPerStageChart: ({ seriesDefs, ...rest }) =>
+      renderMultiSeriesBars({
+        kind: "lifecycleDays",
+        modeKey: "lifecycle-days",
+        defs: seriesDefs,
+        valueUnit: "weeks",
+        ...rest
+      })
   };
 })();

@@ -15,11 +15,54 @@ const MODE_PANEL_IDS = {
   "lifecycle-days": "lifecycle-days-panel"
 };
 const CHART_STATUS_IDS = ["composition-status", "trend-status", "uat-status", "management-status", "management-facility-status", "contributors-status", "product-cycle-status", "lifecycle-days-status"];
-const PUBLIC_AGGREGATE_CHART_CONFIG = {
+const CHART_CONFIG = {
+  trend: {
+    statusId: "trend-status",
+    contextId: "trend-context",
+    containerId: "bug-trend-chart",
+    rendererName: "renderBugBacklogTrendByTeamChart",
+    missingMessage: "Trend chart unavailable: Recharts did not load. Check local script paths."
+  },
+  composition: {
+    statusId: "composition-status",
+    contextId: "composition-context",
+    containerId: "bug-composition-chart",
+    rendererName: "renderBugCompositionByPriorityChart",
+    missingMessage: "Composition chart unavailable: Recharts did not load. Check local script paths."
+  },
+  uat: {
+    statusId: "uat-status",
+    contextId: "uat-context",
+    containerId: "uat-open-by-priority-chart",
+    rendererName: "renderUatPriorityAgingChart",
+    missingMessage: "UAT chart unavailable: Recharts renderer missing."
+  },
+  management: {
+    statusId: "management-status",
+    contextId: "management-context",
+    containerId: "development-time-vs-uat-time-chart",
+    rendererName: "renderDevelopmentTimeVsUatTimeChart",
+    missingMessage: "Management chart unavailable: Recharts renderer missing."
+  },
+  managementFacility: {
+    statusId: "management-facility-status",
+    contextId: "management-facility-context",
+    containerId: "development-vs-uat-by-facility-chart",
+    rendererName: "renderDevelopmentVsUatByFacilityChart",
+    missingMessage: "Facility chart unavailable: Recharts renderer missing."
+  },
+  contributors: {
+    statusId: "contributors-status",
+    contextId: "contributors-context",
+    containerId: "top-contributors-chart",
+    rendererName: "renderTopContributorsChart",
+    missingMessage: "Contributors chart unavailable: Recharts renderer missing."
+  },
   productCycle: {
     statusId: "product-cycle-status",
     contextId: "product-cycle-context",
     containerId: "cycle-time-parking-lot-to-done-chart",
+    rendererName: "renderLeadAndCycleTimeByTeamChart",
     missingMessage: "No product cycle aggregates found in product-cycle-snapshot.json."
   },
   lifecycleDays: {
@@ -27,6 +70,7 @@ const PUBLIC_AGGREGATE_CHART_CONFIG = {
     statusId: "lifecycle-days-status",
     contextId: "lifecycle-days-context",
     containerId: "lifecycle-time-spent-per-phase-chart",
+    rendererName: "renderLifecycleTimeSpentPerStageChart",
     missingMessage: "No lifecycle aggregates found in product-cycle-snapshot.json."
   }
 };
@@ -128,6 +172,10 @@ function contextWithUpdated(text, updatedAt) {
   return `${baseText} • updated ${updatedText}`;
 }
 
+function setPanelContext(node, text, updatedAt) {
+  setContextText(node, contextWithUpdated(text, updatedAt));
+}
+
 function getPanelNodes(statusId, contextId = "") {
   const status = document.getElementById(statusId);
   const context = contextId ? document.getElementById(contextId) : null;
@@ -156,9 +204,9 @@ function showPanelStatus(status, message, { containerId = "" } = {}) {
 }
 
 function renderBugCompositionByPriorityChart() {
+  const config = CHART_CONFIG.composition;
   const scope = state.compositionTeamScope || "bc";
   syncRadioValue("composition-team-scope", scope);
-  const compositionContext = document.getElementById("composition-context");
   const scopeLabelMap = {
     bc: "BC",
     api: "API",
@@ -166,24 +214,34 @@ function renderBugCompositionByPriorityChart() {
     react: "React",
     all: "All"
   };
-  setContextText(
-    compositionContext,
-    contextWithUpdated(
-      `${scopeLabelMap[scope] || "BC"} • last 10 snapshots`,
-      state.snapshot?.updatedAt
-    )
+  setPanelContext(
+    document.getElementById(config.contextId),
+    `${scopeLabelMap[scope] || "BC"} • last 10 snapshots`,
+    state.snapshot?.updatedAt
   );
   renderSnapshotChart({
-    statusId: "composition-status",
-    rendererName: "renderBugCompositionByPriorityChart",
-    missingMessage: "Composition chart unavailable: Recharts did not load. Check local script paths.",
-    containerId: "bug-composition-chart",
+    statusId: config.statusId,
+    rendererName: config.rendererName,
+    missingMessage: config.missingMessage,
+    containerId: config.containerId,
     extra: { scope }
   });
 }
 
+function renderTrendChart() {
+  const config = CHART_CONFIG.trend;
+  setPanelContext(document.getElementById(config.contextId), "", state.snapshot?.updatedAt);
+  renderSnapshotChart({
+    statusId: config.statusId,
+    rendererName: config.rendererName,
+    missingMessage: config.missingMessage,
+    containerId: config.containerId
+  });
+}
+
 function renderUatAgingByPriorityChart() {
-  withPanel("uat-status", "uat-context", ({ status, context }) => {
+  const config = CHART_CONFIG.uat;
+  withPanel(config.statusId, config.contextId, ({ status, context }) => {
     if (!state.snapshot || !state.snapshot.uatAging) {
       showPanelStatus(status, "No UAT aging data found in backlog-snapshot.json.");
       return;
@@ -232,21 +290,19 @@ function renderUatAgingByPriorityChart() {
       .filter(Boolean);
 
     if (context) {
-      setContextText(
+      setPanelContext(
         context,
-        contextWithUpdated(
-          `${scopeLabel} • n=${toNumber(uat.totalIssues)}`,
-          state.snapshot?.updatedAt
-        )
+        `${scopeLabel} • n=${toNumber(uat.totalIssues)}`,
+        state.snapshot?.updatedAt
       );
     }
 
     renderNamedChart({
-      statusId: "uat-status",
-      rendererName: "renderUatPriorityAgingChart",
-      missingMessage: "UAT chart unavailable: Recharts renderer missing.",
+      statusId: config.statusId,
+      rendererName: config.rendererName,
+      missingMessage: config.missingMessage,
       props: {
-        containerId: "uat-open-by-priority-chart",
+        containerId: config.containerId,
         rows: chartRows,
         buckets: chartRows,
         colors: getThemeColors()
@@ -256,7 +312,8 @@ function renderUatAgingByPriorityChart() {
 }
 
 function renderLeadAndCycleTimeByTeamChartFromPublicAggregates(publicAggregates, yearScope) {
-  const panel = getPanelNodes("product-cycle-status", "product-cycle-context");
+  const config = CHART_CONFIG.productCycle;
+  const panel = getPanelNodes(config.statusId, config.contextId);
   const titleNode = document.getElementById("product-cycle-title");
   if (!panel) return;
   const { status, context } = panel;
@@ -266,7 +323,7 @@ function renderLeadAndCycleTimeByTeamChartFromPublicAggregates(publicAggregates,
     getProductCycleTeamsFromAggregates(publicAggregates, state.productCycle?.teams)
   );
   if (teams.length === 0) {
-    showPanelStatus(status, "No product cycle aggregates found in product-cycle-snapshot.json.");
+    showPanelStatus(status, config.missingMessage);
     return;
   }
 
@@ -291,17 +348,15 @@ function renderLeadAndCycleTimeByTeamChartFromPublicAggregates(publicAggregates,
   const sampleCount = Math.max(leadSampleCount, cycleSampleCount);
   const sampleLabel = `${cycleSampleCount}/${leadSampleCount} (cycle/lead)`;
 
-  setContextText(
+  setPanelContext(
     context,
-    contextWithUpdated(
-      `${selectedYear} • n=${sampleLabel}`,
-      state.productCycle?.generatedAt || state.snapshot?.updatedAt
-    )
+    `${selectedYear} • n=${sampleLabel}`,
+    state.productCycle?.generatedAt || state.snapshot?.updatedAt
   );
 
   if (sampleCount === 0) {
     showPanelStatus(status, `No completed product-cycle items found for ${selectedYear}.`, {
-      containerId: "cycle-time-parking-lot-to-done-chart"
+      containerId: config.containerId
     });
     return;
   }
@@ -352,11 +407,11 @@ function renderLeadAndCycleTimeByTeamChartFromPublicAggregates(publicAggregates,
   ];
 
   renderNamedChart({
-    statusId: "product-cycle-status",
-    rendererName: "renderLeadAndCycleTimeByTeamChart",
+    statusId: config.statusId,
+    rendererName: config.rendererName,
     missingMessage: "Product cycle chart unavailable: Recharts renderer missing.",
     props: {
-      containerId: "cycle-time-parking-lot-to-done-chart",
+      containerId: config.containerId,
       rows: rowsWithSample,
       seriesDefs,
       colors: themeColors,
@@ -374,26 +429,29 @@ function renderLeadAndCycleTimeByTeamChartFromPublicAggregates(publicAggregates,
   });
 }
 
-function withPublicAggregates({ statusId, contextId, containerId, missingMessage, onReady }) {
-  withPanel(statusId, contextId, ({ status, context }) => {
+function renderPublicAggregateChart(configKey, year, onReady) {
+  const config = CHART_CONFIG[configKey];
+  if (config?.yearRadioName) syncRadioValue(config.yearRadioName, year);
+  withPanel(config.statusId, config.contextId, ({ status, context }) => {
     const value = state.productCycle?.publicAggregates;
     const publicAggregates = value && typeof value === "object" ? value : null;
     if (!publicAggregates) {
-      showPanelStatus(status, missingMessage, { containerId });
+      showPanelStatus(status, config.missingMessage, { containerId: config.containerId });
       return;
     }
-    onReady({ status, context, publicAggregates });
+    onReady({ status, context, publicAggregates, config, year });
   });
 }
 
 function renderLifecycleTimeSpentPerStageChartFromPublicAggregates(publicAggregates, year) {
-  const panel = getPanelNodes("lifecycle-days-status", "lifecycle-days-context");
+  const config = CHART_CONFIG.lifecycleDays;
+  const panel = getPanelNodes(config.statusId, config.contextId);
   if (!panel) return;
   const { status, context } = panel;
 
   const teams = getProductCycleTeamsFromAggregates(publicAggregates, state.productCycle?.teams);
   if (teams.length === 0) {
-    showPanelStatus(status, "No lifecycle aggregates found in product-cycle-snapshot.json.");
+    showPanelStatus(status, config.missingMessage);
     return;
   }
 
@@ -425,17 +483,17 @@ function renderLifecycleTimeSpentPerStageChartFromPublicAggregates(publicAggrega
 
   if (plottedValues.length === 0) {
     showPanelStatus(status, `No lifecycle stage time data found for ${yearLabel}.`, {
-      containerId: "lifecycle-time-spent-per-phase-chart"
+      containerId: config.containerId
     });
     return;
   }
   const yUpper = computeLockedLifecycleYUpper(publicAggregates, teams, PRODUCT_CYCLE_COMPARE_YEARS);
   renderNamedChart({
-    statusId: "lifecycle-days-status",
-    rendererName: "renderLifecycleTimeSpentPerStageChart",
+    statusId: config.statusId,
+    rendererName: config.rendererName,
     missingMessage: "Lifecycle chart unavailable: Recharts renderer missing.",
     props: {
-      containerId: "lifecycle-time-spent-per-phase-chart",
+      containerId: config.containerId,
       rows,
       seriesDefs: teamDefs,
       colors: themeColors,
@@ -450,28 +508,19 @@ function renderLifecycleTimeSpentPerStageChartFromPublicAggregates(publicAggrega
       showLegend: false
     }
   });
-  setContextText(
+  setPanelContext(
     context,
-    contextWithUpdated(
-      `${yearLabel} • n=${lifecycleSampleSize}`,
-      state.productCycle?.generatedAt || state.snapshot?.updatedAt
-    )
+    `${yearLabel} • n=${lifecycleSampleSize}`,
+    state.productCycle?.generatedAt || state.snapshot?.updatedAt
   );
 }
 
 function renderLeadAndCycleTimeByTeamChart() {
-  const config = PUBLIC_AGGREGATE_CHART_CONFIG.productCycle;
   const yearScope = normalizeOption(state.productCycleYearScope, PRODUCT_CYCLE_COMPARE_YEARS, "2026");
-
   syncRadioValue("product-cycle-year-scope", yearScope);
-
-  withPublicAggregates({
-    statusId: config.statusId,
-    contextId: config.contextId,
-    containerId: config.containerId,
-    missingMessage: config.missingMessage,
-    onReady: ({ publicAggregates }) => renderLeadAndCycleTimeByTeamChartFromPublicAggregates(publicAggregates, yearScope)
-  });
+  renderPublicAggregateChart("productCycle", yearScope, ({ publicAggregates, year }) =>
+    renderLeadAndCycleTimeByTeamChartFromPublicAggregates(publicAggregates, year)
+  );
 }
 
 function syncRadioValue(name, value) {
@@ -496,20 +545,15 @@ function bindRadioState(name, stateKey, normalizeValue, onChangeRender) {
 }
 
 function renderLifecycleTimeSpentPerStageChart() {
-  const config = PUBLIC_AGGREGATE_CHART_CONFIG.lifecycleDays;
   const year = normalizeOption(state.lifecycleDaysYearScope, PRODUCT_CYCLE_COMPARE_YEARS, "2026");
-  syncRadioValue(config.yearRadioName, year);
-  withPublicAggregates({
-    statusId: config.statusId,
-    contextId: config.contextId,
-    containerId: config.containerId,
-    missingMessage: config.missingMessage,
-    onReady: ({ publicAggregates }) => renderLifecycleTimeSpentPerStageChartFromPublicAggregates(publicAggregates, year)
-  });
+  renderPublicAggregateChart("lifecycleDays", year, ({ publicAggregates, year: selectedYear }) =>
+    renderLifecycleTimeSpentPerStageChartFromPublicAggregates(publicAggregates, selectedYear)
+  );
 }
 
 function renderDevelopmentTimeVsUatTimeChart() {
-  withPanel("management-status", "management-context", ({ status, context }) => {
+  const config = CHART_CONFIG.management;
+  withPanel(config.statusId, config.contextId, ({ status, context }) => {
     const scope = "ongoing";
     const flowVariants = state.snapshot?.kpis?.broadcast?.flow_by_priority_variants;
     const scopedFlow = flowVariants && typeof flowVariants === "object" ? flowVariants[scope] : null;
@@ -540,12 +584,10 @@ function renderDevelopmentTimeVsUatTimeChart() {
     const totalFlowTickets = rows.reduce((sum, row) => sum + Math.max(row.devCount, row.uatCount), 0);
     const uat = state.snapshot?.uatAging;
     const uatScopeLabel = String(uat?.scope?.label || "Broadcast");
-    setContextText(
+    setPanelContext(
       context,
-      contextWithUpdated(
-        `${uatScopeLabel} • ongoing • n=${totalFlowTickets}`,
-        state.snapshot?.updatedAt
-      )
+      `${uatScopeLabel} • ongoing • n=${totalFlowTickets}`,
+      state.snapshot?.updatedAt
     );
 
     const yValues = [...devMedian, ...uatMedian].filter(Number.isFinite);
@@ -570,11 +612,11 @@ function renderDevelopmentTimeVsUatTimeChart() {
     for (let value = 0; value <= yUpperNice; value += yStep) yTicks.push(value);
 
     renderNamedChart({
-      statusId: "management-status",
-      rendererName: "renderDevelopmentTimeVsUatTimeChart",
-      missingMessage: "Management chart unavailable: Recharts renderer missing.",
+      statusId: config.statusId,
+      rendererName: config.rendererName,
+      missingMessage: config.missingMessage,
       props: {
-        containerId: "development-time-vs-uat-time-chart",
+        containerId: config.containerId,
         rows,
         colors: getThemeColors(),
         devColor: readThemeColor("--mgmt-dev", "#2f5f83"),
@@ -586,7 +628,8 @@ function renderDevelopmentTimeVsUatTimeChart() {
 }
 
 function renderDevelopmentVsUatByFacilityChart() {
-  withPanel("management-facility-status", "management-facility-context", ({ status, context }) => {
+  const config = CHART_CONFIG.managementFacility;
+  withPanel(config.statusId, config.contextId, ({ status, context }) => {
     const scope = normalizeOption(state.managementFlowScope, MANAGEMENT_FLOW_SCOPES, "ongoing");
     syncRadioValue("management-facility-flow-scope", scope);
 
@@ -636,20 +679,18 @@ function renderDevelopmentVsUatByFacilityChart() {
     const totalFlowTickets = rows.reduce((sum, row) => sum + row.sampleCount, 0);
     const uat = state.snapshot?.uatAging;
     const uatScopeLabel = String(uat?.scope?.label || "Broadcast");
-    setContextText(
+    setPanelContext(
       context,
-      contextWithUpdated(
-        `${uatScopeLabel} • ${scope === "done" ? "done" : "ongoing"} • n=${totalFlowTickets}`,
-        state.snapshot?.updatedAt
-      )
+      `${uatScopeLabel} • ${scope === "done" ? "done" : "ongoing"} • n=${totalFlowTickets}`,
+      state.snapshot?.updatedAt
     );
 
     renderNamedChart({
-      statusId: "management-facility-status",
-      rendererName: "renderDevelopmentVsUatByFacilityChart",
-      missingMessage: "Facility chart unavailable: Recharts renderer missing.",
+      statusId: config.statusId,
+      rendererName: config.rendererName,
+      missingMessage: config.missingMessage,
       props: {
-        containerId: "development-vs-uat-by-facility-chart",
+        containerId: config.containerId,
         rows,
         colors: getThemeColors(),
         jiraBrowseBase: "https://nepgroup.atlassian.net/browse/",
@@ -667,14 +708,15 @@ function renderDevelopmentVsUatByFacilityChart() {
 }
 
 function renderTopContributorsChart() {
-  withPanel("contributors-status", "contributors-context", ({ status, context }) => {
+  const config = CHART_CONFIG.contributors;
+  withPanel(config.statusId, config.contextId, ({ status, context }) => {
     const contributorsSnapshot = state.contributors;
     const rowsSource = Array.isArray(contributorsSnapshot?.top_contributors)
       ? contributorsSnapshot.top_contributors
       : [];
     if (rowsSource.length === 0) {
       showPanelStatus(status, "No contributor data found in contributors-snapshot.json.", {
-        containerId: "top-contributors-chart"
+        containerId: config.containerId
       });
       return;
     }
@@ -711,7 +753,7 @@ function renderTopContributorsChart() {
 
     if (rows.length === 0) {
       showPanelStatus(status, "No assigned contributor data found after excluding Unassigned.", {
-        containerId: "top-contributors-chart"
+        containerId: config.containerId
       });
       return;
     }
@@ -720,20 +762,18 @@ function renderTopContributorsChart() {
     const total = toNumber(summary.total_issues);
     const notDone = toNumber(summary.active_issues);
     const done = toNumber(summary.done_issues);
-    setContextText(
+    setPanelContext(
       context,
-      contextWithUpdated(
-        `${notDone} not done • ${done} done • ${total} total`,
-        state.contributors?.updatedAt || state.snapshot?.updatedAt
-      )
+      `${notDone} not done • ${done} done • ${total} total`,
+      state.contributors?.updatedAt || state.snapshot?.updatedAt
     );
 
     renderNamedChart({
-      statusId: "contributors-status",
-      rendererName: "renderTopContributorsChart",
-      missingMessage: "Contributors chart unavailable: Recharts renderer missing.",
+      statusId: config.statusId,
+      rendererName: config.rendererName,
+      missingMessage: config.missingMessage,
       props: {
-        containerId: "top-contributors-chart",
+        containerId: config.containerId,
         rows,
         colors: getThemeColors(),
         barColor: readThemeColor("--team-react", "#5ba896")
@@ -784,44 +824,20 @@ function bindDashboardControls() {
   });
 }
 
-function updateDashboardContextLabels() {
-  setContextText(
-    document.getElementById("trend-context"),
-    contextWithUpdated(
-      "",
-      state.snapshot?.updatedAt
-    )
-  );
-  setContextText(
-    document.getElementById("composition-context"),
-    contextWithUpdated(
-      "BC • 10 snapshots",
-      state.snapshot?.updatedAt
-    )
-  );
-}
-
 function renderVisibleCharts() {
-  [
-    {
-      skipMode: "composition",
-      run: () =>
-        renderSnapshotChart({
-          statusId: "trend-status",
-          rendererName: "renderBugBacklogTrendByTeamChart",
-          missingMessage: "Trend chart unavailable: Recharts did not load. Check local script paths.",
-          containerId: "bug-trend-chart"
-        })
-    },
-    { skipMode: "trend", run: renderBugCompositionByPriorityChart },
-    { run: renderUatAgingByPriorityChart },
-    { run: renderDevelopmentTimeVsUatTimeChart },
-    { run: renderDevelopmentVsUatByFacilityChart },
-    { run: renderTopContributorsChart },
-    { run: renderLeadAndCycleTimeByTeamChart },
-    { run: renderLifecycleTimeSpentPerStageChart }
-  ].forEach(({ skipMode, run }) => {
-    if (!skipMode || state.mode !== skipMode) run();
+  const chartRenders = [
+    { mode: "trend", run: renderTrendChart },
+    { mode: "composition", run: renderBugCompositionByPriorityChart },
+    { mode: "uat", run: renderUatAgingByPriorityChart },
+    { mode: "management", run: renderDevelopmentTimeVsUatTimeChart },
+    { mode: "management-facility", run: renderDevelopmentVsUatByFacilityChart },
+    { mode: "contributors", run: renderTopContributorsChart },
+    { mode: "product-cycle", run: renderLeadAndCycleTimeByTeamChart },
+    { mode: "lifecycle-days", run: renderLifecycleTimeSpentPerStageChart }
+  ];
+
+  chartRenders.forEach(({ mode, run }) => {
+    if (state.mode === "all" || state.mode === mode) run();
   });
 }
 
@@ -852,7 +868,6 @@ async function loadSnapshot() {
       })
     ]);
     bindDashboardControls();
-    updateDashboardContextLabels();
     renderVisibleCharts();
   } catch (error) {
     const message = `Failed to load backlog-snapshot.json: ${
