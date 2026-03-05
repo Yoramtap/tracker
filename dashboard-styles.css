@@ -59,6 +59,11 @@ body {
     linear-gradient(180deg, var(--page-bg-top), var(--page-bg-bottom));
 }
 
+body.embed-mode {
+  min-height: auto;
+  background: transparent;
+}
+
 main {
   width: 100%;
   max-width: 1240px;
@@ -66,6 +71,12 @@ main {
   padding: 18px 16px 40px;
   display: grid;
   gap: 18px;
+}
+
+body.embed-mode main {
+  max-width: none;
+  padding: 0;
+  gap: 0;
 }
 
 .panel {
@@ -83,6 +94,16 @@ main {
 
 .panel[hidden] {
   display: none !important;
+}
+
+body.embed-mode .panel {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  padding: 0;
+  gap: 0;
 }
 
 .panel > * {
@@ -259,6 +280,25 @@ h2 {
   max-width: 100%;
   overflow-x: hidden;
   margin-top: 2px;
+}
+
+body.embed-mode .panel-subtitle,
+body.embed-mode .radio-control-groups,
+body.embed-mode .series-drawer,
+body.embed-mode .panel-status,
+body.embed-mode .panel-note,
+body.embed-mode .panel-summary,
+body.embed-mode .help-wrap {
+  display: none !important;
+}
+
+body.embed-mode .chart {
+  margin-top: 0;
+}
+
+body.embed-mode .chart-canvas--standard,
+body.embed-mode .chart-canvas--dense {
+  min-height: 0;
 }
 
 .chart-canvas {

@@ -98,6 +98,10 @@
     return "all";
   }
 
+  function isEmbedMode() {
+    return getModeFromUrl() !== "all";
+  }
+
   globalObject.DashboardViewUtils = {
     toNumber,
     formatDateShort,
@@ -107,6 +111,7 @@
     readThemeColor,
     getThemeColors,
     clearChartContainer,
-    getModeFromUrl
+    getModeFromUrl,
+    isEmbedMode
   };
 })(window);

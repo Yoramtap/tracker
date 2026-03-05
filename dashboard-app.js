@@ -102,7 +102,8 @@ const {
   readThemeColor,
   getThemeColors,
   clearChartContainer,
-  getModeFromUrl
+  getModeFromUrl,
+  isEmbedMode
 } = dashboardUiUtils;
 const {
   buildLifecycleRowsByPhaseAndTeam,
@@ -124,28 +125,33 @@ function normalizeOption(value, options, fallback) {
   return options.includes(value) ? value : fallback;
 }
 
-function getRenderer(statusId, rendererName, missingMessage) {
+function getConfig(configKey) {
+  return CHART_CONFIG[configKey];
+}
+
+function getRenderer(config, rendererName = config.rendererName, missingMessage = config.missingMessage) {
   const renderer = window.DashboardCharts?.[rendererName];
   if (renderer) return renderer;
-  setStatusMessage(statusId, missingMessage);
+  setStatusMessage(config.statusId, missingMessage);
   return null;
 }
 
-function renderNamedChart({ statusId, rendererName, missingMessage, props }) {
-  const renderChart = getRenderer(statusId, rendererName, missingMessage);
+function renderNamedChart(config, props, options = {}) {
+  const { rendererName = config.rendererName, missingMessage = config.missingMessage } = options;
+  const renderChart = getRenderer(config, rendererName, missingMessage);
   if (!renderChart) return false;
   renderChart(props);
   return true;
 }
 
-function renderSnapshotChart({ statusId, rendererName, missingMessage, containerId, extra = {} }) {
-  setStatusMessage(statusId);
+function renderSnapshotChart(config, extra = {}) {
+  setStatusMessage(config.statusId);
   if (!state.snapshot || !Array.isArray(state.snapshot.combinedPoints)) return;
-  renderNamedChart({
-    statusId,
-    rendererName,
-    missingMessage,
-    props: { containerId, snapshot: state.snapshot, colors: getThemeColors(), ...extra }
+  renderNamedChart(config, {
+    containerId: config.containerId,
+    snapshot: state.snapshot,
+    colors: getThemeColors(),
+    ...extra
   });
 }
 
@@ -153,6 +159,7 @@ function applyModeVisibility() {
   const validModes = new Set(Object.keys(MODE_PANEL_IDS));
   const selectedMode = validModes.has(state.mode) ? state.mode : "all";
   const showAll = selectedMode === "all";
+  document.body.classList.toggle("embed-mode", isEmbedMode());
   for (const [mode, panelId] of Object.entries(MODE_PANEL_IDS)) {
     const panel = document.getElementById(panelId);
     if (!panel) continue;
@@ -176,6 +183,10 @@ function setPanelContext(node, text, updatedAt) {
   setContextText(node, contextWithUpdated(text, updatedAt));
 }
 
+function setConfigContext(config, text, updatedAt) {
+  setPanelContext(document.getElementById(config.contextId), text, updatedAt);
+}
+
 function getPanelNodes(statusId, contextId = "") {
   const status = document.getElementById(statusId);
   const context = contextId ? document.getElementById(contextId) : null;
@@ -191,6 +202,12 @@ function withPanel(statusId, contextId, onReady, { resetStatus = true } = {}) {
   onReady(panel);
 }
 
+function withChartPanel(config, onReady, options) {
+  withPanel(config.statusId, config.contextId, ({ status, context }) => {
+    onReady({ status, context, config });
+  }, options);
+}
+
 function resetPanelStatus(status) {
   if (!status) return;
   status.hidden = true;
@@ -204,7 +221,7 @@ function showPanelStatus(status, message, { containerId = "" } = {}) {
 }
 
 function renderBugCompositionByPriorityChart() {
-  const config = CHART_CONFIG.composition;
+  const config = getConfig("composition");
   const scope = state.compositionTeamScope || "bc";
   syncRadioValue("composition-team-scope", scope);
   const scopeLabelMap = {
@@ -214,34 +231,19 @@ function renderBugCompositionByPriorityChart() {
     react: "React",
     all: "All"
   };
-  setPanelContext(
-    document.getElementById(config.contextId),
-    `${scopeLabelMap[scope] || "BC"} • last 10 snapshots`,
-    state.snapshot?.updatedAt
-  );
-  renderSnapshotChart({
-    statusId: config.statusId,
-    rendererName: config.rendererName,
-    missingMessage: config.missingMessage,
-    containerId: config.containerId,
-    extra: { scope }
-  });
+  setConfigContext(config, `${scopeLabelMap[scope] || "BC"} • last 10 snapshots`, state.snapshot?.updatedAt);
+  renderSnapshotChart(config, { scope });
 }
 
 function renderTrendChart() {
-  const config = CHART_CONFIG.trend;
-  setPanelContext(document.getElementById(config.contextId), "", state.snapshot?.updatedAt);
-  renderSnapshotChart({
-    statusId: config.statusId,
-    rendererName: config.rendererName,
-    missingMessage: config.missingMessage,
-    containerId: config.containerId
-  });
+  const config = getConfig("trend");
+  setConfigContext(config, "", state.snapshot?.updatedAt);
+  renderSnapshotChart(config);
 }
 
 function renderUatAgingByPriorityChart() {
-  const config = CHART_CONFIG.uat;
-  withPanel(config.statusId, config.contextId, ({ status, context }) => {
+  const config = getConfig("uat");
+  withChartPanel(config, ({ status, context, config }) => {
     if (!state.snapshot || !state.snapshot.uatAging) {
       showPanelStatus(status, "No UAT aging data found in backlog-snapshot.json.");
       return;
@@ -297,22 +299,17 @@ function renderUatAgingByPriorityChart() {
       );
     }
 
-    renderNamedChart({
-      statusId: config.statusId,
-      rendererName: config.rendererName,
-      missingMessage: config.missingMessage,
-      props: {
-        containerId: config.containerId,
-        rows: chartRows,
-        buckets: chartRows,
-        colors: getThemeColors()
-      }
+    renderNamedChart(config, {
+      containerId: config.containerId,
+      rows: chartRows,
+      buckets: chartRows,
+      colors: getThemeColors()
     });
   });
 }
 
 function renderLeadAndCycleTimeByTeamChartFromPublicAggregates(publicAggregates, yearScope) {
-  const config = CHART_CONFIG.productCycle;
+  const config = getConfig("productCycle");
   const panel = getPanelNodes(config.statusId, config.contextId);
   const titleNode = document.getElementById("product-cycle-title");
   if (!panel) return;
@@ -406,11 +403,9 @@ function renderLeadAndCycleTimeByTeamChartFromPublicAggregates(publicAggregates,
     }
   ];
 
-  renderNamedChart({
-    statusId: config.statusId,
-    rendererName: config.rendererName,
-    missingMessage: "Product cycle chart unavailable: Recharts renderer missing.",
-    props: {
+  renderNamedChart(
+    config,
+    {
       containerId: config.containerId,
       rows: rowsWithSample,
       seriesDefs,
@@ -425,14 +420,15 @@ function renderLeadAndCycleTimeByTeamChartFromPublicAggregates(publicAggregates,
       categoryAxisHeight: 72,
       categoryTickTwoLine: true,
       categorySecondaryLabels
-    }
-  });
+    },
+    { missingMessage: "Product cycle chart unavailable: Recharts renderer missing." }
+  );
 }
 
 function renderPublicAggregateChart(configKey, year, onReady) {
-  const config = CHART_CONFIG[configKey];
+  const config = getConfig(configKey);
   if (config?.yearRadioName) syncRadioValue(config.yearRadioName, year);
-  withPanel(config.statusId, config.contextId, ({ status, context }) => {
+  withChartPanel(config, ({ status, context, config }) => {
     const value = state.productCycle?.publicAggregates;
     const publicAggregates = value && typeof value === "object" ? value : null;
     if (!publicAggregates) {
@@ -444,7 +440,7 @@ function renderPublicAggregateChart(configKey, year, onReady) {
 }
 
 function renderLifecycleTimeSpentPerStageChartFromPublicAggregates(publicAggregates, year) {
-  const config = CHART_CONFIG.lifecycleDays;
+  const config = getConfig("lifecycleDays");
   const panel = getPanelNodes(config.statusId, config.contextId);
   if (!panel) return;
   const { status, context } = panel;
@@ -488,11 +484,9 @@ function renderLifecycleTimeSpentPerStageChartFromPublicAggregates(publicAggrega
     return;
   }
   const yUpper = computeLockedLifecycleYUpper(publicAggregates, teams, PRODUCT_CYCLE_COMPARE_YEARS);
-  renderNamedChart({
-    statusId: config.statusId,
-    rendererName: config.rendererName,
-    missingMessage: "Lifecycle chart unavailable: Recharts renderer missing.",
-    props: {
+  renderNamedChart(
+    config,
+    {
       containerId: config.containerId,
       rows,
       seriesDefs: teamDefs,
@@ -506,8 +500,9 @@ function renderLifecycleTimeSpentPerStageChartFromPublicAggregates(publicAggrega
       timeWindowLabel: "",
       orientation: "columns",
       showLegend: false
-    }
-  });
+    },
+    { missingMessage: "Lifecycle chart unavailable: Recharts renderer missing." }
+  );
   setPanelContext(
     context,
     `${yearLabel} • n=${lifecycleSampleSize}`,
@@ -552,8 +547,8 @@ function renderLifecycleTimeSpentPerStageChart() {
 }
 
 function renderDevelopmentTimeVsUatTimeChart() {
-  const config = CHART_CONFIG.management;
-  withPanel(config.statusId, config.contextId, ({ status, context }) => {
+  const config = getConfig("management");
+  withChartPanel(config, ({ status, context, config }) => {
     const scope = "ongoing";
     const flowVariants = state.snapshot?.kpis?.broadcast?.flow_by_priority_variants;
     const scopedFlow = flowVariants && typeof flowVariants === "object" ? flowVariants[scope] : null;
@@ -611,25 +606,20 @@ function renderDevelopmentTimeVsUatTimeChart() {
     const yTicks = [];
     for (let value = 0; value <= yUpperNice; value += yStep) yTicks.push(value);
 
-    renderNamedChart({
-      statusId: config.statusId,
-      rendererName: config.rendererName,
-      missingMessage: config.missingMessage,
-      props: {
-        containerId: config.containerId,
-        rows,
-        colors: getThemeColors(),
-        devColor: readThemeColor("--mgmt-dev", "#2f5f83"),
-        uatColor: readThemeColor("--mgmt-uat", "#7fa8c4"),
-        yTicks
-      }
+    renderNamedChart(config, {
+      containerId: config.containerId,
+      rows,
+      colors: getThemeColors(),
+      devColor: readThemeColor("--mgmt-dev", "#2f5f83"),
+      uatColor: readThemeColor("--mgmt-uat", "#7fa8c4"),
+      yTicks
     });
   });
 }
 
 function renderDevelopmentVsUatByFacilityChart() {
-  const config = CHART_CONFIG.managementFacility;
-  withPanel(config.statusId, config.contextId, ({ status, context }) => {
+  const config = getConfig("managementFacility");
+  withChartPanel(config, ({ status, context, config }) => {
     const scope = normalizeOption(state.managementFlowScope, MANAGEMENT_FLOW_SCOPES, "ongoing");
     syncRadioValue("management-facility-flow-scope", scope);
 
@@ -685,31 +675,26 @@ function renderDevelopmentVsUatByFacilityChart() {
       state.snapshot?.updatedAt
     );
 
-    renderNamedChart({
-      statusId: config.statusId,
-      rendererName: config.rendererName,
-      missingMessage: config.missingMessage,
-      props: {
-        containerId: config.containerId,
-        rows,
-        colors: getThemeColors(),
-        jiraBrowseBase: "https://nepgroup.atlassian.net/browse/",
-        devColor:
-          scope === "done"
-            ? readThemeColor("--mgmt-done-dev", "#2f7d4d")
-            : readThemeColor("--mgmt-dev", "#2f5f83"),
-        uatColor:
-          scope === "done"
-            ? readThemeColor("--mgmt-done-uat", "#82bd95")
-            : readThemeColor("--mgmt-uat", "#7fa8c4")
-      }
+    renderNamedChart(config, {
+      containerId: config.containerId,
+      rows,
+      colors: getThemeColors(),
+      jiraBrowseBase: "https://nepgroup.atlassian.net/browse/",
+      devColor:
+        scope === "done"
+          ? readThemeColor("--mgmt-done-dev", "#2f7d4d")
+          : readThemeColor("--mgmt-dev", "#2f5f83"),
+      uatColor:
+        scope === "done"
+          ? readThemeColor("--mgmt-done-uat", "#82bd95")
+          : readThemeColor("--mgmt-uat", "#7fa8c4")
     });
   });
 }
 
 function renderTopContributorsChart() {
-  const config = CHART_CONFIG.contributors;
-  withPanel(config.statusId, config.contextId, ({ status, context }) => {
+  const config = getConfig("contributors");
+  withChartPanel(config, ({ status, context, config }) => {
     const contributorsSnapshot = state.contributors;
     const rowsSource = Array.isArray(contributorsSnapshot?.top_contributors)
       ? contributorsSnapshot.top_contributors
@@ -768,16 +753,11 @@ function renderTopContributorsChart() {
       state.contributors?.updatedAt || state.snapshot?.updatedAt
     );
 
-    renderNamedChart({
-      statusId: config.statusId,
-      rendererName: config.rendererName,
-      missingMessage: config.missingMessage,
-      props: {
-        containerId: config.containerId,
-        rows,
-        colors: getThemeColors(),
-        barColor: readThemeColor("--team-react", "#5ba896")
-      }
+    renderNamedChart(config, {
+      containerId: config.containerId,
+      rows,
+      colors: getThemeColors(),
+      barColor: readThemeColor("--team-react", "#5ba896")
     });
   });
 }
