@@ -1423,8 +1423,8 @@
           }
           return [
             tooltipTitleLine("label", row?.label || "", colors),
-            makeTooltipLine("dev", `Weeks in Development: ${formatWeeksFromDays(devAvg)}`, colors),
-            makeTooltipLine("uat", `Weeks in UAT: ${formatWeeksFromDays(uatAvg)}`, colors),
+            makeTooltipLine("dev", `Average weeks in Development: ${formatWeeksFromDays(devAvg)}`, colors),
+            makeTooltipLine("uat", `Average weeks in UAT: ${formatWeeksFromDays(uatAvg)}`, colors),
             makeTooltipLine("issues", "Issues", colors, {
               margin: "6px 0 0",
               subItems: issueSubItems.length > 0 ? issueSubItems : ["-"]
