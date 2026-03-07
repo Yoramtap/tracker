@@ -31,7 +31,7 @@
   const SHARED_CATEGORY_BLUE_TINTS = ["#CFE0F8", "#9EBAE3", "#6D95D1", "#3F73B8", "#295996"];
   const BAR_LAYOUT = { categoryGap: "14%", groupGap: 2, denseMax: 14, normalMax: 20 };
   const CHART_HEIGHTS = { standard: 280, dense: 320 };
-  const EMBED_CHART_HEIGHTS = {
+  const SINGLE_CHART_EMBED_HEIGHTS = {
     trend: 520,
     composition: 560,
     uat: 460,
@@ -40,6 +40,26 @@
     contributors: 520,
     "product-cycle": 560,
     "lifecycle-days": 560
+  };
+  const DASHBOARD_EMBED_CHART_HEIGHTS = {
+    trend: 340,
+    composition: 360,
+    uat: 320,
+    management: 320,
+    "management-facility": 330,
+    contributors: 300,
+    "product-cycle": 320,
+    "lifecycle-days": 330
+  };
+  const MOBILE_DASHBOARD_EMBED_CHART_HEIGHTS = {
+    trend: 320,
+    composition: 340,
+    uat: 300,
+    management: 300,
+    "management-facility": 300,
+    contributors: 250,
+    "product-cycle": 270,
+    "lifecycle-days": 290
   };
   const HORIZONTAL_CATEGORY_AXIS_WIDTH = 190;
   const BAR_CURSOR_FILL = "rgba(31,51,71,0.04)";
@@ -209,8 +229,14 @@
   }
 
   function singleChartHeightForMode(modeKey, baseHeight) {
-    if (getModeFromUrl() !== modeKey) return baseHeight;
-    return EMBED_CHART_HEIGHTS[modeKey] || baseHeight;
+    const mode = getModeFromUrl();
+    const embedMode = typeof dashboardUiUtils.isEmbedMode === "function" && dashboardUiUtils.isEmbedMode();
+    if (mode === modeKey) return SINGLE_CHART_EMBED_HEIGHTS[modeKey] || baseHeight;
+    if (!embedMode || mode !== "all") return baseHeight;
+    const embedHeights = isCompactViewport()
+      ? MOBILE_DASHBOARD_EMBED_CHART_HEIGHTS
+      : DASHBOARD_EMBED_CHART_HEIGHTS;
+    return embedHeights[modeKey] || baseHeight;
   }
 
   function isCompactViewport() {
@@ -576,6 +602,12 @@
   }
 
   function renderLegendNode({ colors, defs, hiddenKeys, setHiddenKeys, compact = false }) {
+    const collapsible =
+      compact &&
+      defs.length > 3 &&
+      typeof dashboardUiUtils.isEmbedMode === "function" &&
+      dashboardUiUtils.isEmbedMode() &&
+      getModeFromUrl() === "all";
     const shortLabel = (value) => {
       const raw = String(value || "");
       if (!compact) return raw;
@@ -588,10 +620,10 @@
     return h(
       "details",
       {
-        className: "series-drawer",
-        open: true
+        className: `series-drawer${collapsible ? " series-drawer--collapsible" : ""}`,
+        open: !collapsible
       },
-      h("summary", { className: "series-drawer__summary" }, "Series"),
+      h("summary", { className: "series-drawer__summary" }, collapsible ? `Series (${defs.length})` : "Series"),
       h(
         "div",
         { className: "series-drawer__items" },

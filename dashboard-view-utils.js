@@ -98,8 +98,20 @@
     return "all";
   }
 
+  function isEmbeddedFrame() {
+    try {
+      return window.self !== window.top;
+    } catch {
+      return true;
+    }
+  }
+
   function isEmbedMode() {
-    return getModeFromUrl() !== "all";
+    const params = new URLSearchParams(window.location.search);
+    const embed = (params.get("embed") || "").toLowerCase();
+    if (embed === "0" || embed === "false" || embed === "no") return false;
+    if (embed === "1" || embed === "true" || embed === "yes") return true;
+    return getModeFromUrl() !== "all" || isEmbeddedFrame();
   }
 
   globalObject.DashboardViewUtils = {

@@ -75,8 +75,17 @@ main {
 
 body.embed-mode main {
   max-width: none;
+}
+
+body.embed-mode.single-chart-mode main {
   padding: 0;
   gap: 0;
+}
+
+body.embedded-frame-mode main {
+  padding: 8px 0 18px;
+  gap: 12px;
+  overflow-x: clip;
 }
 
 .panel {
@@ -96,7 +105,7 @@ body.embed-mode main {
   display: none !important;
 }
 
-body.embed-mode .panel {
+body.embed-mode.single-chart-mode .panel {
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -286,12 +295,12 @@ body.embed-mode .panel-summary {
   display: none !important;
 }
 
-body.embed-mode .chart {
+body.embed-mode.single-chart-mode .chart {
   margin-top: 0;
 }
 
-body.embed-mode .chart-canvas--standard,
-body.embed-mode .chart-canvas--dense {
+body.embed-mode.single-chart-mode .chart-canvas--standard,
+body.embed-mode.single-chart-mode .chart-canvas--dense {
   min-height: 0;
 }
 
@@ -307,7 +316,14 @@ body.embed-mode .chart-canvas--dense {
 
 .chart-series-shell {
   display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
+}
+
+.chart-series-shell > * {
+  min-width: 0;
 }
 
 .series-drawer {
@@ -332,6 +348,26 @@ body.embed-mode .chart-canvas--dense {
   letter-spacing: 0.03em;
   padding: 0 6px;
   position: static;
+}
+
+.series-drawer--collapsible .series-drawer__summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(31, 51, 71, 0.12);
+  border-radius: 999px;
+  background: rgba(247, 251, 255, 0.78);
+  box-shadow: 0 4px 10px rgba(31, 51, 71, 0.04);
+}
+
+.series-drawer--collapsible:not([open]) .series-drawer__items {
+  display: none;
+}
+
+.series-drawer--collapsible[open] .series-drawer__summary {
+  margin-bottom: 6px;
 }
 
 .series-drawer__summary::-webkit-details-marker {
@@ -535,9 +571,30 @@ body.embed-mode .chart-canvas--dense {
     border-radius: 18px;
   }
 
+  body.embedded-frame-mode main {
+    padding: 6px 0 14px;
+    gap: 10px;
+  }
+
+  body.embedded-frame-mode .panel {
+    padding: 14px 12px 12px;
+    gap: 8px;
+  }
+
+  body.embedded-frame-mode .panel > h1,
+  body.embedded-frame-mode .panel > h2 {
+    max-width: 16ch;
+    margin-bottom: 0;
+  }
+
   .radio-control-groups {
     padding: 0;
     gap: 8px;
+  }
+
+  body.embedded-frame-mode .radio-control-groups {
+    gap: 6px;
+    margin-bottom: 4px;
   }
 
   .panel-subtitle--with-help {
@@ -546,6 +603,12 @@ body.embed-mode .chart-canvas--dense {
 
   .panel-context {
     font-size: 0.82rem;
+  }
+
+  body.embedded-frame-mode .panel-context {
+    max-width: 34ch;
+    font-size: 0.8rem;
+    line-height: 1.35;
   }
 
   .radio-group-card {
@@ -573,9 +636,32 @@ body.embed-mode .chart-canvas--dense {
     block-size: 16px;
   }
 
+  body.embedded-frame-mode .radio-group-card {
+    gap: 5px;
+    padding: 6px;
+    border-radius: 14px;
+  }
+
+  body.embedded-frame-mode .radio-group-card label {
+    min-height: 36px;
+    padding: 6px 8px;
+    font-size: 0.82rem;
+  }
+
+  body.embedded-frame-mode .radio-group-card input[type="radio"] {
+    inline-size: 14px;
+    block-size: 14px;
+  }
+
 
   .help-tip {
     font-size: 0.8rem;
+  }
+
+  body.embedded-frame-mode .help-tip {
+    width: 22px;
+    height: 22px;
+    font-size: 0.74rem;
   }
 
   .help-popover {
@@ -597,6 +683,10 @@ body.embed-mode .chart-canvas--dense {
   .series-drawer {
     width: 100%;
     padding: 2px 0;
+  }
+
+  body.embedded-frame-mode .chart-series-shell {
+    gap: 6px;
   }
 
   .series-drawer__summary {

@@ -268,7 +268,13 @@
         ]),
         cursor: { fill: BAR_CURSOR_FILL }
       },
-      legendDrawerNode: renderLegendNode({ colors, defs: priorityDefs, hiddenKeys, setHiddenKeys }),
+      legendDrawerNode: renderLegendNode({
+        colors,
+        defs: priorityDefs,
+        hiddenKeys,
+        setHiddenKeys,
+        compact: compactViewport
+      }),
       barNodes
     });
   }

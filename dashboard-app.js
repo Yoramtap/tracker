@@ -244,7 +244,10 @@ function applyModeVisibility() {
   const validModes = new Set(Object.keys(CHART_CONFIG));
   const selectedMode = validModes.has(state.mode) ? state.mode : "all";
   const showAll = selectedMode === "all";
-  document.body.classList.toggle("embed-mode", isEmbedMode());
+  const embedMode = isEmbedMode();
+  document.body.classList.toggle("embed-mode", embedMode);
+  document.body.classList.toggle("single-chart-mode", embedMode && !showAll);
+  document.body.classList.toggle("embedded-frame-mode", embedMode && showAll);
   for (const [mode, config] of Object.entries(CHART_CONFIG)) {
     const panel = document.getElementById(config.panelId);
     if (!panel) continue;
