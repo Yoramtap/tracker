@@ -230,7 +230,7 @@
     if (width <= 680) {
       return {
         chartHeight: singleChartHeightForMode("trend", 224),
-        margin: { top: 10, right: 8, bottom: 56, left: 58 },
+        margin: { top: 10, right: 8, bottom: 56, left: 44 },
         xTickFontSize: 10,
         yTickFontSize: 10,
         xTickMargin: 4,
@@ -761,14 +761,15 @@
     const text = String(value || "").trim();
     if (!text) return null;
     const { axis = "x", offset, ...rest } = overrides && typeof overrides === "object" ? overrides : {};
-    const safeOffset = Number.isFinite(Number(offset)) ? Number(offset) : axis === "y" ? 10 : 18;
+    const compactViewport = isCompactViewport();
+    const safeOffset = Number.isFinite(Number(offset)) ? Number(offset) : axis === "y" ? (compactViewport ? 6 : 10) : 18;
     const axisDefaults = axis === "y"
       ? {
           position: "left",
           offset: safeOffset,
           content: ({ viewBox }) => {
             const safeViewBox = viewBox && typeof viewBox === "object" ? viewBox : {};
-            const x = toNumber(safeViewBox.x) - (safeOffset + 18);
+            const x = toNumber(safeViewBox.x) - (safeOffset + (compactViewport ? 10 : 18));
             const y = toNumber(safeViewBox.y) + toNumber(safeViewBox.height) / 2;
             return h(
               "text",
@@ -776,7 +777,7 @@
                 x,
                 y,
                 fill: "rgba(31, 51, 71, 0.82)",
-                fontSize: 12,
+                fontSize: compactViewport ? 11 : 12,
                 fontWeight: 600,
                 letterSpacing: "0.01em",
                 textAnchor: "middle",
@@ -806,6 +807,7 @@
 
   function resolveChartMargin(margin, xAxisProps, yAxisProps) {
     const safeMargin = margin && typeof margin === "object" ? margin : {};
+    const compactViewport = isCompactViewport();
     const resolved = {
       top: toNumber(safeMargin.top),
       right: toNumber(safeMargin.right),
@@ -816,7 +818,7 @@
       resolved.bottom = Math.max(resolved.bottom, 64);
     }
     if (yAxisProps?.label && typeof yAxisProps.label === "object") {
-      resolved.left = Math.max(resolved.left, 58);
+      resolved.left = Math.max(resolved.left, compactViewport ? 42 : 58);
     }
     return resolved;
   }
