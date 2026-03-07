@@ -23,22 +23,6 @@ const CHART_CONFIG = {
     rendererName: "renderBugCompositionByPriorityChart",
     missingMessage: "Composition chart unavailable: Recharts did not load. Check local script paths."
   },
-  uat: {
-    panelId: "uat-panel",
-    statusId: "uat-status",
-    contextId: "uat-context",
-    containerId: "uat-open-by-priority-chart",
-    rendererName: "renderUatPriorityAgingChart",
-    missingMessage: "UAT chart unavailable: Recharts renderer missing."
-  },
-  management: {
-    panelId: "management-panel",
-    statusId: "management-status",
-    contextId: "management-context",
-    containerId: "development-time-vs-uat-time-chart",
-    rendererName: "renderDevelopmentTimeVsUatTimeChart",
-    missingMessage: "Management chart unavailable: Recharts renderer missing."
-  },
   "management-facility": {
     panelId: "management-facility-panel",
     statusId: "management-facility-status",
@@ -79,7 +63,7 @@ const DATA_SOURCE_CONFIG = {
     stateKey: "snapshot",
     url: "./backlog-snapshot.json",
     errorMessage: "Failed to load backlog-snapshot.json",
-    statusIds: ["trend-status", "composition-status", "uat-status", "management-status", "management-facility-status"]
+    statusIds: ["trend-status", "composition-status", "management-facility-status"]
   },
   productCycle: {
     stateKey: "productCycle",
@@ -98,8 +82,6 @@ const DATA_SOURCE_CONFIG = {
 const CHART_DATA_SOURCES = {
   trend: ["snapshot"],
   composition: ["snapshot"],
-  uat: ["snapshot"],
-  management: ["snapshot"],
   "management-facility": ["snapshot"],
   contributors: ["contributors"],
   "product-cycle": ["productCycle"],
@@ -108,8 +90,6 @@ const CHART_DATA_SOURCES = {
 const CHART_RENDERERS = {
   trend: renderTrendChart,
   composition: renderBugCompositionByPriorityChart,
-  uat: renderUatAgingByPriorityChart,
-  management: renderDevelopmentTimeVsUatTimeChart,
   "management-facility": renderDevelopmentVsUatByFacilityChart,
   contributors: renderTopContributorsChart,
   "product-cycle": renderLeadAndCycleTimeByTeamChart,
@@ -179,7 +159,52 @@ const {
   orderProductCycleTeams,
   toCount
 } = dashboardDataUtils;
-const { buildAxisLabel } = dashboardChartCore;
+const { buildAxisLabel, h, isCompactViewport } = dashboardChartCore;
+
+function buildLifecycleMobileTick(colors, secondaryLabels) {
+  const stageLabelMap = {
+    Parking: "Parking",
+    Design: "Design",
+    Ready: "Ready",
+    "In Development": "In Dev",
+    UAT: "UAT"
+  };
+  return function lifecycleMobileTick(props) {
+    const { x, y, payload } = props || {};
+    const raw = String(payload?.value || "");
+    const line1 = stageLabelMap[raw] || raw;
+    const line2 =
+      secondaryLabels && typeof secondaryLabels === "object" ? String(secondaryLabels[raw] || "") : "";
+    return h(
+      "g",
+      { transform: `translate(${x},${y})` },
+      h(
+        "text",
+        {
+          x: 0,
+          y: 10,
+          textAnchor: "middle",
+          fill: colors.text,
+          fontSize: 11
+        },
+        line1
+      ),
+      line2
+        ? h(
+            "text",
+            {
+              x: 0,
+              y: 24,
+              textAnchor: "middle",
+              fill: "rgba(31,51,71,0.78)",
+              fontSize: 10
+            },
+            line2
+          )
+        : null
+    );
+  };
+}
 
 function normalizeOption(value, options, fallback) {
   return options.includes(value) ? value : fallback;
@@ -325,27 +350,6 @@ function renderTrendChart() {
   renderSnapshotChart(config);
 }
 
-function renderUatAgingByPriorityChart() {
-  renderChartWithState("uat", ({ config: _config }) => {
-    if (!state.snapshot || !state.snapshot.uatAging) {
-      return { error: "No UAT aging data found in backlog-snapshot.json." };
-    }
-
-    const uat = state.snapshot.uatAging;
-    const buckets = Array.isArray(uat.buckets) ? uat.buckets : [];
-    const rows = Array.isArray(state.snapshot?.chartData?.uatAging?.rows) ? state.snapshot.chartData.uatAging.rows : [];
-
-    if (buckets.length === 0 || rows.length === 0) {
-      return { error: "UAT aging chart data is missing from backlog-snapshot.json." };
-    }
-
-    return {
-      contextText: `${String(uat?.scope?.label || "Broadcast")} • n=${toNumber(uat.totalIssues)}`,
-      props: { rows, buckets: rows }
-    };
-  });
-}
-
 function renderPublicAggregateChart(configKey, scope, onReady) {
   const config = getConfig(configKey);
   if (config?.radioName) syncRadioValue(config.radioName, scope);
@@ -399,6 +403,7 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData, scope) {
   }
 
   const themeColors = getThemeColors();
+  const compactViewport = isCompactViewport();
   const teamColorMap = buildTeamColorMap(teams);
   const cycleTintByTeam = buildTintMap(teamColorMap, 0.02);
   const cycleUpperDays = 5 * 30.4375;
@@ -406,13 +411,14 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData, scope) {
   const valueTickFormatter = (value) => {
     const months = toCount(value);
     if (months <= 0) return "0";
+    if (compactViewport) return `${months}m`;
     return months === 1 ? "1 month" : `${months} months`;
   };
   const topAxisLabel = buildAxisLabel(
-    "Cycle time: the average time it takes teams to ship from development to UAT to done.",
-    { offset: 22 }
+    compactViewport ? "Cycle time" : "Cycle time: the average time ideas spend in development and UAT.",
+    { offset: compactViewport ? 16 : 22 }
   );
-  const overlayDots = rows.map((row) => {
+  const overlayDots = compactViewport ? [] : rows.map((row) => {
     const cycleN = toCount(row?.meta_cycle?.n);
     const hasExplicitCycleDoneCount = Object.prototype.hasOwnProperty.call(row || {}, "cycleDoneCount");
     const cycleDoneCount = Math.min(
@@ -448,10 +454,22 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData, scope) {
       yUpperOverride: cycleUpperDays,
       valueTicks,
       valueTickFormatter,
-      chartMargin: { top: 14, right: 132, bottom: 72, left: 12 },
+      chartMargin: compactViewport
+        ? { top: 14, right: 14, bottom: 56, left: 12 }
+        : { top: 14, right: 132, bottom: 72, left: 12 },
       xAxisProps: {
         label: topAxisLabel
       },
+      yAxisProps: compactViewport
+        ? {
+            width: 108,
+            tick: {
+              fill: themeColors.text,
+              fontSize: 11,
+              fontWeight: 500
+            }
+          }
+        : null,
       tooltipLayout: "summary_n_average",
       showLegend: false,
       overlayDots,
@@ -542,6 +560,7 @@ function renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData) {
   if (teams.length === 0 || teamDefsBase.length === 0) return false;
 
   const themeColors = getThemeColors();
+  const compactViewport = isCompactViewport();
   const lifecycleTintByTeam = buildTintMap(buildTeamColorMap(teams), 0.02);
   const teamDefs = teamDefsBase.map((teamDef, index) => ({
     key: String(teamDef?.slot || `slot_${index}`),
@@ -581,11 +600,15 @@ function renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData) {
       colors: themeColors,
       yUpperOverride: yUpper,
       categoryKey: "phaseLabel",
-      categoryAxisHeight: 72,
+      categoryAxisHeight: compactViewport ? 60 : 72,
       xAxisProps: {
-        label: buildAxisLabel("Ideas per stage")
+        label: buildAxisLabel("Ideas per stage"),
+        tick: compactViewport ? buildLifecycleMobileTick(themeColors, categorySecondaryLabels) : undefined
       },
-      categoryTickTwoLine: true,
+      yAxisProps: {
+        label: buildAxisLabel("Average time (months)", { axis: "y", offset: 6 })
+      },
+      categoryTickTwoLine: !compactViewport,
       categorySecondaryLabels,
       timeWindowLabel: "",
       orientation: "columns",
@@ -649,29 +672,6 @@ function renderLifecycleTimeSpentPerStageChart() {
     return {
       error: config?.missingMessage || "No current lifecycle chart data found in product-cycle-snapshot.json.",
       clearContainer: true
-    };
-  });
-}
-
-function renderDevelopmentTimeVsUatTimeChart() {
-  renderChartWithState("management", () => {
-    const rows = Array.isArray(state.snapshot?.chartData?.management?.ongoing?.rows)
-      ? state.snapshot.chartData.management.ongoing.rows
-      : [];
-    const yTicks = Array.isArray(state.snapshot?.chartData?.management?.ongoing?.yTicks)
-      ? state.snapshot.chartData.management.ongoing.yTicks
-      : [];
-    if (rows.length === 0 || yTicks.length === 0) {
-      return { error: "No Broadcast management chart data found in backlog-snapshot.json." };
-    }
-    return {
-      contextText: `${getBroadcastScopeLabel()} • ongoing • n=${rows.reduce((sum, row) => sum + Math.max(row.devCount, row.uatCount), 0)}`,
-      props: {
-        rows,
-        devColor: readThemeColor("--mgmt-dev", "#2f5f83"),
-        uatColor: readThemeColor("--mgmt-uat", "#7fa8c4"),
-        yTicks
-      }
     };
   });
 }

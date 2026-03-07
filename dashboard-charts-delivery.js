@@ -9,11 +9,8 @@
   const {
     BAR_CURSOR_FILL,
     CHART_HEIGHTS,
-    PRIORITY_CONFIG,
     axisTick,
     buildAxisLabel,
-    buildWeekAxis,
-    computeYUpper,
     createTooltipContent,
     formatAverageLabel,
     h,
@@ -23,9 +20,9 @@
     renderMultiSeriesBars,
     singleChartHeightForMode,
     tickIntervalForMobileLabels,
+    toMonthsForChart,
     toNumber,
     toWhole,
-    toWholeWeeksForChart,
     tooltipTitleLine,
     twoLineCategoryTickFactory
   } = core;
@@ -34,56 +31,22 @@
     return Array.isArray(rows) ? rows : [];
   }
 
-  function buildManagementRows(rows) {
-    return toChartRows(rows).map((row) => ({
-      ...row,
-      dev: toNumber(row?.devMedian),
-      uat: toNumber(row?.uatMedian),
-      meta_dev: {
-        n: toNumber(row?.devCount),
-        average: toNumber(row?.devAvg),
-        team: "Days in Development",
-        subItems: [
-          `median = ${toWhole(row?.devMedian)} days`,
-          `${formatAverageLabel(row?.devAvg, "days")} • n=${toWhole(row?.devCount)}`
-        ]
-      },
-      meta_uat: {
-        n: toNumber(row?.uatCount),
-        average: toNumber(row?.uatAvg),
-        team: "Days in UAT",
-        subItems: [
-          `median = ${toWhole(row?.uatMedian)} days`,
-          `${formatAverageLabel(row?.uatAvg, "days")} • n=${toWhole(row?.uatCount)}`
-        ]
-      }
-    }));
+  function computeFacilityMonthAxis(rows) {
+    const maxMonths = rows.reduce((highest, row) => {
+      return Math.max(highest, toNumber(row?.devTime), toNumber(row?.uatTime));
+    }, 0);
+    const upper = maxMonths <= 3 ? 3 : 5;
+    return {
+      upper,
+      ticks: Array.from({ length: upper + 1 }, (_, index) => index)
+    };
   }
 
-  function buildPriorityFacilityEntries(groups) {
-    const safeGroups = groups && typeof groups === "object" ? groups : {};
-    const priorityOrder = ["Highest", "High", "Medium", "Low", "Lowest"];
-    return Object.entries(safeGroups)
-      .map(([facility, byPriority]) => {
-        const map = byPriority && typeof byPriority === "object" ? byPriority : {};
-        const priorityCounts = priorityOrder
-          .map((priority) => [priority, toWhole(map[priority])])
-          .filter(([, count]) => count > 0);
-        return [
-          String(facility || "").trim(),
-          priorityCounts.reduce((sum, [, count]) => sum + count, 0),
-          priorityCounts.map(([priority, count]) => `${priority}: ${count}`)
-        ];
-      })
-      .filter(([facility, total]) => facility && total > 0)
-      .sort((left, right) => {
-        const leftIsUnspecified = left[0] === "Unspecified";
-        const rightIsUnspecified = right[0] === "Unspecified";
-        if (leftIsUnspecified && !rightIsUnspecified) return 1;
-        if (!leftIsUnspecified && rightIsUnspecified) return -1;
-        if (right[1] !== left[1]) return right[1] - left[1];
-        return left[0].localeCompare(right[0]);
-      });
+  function formatFacilityTooltipAverage(valueInDays) {
+    const days = toNumber(valueInDays);
+    if (days < 28) return String(formatAverageLabel(days, "weeks")).replace(/\s+avg$/, "");
+    const months = Math.max(1, Math.round(days / 30.4375));
+    return months === 1 ? "1 month" : `${months} months`;
   }
 
   function buildIssueSubItems(issueIds, jiraBrowseBase, colors) {
@@ -117,97 +80,6 @@
     return items.length > 0 ? items : ["-"];
   }
 
-  function renderUatPriorityAgingChart({ containerId, rows, buckets: _buckets, colors }) {
-    const chartRows = toChartRows(rows);
-    const compactViewport = isCompactViewport();
-    const bucketShortLabels = {
-      "1-2 weeks": "1-2w",
-      "1 month": "1m",
-      "2 months": "2m",
-      "More than 2 months": "2m+"
-    };
-    const prioritySeries = PRIORITY_CONFIG.map((priority) => ({
-      dataKey: priority.key,
-      name: priority.label,
-      fill: colors.priorities?.[priority.key] || colors.teams.bc,
-      stackId: "uat-priority"
-    }));
-    const yUpper = computeYUpper(chartRows.map((row) => toNumber(row?.total)), { min: 1, pad: 1.12 });
-    renderGroupedBars(containerId, chartRows.length > 0 && prioritySeries.length > 0, {
-      rows: chartRows,
-      defs: prioritySeries,
-      colors,
-      yUpper,
-      height: singleChartHeightForMode("uat", CHART_HEIGHTS.standard),
-      showLegend: true,
-      colorByCategoryKey: "bucketLabel",
-      xAxisProps: {
-        dataKey: "bucketLabel",
-        interval: 0,
-        height: compactViewport ? 42 : 52,
-        label: buildAxisLabel("Time open in UAT"),
-        tick: { ...axisTick(colors), fontSize: compactViewport ? 11 : 12 },
-        tickFormatter: (value) => {
-          const key = String(value || "");
-          if (!compactViewport) return key;
-          return bucketShortLabels[key] || key;
-        }
-      },
-      tooltipProps: {
-        content: createTooltipContent(colors, (row, payload) => {
-          const facilityEntries = buildPriorityFacilityEntries(row?.facilityPriorityGroups);
-
-          return [
-            tooltipTitleLine("title", row.bucketLabel || "", colors),
-            tooltipTitleLine("total", `Total: ${toWhole(row.total)}`, colors),
-            ...facilityEntries.map(([facility, _total, items], index) =>
-              makeTooltipLine(`facility-${index}`, facility, colors, {
-                margin: "0 0 4px",
-                subItems: items
-              })
-            ),
-            ...(facilityEntries.length === 0
-              ? payload
-                  .filter((item) => toWhole(item?.value) > 0)
-                  .map((item) =>
-                    makeTooltipLine(item.dataKey, `${item.name}: ${toWhole(item.value)}`, colors)
-                  )
-              : [])
-          ];
-        }),
-        cursor: { fill: "rgba(31,51,71,0.05)" }
-      }
-    });
-  }
-
-  function renderDevelopmentTimeVsUatTimeChart({
-    containerId,
-    rows,
-    colors,
-    devColor,
-    uatColor,
-    yTicks
-  }) {
-    const chartRows = buildManagementRows(rows);
-    renderMultiSeriesBars({
-      modeKey: "management",
-      containerId,
-      rows: chartRows,
-      defs: [
-        { key: "dev", name: "Days in Development", color: devColor },
-        { key: "uat", name: "Days in UAT", color: uatColor }
-      ],
-      colors,
-      categoryKey: "label",
-      categoryAxisHeight: 36,
-      xAxisProps: {
-        label: buildAxisLabel("Facility")
-      },
-      valueTicks: Array.isArray(yTicks) && yTicks.length > 1 ? yTicks : null,
-      tooltipCursor: { fill: BAR_CURSOR_FILL }
-    });
-  }
-
   function renderDevelopmentVsUatByFacilityChart({
     containerId,
     rows,
@@ -218,42 +90,42 @@
   }) {
     const chartRows = toChartRows(rows);
     const compactViewport = isCompactViewport();
-    const weekRows = chartRows.map((row) => ({
+    const displayRows = chartRows.map((row) => ({
       ...row,
-      devWeeks: toWholeWeeksForChart(row?.devAvg),
-      uatWeeks: toWholeWeeksForChart(row?.uatAvg)
+      devTime: toMonthsForChart(row?.devAvg),
+      uatTime: toMonthsForChart(row?.uatAvg)
     }));
+    const monthAxis = computeFacilityMonthAxis(displayRows);
     const categorySecondaryLabels = Object.fromEntries(
       chartRows.map((row) => [String(row?.label || ""), `n=${toWhole(row?.sampleCount)}`])
     );
-    const yUpper = computeYUpper(
-      [...weekRows.map((row) => toNumber(row?.devWeeks)), ...weekRows.map((row) => toNumber(row?.uatWeeks))],
-      { min: 1, pad: 1.15 }
-    );
-    const weekAxis = buildWeekAxis(yUpper, { majorStep: yUpper <= 12 ? 2 : 4 });
     const xInterval = compactViewport ? tickIntervalForMobileLabels(chartRows.length) : 0;
     renderGroupedBars(containerId, chartRows.length > 0, {
-      rows: weekRows,
+      rows: displayRows,
       defs: [
         {
-          dataKey: "devWeeks",
-          name: "Weeks in Development",
+          dataKey: "devTime",
+          name: "Time in Development",
           fill: devColor
         },
         {
-          dataKey: "uatWeeks",
-          name: "Weeks in UAT",
+          dataKey: "uatTime",
+          name: "Time in UAT",
           fill: uatColor
         }
       ],
       colors,
-      yUpper: weekAxis.upper,
+      yUpper: monthAxis.upper,
       height: singleChartHeightForMode("management-facility", CHART_HEIGHTS.standard),
       yAxisProps: {
-        domain: [0, weekAxis.upper],
-        ticks: weekAxis.ticks,
-        allowDecimals: false,
-        tickFormatter: (value) => String(toWhole(value))
+        domain: [0, monthAxis.upper],
+        ticks: monthAxis.ticks,
+        tickFormatter: (value) => {
+          const months = toWhole(value);
+          if (months <= 0) return "0";
+          return months === 1 ? "1 month" : `${months} months`;
+        },
+        label: buildAxisLabel("Average time", { axis: "y", offset: 6 })
       },
       xAxisProps: {
         dataKey: "label",
@@ -271,24 +143,41 @@
             })
       },
       tooltipProps: {
-        content: createTooltipContent(colors, (row) => {
-          const devAvg = toNumber(row?.devAvg);
-          const uatAvg = toNumber(row?.uatAvg);
-          return [
-            tooltipTitleLine("label", row?.label || "", colors),
-            makeTooltipLine("sample", `Sample n=${toWhole(row?.sampleCount)}`, colors),
-            makeTooltipLine("dev", `Weeks in Development n=${toWhole(row?.devCount)}`, colors, {
-              subItems: [formatAverageLabel(devAvg, "weeks")]
-            }),
-            makeTooltipLine("uat", `Weeks in UAT n=${toWhole(row?.uatCount)}`, colors, {
-              subItems: [formatAverageLabel(uatAvg, "weeks")]
-            }),
-            makeTooltipLine("issues", "Issues", colors, {
-              margin: "6px 0 0",
-              subItems: buildIssueSubItems(row?.issueIds, jiraBrowseBase, colors)
-            })
-          ];
-        }),
+        content: createTooltipContent(
+          colors,
+          (row) => {
+            const devAvg = toNumber(row?.devAvg);
+            const uatAvg = toNumber(row?.uatAvg);
+            return [
+              tooltipTitleLine("label", row?.label || "", colors),
+              makeTooltipLine("dev", "Time in Development", colors, {
+                margin: "2px 0",
+                preserveSubItems: true,
+                subItems: [
+                  `${formatFacilityTooltipAverage(devAvg)} average`,
+                  `n=${toWhole(row?.devCount)}`
+                ]
+              }),
+              makeTooltipLine("uat", "Time in UAT", colors, {
+                margin: "2px 0",
+                preserveSubItems: true,
+                subItems: [
+                  `${formatFacilityTooltipAverage(uatAvg)} average`,
+                  `n=${toWhole(row?.uatCount)}`
+                ]
+              }),
+              makeTooltipLine("issues", "Issues", colors, {
+                margin: "6px 0 0",
+                subItems: buildIssueSubItems(row?.issueIds, jiraBrowseBase, colors)
+              })
+            ];
+          },
+          {
+            cardStyle: {
+              maxWidth: "240px"
+            }
+          }
+        ),
         wrapperStyle: { pointerEvents: "auto" },
         cursor: { fill: BAR_CURSOR_FILL }
       }
@@ -297,8 +186,9 @@
 
   function renderTopContributorsChart({ containerId, rows, colors, barColor }) {
     const chartRows = toChartRows(rows);
+    const compactViewport = isCompactViewport();
     const fillColor = String(barColor || "").trim() || colors.teams.react;
-    const overlayDots = chartRows
+    const overlayDots = compactViewport ? [] : chartRows
       .map((row) => {
         const totalContributions = toNumber(row?.totalIssues);
         const doneContributions = toWhole(row?.doneIssues);
@@ -333,7 +223,19 @@
       showLegend: false,
       orientation: "horizontal",
       categoryKey: "contributor",
-      chartMargin: { top: 14, right: 180, bottom: 72, left: 12 },
+      chartMargin: compactViewport
+        ? { top: 14, right: 16, bottom: 60, left: 12 }
+        : { top: 14, right: 180, bottom: 72, left: 12 },
+      yAxisProps: compactViewport
+        ? {
+            width: 108,
+            tick: {
+              fill: colors.text,
+              fontSize: 11,
+              fontWeight: 500
+            }
+          }
+        : null,
       xAxisProps: {
         label: buildAxisLabel("Total contributions")
       },
@@ -345,8 +247,6 @@
   }
 
   Object.assign(window.DashboardCharts || (window.DashboardCharts = {}), {
-    renderUatPriorityAgingChart,
-    renderDevelopmentTimeVsUatTimeChart,
     renderDevelopmentVsUatByFacilityChart,
     renderTopContributorsChart
   });

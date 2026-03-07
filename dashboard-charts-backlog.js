@@ -62,6 +62,7 @@
       bucketLabel: teamLabel ? `${point.date} ${teamLabel}`.trim() : point.date,
       team: teamLabel,
       date: point.date,
+      dateShort: formatDateShort(point.date),
       highest: toNumber(safeMetrics.highest),
       high: toNumber(safeMetrics.high),
       medium: toNumber(safeMetrics.medium),
@@ -168,7 +169,8 @@
           h(YAxis, {
             stroke: colors.text,
             tick: { fill: colors.text, fontSize: layout.yTickFontSize },
-            domain: [0, yUpper]
+            domain: [0, yUpper],
+            label: buildAxisLabel("Open bugs", { axis: "y", offset: 6 })
           }),
           h(Tooltip, {
             content: createTooltipContent(colors, (row, payload) => [
@@ -238,21 +240,23 @@
         dataKey: "bucketLabel",
         stroke: colors.text,
         tick: { ...axisTick(colors), fontSize: compactViewport ? 11 : 12 },
-        angle: isAllTeams ? -90 : -25,
-        textAnchor: "end",
+        angle: isAllTeams ? -90 : compactViewport ? 0 : -25,
+        textAnchor: isAllTeams ? "end" : compactViewport ? "middle" : "end",
         interval: xInterval,
         minTickGap: isAllTeams ? (compactViewport ? 8 : 0) : compactViewport ? 10 : 16,
-        height: isAllTeams ? (compactViewport ? 86 : 78) : compactViewport ? 44 : 48,
+        height: isAllTeams ? (compactViewport ? 86 : 78) : compactViewport ? 34 : 48,
         label: buildAxisLabel("Sprint start"),
         tickFormatter: (value, index) => {
-          if (!isAllTeams) return value;
           const row = rows[index] || {};
+          if (compactViewport && !isAllTeams) return row.dateShort || value;
+          if (!isAllTeams) return value;
           return row.team || "";
         }
       },
       yAxisProps: {
         ...baseYAxisProps(colors, [0, niceYAxis.upper]),
-        ticks: niceYAxis.ticks
+        ticks: niceYAxis.ticks,
+        label: buildAxisLabel("Open bugs", { axis: "y", offset: 6 })
       },
       tooltipProps: {
         content: createTooltipContent(colors, (row, payload) => [

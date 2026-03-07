@@ -230,7 +230,7 @@
     if (width <= 680) {
       return {
         chartHeight: singleChartHeightForMode("trend", 224),
-        margin: { top: 10, right: 8, bottom: 56, left: 8 },
+        margin: { top: 10, right: 8, bottom: 56, left: 58 },
         xTickFontSize: 10,
         yTickFontSize: 10,
         xTickMargin: 4,
@@ -242,7 +242,7 @@
     if (width <= 1024) {
       return {
         chartHeight: singleChartHeightForMode("trend", 252),
-        margin: { top: 12, right: 10, bottom: 60, left: 10 },
+        margin: { top: 12, right: 10, bottom: 60, left: 60 },
         xTickFontSize: 11,
         yTickFontSize: 11,
         xTickMargin: 5,
@@ -253,7 +253,7 @@
     }
     return {
       chartHeight: singleChartHeightForMode("trend", CHART_HEIGHTS.standard),
-      margin: { top: 12, right: 12, bottom: 64, left: 12 },
+      margin: { top: 12, right: 12, bottom: 64, left: 62 },
       xTickFontSize: 11,
       yTickFontSize: 11,
       xTickMargin: 6,
@@ -344,11 +344,11 @@
     });
   }
 
-  function createTooltipContent(colors, buildLines) {
+  function createTooltipContent(colors, buildLines, options = {}) {
     return function renderTooltip({ active, payload }) {
       if (!active || !Array.isArray(payload) || payload.length === 0) return null;
       const row = payload[0]?.payload || {};
-      return renderTooltipCard(colors, buildLines(row, payload));
+      return renderTooltipCard(colors, buildLines(row, payload), options);
     };
   }
 
@@ -400,7 +400,7 @@
     return next;
   }
 
-  function renderTooltipCard(colors, blocks) {
+  function renderTooltipCard(colors, blocks, options = {}) {
     const suppressHoverPropagation = (event) => {
       if (!event) return;
       event.stopPropagation();
@@ -464,6 +464,7 @@
     };
     const lines = (Array.isArray(blocks) ? blocks : []).map(normalizeLine).filter(Boolean);
 
+    const cardStyle = options && typeof options.cardStyle === "object" ? options.cardStyle : null;
     return h(
       "div",
       {
@@ -476,7 +477,8 @@
           boxShadow: "0 4px 14px rgba(0,0,0,0.1)",
           maxWidth: "320px",
           whiteSpace: "normal",
-          overflowWrap: "anywhere"
+          overflowWrap: "anywhere",
+          ...(cardStyle || {})
         },
         onMouseEnter: suppressHoverPropagation,
         onMouseMove: suppressHoverPropagation,
@@ -758,18 +760,51 @@
   function buildAxisLabel(value, overrides = {}) {
     const text = String(value || "").trim();
     if (!text) return null;
+    const { axis = "x", offset, ...rest } = overrides && typeof overrides === "object" ? overrides : {};
+    const safeOffset = Number.isFinite(Number(offset)) ? Number(offset) : axis === "y" ? 10 : 18;
+    const axisDefaults = axis === "y"
+      ? {
+          position: "left",
+          offset: safeOffset,
+          content: ({ viewBox }) => {
+            const safeViewBox = viewBox && typeof viewBox === "object" ? viewBox : {};
+            const x = toNumber(safeViewBox.x) - (safeOffset + 18);
+            const y = toNumber(safeViewBox.y) + toNumber(safeViewBox.height) / 2;
+            return h(
+              "text",
+              {
+                x,
+                y,
+                fill: "rgba(31, 51, 71, 0.82)",
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.01em",
+                textAnchor: "middle",
+                dominantBaseline: "central",
+                transform: `rotate(-90 ${x} ${y})`,
+                stroke: "none"
+              },
+              text
+            );
+          }
+        }
+      : {
+          position: "bottom",
+          offset: safeOffset
+        };
     return {
       value: text,
-      position: "bottom",
-      offset: 18,
       fill: "rgba(31, 51, 71, 0.82)",
       fontSize: 12,
-      fontWeight: 700,
-      ...overrides
+      fontWeight: 600,
+      stroke: "none",
+      letterSpacing: "0.01em",
+      ...axisDefaults,
+      ...rest
     };
   }
 
-  function resolveChartMargin(margin, xAxisProps) {
+  function resolveChartMargin(margin, xAxisProps, yAxisProps) {
     const safeMargin = margin && typeof margin === "object" ? margin : {};
     const resolved = {
       top: toNumber(safeMargin.top),
@@ -779,6 +814,9 @@
     };
     if (xAxisProps?.label && typeof xAxisProps.label === "object") {
       resolved.bottom = Math.max(resolved.bottom, 64);
+    }
+    if (yAxisProps?.label && typeof yAxisProps.label === "object") {
+      resolved.left = Math.max(resolved.left, 58);
     }
     return resolved;
   }
@@ -801,7 +839,7 @@
   }) {
     const normalizedXAxisProps = normalizeAxisLabelProps(xAxisProps);
     const normalizedYAxisProps = normalizeAxisLabelProps(yAxisProps);
-    const resolvedMargin = resolveChartMargin(margin, normalizedXAxisProps);
+    const resolvedMargin = resolveChartMargin(margin, normalizedXAxisProps, normalizedYAxisProps);
     return h(
       "div",
       { className: "chart-series-shell" },
@@ -1186,6 +1224,8 @@
   }) {
     const sourceRows = Array.isArray(rows) ? rows : [];
     const compactViewport = isCompactViewport();
+    const providedXAxisProps = xAxisProps && typeof xAxisProps === "object" ? xAxisProps : {};
+    const providedYAxisProps = yAxisProps && typeof yAxisProps === "object" ? yAxisProps : {};
     const seriesDefs = (Array.isArray(defs) ? defs : []).map((def) => ({
       key: def.key,
       name: def.name || def.label || def.key,
@@ -1307,7 +1347,7 @@
       height: singleChartHeightForMode(modeKey, CHART_HEIGHTS.dense),
       margin: resolvedChartMargin,
       xAxisProps: {
-        ...(xAxisProps && typeof xAxisProps === "object" ? xAxisProps : {}),
+        ...providedXAxisProps,
         ...(isHorizontal
           ? {
               type: "number",
@@ -1331,21 +1371,23 @@
                       ? 52
                       : 34,
               minTickGap: compactViewport ? 10 : 4,
-              tick: effectiveCategoryTickTwoLine
-                ? twoLineCategoryTickColumns
-                : { ...axisTick(colors), fontSize: compactViewport ? 11 : 12 }
+              tick:
+                providedXAxisProps.tick ||
+                (effectiveCategoryTickTwoLine
+                  ? twoLineCategoryTickColumns
+                  : { ...axisTick(colors), fontSize: compactViewport ? 11 : 12 })
             })
       },
       yAxisProps: isHorizontal
         ? {
-            ...(yAxisProps && typeof yAxisProps === "object" ? yAxisProps : {}),
+            ...providedYAxisProps,
             dataKey: categoryKey,
             type: "category",
-            width: HORIZONTAL_CATEGORY_AXIS_WIDTH,
-            tick: effectiveCategoryTickTwoLine ? twoLineCategoryTickHorizontal : undefined
+            width: Number.isFinite(providedYAxisProps.width) ? providedYAxisProps.width : HORIZONTAL_CATEGORY_AXIS_WIDTH,
+            tick: providedYAxisProps.tick || (effectiveCategoryTickTwoLine ? twoLineCategoryTickHorizontal : undefined)
           }
         : {
-            ...(yAxisProps && typeof yAxisProps === "object" ? yAxisProps : {}),
+            ...providedYAxisProps,
             domain: normalizedValueTicks ? [0, normalizedValueTicks.at(-1)] : [0, niceYAxis.upper],
             ticks: normalizedValueTicks || niceYAxis.ticks,
             interval: 0,
@@ -1374,7 +1416,7 @@
                 `${teamLabel}${seriesName ? ` • ${seriesName}` : ""}`,
                 colors
               ),
-              makeTooltipLine("average", `Team takes on average ${durationText} to ship an idea`, colors, {
+              makeTooltipLine("average", `Average time in development and UAT: ${durationText}`, colors, {
                 margin: "2px 0",
                 fontSize: "12px",
                 lineHeight: "1.45"
@@ -1394,18 +1436,13 @@
             ];
           }
           if (tooltipLayout === "stage_team_breakdown") {
-            const sortedItems = [...payload]
+            const orderedItems = payload
               .map((item) => {
                 const key = item?.dataKey;
                 const meta = row?.[`meta_${key}`] || {};
                 return { item, meta };
               })
-              .filter(({ meta }) => toWhole(meta?.n) > 0)
-              .sort((left, right) => {
-                const nDiff = toWhole(right.meta?.n) - toWhole(left.meta?.n);
-                if (nDiff !== 0) return nDiff;
-                return toNumber(right.meta?.average) - toNumber(left.meta?.average);
-              });
+              .filter(({ meta }) => toWhole(meta?.n) > 0);
             const totalText = stageSampleCountFromRow(row) > 0 ? `n = ${stageSampleCountFromRow(row)}` : "";
             const lines = [
               tooltipTitleLine(
@@ -1423,7 +1460,7 @@
                 })
               );
             }
-            sortedItems.forEach(({ item, meta }) => {
+            orderedItems.forEach(({ item, meta }) => {
               const seriesName = String(meta.team || item?.name || "").trim();
               const sampleCount = toWhole(meta.n);
               lines.push(
@@ -1527,6 +1564,7 @@
     singleChartHeightForMode,
     tickIntervalForMobileLabels,
     toNumber,
+    toMonthsForChart,
     toWhole,
     toWholeWeeksForChart,
     tooltipTitleLine,

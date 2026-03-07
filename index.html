@@ -64,48 +64,6 @@
         <p id="composition-status" class="panel-status" hidden></p>
       </section>
 
-      <section id="uat-panel" class="panel" aria-label="UAT aging by priority">
-        <h2>UAT aging by priority</h2>
-        <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="uat-context" class="panel-context">Broadcast, -- currently in UAT</span>
-          <details class="help-wrap">
-            <summary class="help-tip" aria-label="UAT aging chart explainer">i</summary>
-            <div class="help-popover" role="tooltip">
-              <p><strong>UAT aging chart</strong> groups ongoing items currently in UAT into time-in-stage buckets.</p>
-              <ul>
-                <li>Colors split counts by priority in each age bucket.</li>
-                <li>Growth in older buckets signals UAT bottlenecks.</li>
-              </ul>
-            </div>
-          </details>
-        </div>
-        <div class="chart">
-          <div id="uat-open-by-priority-chart" class="chart-canvas chart-canvas--standard"></div>
-        </div>
-        <p id="uat-status" class="panel-status" hidden></p>
-      </section>
-
-      <section id="management-panel" class="panel" aria-label="Broadcast flow by priority">
-        <h2>Development time vs UAT time</h2>
-        <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="management-context" class="panel-context">Broadcast, -- ongoing flow tickets (sample)</span>
-          <details class="help-wrap">
-            <summary class="help-tip" aria-label="Development vs UAT chart explainer">i</summary>
-            <div class="help-popover" role="tooltip">
-              <p><strong>Development vs UAT</strong> compares ongoing delivery time by priority.</p>
-              <ul>
-                <li>Bars show median days in Dev and UAT for each priority band.</li>
-                <li>Higher UAT bars usually indicate QA/UAT bottleneck.</li>
-              </ul>
-            </div>
-          </details>
-        </div>
-        <div class="chart">
-          <div id="development-time-vs-uat-time-chart" class="chart-canvas chart-canvas--standard"></div>
-        </div>
-        <p id="management-status" class="panel-status" hidden></p>
-      </section>
-
       <section id="management-facility-panel" class="panel" aria-label="Broadcast flow by facility">
         <h2>Development vs UAT by facility</h2>
         <div class="panel-subtitle panel-subtitle--with-help">
@@ -164,7 +122,7 @@
             <div class="help-popover" role="tooltip">
               <p><strong>Cycle time per team</strong> is computed from lifecycle timestamps.</p>
               <ul>
-                <li>Cycle time = In Development + UAT.</li>
+                <li>Cycle time = time spent in In Development + UAT, including ongoing work.</li>
                 <li>Aggregated by team using selected sample scope.</li>
               </ul>
             </div>
