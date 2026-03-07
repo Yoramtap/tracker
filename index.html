@@ -156,7 +156,7 @@
       </section>
 
       <section id="product-cycle-panel" class="panel" aria-label="Product cycle time by team">
-        <h2 id="product-cycle-title">Lead and cycle time by team</h2>
+        <h2 id="product-cycle-title">Cycle time by team</h2>
         <div class="panel-subtitle panel-subtitle--with-help">
           <span id="product-cycle-context" class="panel-context">--</span>
           <details class="help-wrap">
@@ -164,8 +164,7 @@
             <div class="help-popover" role="tooltip">
               <p><strong>Cycle time per team</strong> is computed from lifecycle timestamps.</p>
               <ul>
-                <li>Lead time = Parking + Design + Ready + Development + Feedback.</li>
-                <li>Cycle time = Development + Feedback.</li>
+                <li>Cycle time = In Development + UAT.</li>
                 <li>Aggregated by team using selected sample scope.</li>
               </ul>
             </div>
@@ -173,9 +172,9 @@
         </div>
         <div class="radio-control-groups" aria-label="Product cycle controls">
           <fieldset class="radio-group-card">
-            <legend>Year</legend>
-            <label><input type="radio" name="product-cycle-year-scope" value="2025" /> 2025</label>
-            <label><input type="radio" name="product-cycle-year-scope" value="2026" checked /> 2026</label>
+            <legend>Scope</legend>
+            <label><input type="radio" name="product-cycle-scope" value="inception" checked /> All ideas</label>
+            <label><input type="radio" name="product-cycle-scope" value="since_2026" /> Created in 2026</label>
           </fieldset>
         </div>
         <div class="chart">
@@ -185,27 +184,21 @@
         <p id="product-cycle-status" class="panel-status" hidden></p>
       </section>
 
-      <section id="lifecycle-days-panel" class="panel" aria-label="Lifecycle stage days by team">
-        <h2>Lifecycle time spent per stage</h2>
+      <section id="lifecycle-days-panel" class="panel" aria-label="Current time in stage by team">
+        <h2>Current time in stage by team</h2>
         <div class="panel-subtitle panel-subtitle--with-help">
           <span id="lifecycle-days-context" class="panel-context">--</span>
           <details class="help-wrap">
             <summary class="help-tip" aria-label="Lifecycle chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
-              <p><strong>Lifecycle by stage</strong> breaks total flow time into grouped stage durations by team.</p>
+              <p><strong>Current time in stage</strong> shows how long active ideas have currently been sitting in each stage.</p>
               <ul>
-                <li>Stages: Parking, Design, Ready, Development.</li>
-                <li>Each grouped bar shows team time in that stage.</li>
+                <li>Stages: Parking, Design, Ready, In Development, UAT.</li>
+                <li>Bars are grouped by mapped team.</li>
+                <li>The label under each stage is the total current TPS item count for that stage.</li>
               </ul>
             </div>
           </details>
-        </div>
-        <div class="radio-control-groups" aria-label="Lifecycle controls">
-          <fieldset class="radio-group-card">
-            <legend>Year</legend>
-            <label><input type="radio" name="lifecycle-days-year-scope" value="2025" /> 2025</label>
-            <label><input type="radio" name="lifecycle-days-year-scope" value="2026" checked /> 2026</label>
-          </fieldset>
         </div>
         <div class="chart">
           <div id="lifecycle-time-spent-per-phase-chart" class="chart-canvas chart-canvas--dense"></div>

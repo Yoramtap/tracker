@@ -11,6 +11,7 @@
     CHART_HEIGHTS,
     PRIORITY_CONFIG,
     axisTick,
+    buildAxisLabel,
     buildWeekAxis,
     computeYUpper,
     createTooltipContent,
@@ -144,6 +145,7 @@
         dataKey: "bucketLabel",
         interval: 0,
         height: compactViewport ? 42 : 52,
+        label: buildAxisLabel("Time open in UAT"),
         tick: { ...axisTick(colors), fontSize: compactViewport ? 11 : 12 },
         tickFormatter: (value) => {
           const key = String(value || "");
@@ -198,6 +200,9 @@
       colors,
       categoryKey: "label",
       categoryAxisHeight: 36,
+      xAxisProps: {
+        label: buildAxisLabel("Facility")
+      },
       valueTicks: Array.isArray(yTicks) && yTicks.length > 1 ? yTicks : null,
       tooltipCursor: { fill: BAR_CURSOR_FILL }
     });
@@ -257,6 +262,7 @@
         height: compactViewport ? 44 : 56,
         angle: compactViewport ? -28 : 0,
         textAnchor: compactViewport ? "end" : "middle",
+        label: buildAxisLabel("Facility"),
         tick: compactViewport
           ? { ...axisTick(colors), fontSize: 11 }
           : twoLineCategoryTickFactory(colors, {
@@ -292,12 +298,20 @@
   function renderTopContributorsChart({ containerId, rows, colors, barColor }) {
     const chartRows = toChartRows(rows);
     const fillColor = String(barColor || "").trim() || colors.teams.react;
-    const contributorMetaLabels = Object.fromEntries(
-      chartRows.map((row) => [
-        String(row?.contributor || ""),
-        `n=${toWhole(row?.totalIssues)}, done=${toWhole(row?.doneIssues)}`
-      ])
-    );
+    const overlayDots = chartRows
+      .map((row) => {
+        const totalContributions = toNumber(row?.totalIssues);
+        const doneContributions = toWhole(row?.doneIssues);
+        if (totalContributions <= 0 && doneContributions <= 0) return null;
+        return {
+          x: totalContributions,
+          y: String(row?.contributor || ""),
+          labelPrefix: doneContributions > 0 ? "✓" : "",
+          accentColor: "rgba(56,161,105,0.95)",
+          labelText: `${doneContributions} ${doneContributions === 1 ? "contribution" : "contributions"} done`
+        };
+      })
+      .filter(Boolean);
     renderMultiSeriesBars({
       modeKey: "contributors",
       containerId,
@@ -307,21 +321,25 @@
         meta_total: {
           n: toNumber(row?.totalIssues),
           average: toNumber(row?.totalIssues),
-          team: "Ticket totals",
+          team: "Contribution totals",
           subItems:
             Array.isArray(row?.ticketStateItems) && row.ticketStateItems.length > 0
               ? row.ticketStateItems
               : [`Done = ${toWhole(row?.doneIssues)}`, `Not done = ${toWhole(row?.notDoneIssues ?? row?.activeIssues)}`]
         }
       })),
-      defs: [{ key: "total", name: "Ticket totals", color: fillColor }],
+      defs: [{ key: "total", name: "Contribution totals", color: fillColor }],
       colors,
       showLegend: false,
       orientation: "horizontal",
       categoryKey: "contributor",
-      categoryTickTwoLine: true,
-      categorySecondaryLabels: contributorMetaLabels,
+      chartMargin: { top: 14, right: 180, bottom: 72, left: 12 },
+      xAxisProps: {
+        label: buildAxisLabel("Total contributions")
+      },
+      overlayDots,
       gridVertical: false,
+      gridHorizontal: false,
       tooltipCursor: { fill: BAR_CURSOR_FILL }
     });
   }

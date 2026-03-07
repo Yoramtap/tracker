@@ -28,6 +28,7 @@
     axisTick,
     barBaseStyle,
     baseYAxisProps,
+    buildAxisLabel,
     buildNiceNumberAxis,
     computeYUpper,
     createTooltipContent,
@@ -161,7 +162,8 @@
             tick: { fill: colors.text, fontSize: layout.xTickFontSize },
             tickMargin: layout.xTickMargin,
             interval: layout.xAxisInterval,
-            minTickGap: layout.minTickGap
+            minTickGap: layout.minTickGap,
+            label: buildAxisLabel("Sprint start")
           }),
           h(YAxis, {
             stroke: colors.text,
@@ -241,6 +243,7 @@
         interval: xInterval,
         minTickGap: isAllTeams ? (compactViewport ? 8 : 0) : compactViewport ? 10 : 16,
         height: isAllTeams ? (compactViewport ? 86 : 78) : compactViewport ? 44 : 48,
+        label: buildAxisLabel("Sprint start"),
         tickFormatter: (value, index) => {
           if (!isAllTeams) return value;
           const row = rows[index] || {};

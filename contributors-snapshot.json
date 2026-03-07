@@ -348,6 +348,19 @@
   "chartData": {
     "rows": [
       {
+        "contributor": "Daniel Davis",
+        "activeIssues": 1,
+        "doneIssues": 6,
+        "totalIssues": 7,
+        "bugIssues": 4,
+        "linkedIssues": 4,
+        "notDoneIssues": 1,
+        "ticketStateItems": [
+          "Done = 6",
+          "Selected for Development = 1"
+        ]
+      },
+      {
         "contributor": "Tesoro Fedel",
         "activeIssues": 2,
         "doneIssues": 4,
@@ -372,19 +385,6 @@
         "ticketStateItems": [
           "Done = 2",
           "In Review = 1",
-          "Selected for Development = 1"
-        ]
-      },
-      {
-        "contributor": "Daniel Davis",
-        "activeIssues": 1,
-        "doneIssues": 6,
-        "totalIssues": 7,
-        "bugIssues": 4,
-        "linkedIssues": 4,
-        "notDoneIssues": 1,
-        "ticketStateItems": [
-          "Done = 6",
           "Selected for Development = 1"
         ]
       },

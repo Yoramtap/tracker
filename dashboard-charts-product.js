@@ -12,7 +12,7 @@
     return renderMultiSeriesBars({
       modeKey: "product-cycle",
       defs: seriesDefs,
-      valueUnit: "weeks",
+      valueUnit: "months",
       ...rest
     });
   }
@@ -21,7 +21,7 @@
     return renderMultiSeriesBars({
       modeKey: "lifecycle-days",
       defs: seriesDefs,
-      valueUnit: "weeks",
+      valueUnit: "months",
       ...rest
     });
   }

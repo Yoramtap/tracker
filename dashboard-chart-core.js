@@ -82,11 +82,21 @@
     return toNumber(valueInDays) / 7;
   }
 
+  function toMonths(valueInDays) {
+    return toNumber(valueInDays) / 30.4375;
+  }
+
   function toWholeWeeksForChart(valueInDays) {
     const days = toNumber(valueInDays);
     if (days <= 0) return 0;
     if (days < 7) return 1;
     return Math.max(1, Math.round(toWeeks(days)));
+  }
+
+  function toMonthsForChart(valueInDays) {
+    const days = toNumber(valueInDays);
+    if (days <= 0) return 0;
+    return Number(toMonths(days).toFixed(2));
   }
 
   function formatWeeksFromDays(valueInDays) {
@@ -97,9 +107,38 @@
     return weeks === 1 ? "1 week" : `${weeks} weeks`;
   }
 
+  function formatWeekAxisLabel(value) {
+    const weeks = toWhole(value);
+    if (weeks <= 0) return "0";
+    if (weeks % 4 !== 0) return String(weeks);
+    const months = Math.floor(weeks / 4);
+    return months === 1 ? "1 month" : `${months} months`;
+  }
+
+  function formatMonthsFromDays(valueInDays) {
+    const days = toNumber(valueInDays);
+    if (days <= 0) return "0 months";
+    if (days < 30.4375) return "<1 month";
+    const months = Math.max(1, Math.round(toMonths(days)));
+    return months === 1 ? "1 month" : `${months} months`;
+  }
+
+  function formatMonthAxisLabel(value) {
+    const months = toWhole(value);
+    if (months <= 11) return String(months);
+    if (months === 12) return "1 year";
+    if (months < 24) return "+1 year";
+    const years = Math.floor(months / 12);
+    return years === 1 ? "1 year" : `${years} years`;
+  }
+
   function formatAverageLabel(value, unit = "days") {
     if (unit === "weeks") {
       const text = formatWeeksFromDays(value).replace("<1 week", "< 1 week");
+      return `${text} avg`;
+    }
+    if (unit === "months") {
+      const text = formatMonthsFromDays(value).replace("<1 month", "< 1 month");
       return `${text} avg`;
     }
     return `${toWhole(value)} ${unit} avg`;
@@ -126,6 +165,31 @@
     const upper = Math.max(step, Math.ceil(maxWeeks / step) * step);
     const ticks = [];
     for (let week = 0; week <= upper; week += step) ticks.push(week);
+    return { upper, ticks };
+  }
+
+  function buildMonthAxis(maxValueMonths, options = {}) {
+    const majorStep = Math.max(1, toWhole(options?.majorStep || 0));
+    const fixedStep = Number.isFinite(majorStep) && majorStep > 0 ? majorStep : null;
+    const maxMonths = Math.max(1, Math.ceil(toNumber(maxValueMonths)));
+    if (fixedStep) {
+      const axisMonths = Math.max(fixedStep, Math.ceil(maxMonths / fixedStep) * fixedStep);
+      const ticks = [0];
+      for (let month = fixedStep; month <= axisMonths; month += fixedStep) ticks.push(month);
+      return { upper: axisMonths, ticks };
+    }
+
+    const targetSteps = 6;
+    const roughStep = maxMonths / targetSteps;
+    let step = 1;
+    if (roughStep > 1 && roughStep <= 2) step = 2;
+    else if (roughStep > 2 && roughStep <= 3) step = 3;
+    else if (roughStep > 3 && roughStep <= 6) step = 6;
+    else if (roughStep > 6) step = 12;
+
+    const upper = Math.max(step, Math.ceil(maxMonths / step) * step);
+    const ticks = [];
+    for (let month = 0; month <= upper; month += step) ticks.push(month);
     return { upper, ticks };
   }
 
@@ -166,7 +230,7 @@
     if (width <= 680) {
       return {
         chartHeight: singleChartHeightForMode("trend", 224),
-        margin: { top: 10, right: 8, bottom: 24, left: 8 },
+        margin: { top: 10, right: 8, bottom: 56, left: 8 },
         xTickFontSize: 10,
         yTickFontSize: 10,
         xTickMargin: 4,
@@ -178,7 +242,7 @@
     if (width <= 1024) {
       return {
         chartHeight: singleChartHeightForMode("trend", 252),
-        margin: { top: 12, right: 10, bottom: 28, left: 10 },
+        margin: { top: 12, right: 10, bottom: 60, left: 10 },
         xTickFontSize: 11,
         yTickFontSize: 11,
         xTickMargin: 5,
@@ -189,7 +253,7 @@
     }
     return {
       chartHeight: singleChartHeightForMode("trend", CHART_HEIGHTS.standard),
-      margin: { top: 12, right: 12, bottom: 32, left: 12 },
+      margin: { top: 12, right: 12, bottom: 64, left: 12 },
       xTickFontSize: 11,
       yTickFontSize: 11,
       xTickMargin: 6,
@@ -251,7 +315,8 @@
       color,
       lineHeight = "1.4",
       subItems = null,
-      isTitle = false
+      isTitle = false,
+      preserveSubItems = false
     } = {}
   ) {
     return {
@@ -265,7 +330,8 @@
         lineHeight: lineHeight || undefined
       },
       subItems: Array.isArray(subItems) ? subItems : null,
-      isTitle: Boolean(isTitle)
+      isTitle: Boolean(isTitle),
+      preserveSubItems: Boolean(preserveSubItems)
     };
   }
 
@@ -284,6 +350,12 @@
       const row = payload[0]?.payload || {};
       return renderTooltipCard(colors, buildLines(row, payload));
     };
+  }
+
+  function stageSampleCountFromRow(row) {
+    const secondary = String(row?.secondaryLabel || "").trim();
+    const match = /n\s*=\s*(\d+)/i.exec(secondary);
+    return match ? toWhole(match[1]) : 0;
   }
 
   function isCoarsePointerDevice() {
@@ -384,6 +456,7 @@
     };
     const flattenSingleSubItem = (line, subItems) => {
       if (!line || line.isTitle) return String(line?.text || "");
+      if (line.preserveSubItems) return normalizeMainText(line);
       if (!Array.isArray(subItems) || subItems.length !== 1) return normalizeMainText(line);
       const [onlyItem] = subItems;
       if (typeof onlyItem !== "string") return normalizeMainText(line);
@@ -400,7 +473,10 @@
           color: colors.tooltip.text,
           borderRadius: "6px",
           padding: "8px 10px",
-          boxShadow: "0 4px 14px rgba(0,0,0,0.1)"
+          boxShadow: "0 4px 14px rgba(0,0,0,0.1)",
+          maxWidth: "320px",
+          whiteSpace: "normal",
+          overflowWrap: "anywhere"
         },
         onMouseEnter: suppressHoverPropagation,
         onMouseMove: suppressHoverPropagation,
@@ -679,6 +755,34 @@
     renderFn(root);
   }
 
+  function buildAxisLabel(value, overrides = {}) {
+    const text = String(value || "").trim();
+    if (!text) return null;
+    return {
+      value: text,
+      position: "bottom",
+      offset: 18,
+      fill: "rgba(31, 51, 71, 0.82)",
+      fontSize: 12,
+      fontWeight: 700,
+      ...overrides
+    };
+  }
+
+  function resolveChartMargin(margin, xAxisProps) {
+    const safeMargin = margin && typeof margin === "object" ? margin : {};
+    const resolved = {
+      top: toNumber(safeMargin.top),
+      right: toNumber(safeMargin.right),
+      bottom: toNumber(safeMargin.bottom),
+      left: toNumber(safeMargin.left)
+    };
+    if (xAxisProps?.label && typeof xAxisProps.label === "object") {
+      resolved.bottom = Math.max(resolved.bottom, 64);
+    }
+    return resolved;
+  }
+
   function renderBarChartShell({
     rows,
     colors,
@@ -695,6 +799,9 @@
     gridVertical = false,
     gridHorizontal = true
   }) {
+    const normalizedXAxisProps = normalizeAxisLabelProps(xAxisProps);
+    const normalizedYAxisProps = normalizeAxisLabelProps(yAxisProps);
+    const resolvedMargin = resolveChartMargin(margin, normalizedXAxisProps);
     return h(
       "div",
       { className: "chart-series-shell" },
@@ -707,14 +814,14 @@
           {
             data: rows,
             layout: chartLayout,
-            margin,
+            margin: resolvedMargin,
             barCategoryGap: layout.categoryGap,
             barGap: BAR_LAYOUT.groupGap,
             maxBarSize: layout.maxBarSize
           },
           h(CartesianGrid, { stroke: colors.grid, vertical: gridVertical, horizontal: gridHorizontal }),
-          h(XAxis, xAxisProps),
-          h(YAxis, yAxisProps),
+          h(XAxis, normalizedXAxisProps),
+          h(YAxis, normalizedYAxisProps),
           h(Tooltip, tooltipProps),
           ...barNodes,
           ...overlayNodes
@@ -738,6 +845,19 @@
       r: 6,
       stroke: colors.tooltip.bg,
       strokeWidth: 2.2
+    };
+  }
+
+  function normalizeAxisLabelProps(axisProps) {
+    if (!axisProps || typeof axisProps !== "object") return axisProps;
+    const label = axisProps.label;
+    if (!label || typeof label !== "object") return axisProps;
+    return {
+      ...axisProps,
+      label: {
+        ...label,
+        fontWeight: 700
+      }
     };
   }
 
@@ -803,6 +923,58 @@
             fill: "rgba(31,51,71,0.75)",
             fontSize: 9,
             offset: 2
+          })
+        );
+      }
+      const endLabelRenderer =
+        typeof def.endLabelAccessor === "function"
+          ? (labelProps) => {
+              const payload = labelProps?.payload || {};
+              const text = String(def.endLabelAccessor(payload) || "").trim();
+              if (!text) return null;
+              const x = toNumber(labelProps?.x);
+              const y = toNumber(labelProps?.y);
+              const width = toNumber(labelProps?.width);
+              const height = toNumber(labelProps?.height);
+              const badgeX = x + width + 10;
+              const badgeY = y + Math.max(0, height / 2 - 9);
+              const badgeWidth = Math.max(34, text.length * 6.5 + 12);
+              return h(
+                "g",
+                { key: `end-label-${def.dataKey}-${String(payload?.team || payload?.phaseLabel || "")}` },
+                h("rect", {
+                  x: badgeX,
+                  y: badgeY,
+                  width: badgeWidth,
+                  height: 18,
+                  rx: 9,
+                  ry: 9,
+                  fill: "rgba(255,255,255,0.94)",
+                  stroke: "rgba(31,51,71,0.22)",
+                  strokeWidth: 1
+                }),
+                h(
+                  "text",
+                  {
+                    x: badgeX + 6,
+                    y: badgeY + 9,
+                    fill: def.endLabelColor || "rgba(31,51,71,0.84)",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    dominantBaseline: "middle",
+                    textAnchor: "start"
+                  },
+                  text
+                )
+              );
+            }
+          : null;
+      if (endLabelRenderer) {
+        barChildren.push(
+          h(LabelList, {
+            key: `end-label-${def.dataKey}`,
+            dataKey: def.dataKey,
+            content: endLabelRenderer
           })
         );
       }
@@ -892,6 +1064,61 @@
           );
           return nodes;
         })
+      : chartLayout === "vertical"
+        ? (Array.isArray(overlayDots) ? overlayDots : []).map((dot, index) => {
+            const keyBase = `overlay-label-${index}`;
+            const x = toNumber(dot?.x);
+            const y = String(dot?.y || "");
+            const labelText = String(dot?.labelText || "").trim();
+            if (!Number.isFinite(x) || !y || !labelText) return null;
+            return h(ReferenceDot, {
+              key: keyBase,
+              x,
+              y,
+              r: 0,
+              fill: "transparent",
+              stroke: "none",
+              isFront: true,
+              ifOverflow: "extendDomain",
+              label: ({ viewBox }) => {
+                const labelX = toNumber(viewBox?.x) + 10;
+                const labelY = toNumber(viewBox?.y);
+                const isMuted = Boolean(dot?.muted);
+                const labelPrefix = String(dot?.labelPrefix || "").trim();
+                const labelFill = isMuted ? "rgba(31,51,71,0.62)" : String(dot?.labelColor || "rgba(31,51,71,0.84)");
+                const accentFill = String(
+                  dot?.accentColor || (isMuted ? "rgba(113,128,150,0.7)" : "rgba(56,161,105,0.95)")
+                );
+                return h(
+                  "text",
+                  {
+                    key: `${keyBase}-label`,
+                    x: labelX,
+                    y: labelY,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    dominantBaseline: "middle",
+                    textAnchor: "start"
+                  },
+                  h(
+                    "tspan",
+                    {
+                      fill: accentFill
+                    },
+                    labelPrefix
+                  ),
+                  h(
+                    "tspan",
+                    {
+                      fill: labelFill,
+                      dx: labelPrefix ? 4 : 0
+                    },
+                    labelText
+                  )
+                );
+              }
+            });
+          }).filter(Boolean)
       : [];
     return renderBarChartShell({
       rows,
@@ -946,10 +1173,16 @@
     colorByCategoryKey = "",
     categoryColors = null,
     categoryAxisHeight = null,
+    xAxisProps = null,
+    yAxisProps = null,
+    chartMargin = null,
     gridVertical = false,
+    gridHorizontal = true,
     valueTicks = null,
+    valueTickFormatter = null,
     tooltipCursor = { fill: BAR_CURSOR_FILL },
-    valueUnit = "days"
+    valueUnit = "days",
+    tooltipLayout = "default"
   }) {
     const sourceRows = Array.isArray(rows) ? rows : [];
     const compactViewport = isCompactViewport();
@@ -962,9 +1195,13 @@
       showValueLabel: Boolean(def.showValueLabel),
       showSeriesLabel: Boolean(def.showSeriesLabel),
       seriesLabel: def.seriesLabel || def.name || def.label || def.key,
-      metaTeamColorMap: def.metaTeamColorMap
+      metaTeamColorMap: def.metaTeamColorMap,
+      endLabelAccessor: typeof def.endLabelAccessor === "function" ? def.endLabelAccessor : null,
+      endLabelColor: String(def.endLabelColor || "").trim()
     }));
-    const displayInWeeks = String(valueUnit || "").toLowerCase() === "weeks";
+    const normalizedUnit = String(valueUnit || "").toLowerCase();
+    const displayInWeeks = normalizedUnit === "weeks";
+    const displayInMonths = normalizedUnit === "months";
     const chartRows = displayInWeeks
       ? sourceRows.map((row) => {
           const next = { ...row };
@@ -973,12 +1210,22 @@
           });
           return next;
         })
+      : displayInMonths
+        ? sourceRows.map((row) => {
+            const next = { ...row };
+            seriesDefs.forEach((series) => {
+              next[series.key] = toMonthsForChart(row?.[series.key]);
+            });
+            return next;
+          })
       : sourceRows;
     const yValues = seriesDefs.flatMap((series) => chartRows.map((row) => toNumber(row?.[series.key])));
     const normalizedYUpperOverride =
       Number.isFinite(yUpperOverride) && yUpperOverride > 0
         ? displayInWeeks
           ? toWholeWeeksForChart(yUpperOverride)
+          : displayInMonths
+            ? toMonthsForChart(yUpperOverride)
           : yUpperOverride
         : null;
     const yUpper =
@@ -987,19 +1234,41 @@
         : computeYUpper(yValues, { min: 1, pad: 1.15 });
     const isHorizontal = orientation === "horizontal";
     const effectiveCategoryTickTwoLine = categoryTickTwoLine && !compactViewport;
-    const weeklyAxis = displayInWeeks ? buildWeekAxis(yUpper, { majorStep: 4 }) : null;
+    const weeklyAxis = displayInWeeks ? buildWeekAxis(yUpper, { majorStep: 1 }) : null;
+    const monthlyAxis = displayInMonths ? buildMonthAxis(yUpper, { majorStep: 1 }) : null;
     const niceAxis = isHorizontal
       ? displayInWeeks
         ? weeklyAxis
+        : displayInMonths
+          ? monthlyAxis
         : buildNiceNumberAxis(yUpper)
       : null;
     const niceYAxis = !isHorizontal
       ? displayInWeeks
         ? weeklyAxis
+        : displayInMonths
+          ? monthlyAxis
         : buildNiceNumberAxis(yUpper)
       : null;
     const normalizedValueTicks =
       Array.isArray(valueTicks) && valueTicks.length > 1 ? valueTicks.map((value) => toNumber(value)) : null;
+    const resolvedChartMargin =
+      chartMargin && typeof chartMargin === "object"
+        ? {
+            top: Number.isFinite(chartMargin.top) ? chartMargin.top : 14,
+            right: Number.isFinite(chartMargin.right) ? chartMargin.right : 12,
+            bottom: Number.isFinite(chartMargin.bottom) ? chartMargin.bottom : 34,
+            left: Number.isFinite(chartMargin.left) ? chartMargin.left : 12
+          }
+        : { top: 14, right: 12, bottom: 34, left: 12 };
+    const numericTickFormatter =
+      typeof valueTickFormatter === "function"
+        ? valueTickFormatter
+        : displayInWeeks
+          ? formatWeekAxisLabel
+          : displayInMonths
+            ? formatMonthAxisLabel
+            : undefined;
     const twoLineCategoryTickHorizontal = twoLineCategoryTickFactory(colors, {
       textAnchor: "end",
       dy: 3,
@@ -1023,7 +1292,9 @@
         showValueLabel: Boolean(series.showValueLabel),
         showSeriesLabel: Boolean(series.showSeriesLabel),
         seriesLabel: series.seriesLabel || series.name,
-        metaTeamColorMap: series.metaTeamColorMap
+        metaTeamColorMap: series.metaTeamColorMap,
+        endLabelAccessor: series.endLabelAccessor,
+        endLabelColor: series.endLabelColor
       })),
       colors,
       yUpper,
@@ -1032,16 +1303,19 @@
       categoryColors,
       overlayDots,
       gridVertical,
+      gridHorizontal,
       height: singleChartHeightForMode(modeKey, CHART_HEIGHTS.dense),
-      margin: { top: 14, right: 12, bottom: 34, left: 12 },
+      margin: resolvedChartMargin,
       xAxisProps: {
+        ...(xAxisProps && typeof xAxisProps === "object" ? xAxisProps : {}),
         ...(isHorizontal
           ? {
               type: "number",
               domain: normalizedValueTicks ? [0, normalizedValueTicks.at(-1)] : [0, niceAxis.upper],
               ticks: normalizedValueTicks || niceAxis.ticks,
+              interval: 0,
               allowDecimals: false,
-              tickFormatter: displayInWeeks ? (value) => String(toWhole(value)) : undefined
+              tickFormatter: numericTickFormatter
             }
           : {
               dataKey: categoryKey,
@@ -1064,16 +1338,19 @@
       },
       yAxisProps: isHorizontal
         ? {
+            ...(yAxisProps && typeof yAxisProps === "object" ? yAxisProps : {}),
             dataKey: categoryKey,
             type: "category",
             width: HORIZONTAL_CATEGORY_AXIS_WIDTH,
             tick: effectiveCategoryTickTwoLine ? twoLineCategoryTickHorizontal : undefined
           }
         : {
+            ...(yAxisProps && typeof yAxisProps === "object" ? yAxisProps : {}),
             domain: normalizedValueTicks ? [0, normalizedValueTicks.at(-1)] : [0, niceYAxis.upper],
             ticks: normalizedValueTicks || niceYAxis.ticks,
+            interval: 0,
             allowDecimals: false,
-            tickFormatter: displayInWeeks ? (value) => String(toWhole(value)) : undefined
+            tickFormatter: numericTickFormatter
           },
       chartLayout: isHorizontal ? "vertical" : "horizontal",
       tooltipProps: {
@@ -1081,6 +1358,92 @@
           const categoryLabel = row?.teamWithSampleBase || row?.[categoryKey] || row.team || "Category";
           const teamLabel = String(categoryLabel).replace(/\s*\(.*\)\s*$/, "");
           const hasDone = Number.isFinite(row?.doneCount);
+          if (tooltipLayout === "summary_n_average") {
+            const item = payload[0];
+            const key = item?.dataKey;
+            const meta = row?.[`meta_${key}`] || {};
+            const seriesName = String(meta.team || item?.name || "").trim();
+            const durationText = displayInWeeks
+              ? formatWeeksFromDays(meta.average).replace("<1 week", "< 1 week")
+              : displayInMonths
+                ? formatMonthsFromDays(meta.average).replace("<1 month", "< 1 month")
+                : `${toWhole(meta.average)} days`;
+            return [
+              tooltipTitleLine(
+                "team",
+                `${teamLabel}${seriesName ? ` • ${seriesName}` : ""}`,
+                colors
+              ),
+              makeTooltipLine("average", `Team takes on average ${durationText} to ship an idea`, colors, {
+                margin: "2px 0",
+                fontSize: "12px",
+                lineHeight: "1.45"
+              }),
+              makeTooltipLine(
+                "sample",
+                Object.prototype.hasOwnProperty.call(row || {}, "cycleDoneCount")
+                  ? `Ideas shipped = ${toWhole(row?.cycleDoneCount)}`
+                  : `n = ${toWhole(meta.n)}`,
+                colors,
+                {
+                  margin: "2px 0",
+                  fontSize: "12px",
+                  lineHeight: "1.45"
+                }
+              )
+            ];
+          }
+          if (tooltipLayout === "stage_team_breakdown") {
+            const sortedItems = [...payload]
+              .map((item) => {
+                const key = item?.dataKey;
+                const meta = row?.[`meta_${key}`] || {};
+                return { item, meta };
+              })
+              .filter(({ meta }) => toWhole(meta?.n) > 0)
+              .sort((left, right) => {
+                const nDiff = toWhole(right.meta?.n) - toWhole(left.meta?.n);
+                if (nDiff !== 0) return nDiff;
+                return toNumber(right.meta?.average) - toNumber(left.meta?.average);
+              });
+            const totalText = stageSampleCountFromRow(row) > 0 ? `n = ${stageSampleCountFromRow(row)}` : "";
+            const lines = [
+              tooltipTitleLine(
+                "team",
+                `${teamLabel}${timeWindowLabel ? ` • ${timeWindowLabel}` : ""}`,
+                colors
+              )
+            ];
+            if (totalText) {
+              lines.push(
+                makeTooltipLine("stage-total", totalText, colors, {
+                  margin: "0 0 6px",
+                  fontSize: "12px",
+                  lineHeight: "1.4"
+                })
+              );
+            }
+            sortedItems.forEach(({ item, meta }) => {
+              const seriesName = String(meta.team || item?.name || "").trim();
+              const sampleCount = toWhole(meta.n);
+              lines.push(
+                makeTooltipLine(seriesName, `${seriesName} (n=${sampleCount})`, colors, {
+                  margin: "2px 0",
+                  fontSize: "12px",
+                  lineHeight: "1.45",
+                  preserveSubItems: true,
+                  subItems: [
+                    displayInWeeks
+                      ? `${formatWeeksFromDays(meta.average).replace("<1 week", "< 1 week")} average`
+                      : displayInMonths
+                        ? `${formatMonthsFromDays(meta.average).replace("<1 month", "< 1 month")} average`
+                        : `${toWhole(meta.average)} days average`
+                  ]
+                })
+              );
+            });
+            return lines;
+          }
           const lines = [
             tooltipTitleLine(
               "team",
@@ -1105,7 +1468,11 @@
                 subItems:
                   customSubItems ||
                   [
-                    displayInWeeks ? formatAverageLabel(meta.average, "weeks") : formatAverageLabel(meta.average, "days")
+                    displayInWeeks
+                      ? formatAverageLabel(meta.average, "weeks")
+                      : displayInMonths
+                        ? formatAverageLabel(meta.average, "months")
+                        : formatAverageLabel(meta.average, "days")
                   ]
               })
             );
@@ -1141,6 +1508,7 @@
     TREND_TEAM_LINES,
     activeLineDot,
     axisTick,
+    buildAxisLabel,
     barBaseStyle,
     baseYAxisProps,
     buildNiceNumberAxis,

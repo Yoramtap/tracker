@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-03-05T22:54:09.205Z",
+  "generatedAt": "2026-03-07T12:50:08.246Z",
   "teams": [
     "API",
     "Frontend",
@@ -9,9 +9,9 @@
     "Titanium",
     "Shift"
   ],
-  "years": [
-    "2025",
-    "2026"
+  "scopes": [
+    "inception",
+    "since_2026"
   ],
   "phases": [
     "parking_lot",
@@ -21,13 +21,12 @@
     "feedback"
   ],
   "effortScopes": [
-    "all",
-    "single",
-    "combined"
+    "all"
   ],
   "chartData": {
-    "leadCycleByYear": {
-      "2025": {
+    "leadCycleByScope": {
+      "inception": {
+        "scopeLabel": "All ideas",
         "teams": [
           "API",
           "Frontend",
@@ -39,283 +38,301 @@
         "rows": [
           {
             "team": "API",
-            "lead": 167.41,
-            "cycle": 45.86,
+            "lead": 157.04,
+            "cycle": 44.6,
+            "sampleCount": 139,
+            "doneCount": 69,
+            "cycleDoneCount": 56,
+            "cycleOngoingCount": 8,
             "meta_lead": {
-              "n": 125,
-              "median": 134.22,
-              "average": 167.41,
+              "n": 139,
+              "median": 99.79,
+              "average": 157.04,
               "team": "Lead time"
             },
             "meta_cycle": {
-              "n": 51,
-              "median": 25.73,
-              "average": 45.86,
-              "team": "Cycle time"
-            },
-            "teamWithSampleBase": "API (n=125)",
-            "sampleCount": 125,
-            "doneCount": 57
-          },
-          {
-            "team": "Frontend",
-            "lead": 63.06,
-            "cycle": 32.51,
-            "meta_lead": {
-              "n": 27,
-              "median": 25.9,
-              "average": 63.06,
-              "team": "Lead time"
-            },
-            "meta_cycle": {
-              "n": 23,
-              "median": 15.03,
-              "average": 32.51,
-              "team": "Cycle time"
-            },
-            "teamWithSampleBase": "Frontend (n=27)",
-            "sampleCount": 27,
-            "doneCount": 25
-          },
-          {
-            "team": "Broadcast",
-            "lead": 237.93,
-            "cycle": 65.47,
-            "meta_lead": {
-              "n": 49,
-              "median": 262.3,
-              "average": 237.93,
-              "team": "Lead time"
-            },
-            "meta_cycle": {
-              "n": 18,
-              "median": 44.69,
-              "average": 65.47,
-              "team": "Cycle time"
-            },
-            "teamWithSampleBase": "Broadcast (n=49)",
-            "sampleCount": 49,
-            "doneCount": 20
-          },
-          {
-            "team": "Orchestration",
-            "lead": 216.56,
-            "cycle": 107.66,
-            "meta_lead": {
-              "n": 32,
-              "median": 195.31,
-              "average": 216.56,
-              "team": "Lead time"
-            },
-            "meta_cycle": {
-              "n": 17,
-              "median": 95.11,
-              "average": 107.66,
-              "team": "Cycle time"
-            },
-            "teamWithSampleBase": "Orchestration (n=32)",
-            "sampleCount": 32,
-            "doneCount": 13
-          },
-          {
-            "team": "Titanium",
-            "lead": 157.92,
-            "cycle": 113.17,
-            "meta_lead": {
-              "n": 7,
-              "median": 177.95,
-              "average": 157.92,
-              "team": "Lead time"
-            },
-            "meta_cycle": {
-              "n": 5,
-              "median": 108.94,
-              "average": 113.17,
-              "team": "Cycle time"
-            },
-            "teamWithSampleBase": "Titanium (n=7)",
-            "sampleCount": 7,
-            "doneCount": 0
-          },
-          {
-            "team": "Shift",
-            "lead": 0,
-            "cycle": 0,
-            "meta_lead": {
-              "n": 0,
-              "median": 0,
-              "average": 0,
-              "team": "Lead time"
-            },
-            "meta_cycle": {
-              "n": 0,
-              "median": 0,
-              "average": 0,
-              "team": "Cycle time"
-            },
-            "teamWithSampleBase": "Shift (n=0)",
-            "sampleCount": 0,
-            "doneCount": 0
-          }
-        ],
-        "yUpper": 250,
-        "sampleCount": 270,
-        "sampleLabel": "122/270 (cycle/lead)",
-        "categorySecondaryLabels": {
-          "API": "n=125, done=57",
-          "Frontend": "n=27, done=25",
-          "Broadcast": "n=49, done=20",
-          "Orchestration": "n=32, done=13",
-          "Titanium": "n=7, done=0",
-          "Shift": "n=0, done=0"
-        }
-      },
-      "2026": {
-        "teams": [
-          "API",
-          "Frontend",
-          "Broadcast",
-          "Orchestration",
-          "Titanium",
-          "Shift"
-        ],
-        "rows": [
-          {
-            "team": "API",
-            "lead": 37.49,
-            "cycle": 28.98,
-            "meta_lead": {
-              "n": 21,
+              "n": 61,
               "median": 26.2,
-              "average": 37.49,
-              "team": "Lead time"
-            },
-            "meta_cycle": {
-              "n": 13,
-              "median": 26.13,
-              "average": 28.98,
+              "average": 44.6,
               "team": "Cycle time"
-            },
-            "teamWithSampleBase": "API (n=21)",
-            "sampleCount": 21,
-            "doneCount": 12
+            }
           },
           {
             "team": "Frontend",
-            "lead": 23.64,
-            "cycle": 23.64,
+            "lead": 130.83,
+            "cycle": 35.34,
+            "sampleCount": 79,
+            "doneCount": 50,
+            "cycleDoneCount": 44,
+            "cycleOngoingCount": 2,
             "meta_lead": {
-              "n": 1,
-              "median": 23.64,
-              "average": 23.64,
+              "n": 79,
+              "median": 52.19,
+              "average": 130.83,
               "team": "Lead time"
             },
             "meta_cycle": {
-              "n": 1,
-              "median": 23.64,
-              "average": 23.64,
+              "n": 44,
+              "median": 24.94,
+              "average": 35.34,
               "team": "Cycle time"
-            },
-            "teamWithSampleBase": "Frontend (n=1)",
-            "sampleCount": 1,
-            "doneCount": 1
+            }
           },
           {
             "team": "Broadcast",
-            "lead": 190.55,
-            "cycle": 136.76,
+            "lead": 203.13,
+            "cycle": 68.67,
+            "sampleCount": 123,
+            "doneCount": 52,
+            "cycleDoneCount": 38,
+            "cycleOngoingCount": 9,
             "meta_lead": {
-              "n": 7,
-              "median": 171.74,
-              "average": 190.55,
+              "n": 123,
+              "median": 229.39,
+              "average": 203.13,
+              "team": "Lead time"
+            },
+            "meta_cycle": {
+              "n": 45,
+              "median": 40.87,
+              "average": 68.67,
+              "team": "Cycle time"
+            }
+          },
+          {
+            "team": "Orchestration",
+            "lead": 217.72,
+            "cycle": 115.18,
+            "sampleCount": 43,
+            "doneCount": 16,
+            "cycleDoneCount": 8,
+            "cycleOngoingCount": 9,
+            "meta_lead": {
+              "n": 43,
+              "median": 197.05,
+              "average": 217.72,
+              "team": "Lead time"
+            },
+            "meta_cycle": {
+              "n": 16,
+              "median": 100.34,
+              "average": 115.18,
+              "team": "Cycle time"
+            }
+          },
+          {
+            "team": "Titanium",
+            "lead": 131.04,
+            "cycle": 114.75,
+            "sampleCount": 10,
+            "doneCount": 1,
+            "cycleDoneCount": 0,
+            "cycleOngoingCount": 5,
+            "meta_lead": {
+              "n": 10,
+              "median": 171.01,
+              "average": 131.04,
               "team": "Lead time"
             },
             "meta_cycle": {
               "n": 5,
-              "median": 133.99,
-              "average": 136.76,
+              "median": 110.52,
+              "average": 114.75,
               "team": "Cycle time"
-            },
-            "teamWithSampleBase": "Broadcast (n=7)",
-            "sampleCount": 7,
-            "doneCount": 5
-          },
-          {
-            "team": "Orchestration",
-            "lead": 37.51,
-            "cycle": 0,
-            "meta_lead": {
-              "n": 3,
-              "median": 35.91,
-              "average": 37.51,
-              "team": "Lead time"
-            },
-            "meta_cycle": {
-              "n": 0,
-              "median": 0,
-              "average": 0,
-              "team": "Cycle time"
-            },
-            "teamWithSampleBase": "Orchestration (n=3)",
-            "sampleCount": 3,
-            "doneCount": 1
-          },
-          {
-            "team": "Titanium",
-            "lead": 63.57,
-            "cycle": 0,
-            "meta_lead": {
-              "n": 3,
-              "median": 3.65,
-              "average": 63.57,
-              "team": "Lead time"
-            },
-            "meta_cycle": {
-              "n": 0,
-              "median": 0,
-              "average": 0,
-              "team": "Cycle time"
-            },
-            "teamWithSampleBase": "Titanium (n=3)",
-            "sampleCount": 3,
-            "doneCount": 1
+            }
           },
           {
             "team": "Shift",
             "lead": 0,
             "cycle": 0,
+            "sampleCount": 0,
+            "doneCount": 0,
+            "cycleDoneCount": 0,
+            "cycleOngoingCount": 0,
             "meta_lead": {
               "n": 0,
-              "median": 0,
-              "average": 0,
+              "median": null,
+              "average": null,
               "team": "Lead time"
             },
             "meta_cycle": {
               "n": 0,
-              "median": 0,
-              "average": 0,
+              "median": null,
+              "average": null,
               "team": "Cycle time"
-            },
-            "teamWithSampleBase": "Shift (n=0)",
-            "sampleCount": 0,
-            "doneCount": 0
+            }
           }
         ],
-        "yUpper": 250,
-        "sampleCount": 46,
-        "sampleLabel": "20/46 (cycle/lead)",
+        "sampleCount": 324,
+        "cycleSampleCount": 143,
+        "leadSampleCount": 324,
+        "sampleLabel": "143/324 (cycle/lead)",
         "categorySecondaryLabels": {
-          "API": "n=21, done=12",
-          "Frontend": "n=1, done=1",
-          "Broadcast": "n=7, done=5",
-          "Orchestration": "n=3, done=1",
-          "Titanium": "n=3, done=1",
-          "Shift": "n=0, done=0"
-        }
+          "API": "n=61, ongoing=8, done=56",
+          "Frontend": "n=44, ongoing=2, done=44",
+          "Broadcast": "n=45, ongoing=9, done=38",
+          "Orchestration": "n=16, ongoing=9, done=8",
+          "Titanium": "n=5, ongoing=5, done=0",
+          "Shift": "n=0, ongoing=0, done=0"
+        },
+        "yUpper": 250
+      },
+      "since_2026": {
+        "scopeLabel": "Created in 2026",
+        "teams": [
+          "API",
+          "Frontend",
+          "Broadcast",
+          "Orchestration",
+          "Titanium",
+          "Shift"
+        ],
+        "rows": [
+          {
+            "team": "API",
+            "lead": 21.22,
+            "cycle": 11.79,
+            "sampleCount": 10,
+            "doneCount": 2,
+            "cycleDoneCount": 2,
+            "cycleOngoingCount": 1,
+            "meta_lead": {
+              "n": 10,
+              "median": 24.46,
+              "average": 21.22,
+              "team": "Lead time"
+            },
+            "meta_cycle": {
+              "n": 3,
+              "median": 5.26,
+              "average": 11.79,
+              "team": "Cycle time"
+            }
+          },
+          {
+            "team": "Frontend",
+            "lead": 25.8,
+            "cycle": 24.92,
+            "sampleCount": 5,
+            "doneCount": 2,
+            "cycleDoneCount": 2,
+            "cycleOngoingCount": 0,
+            "meta_lead": {
+              "n": 5,
+              "median": 24.46,
+              "average": 25.8,
+              "team": "Lead time"
+            },
+            "meta_cycle": {
+              "n": 2,
+              "median": 24.92,
+              "average": 24.92,
+              "team": "Cycle time"
+            }
+          },
+          {
+            "team": "Broadcast",
+            "lead": 22.97,
+            "cycle": 4.59,
+            "sampleCount": 9,
+            "doneCount": 1,
+            "cycleDoneCount": 1,
+            "cycleOngoingCount": 1,
+            "meta_lead": {
+              "n": 9,
+              "median": 24.46,
+              "average": 22.97,
+              "team": "Lead time"
+            },
+            "meta_cycle": {
+              "n": 2,
+              "median": 4.59,
+              "average": 4.59,
+              "team": "Cycle time"
+            }
+          },
+          {
+            "team": "Orchestration",
+            "lead": 19.89,
+            "cycle": 0,
+            "sampleCount": 2,
+            "doneCount": 0,
+            "cycleDoneCount": 0,
+            "cycleOngoingCount": 0,
+            "meta_lead": {
+              "n": 2,
+              "median": 19.89,
+              "average": 19.89,
+              "team": "Lead time"
+            },
+            "meta_cycle": {
+              "n": 0,
+              "median": null,
+              "average": null,
+              "team": "Cycle time"
+            }
+          },
+          {
+            "team": "Titanium",
+            "lead": 5.23,
+            "cycle": 0,
+            "sampleCount": 2,
+            "doneCount": 0,
+            "cycleDoneCount": 0,
+            "cycleOngoingCount": 0,
+            "meta_lead": {
+              "n": 2,
+              "median": 5.23,
+              "average": 5.23,
+              "team": "Lead time"
+            },
+            "meta_cycle": {
+              "n": 0,
+              "median": null,
+              "average": null,
+              "team": "Cycle time"
+            }
+          },
+          {
+            "team": "Shift",
+            "lead": 0,
+            "cycle": 0,
+            "sampleCount": 0,
+            "doneCount": 0,
+            "cycleDoneCount": 0,
+            "cycleOngoingCount": 0,
+            "meta_lead": {
+              "n": 0,
+              "median": null,
+              "average": null,
+              "team": "Lead time"
+            },
+            "meta_cycle": {
+              "n": 0,
+              "median": null,
+              "average": null,
+              "team": "Cycle time"
+            }
+          }
+        ],
+        "sampleCount": 28,
+        "cycleSampleCount": 5,
+        "leadSampleCount": 28,
+        "sampleLabel": "5/28 (cycle/lead)",
+        "categorySecondaryLabels": {
+          "API": "n=3, ongoing=1, done=2",
+          "Frontend": "n=2, ongoing=0, done=2",
+          "Broadcast": "n=2, ongoing=1, done=1",
+          "Orchestration": "n=0, ongoing=0, done=0",
+          "Titanium": "n=0, ongoing=0, done=0",
+          "Shift": "n=0, ongoing=0, done=0"
+        },
+        "yUpper": 250
       }
     },
-    "lifecycleByYear": {
-      "2025": {
+    "lifecycleByScope": {
+      "inception": {
+        "scopeLabel": "All ideas",
         "teams": [
           "API",
           "Frontend",
@@ -350,164 +367,197 @@
           {
             "phaseLabel": "Parking",
             "phaseKey": "parking_lot",
-            "slot_0": 144.12,
+            "slot_0": 131.88,
             "meta_slot_0": {
               "team": "API",
-              "n": 120,
-              "median": 86.27,
-              "average": 144.12
+              "n": 132,
+              "median": 43.21,
+              "average": 131.88
             },
-            "slot_1": 40.24,
+            "slot_1": 116.75,
             "meta_slot_1": {
               "team": "Frontend",
-              "n": 21,
-              "median": 0.19,
-              "average": 40.24
+              "n": 70,
+              "median": 37.46,
+              "average": 116.75
             },
-            "slot_2": 216.06,
+            "slot_2": 175.63,
             "meta_slot_2": {
               "team": "Broadcast",
-              "n": 47,
-              "median": 262.3,
-              "average": 216.06
+              "n": 116,
+              "median": 164.05,
+              "average": 175.63
             },
-            "slot_3": 158.89,
+            "slot_3": 163.22,
             "meta_slot_3": {
               "team": "Orchestration",
-              "n": 31,
-              "median": 112.99,
-              "average": 158.89
+              "n": 43,
+              "median": 114.57,
+              "average": 163.22
             },
-            "slot_4": 26.4,
+            "slot_4": 19.74,
             "meta_slot_4": {
               "team": "Titanium",
-              "n": 5,
-              "median": 0.02,
-              "average": 26.4
+              "n": 8,
+              "median": 5.23,
+              "average": 19.74
             }
           },
           {
             "phaseLabel": "Design",
             "phaseKey": "design",
-            "slot_0": 61.95,
+            "slot_0": 45.18,
             "meta_slot_0": {
               "team": "API",
-              "n": 14,
-              "median": 43.63,
-              "average": 61.95
+              "n": 25,
+              "median": 24.43,
+              "average": 45.18
             },
-            "slot_1": 29.13,
+            "slot_1": 41.33,
             "meta_slot_1": {
               "team": "Frontend",
-              "n": 3,
-              "median": 0.02,
-              "average": 29.13
+              "n": 13,
+              "median": 19.45,
+              "average": 41.33
             },
-            "slot_2": 48.85,
+            "slot_2": 48.13,
             "meta_slot_2": {
               "team": "Broadcast",
-              "n": 5,
-              "median": 35.02,
-              "average": 48.85
+              "n": 24,
+              "median": 32.41,
+              "average": 48.13
             },
-            "slot_3": 34.4,
+            "slot_3": 33.78,
             "meta_slot_3": {
               "team": "Orchestration",
-              "n": 4,
-              "median": 17.11,
-              "average": 34.4
+              "n": 8,
+              "median": 25.76,
+              "average": 33.78
             },
-            "slot_4": 49.27,
+            "slot_4": 49.59,
             "meta_slot_4": {
               "team": "Titanium",
               "n": 5,
               "median": 8.21,
-              "average": 49.27
+              "average": 49.59
             }
           },
           {
             "phaseLabel": "Ready",
             "phaseKey": "ready_for_development",
-            "slot_0": 26.58,
+            "slot_0": 27.13,
             "meta_slot_0": {
               "team": "API",
-              "n": 16,
-              "median": 9.58,
-              "average": 26.58
+              "n": 21,
+              "median": 7.21,
+              "average": 27.13
             },
-            "slot_1": 5.61,
+            "slot_1": 7,
             "meta_slot_1": {
               "team": "Frontend",
-              "n": 4,
-              "median": 2.73,
-              "average": 5.61
+              "n": 10,
+              "median": 2.36,
+              "average": 7
             },
-            "slot_2": 20.26,
+            "slot_2": 20.35,
             "meta_slot_2": {
               "team": "Broadcast",
-              "n": 4,
-              "median": 3.32,
-              "average": 20.26
+              "n": 18,
+              "median": 4.21,
+              "average": 20.35
             },
-            "slot_3": 18.23,
+            "slot_3": 57.56,
             "meta_slot_3": {
               "team": "Orchestration",
-              "n": 2,
-              "median": 18.23,
-              "average": 18.23
+              "n": 4,
+              "median": 27.34,
+              "average": 57.56
             },
-            "slot_4": 32.25,
+            "slot_4": 55.12,
             "meta_slot_4": {
               "team": "Titanium",
-              "n": 5,
-              "median": 0.02,
-              "average": 32.25
+              "n": 6,
+              "median": 30.4,
+              "average": 55.12
             }
           },
           {
-            "phaseLabel": "Development",
-            "phaseKey": "in_development+feedback",
-            "slot_0": 38.98,
+            "phaseLabel": "In Development",
+            "phaseKey": "in_development",
+            "slot_0": 42.07,
             "meta_slot_0": {
               "team": "API",
-              "n": 60,
-              "median": 19.81,
-              "average": 38.98
+              "n": 62,
+              "median": 23.53,
+              "average": 42.07
             },
-            "slot_1": 31.16,
+            "slot_1": 33.44,
             "meta_slot_1": {
               "team": "Frontend",
-              "n": 24,
-              "median": 15.11,
-              "average": 31.16
+              "n": 46,
+              "median": 23.84,
+              "average": 33.44
             },
-            "slot_2": 45.33,
+            "slot_2": 55.31,
             "meta_slot_2": {
               "team": "Broadcast",
-              "n": 26,
-              "median": 30.05,
-              "average": 45.33
+              "n": 45,
+              "median": 30.03,
+              "average": 55.31
             },
-            "slot_3": 101.69,
+            "slot_3": 110.15,
             "meta_slot_3": {
               "team": "Orchestration",
-              "n": 18,
-              "median": 88.87,
-              "average": 101.69
+              "n": 16,
+              "median": 95.73,
+              "average": 110.15
             },
-            "slot_4": 113.17,
+            "slot_4": 114.75,
             "meta_slot_4": {
               "team": "Titanium",
               "n": 5,
-              "median": 108.94,
-              "average": 113.17
+              "median": 110.52,
+              "average": 114.75
+            }
+          },
+          {
+            "phaseLabel": "UAT",
+            "phaseKey": "feedback",
+            "slot_0": 9.37,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 12,
+              "median": 8.14,
+              "average": 9.37
+            },
+            "slot_1": 17.04,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 1,
+              "median": 17.04,
+              "average": 17.04
+            },
+            "slot_2": 25.03,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 24,
+              "median": 10.81,
+              "average": 25.03
+            },
+            "slot_3": 40.29,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 2,
+              "median": 40.29,
+              "average": 40.29
             }
           }
         ],
-        "yUpper": 1,
-        "sampleSize": 270
+        "sampleSize": 274,
+        "yUpper": 202
       },
-      "2026": {
+      "since_2026": {
+        "scopeLabel": "Created in 2026",
         "teams": [
           "API",
           "Frontend",
@@ -532,119 +582,2704 @@
           {
             "slot": "slot_3",
             "name": "Team 4"
+          },
+          {
+            "slot": "slot_4",
+            "name": "Team 5"
           }
         ],
         "rows": [
           {
             "phaseLabel": "Parking",
             "phaseKey": "parking_lot",
-            "slot_0": 2.17,
+            "slot_0": 4.61,
             "meta_slot_0": {
               "team": "API",
-              "n": 12,
-              "median": 0,
-              "average": 2.17
-            },
-            "slot_1": 82.49,
-            "meta_slot_1": {
-              "team": "Broadcast",
               "n": 6,
-              "median": 53.37,
-              "average": 82.49
+              "median": 5,
+              "average": 4.61
             },
-            "slot_2": 0.13,
+            "slot_1": 2.53,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 4,
+              "median": 2.5,
+              "average": 2.53
+            },
+            "slot_2": 9.69,
             "meta_slot_2": {
-              "team": "Orchestration",
-              "n": 3,
-              "median": 0.11,
-              "average": 0.13
+              "team": "Broadcast",
+              "n": 5,
+              "median": 5.01,
+              "average": 9.69
             },
-            "slot_3": 7.07,
+            "slot_3": 0.14,
             "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 2,
+              "median": 0.14,
+              "average": 0.14
+            },
+            "slot_4": 5.23,
+            "meta_slot_4": {
               "team": "Titanium",
-              "n": 3,
-              "median": 3.65,
-              "average": 7.07
+              "n": 2,
+              "median": 5.23,
+              "average": 5.23
             }
           },
           {
             "phaseLabel": "Design",
             "phaseKey": "design",
-            "slot_0": 21.96,
+            "slot_0": 24.29,
             "meta_slot_0": {
               "team": "API",
-              "n": 11,
-              "median": 17.88,
-              "average": 21.96
+              "n": 6,
+              "median": 20.86,
+              "average": 24.29
             },
-            "slot_1": 24.27,
+            "slot_1": 22.26,
             "meta_slot_1": {
-              "team": "Broadcast",
+              "team": "Frontend",
               "n": 3,
-              "median": 35.61,
-              "average": 24.27
+              "median": 19.45,
+              "average": 22.26
             },
-            "slot_2": 37.38,
+            "slot_2": 24.28,
             "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 6,
+              "median": 20.86,
+              "average": 24.28
+            },
+            "slot_3": 19.74,
+            "meta_slot_3": {
               "team": "Orchestration",
-              "n": 3,
-              "median": 35.63,
-              "average": 37.38
+              "n": 2,
+              "median": 19.74,
+              "average": 19.74
             }
           },
           {
             "phaseLabel": "Ready",
             "phaseKey": "ready_for_development",
-            "slot_0": 28.58,
+            "slot_0": 1.71,
             "meta_slot_0": {
               "team": "API",
-              "n": 5,
-              "median": 1.18,
-              "average": 28.58
+              "n": 2,
+              "median": 1.71,
+              "average": 1.71
             },
-            "slot_1": 27.42,
-            "meta_slot_1": {
-              "team": "Broadcast",
-              "n": 3,
-              "median": 35.02,
-              "average": 27.42
-            },
-            "slot_2": 169.49,
-            "meta_slot_2": {
-              "team": "Titanium",
-              "n": 1,
-              "median": 169.49,
-              "average": 169.49
-            }
-          },
-          {
-            "phaseLabel": "Development",
-            "phaseKey": "in_development+feedback",
-            "slot_0": 26.91,
-            "meta_slot_0": {
-              "team": "API",
-              "n": 14,
-              "median": 24.82,
-              "average": 26.91
-            },
-            "slot_1": 23.64,
+            "slot_1": 2.24,
             "meta_slot_1": {
               "team": "Frontend",
               "n": 1,
-              "median": 23.64,
-              "average": 23.64
+              "median": 2.24,
+              "average": 2.24
             },
-            "slot_2": 85.48,
+            "slot_2": 1.71,
             "meta_slot_2": {
               "team": "Broadcast",
-              "n": 8,
-              "median": 82.14,
-              "average": 85.48
+              "n": 2,
+              "median": 1.71,
+              "average": 1.71
+            }
+          },
+          {
+            "phaseLabel": "In Development",
+            "phaseKey": "in_development",
+            "slot_0": 15.73,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 2,
+              "median": 15.73,
+              "average": 15.73
+            },
+            "slot_1": 24.92,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 2,
+              "median": 24.92,
+              "average": 24.92
+            },
+            "slot_2": 5.26,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 1,
+              "median": 5.26,
+              "average": 5.26
+            }
+          },
+          {
+            "phaseLabel": "UAT",
+            "phaseKey": "feedback",
+            "slot_0": 3.92,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 1,
+              "median": 3.92,
+              "average": 3.92
+            },
+            "slot_1": 3.92,
+            "meta_slot_1": {
+              "team": "Broadcast",
+              "n": 1,
+              "median": 3.92,
+              "average": 3.92
             }
           }
         ],
+        "sampleSize": 17,
+        "yUpper": 202
+      }
+    },
+    "currentStageSnapshot": {
+      "teams": [
+        "API",
+        "Frontend",
+        "Broadcast",
+        "Orchestration",
+        "Titanium",
+        "Shift"
+      ],
+      "teamDefs": [
+        {
+          "slot": "slot_0",
+          "name": "API",
+          "team": "API"
+        },
+        {
+          "slot": "slot_1",
+          "name": "Frontend",
+          "team": "Frontend"
+        },
+        {
+          "slot": "slot_2",
+          "name": "Broadcast",
+          "team": "Broadcast"
+        },
+        {
+          "slot": "slot_3",
+          "name": "Orchestration",
+          "team": "Orchestration"
+        },
+        {
+          "slot": "slot_4",
+          "name": "Titanium",
+          "team": "Titanium"
+        },
+        {
+          "slot": "slot_5",
+          "name": "Shift",
+          "team": "Shift"
+        }
+      ],
+      "rows": [
+        {
+          "phaseLabel": "Parking",
+          "phaseKey": "parking_lot",
+          "slot_0": 245.66,
+          "meta_slot_0": {
+            "team": "API",
+            "n": 54,
+            "median": 261.98,
+            "average": 245.66
+          },
+          "slot_1": 383.11,
+          "meta_slot_1": {
+            "team": "Frontend",
+            "n": 1,
+            "median": 383.11,
+            "average": 383.11
+          },
+          "slot_2": 291.96,
+          "meta_slot_2": {
+            "team": "Broadcast",
+            "n": 27,
+            "median": 348.26,
+            "average": 291.96
+          },
+          "slot_3": 184.01,
+          "meta_slot_3": {
+            "team": "Orchestration",
+            "n": 7,
+            "median": 114.57,
+            "average": 184.01
+          },
+          "slot_4": 40.32,
+          "meta_slot_4": {
+            "team": "Titanium",
+            "n": 3,
+            "median": 5.23,
+            "average": 40.32
+          },
+          "slot_5": 0,
+          "meta_slot_5": {
+            "team": "Shift",
+            "n": 0,
+            "median": null,
+            "average": null
+          }
+        },
+        {
+          "phaseLabel": "Design",
+          "phaseKey": "design",
+          "slot_0": 111.08,
+          "meta_slot_0": {
+            "team": "API",
+            "n": 17,
+            "median": 80.06,
+            "average": 111.08
+          },
+          "slot_1": 88.91,
+          "meta_slot_1": {
+            "team": "Frontend",
+            "n": 1,
+            "median": 88.91,
+            "average": 88.91
+          },
+          "slot_2": 68.77,
+          "meta_slot_2": {
+            "team": "Broadcast",
+            "n": 2,
+            "median": 68.77,
+            "average": 68.77
+          },
+          "slot_3": 19.74,
+          "meta_slot_3": {
+            "team": "Orchestration",
+            "n": 2,
+            "median": 19.74,
+            "average": 19.74
+          },
+          "slot_4": 179.54,
+          "meta_slot_4": {
+            "team": "Titanium",
+            "n": 1,
+            "median": 179.54,
+            "average": 179.54
+          },
+          "slot_5": 0,
+          "meta_slot_5": {
+            "team": "Shift",
+            "n": 0,
+            "median": null,
+            "average": null
+          }
+        },
+        {
+          "phaseLabel": "Ready",
+          "phaseKey": "ready_for_development",
+          "slot_0": 105.18,
+          "meta_slot_0": {
+            "team": "API",
+            "n": 2,
+            "median": 105.18,
+            "average": 105.18
+          },
+          "slot_1": 0,
+          "meta_slot_1": {
+            "team": "Frontend",
+            "n": 0,
+            "median": null,
+            "average": null
+          },
+          "slot_2": 0,
+          "meta_slot_2": {
+            "team": "Broadcast",
+            "n": 0,
+            "median": null,
+            "average": null
+          },
+          "slot_3": 0,
+          "meta_slot_3": {
+            "team": "Orchestration",
+            "n": 0,
+            "median": null,
+            "average": null
+          },
+          "slot_4": 0,
+          "meta_slot_4": {
+            "team": "Titanium",
+            "n": 0,
+            "median": null,
+            "average": null
+          },
+          "slot_5": 0,
+          "meta_slot_5": {
+            "team": "Shift",
+            "n": 0,
+            "median": null,
+            "average": null
+          }
+        },
+        {
+          "phaseLabel": "In Development",
+          "phaseKey": "in_development",
+          "slot_0": 5.26,
+          "meta_slot_0": {
+            "team": "API",
+            "n": 1,
+            "median": 5.26,
+            "average": 5.26
+          },
+          "slot_1": 0,
+          "meta_slot_1": {
+            "team": "Frontend",
+            "n": 0,
+            "median": null,
+            "average": null
+          },
+          "slot_2": 50.09,
+          "meta_slot_2": {
+            "team": "Broadcast",
+            "n": 2,
+            "median": 50.09,
+            "average": 50.09
+          },
+          "slot_3": 84.43,
+          "meta_slot_3": {
+            "team": "Orchestration",
+            "n": 6,
+            "median": 85.89,
+            "average": 84.43
+          },
+          "slot_4": 114.75,
+          "meta_slot_4": {
+            "team": "Titanium",
+            "n": 5,
+            "median": 110.52,
+            "average": 114.75
+          },
+          "slot_5": 0,
+          "meta_slot_5": {
+            "team": "Shift",
+            "n": 0,
+            "median": null,
+            "average": null
+          }
+        },
+        {
+          "phaseLabel": "UAT",
+          "phaseKey": "feedback",
+          "slot_0": 0,
+          "meta_slot_0": {
+            "team": "API",
+            "n": 0,
+            "median": null,
+            "average": null
+          },
+          "slot_1": 0,
+          "meta_slot_1": {
+            "team": "Frontend",
+            "n": 0,
+            "median": null,
+            "average": null
+          },
+          "slot_2": 0,
+          "meta_slot_2": {
+            "team": "Broadcast",
+            "n": 0,
+            "median": null,
+            "average": null
+          },
+          "slot_3": 0,
+          "meta_slot_3": {
+            "team": "Orchestration",
+            "n": 0,
+            "median": null,
+            "average": null
+          },
+          "slot_4": 0,
+          "meta_slot_4": {
+            "team": "Titanium",
+            "n": 0,
+            "median": null,
+            "average": null
+          },
+          "slot_5": 0,
+          "meta_slot_5": {
+            "team": "Shift",
+            "n": 0,
+            "median": null,
+            "average": null
+          }
+        }
+      ],
+      "sampleSize": 151,
+      "yUpper": 383.11,
+      "categorySecondaryLabels": {
+        "Parking": "n=107",
+        "Design": "n=27",
+        "Ready": "n=2",
+        "In Development": "n=15",
+        "UAT": "n=0"
+      }
+    },
+    "currentStageByArea": {
+      "all": {
+        "teams": [
+          "API",
+          "Frontend",
+          "Broadcast",
+          "Orchestration",
+          "Titanium",
+          "Shift"
+        ],
+        "teamDefs": [
+          {
+            "slot": "slot_0",
+            "name": "API",
+            "team": "API"
+          },
+          {
+            "slot": "slot_1",
+            "name": "Frontend",
+            "team": "Frontend"
+          },
+          {
+            "slot": "slot_2",
+            "name": "Broadcast",
+            "team": "Broadcast"
+          },
+          {
+            "slot": "slot_3",
+            "name": "Orchestration",
+            "team": "Orchestration"
+          },
+          {
+            "slot": "slot_4",
+            "name": "Titanium",
+            "team": "Titanium"
+          },
+          {
+            "slot": "slot_5",
+            "name": "Shift",
+            "team": "Shift"
+          }
+        ],
+        "rows": [
+          {
+            "phaseLabel": "Parking",
+            "phaseKey": "parking_lot",
+            "slot_0": 245.66,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 54,
+              "median": 261.98,
+              "average": 245.66
+            },
+            "slot_1": 383.11,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 1,
+              "median": 383.11,
+              "average": 383.11
+            },
+            "slot_2": 291.96,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 27,
+              "median": 348.26,
+              "average": 291.96
+            },
+            "slot_3": 184.01,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 7,
+              "median": 114.57,
+              "average": 184.01
+            },
+            "slot_4": 40.32,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 3,
+              "median": 5.23,
+              "average": 40.32
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Design",
+            "phaseKey": "design",
+            "slot_0": 111.08,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 17,
+              "median": 80.06,
+              "average": 111.08
+            },
+            "slot_1": 88.91,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 1,
+              "median": 88.91,
+              "average": 88.91
+            },
+            "slot_2": 68.77,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 2,
+              "median": 68.77,
+              "average": 68.77
+            },
+            "slot_3": 19.74,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 2,
+              "median": 19.74,
+              "average": 19.74
+            },
+            "slot_4": 179.54,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 1,
+              "median": 179.54,
+              "average": 179.54
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Ready",
+            "phaseKey": "ready_for_development",
+            "slot_0": 105.18,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 2,
+              "median": 105.18,
+              "average": 105.18
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "In Development",
+            "phaseKey": "in_development",
+            "slot_0": 5.26,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 1,
+              "median": 5.26,
+              "average": 5.26
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 50.09,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 2,
+              "median": 50.09,
+              "average": 50.09
+            },
+            "slot_3": 84.43,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 6,
+              "median": 85.89,
+              "average": 84.43
+            },
+            "slot_4": 114.75,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 5,
+              "median": 110.52,
+              "average": 114.75
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "UAT",
+            "phaseKey": "feedback",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          }
+        ],
+        "sampleSize": 151,
+        "yUpper": 383.11,
+        "categorySecondaryLabels": {
+          "Parking": "n=107",
+          "Design": "n=27",
+          "Ready": "n=2",
+          "In Development": "n=15",
+          "UAT": "n=0"
+        }
+      },
+      "tfc": {
+        "teams": [
+          "API",
+          "Frontend",
+          "Broadcast",
+          "Orchestration",
+          "Titanium",
+          "Shift"
+        ],
+        "teamDefs": [
+          {
+            "slot": "slot_0",
+            "name": "API",
+            "team": "API"
+          },
+          {
+            "slot": "slot_1",
+            "name": "Frontend",
+            "team": "Frontend"
+          },
+          {
+            "slot": "slot_2",
+            "name": "Broadcast",
+            "team": "Broadcast"
+          },
+          {
+            "slot": "slot_3",
+            "name": "Orchestration",
+            "team": "Orchestration"
+          },
+          {
+            "slot": "slot_4",
+            "name": "Titanium",
+            "team": "Titanium"
+          },
+          {
+            "slot": "slot_5",
+            "name": "Shift",
+            "team": "Shift"
+          }
+        ],
+        "rows": [
+          {
+            "phaseLabel": "Parking",
+            "phaseKey": "parking_lot",
+            "slot_0": 232.09,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 38,
+              "median": 245.71,
+              "average": 232.09
+            },
+            "slot_1": 383.11,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 1,
+              "median": 383.11,
+              "average": 383.11
+            },
+            "slot_2": 250.28,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 17,
+              "median": 262.19,
+              "average": 250.28
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Design",
+            "phaseKey": "design",
+            "slot_0": 95.13,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 15,
+              "median": 37.21,
+              "average": 95.13
+            },
+            "slot_1": 88.91,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 1,
+              "median": 88.91,
+              "average": 88.91
+            },
+            "slot_2": 68.77,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 2,
+              "median": 68.77,
+              "average": 68.77
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Ready",
+            "phaseKey": "ready_for_development",
+            "slot_0": 2.24,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 1,
+              "median": 2.24,
+              "average": 2.24
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "In Development",
+            "phaseKey": "in_development",
+            "slot_0": 5.26,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 1,
+              "median": 5.26,
+              "average": 5.26
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 50.09,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 2,
+              "median": 50.09,
+              "average": 50.09
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "UAT",
+            "phaseKey": "feedback",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          }
+        ],
+        "sampleSize": 86,
+        "yUpper": 383.11,
+        "categorySecondaryLabels": {
+          "Parking": "n=63",
+          "Design": "n=19",
+          "Ready": "n=1",
+          "In Development": "n=3",
+          "UAT": "n=0"
+        }
+      },
+      "feature_request": {
+        "teams": [
+          "API",
+          "Frontend",
+          "Broadcast",
+          "Orchestration",
+          "Titanium",
+          "Shift"
+        ],
+        "teamDefs": [
+          {
+            "slot": "slot_0",
+            "name": "API",
+            "team": "API"
+          },
+          {
+            "slot": "slot_1",
+            "name": "Frontend",
+            "team": "Frontend"
+          },
+          {
+            "slot": "slot_2",
+            "name": "Broadcast",
+            "team": "Broadcast"
+          },
+          {
+            "slot": "slot_3",
+            "name": "Orchestration",
+            "team": "Orchestration"
+          },
+          {
+            "slot": "slot_4",
+            "name": "Titanium",
+            "team": "Titanium"
+          },
+          {
+            "slot": "slot_5",
+            "name": "Shift",
+            "team": "Shift"
+          }
+        ],
+        "rows": [
+          {
+            "phaseLabel": "Parking",
+            "phaseKey": "parking_lot",
+            "slot_0": 252.55,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 18,
+              "median": 229.43,
+              "average": 252.55
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 331.32,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 13,
+              "median": 348.28,
+              "average": 331.32
+            },
+            "slot_3": 156.23,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 1,
+              "median": 156.23,
+              "average": 156.23
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Design",
+            "phaseKey": "design",
+            "slot_0": 99.31,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 3,
+              "median": 100.35,
+              "average": 99.31
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 100.35,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 1,
+              "median": 100.35,
+              "average": 100.35
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Ready",
+            "phaseKey": "ready_for_development",
+            "slot_0": 208.13,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 1,
+              "median": 208.13,
+              "average": 208.13
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "In Development",
+            "phaseKey": "in_development",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 50.09,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 1,
+              "median": 50.09,
+              "average": 50.09
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "UAT",
+            "phaseKey": "feedback",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          }
+        ],
+        "sampleSize": 39,
+        "yUpper": 331.32,
+        "categorySecondaryLabels": {
+          "Parking": "n=33",
+          "Design": "n=4",
+          "Ready": "n=1",
+          "In Development": "n=1",
+          "UAT": "n=0"
+        }
+      },
+      "nep_platform": {
+        "teams": [
+          "API",
+          "Frontend",
+          "Broadcast",
+          "Orchestration",
+          "Titanium",
+          "Shift"
+        ],
+        "teamDefs": [
+          {
+            "slot": "slot_0",
+            "name": "API",
+            "team": "API"
+          },
+          {
+            "slot": "slot_1",
+            "name": "Frontend",
+            "team": "Frontend"
+          },
+          {
+            "slot": "slot_2",
+            "name": "Broadcast",
+            "team": "Broadcast"
+          },
+          {
+            "slot": "slot_3",
+            "name": "Orchestration",
+            "team": "Orchestration"
+          },
+          {
+            "slot": "slot_4",
+            "name": "Titanium",
+            "team": "Titanium"
+          },
+          {
+            "slot": "slot_5",
+            "name": "Shift",
+            "team": "Shift"
+          }
+        ],
+        "rows": [
+          {
+            "phaseLabel": "Parking",
+            "phaseKey": "parking_lot",
+            "slot_0": 120.71,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 4,
+              "median": 139.07,
+              "average": 120.71
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 184.01,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 7,
+              "median": 114.57,
+              "average": 184.01
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Design",
+            "phaseKey": "design",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 19.74,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 2,
+              "median": 19.74,
+              "average": 19.74
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Ready",
+            "phaseKey": "ready_for_development",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "In Development",
+            "phaseKey": "in_development",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 84.43,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 6,
+              "median": 85.89,
+              "average": 84.43
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "UAT",
+            "phaseKey": "feedback",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          }
+        ],
+        "sampleSize": 24,
+        "yUpper": 184.01,
+        "categorySecondaryLabels": {
+          "Parking": "n=14",
+          "Design": "n=3",
+          "Ready": "n=0",
+          "In Development": "n=7",
+          "UAT": "n=0"
+        }
+      },
+      "illuminate": {
+        "teams": [
+          "API",
+          "Frontend",
+          "Broadcast",
+          "Orchestration",
+          "Titanium",
+          "Shift"
+        ],
+        "teamDefs": [
+          {
+            "slot": "slot_0",
+            "name": "API",
+            "team": "API"
+          },
+          {
+            "slot": "slot_1",
+            "name": "Frontend",
+            "team": "Frontend"
+          },
+          {
+            "slot": "slot_2",
+            "name": "Broadcast",
+            "team": "Broadcast"
+          },
+          {
+            "slot": "slot_3",
+            "name": "Orchestration",
+            "team": "Orchestration"
+          },
+          {
+            "slot": "slot_4",
+            "name": "Titanium",
+            "team": "Titanium"
+          },
+          {
+            "slot": "slot_5",
+            "name": "Shift",
+            "team": "Shift"
+          }
+        ],
+        "rows": [
+          {
+            "phaseLabel": "Parking",
+            "phaseKey": "parking_lot",
+            "slot_0": 278.74,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 8,
+              "median": 283.56,
+              "average": 278.74
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Design",
+            "phaseKey": "design",
+            "slot_0": 230.71,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 2,
+              "median": 230.71,
+              "average": 230.71
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Ready",
+            "phaseKey": "ready_for_development",
+            "slot_0": 208.13,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 1,
+              "median": 208.13,
+              "average": 208.13
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "In Development",
+            "phaseKey": "in_development",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "UAT",
+            "phaseKey": "feedback",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          }
+        ],
+        "sampleSize": 14,
+        "yUpper": 278.74,
+        "categorySecondaryLabels": {
+          "Parking": "n=11",
+          "Design": "n=2",
+          "Ready": "n=1",
+          "In Development": "n=0",
+          "UAT": "n=0"
+        }
+      },
+      "titanium": {
+        "teams": [
+          "API",
+          "Frontend",
+          "Broadcast",
+          "Orchestration",
+          "Titanium",
+          "Shift"
+        ],
+        "teamDefs": [
+          {
+            "slot": "slot_0",
+            "name": "API",
+            "team": "API"
+          },
+          {
+            "slot": "slot_1",
+            "name": "Frontend",
+            "team": "Frontend"
+          },
+          {
+            "slot": "slot_2",
+            "name": "Broadcast",
+            "team": "Broadcast"
+          },
+          {
+            "slot": "slot_3",
+            "name": "Orchestration",
+            "team": "Orchestration"
+          },
+          {
+            "slot": "slot_4",
+            "name": "Titanium",
+            "team": "Titanium"
+          },
+          {
+            "slot": "slot_5",
+            "name": "Shift",
+            "team": "Shift"
+          }
+        ],
+        "rows": [
+          {
+            "phaseLabel": "Parking",
+            "phaseKey": "parking_lot",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 40.32,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 3,
+              "median": 5.23,
+              "average": 40.32
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Design",
+            "phaseKey": "design",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 179.54,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 1,
+              "median": 179.54,
+              "average": 179.54
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Ready",
+            "phaseKey": "ready_for_development",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "In Development",
+            "phaseKey": "in_development",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 114.75,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 5,
+              "median": 110.52,
+              "average": 114.75
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "UAT",
+            "phaseKey": "feedback",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          }
+        ],
+        "sampleSize": 11,
+        "yUpper": 179.54,
+        "categorySecondaryLabels": {
+          "Parking": "n=5",
+          "Design": "n=1",
+          "Ready": "n=0",
+          "In Development": "n=5",
+          "UAT": "n=0"
+        }
+      },
+      "commissioning_support": {
+        "teams": [
+          "API",
+          "Frontend",
+          "Broadcast",
+          "Orchestration",
+          "Titanium",
+          "Shift"
+        ],
+        "teamDefs": [
+          {
+            "slot": "slot_0",
+            "name": "API",
+            "team": "API"
+          },
+          {
+            "slot": "slot_1",
+            "name": "Frontend",
+            "team": "Frontend"
+          },
+          {
+            "slot": "slot_2",
+            "name": "Broadcast",
+            "team": "Broadcast"
+          },
+          {
+            "slot": "slot_3",
+            "name": "Orchestration",
+            "team": "Orchestration"
+          },
+          {
+            "slot": "slot_4",
+            "name": "Titanium",
+            "team": "Titanium"
+          },
+          {
+            "slot": "slot_5",
+            "name": "Shift",
+            "team": "Shift"
+          }
+        ],
+        "rows": [
+          {
+            "phaseLabel": "Parking",
+            "phaseKey": "parking_lot",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Design",
+            "phaseKey": "design",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Ready",
+            "phaseKey": "ready_for_development",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "In Development",
+            "phaseKey": "in_development",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "UAT",
+            "phaseKey": "feedback",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          }
+        ],
+        "sampleSize": 0,
         "yUpper": 1,
-        "sampleSize": 46
+        "categorySecondaryLabels": {
+          "Parking": "n=0",
+          "Design": "n=0",
+          "Ready": "n=0",
+          "In Development": "n=0",
+          "UAT": "n=0"
+        }
+      },
+      "shift": {
+        "teams": [
+          "API",
+          "Frontend",
+          "Broadcast",
+          "Orchestration",
+          "Titanium",
+          "Shift"
+        ],
+        "teamDefs": [
+          {
+            "slot": "slot_0",
+            "name": "API",
+            "team": "API"
+          },
+          {
+            "slot": "slot_1",
+            "name": "Frontend",
+            "team": "Frontend"
+          },
+          {
+            "slot": "slot_2",
+            "name": "Broadcast",
+            "team": "Broadcast"
+          },
+          {
+            "slot": "slot_3",
+            "name": "Orchestration",
+            "team": "Orchestration"
+          },
+          {
+            "slot": "slot_4",
+            "name": "Titanium",
+            "team": "Titanium"
+          },
+          {
+            "slot": "slot_5",
+            "name": "Shift",
+            "team": "Shift"
+          }
+        ],
+        "rows": [
+          {
+            "phaseLabel": "Parking",
+            "phaseKey": "parking_lot",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Design",
+            "phaseKey": "design",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "Ready",
+            "phaseKey": "ready_for_development",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "In Development",
+            "phaseKey": "in_development",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          },
+          {
+            "phaseLabel": "UAT",
+            "phaseKey": "feedback",
+            "slot_0": 0,
+            "meta_slot_0": {
+              "team": "API",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_1": 0,
+            "meta_slot_1": {
+              "team": "Frontend",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_2": 0,
+            "meta_slot_2": {
+              "team": "Broadcast",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_3": 0,
+            "meta_slot_3": {
+              "team": "Orchestration",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_4": 0,
+            "meta_slot_4": {
+              "team": "Titanium",
+              "n": 0,
+              "median": null,
+              "average": null
+            },
+            "slot_5": 0,
+            "meta_slot_5": {
+              "team": "Shift",
+              "n": 0,
+              "median": null,
+              "average": null
+            }
+          }
+        ],
+        "sampleSize": 1,
+        "yUpper": 1,
+        "categorySecondaryLabels": {
+          "Parking": "n=0",
+          "Design": "n=1",
+          "Ready": "n=0",
+          "In Development": "n=0",
+          "UAT": "n=0"
+        }
       }
     }
   }
