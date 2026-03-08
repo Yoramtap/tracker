@@ -55,33 +55,38 @@
     return toWhole(sampleCount) === 1 ? duration : `${duration} average`;
   }
 
-  function buildIssueSubItems(issueIds, jiraBrowseBase, colors) {
-    const safeIssueIds = Array.isArray(issueIds) ? issueIds : [];
+  function buildIssueSubItems(issueItems, jiraBrowseBase, colors) {
+    const safeIssueItems = Array.isArray(issueItems) ? issueItems : [];
     const issueDisplayLimit = 8;
     const browseBase = String(jiraBrowseBase || "").replace(/\/$/, "");
-    const items = safeIssueIds
+    const items = safeIssueItems
       .slice(0, issueDisplayLimit)
-      .map((issueId, index) => {
-        const key = String(issueId || "").trim();
+      .map((item, index) => {
+        const key = String(item?.issueId || item || "").trim();
         if (!key) return null;
+        const facilityLabel = String(item?.facilityLabel || "").trim();
         return h(
-          "a",
-          {
-            key: `issue-link-${key}-${index}`,
-            href: `${browseBase}/${encodeURIComponent(key)}`,
-            target: "_blank",
-            rel: "noopener noreferrer",
-            style: {
-              color: colors.text,
-              textDecoration: "underline"
-            }
-          },
-          key
+          "span",
+          { key: `issue-item-${key}-${index}` },
+          h(
+            "a",
+            {
+              href: `${browseBase}/${encodeURIComponent(key)}`,
+              target: "_blank",
+              rel: "noopener noreferrer",
+              style: {
+                color: colors.text,
+                textDecoration: "underline"
+              }
+            },
+            key
+          ),
+          facilityLabel ? ` (${facilityLabel})` : ""
         );
       })
       .filter(Boolean);
-    if (safeIssueIds.length > issueDisplayLimit) {
-      items.push(`+${safeIssueIds.length - issueDisplayLimit} more`);
+    if (safeIssueItems.length > issueDisplayLimit) {
+      items.push(`+${safeIssueItems.length - issueDisplayLimit} more`);
     }
     return items.length > 0 ? items : ["-"];
   }
@@ -89,6 +94,7 @@
   function renderDevelopmentVsUatByFacilityChart({
     containerId,
     rows,
+    groupingLabel = "facility",
     colors,
     devColor,
     uatColor,
@@ -116,6 +122,7 @@
     const categorySecondaryLabels = Object.fromEntries(
       chartRows.map((row) => [String(row?.label || ""), `n=${toWhole(row?.sampleCount)}`])
     );
+    const isBusinessUnitGrouping = String(groupingLabel || "").trim().toLowerCase() === "business unit";
     const xInterval = compactViewport ? tickIntervalForMobileLabels(chartRows.length) : 0;
     renderGroupedBars(containerId, chartRows.length > 0, {
       rows: displayRows,
@@ -173,7 +180,9 @@
         height: compactViewport ? 44 : 56,
         angle: compactViewport ? -28 : 0,
         textAnchor: compactViewport ? "end" : "middle",
-        label: buildAxisLabel("Facility"),
+        label: buildAxisLabel(
+          isBusinessUnitGrouping ? "Business unit" : "Facility"
+        ),
         tick: compactViewport
           ? { ...axisTick(colors), fontSize: 11 }
           : twoLineCategoryTickFactory(colors, {
@@ -207,17 +216,21 @@
               }),
               makeTooltipLine("issues", "Issues", colors, {
                 margin: "6px 0 0",
-                subItems: buildIssueSubItems(row?.issueIds, jiraBrowseBase, colors)
+                subItems: buildIssueSubItems(
+                  isBusinessUnitGrouping ? row?.issueItems : row?.issueIds,
+                  jiraBrowseBase,
+                  colors
+                )
               })
             ];
           },
           {
             cardStyle: {
               maxWidth: "240px"
-            }
+            },
+            interactive: false
           }
         ),
-        wrapperStyle: { pointerEvents: "auto" },
         cursor: { fill: BAR_CURSOR_FILL }
       }
     });

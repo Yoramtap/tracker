@@ -566,6 +566,7 @@
     };
     const lines = (Array.isArray(blocks) ? blocks : []).map(normalizeTooltipLine).filter(Boolean);
     const cardStyle = options && typeof options.cardStyle === "object" ? options.cardStyle : null;
+    const interactive = options?.interactive !== false;
 
     return h(
       "div",
@@ -581,7 +582,7 @@
           maxWidth: "min(88vw, 320px)",
           whiteSpace: "normal",
           overflowWrap: "anywhere",
-          pointerEvents: "auto",
+          pointerEvents: interactive ? "auto" : "none",
           ...(cardStyle || {}),
           ...(surfaceStyle || {})
         },
@@ -751,6 +752,7 @@
     const [snapshot, setSnapshot] = React.useState(null);
     const [position, setPosition] = React.useState(null);
     const coarsePointer = isCoarsePointerDevice();
+    const interactive = options?.interactive !== false;
     const dockedTooltip = coarsePointer || isCompactViewport();
     const hasPayload = active && Array.isArray(payload) && payload.length > 0;
 
@@ -798,7 +800,7 @@
       }
       if (hasPayload) return;
       if (!snapshotRef.current) return;
-      if (!coarsePointer && portalHovered) return;
+      if (interactive && !coarsePointer && portalHovered) return;
 
       hideTimerRef.current = window.setTimeout(
         () => {
@@ -924,6 +926,7 @@
                     visibility: position ? "visible" : "hidden"
                   },
               onPointerEnter: () => {
+                if (!interactive) return;
                 if (dockedTooltip || coarsePointer) return;
                 if (hideTimerRef.current) {
                   window.clearTimeout(hideTimerRef.current);
@@ -932,6 +935,7 @@
                 setPortalHovered(true);
               },
               onPointerLeave: () => {
+                if (!interactive) return;
                 if (dockedTooltip || coarsePointer || hasPayload) {
                   setPortalHovered(false);
                   return;

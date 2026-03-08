@@ -30,7 +30,7 @@ const CHART_CONFIG = {
     contextId: "management-facility-context",
     containerId: "development-vs-uat-by-facility-chart",
     rendererName: "renderDevelopmentVsUatByFacilityChart",
-    missingMessage: "Facility chart unavailable: Recharts renderer missing."
+    missingMessage: "Development vs UAT chart unavailable: Recharts renderer missing."
   },
   contributors: {
     panelId: "contributors-panel",
@@ -713,21 +713,25 @@ function renderLifecycleTimeSpentPerStageChart() {
 function renderDevelopmentVsUatByFacilityChart() {
   renderChartWithState("management-facility", () => {
     const scope = normalizeOption(state.managementFlowScope, MANAGEMENT_FLOW_SCOPES, "ongoing");
+    const titleNode = document.getElementById("management-facility-title");
     syncRadioValue("management-facility-flow-scope", scope);
-    const rows = Array.isArray(
-      state.snapshot?.chartData?.managementFacility?.byScope?.[scope]?.rows
+    const businessUnitRows = Array.isArray(
+      state.snapshot?.chartData?.managementBusinessUnit?.byScope?.[scope]?.rows
     )
-      ? state.snapshot.chartData.managementFacility.byScope[scope].rows
+      ? state.snapshot.chartData.managementBusinessUnit.byScope[scope].rows
       : [];
+    const rows = businessUnitRows;
     if (rows.length === 0) {
-      return { error: `No ${scope} facility chart data found in backlog-snapshot.json.` };
+      return { error: `No ${scope} business-unit chart data found in backlog-snapshot.json.` };
     }
 
     const doneScope = scope === "done";
+    if (titleNode) titleNode.textContent = "Development vs UAT by business unit";
     return {
-      contextText: `${getBroadcastScopeLabel()} • ${doneScope ? "done" : "ongoing"} • n=${rows.reduce((sum, row) => sum + row.sampleCount, 0)}`,
+      contextText: `${getBroadcastScopeLabel()} • business unit • ${doneScope ? "done" : "ongoing"} • n=${rows.reduce((sum, row) => sum + row.sampleCount, 0)}`,
       props: {
         rows,
+        groupingLabel: "business unit",
         jiraBrowseBase: "https://nepgroup.atlassian.net/browse/",
         highlightLongUat: !doneScope,
         devColor: doneScope
