@@ -43,7 +43,8 @@
     tickIntervalForMobileLabels,
     toNumber,
     tooltipTitleLine,
-    trendLayoutForViewport
+    trendLayoutForViewport,
+    withSafeTooltipProps
   } = core;
 
   function totalForPoint(point) {
@@ -110,8 +111,7 @@
     }
 
     const teamLabel =
-      TEAM_CONFIG.find((team) => team.key === scope)?.label ||
-      String(scope || "").toUpperCase();
+      TEAM_CONFIG.find((team) => team.key === scope)?.label || String(scope || "").toUpperCase();
     return points.map((point) => buildPriorityMetricsRow(point, teamLabel, point?.[scope] || {}));
   }
 
@@ -170,17 +170,20 @@
             stroke: colors.text,
             tick: { fill: colors.text, fontSize: layout.yTickFontSize },
             domain: [0, yUpper],
-            label: buildAxisLabel("Open bugs", { axis: "y", offset: 6 })
+            label: buildAxisLabel("Open bugs", { axis: "y", offset: 4 })
           }),
-          h(Tooltip, {
-            content: createTooltipContent(colors, (row, payload) => [
-              tooltipTitleLine("date", row.date || "", colors),
-              ...payload.map((item) =>
-                makeTooltipLine(item.dataKey, `${item.name}: ${toNumber(item.value)}`, colors)
-              )
-            ]),
-            cursor: { stroke: colors.active, strokeWidth: 1.5, strokeDasharray: "3 3" }
-          }),
+          h(
+            Tooltip,
+            withSafeTooltipProps({
+              content: createTooltipContent(colors, (row, payload) => [
+                tooltipTitleLine("date", row.date || "", colors),
+                ...payload.map((item) =>
+                  makeTooltipLine(item.dataKey, `${item.name}: ${toNumber(item.value)}`, colors)
+                )
+              ]),
+              cursor: { stroke: colors.active, strokeWidth: 1.5, strokeDasharray: "3 3" }
+            })
+          ),
           lineDefs.map((lineDef) =>
             h(Line, {
               key: lineDef.dataKey,
@@ -204,7 +207,10 @@
     const [hiddenKeys, setHiddenKeys] = React.useState(() => new Set());
     const isAllTeams = scope === "all";
     const compactViewport = isCompactViewport();
-    const yUpper = computeYUpper(rows.map((row) => toNumber(row?.total)), { min: 1, pad: 1.08 });
+    const yUpper = computeYUpper(
+      rows.map((row) => toNumber(row?.total)),
+      { min: 1, pad: 1.08 }
+    );
     const niceYAxis = buildNiceNumberAxis(yUpper);
     const xInterval = compactViewport ? tickIntervalForMobileLabels(rows.length) : 0;
     const categoryGap =

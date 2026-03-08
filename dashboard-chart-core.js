@@ -31,6 +31,16 @@
   const SHARED_CATEGORY_BLUE_TINTS = ["#CFE0F8", "#9EBAE3", "#6D95D1", "#3F73B8", "#295996"];
   const BAR_LAYOUT = { categoryGap: "14%", groupGap: 2, denseMax: 14, normalMax: 20 };
   const CHART_HEIGHTS = { standard: 280, dense: 320 };
+  const MOBILE_COMPACT_CHART_HEIGHTS = {
+    trend: 400,
+    composition: 420,
+    uat: 380,
+    management: 380,
+    "management-facility": 420,
+    contributors: 360,
+    "product-cycle": 400,
+    "lifecycle-days": 420
+  };
   const SINGLE_CHART_EMBED_HEIGHTS = {
     trend: 520,
     composition: 560,
@@ -63,6 +73,10 @@
   };
   const HORIZONTAL_CATEGORY_AXIS_WIDTH = 190;
   const BAR_CURSOR_FILL = "rgba(31,51,71,0.04)";
+  const TOOLTIP_PORTAL_ROOT_ID = "dashboard-tooltip-layer";
+  const TOOLTIP_VIEWPORT_PADDING = 10;
+  const TOOLTIP_PORTAL_GAP = 14;
+  const TOOLTIP_HIDE_DELAY_MS = 160;
   const roots = new Map();
   const TEAM_CONFIG = [
     { key: "api", label: "API" },
@@ -90,8 +104,18 @@
     ["bc", "BC", "bc"]
   ];
   const TREND_LONG_LINES = [
-    { dataKey: "bcLong30", name: "BC long-standing (30d+)", stroke: "#8e9aaa", strokeDasharray: "4 3" },
-    { dataKey: "bcLong60", name: "BC long-standing (60d+)", stroke: "#6f7f92", strokeDasharray: "7 4" }
+    {
+      dataKey: "bcLong30",
+      name: "BC long-standing (30d+)",
+      stroke: "#8e9aaa",
+      strokeDasharray: "4 3"
+    },
+    {
+      dataKey: "bcLong60",
+      name: "BC long-standing (60d+)",
+      stroke: "#6f7f92",
+      strokeDasharray: "7 4"
+    }
   ];
 
   function toWhole(value) {
@@ -230,13 +254,21 @@
 
   function singleChartHeightForMode(modeKey, baseHeight) {
     const mode = getModeFromUrl();
-    const embedMode = typeof dashboardUiUtils.isEmbedMode === "function" && dashboardUiUtils.isEmbedMode();
-    if (mode === modeKey) return SINGLE_CHART_EMBED_HEIGHTS[modeKey] || baseHeight;
-    if (!embedMode || mode !== "all") return baseHeight;
+    const embedMode =
+      typeof dashboardUiUtils.isEmbedMode === "function" && dashboardUiUtils.isEmbedMode();
+    const compactHeightFloor = isCompactViewport() ? MOBILE_COMPACT_CHART_HEIGHTS[modeKey] : null;
+    if (mode === modeKey) {
+      const singleModeHeight = SINGLE_CHART_EMBED_HEIGHTS[modeKey] || baseHeight;
+      return compactHeightFloor ? Math.max(singleModeHeight, compactHeightFloor) : singleModeHeight;
+    }
+    if (!embedMode || mode !== "all") {
+      return compactHeightFloor ? Math.max(baseHeight, compactHeightFloor) : baseHeight;
+    }
     const embedHeights = isCompactViewport()
       ? MOBILE_DASHBOARD_EMBED_CHART_HEIGHTS
       : DASHBOARD_EMBED_CHART_HEIGHTS;
-    return embedHeights[modeKey] || baseHeight;
+    const embedHeight = embedHeights[modeKey] || baseHeight;
+    return compactHeightFloor ? Math.max(embedHeight, compactHeightFloor) : embedHeight;
   }
 
   function isCompactViewport() {
@@ -255,12 +287,12 @@
     const width = viewportWidthPx();
     if (width <= 680) {
       return {
-        chartHeight: singleChartHeightForMode("trend", 224),
-        margin: { top: 10, right: 8, bottom: 56, left: 44 },
-        xTickFontSize: 10,
+        chartHeight: singleChartHeightForMode("trend", 360),
+        margin: { top: 4, right: 14, bottom: 20, left: 20 },
+        xTickFontSize: 9,
         yTickFontSize: 10,
-        xTickMargin: 4,
-        minTickGap: 8,
+        xTickMargin: 0,
+        minTickGap: 6,
         legendCompact: true,
         xAxisInterval: trendTickInterval(pointsCount)
       };
@@ -321,7 +353,8 @@
       categoryGap = "14%";
       targetGroupWidth = 102;
     }
-    const rawBarSize = (targetGroupWidth - BAR_LAYOUT.groupGap * (safeSeriesCount - 1)) / safeSeriesCount;
+    const rawBarSize =
+      (targetGroupWidth - BAR_LAYOUT.groupGap * (safeSeriesCount - 1)) / safeSeriesCount;
     const barSize = Math.max(12, Math.round(rawBarSize));
     return {
       categoryGap,
@@ -370,63 +403,158 @@
     });
   }
 
-  function createTooltipContent(colors, buildLines, options = {}) {
-    return function renderTooltip({ active, payload }) {
-      if (!active || !Array.isArray(payload) || payload.length === 0) return null;
-      const row = payload[0]?.payload || {};
-      return renderTooltipCard(colors, buildLines(row, payload), options);
+  function ensureTooltipPortalRoot() {
+    if (typeof document === "undefined" || !document.body) return null;
+    let root = document.getElementById(TOOLTIP_PORTAL_ROOT_ID);
+    if (!root) {
+      root = document.createElement("div");
+      root.id = TOOLTIP_PORTAL_ROOT_ID;
+      root.style.position = "fixed";
+      root.style.inset = "0";
+      root.style.pointerEvents = "none";
+      root.style.zIndex = "80";
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+
+  function normalizeTooltipLine(entry, index) {
+    if (!entry) return null;
+    if (typeof entry === "string") {
+      return { key: `line-${index}`, text: entry, subItems: null, isTitle: false, style: {} };
+    }
+    if (typeof entry === "object" && "text" in entry) return entry;
+    return null;
+  }
+
+  function tooltipLineSubItems(line) {
+    if (!line || line.isTitle) return [];
+    if (Array.isArray(line.subItems) && line.subItems.length > 0) {
+      return line.subItems
+        .map((item) => (typeof item === "string" ? item.trim() : item))
+        .filter((item) => {
+          if (item === null || item === undefined) return false;
+          if (typeof item === "string") return item.length > 0;
+          return true;
+        });
+    }
+    const rawText = String(line.text || "").trim();
+    const colonIndex = rawText.indexOf(":");
+    if (colonIndex > 0) {
+      const label = rawText.slice(0, colonIndex).trim();
+      const detail = rawText.slice(colonIndex + 1).trim();
+      const parts = detail
+        .split(",")
+        .map((part) => part.trim())
+        .filter(Boolean);
+      if (parts.length > 1) {
+        line.text = label;
+        return parts;
+      }
+    }
+    return [];
+  }
+
+  function tooltipMainText(line) {
+    if (!line || line.isTitle) return String(line?.text || "");
+    const rawText = String(line.text || "").trim();
+    const colonIndex = rawText.indexOf(":");
+    if (colonIndex > 0) {
+      const label = rawText.slice(0, colonIndex).trim();
+      const detail = rawText.slice(colonIndex + 1).trim();
+      const parts = detail
+        .split(",")
+        .map((part) => part.trim())
+        .filter(Boolean);
+      if (parts.length > 1) return label;
+    }
+    return rawText;
+  }
+
+  function flattenTooltipText(line, subItems) {
+    if (!line || line.isTitle) return String(line?.text || "");
+    if (line.preserveSubItems) return tooltipMainText(line);
+    if (!Array.isArray(subItems) || subItems.length !== 1) return tooltipMainText(line);
+    const [onlyItem] = subItems;
+    if (typeof onlyItem !== "string") return tooltipMainText(line);
+    return `${tooltipMainText(line)}, ${onlyItem}`;
+  }
+
+  function computeTooltipPortalPosition(anchorRect, cardRect) {
+    if (!anchorRect || !cardRect || typeof window === "undefined") return null;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const anchorX = anchorRect.left + anchorRect.width / 2;
+    const anchorY = anchorRect.top + anchorRect.height / 2;
+
+    let left = anchorX + TOOLTIP_PORTAL_GAP;
+    if (left + cardRect.width > viewportWidth - TOOLTIP_VIEWPORT_PADDING) {
+      left = anchorX - cardRect.width - TOOLTIP_PORTAL_GAP;
+    }
+    left = Math.max(
+      TOOLTIP_VIEWPORT_PADDING,
+      Math.min(left, viewportWidth - TOOLTIP_VIEWPORT_PADDING - cardRect.width)
+    );
+
+    let top = anchorY - cardRect.height / 2;
+    top = Math.max(
+      TOOLTIP_VIEWPORT_PADDING,
+      Math.min(top, viewportHeight - TOOLTIP_VIEWPORT_PADDING - cardRect.height)
+    );
+
+    return {
+      left: Math.round(left),
+      top: Math.round(top)
     };
   }
 
-  function stageSampleCountFromRow(row) {
-    const secondary = String(row?.secondaryLabel || "").trim();
-    const match = /n\s*=\s*(\d+)/i.exec(secondary);
-    return match ? toWhole(match[1]) : 0;
+  function resolveTooltipAnchorRect(chartWrapper, coordinate, fallbackNode) {
+    const x = toNumber(coordinate?.x);
+    const y = toNumber(coordinate?.y);
+    if (chartWrapper && Number.isFinite(x) && Number.isFinite(y)) {
+      const rootRect = chartWrapper.getBoundingClientRect();
+      return {
+        left: rootRect.left + x,
+        right: rootRect.left + x,
+        top: rootRect.top + y,
+        bottom: rootRect.top + y,
+        width: 0,
+        height: 0
+      };
+    }
+
+    const tooltipWrapper = fallbackNode?.closest?.(".recharts-tooltip-wrapper");
+    if (tooltipWrapper && typeof tooltipWrapper.getBoundingClientRect === "function") {
+      return tooltipWrapper.getBoundingClientRect();
+    }
+    if (fallbackNode && typeof fallbackNode.getBoundingClientRect === "function") {
+      return fallbackNode.getBoundingClientRect();
+    }
+    return null;
   }
 
-  function isCoarsePointerDevice() {
-    return (
-      typeof window !== "undefined" &&
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(pointer: coarse)").matches
+  function computePanelDockedTooltipPosition(panelRect, cardRect) {
+    if (!panelRect || !cardRect || typeof window === "undefined") return null;
+    const viewportWidth = window.innerWidth;
+    const left = Math.max(
+      TOOLTIP_VIEWPORT_PADDING,
+      Math.min(
+        panelRect.left + (panelRect.width - cardRect.width) / 2,
+        viewportWidth - TOOLTIP_VIEWPORT_PADDING - cardRect.width
+      )
     );
+    const top = Math.max(TOOLTIP_VIEWPORT_PADDING, panelRect.top + 10);
+    return {
+      left: Math.round(left),
+      top: Math.round(top),
+      maxHeight: Math.max(120, Math.floor(window.innerHeight - top - TOOLTIP_VIEWPORT_PADDING))
+    };
   }
 
-  function dismissTooltipFromTap(node) {
-    if (!node || typeof node.closest !== "function" || typeof window === "undefined") return;
-    const wrapper = node.closest(".recharts-wrapper");
-    if (!wrapper) return;
-    try {
-      wrapper.dispatchEvent(
-        new MouseEvent("mouseleave", {
-          bubbles: true,
-          cancelable: true,
-          view: window
-        })
-      );
-    } catch {
-      // no-op
-    }
-    try {
-      wrapper.dispatchEvent(
-        new Event("touchend", {
-          bubbles: true,
-          cancelable: true
-        })
-      );
-    } catch {
-      // no-op
-    }
-  }
-
-  function toggleLegendKey(prevSet, key) {
-    const next = new Set(prevSet);
-    if (next.has(key)) next.delete(key);
-    else next.add(key);
-    return next;
-  }
-
-  function renderTooltipCard(colors, blocks, options = {}) {
+  const TooltipCardSurface = React.forwardRef(function TooltipCardSurface(
+    { colors, blocks, options = {}, surfaceStyle = null, onPointerEnter, onPointerLeave, onClick },
+    ref
+  ) {
     const suppressHoverPropagation = (event) => {
       if (!event) return;
       event.stopPropagation();
@@ -436,75 +564,26 @@
       event.stopPropagation();
       if (typeof event.preventDefault === "function") event.preventDefault();
     };
-    const normalizeLine = (entry, index) => {
-      if (!entry) return null;
-      if (typeof entry === "string") {
-        return { key: `line-${index}`, text: entry, subItems: null, isTitle: false, style: {} };
-      }
-      if (typeof entry === "object" && "text" in entry) return entry;
-      return null;
-    };
-    const asSubItems = (line) => {
-      if (!line || line.isTitle) return [];
-      if (Array.isArray(line.subItems) && line.subItems.length > 0) {
-        return line.subItems
-          .map((item) => (typeof item === "string" ? item.trim() : item))
-          .filter((item) => {
-            if (item === null || item === undefined) return false;
-            if (typeof item === "string") return item.length > 0;
-            return true;
-          });
-      }
-      const rawText = String(line.text || "").trim();
-      const colonIndex = rawText.indexOf(":");
-      if (colonIndex > 0) {
-        const label = rawText.slice(0, colonIndex).trim();
-        const detail = rawText.slice(colonIndex + 1).trim();
-        const parts = detail.split(",").map((part) => part.trim()).filter(Boolean);
-        if (parts.length > 1) {
-          line.text = label;
-          return parts;
-        }
-      }
-      return [];
-    };
-    const normalizeMainText = (line) => {
-      if (!line || line.isTitle) return String(line?.text || "");
-      const rawText = String(line.text || "").trim();
-      const colonIndex = rawText.indexOf(":");
-      if (colonIndex > 0) {
-        const label = rawText.slice(0, colonIndex).trim();
-        const detail = rawText.slice(colonIndex + 1).trim();
-        const parts = detail.split(",").map((part) => part.trim()).filter(Boolean);
-        if (parts.length > 1) return label;
-      }
-      return rawText;
-    };
-    const flattenSingleSubItem = (line, subItems) => {
-      if (!line || line.isTitle) return String(line?.text || "");
-      if (line.preserveSubItems) return normalizeMainText(line);
-      if (!Array.isArray(subItems) || subItems.length !== 1) return normalizeMainText(line);
-      const [onlyItem] = subItems;
-      if (typeof onlyItem !== "string") return normalizeMainText(line);
-      return `${normalizeMainText(line)}, ${onlyItem}`;
-    };
-    const lines = (Array.isArray(blocks) ? blocks : []).map(normalizeLine).filter(Boolean);
-
+    const lines = (Array.isArray(blocks) ? blocks : []).map(normalizeTooltipLine).filter(Boolean);
     const cardStyle = options && typeof options.cardStyle === "object" ? options.cardStyle : null;
+
     return h(
       "div",
       {
+        ref,
         style: {
           border: `1px solid ${colors.tooltip.border}`,
           background: colors.tooltip.bg,
           color: colors.tooltip.text,
           borderRadius: "6px",
-          padding: "8px 10px",
+          padding: isCompactViewport() ? "7px 9px" : "8px 10px",
           boxShadow: "0 4px 14px rgba(0,0,0,0.1)",
-          maxWidth: "320px",
+          maxWidth: "min(88vw, 320px)",
           whiteSpace: "normal",
           overflowWrap: "anywhere",
-          ...(cardStyle || {})
+          pointerEvents: "auto",
+          ...(cardStyle || {}),
+          ...(surfaceStyle || {})
         },
         onMouseEnter: suppressHoverPropagation,
         onMouseMove: suppressHoverPropagation,
@@ -512,16 +591,18 @@
         onMouseEnterCapture: suppressHoverPropagationCapture,
         onMouseMoveCapture: suppressHoverPropagationCapture,
         onMouseOverCapture: suppressHoverPropagationCapture,
-        onPointerEnter: suppressHoverPropagation,
+        onPointerEnter: (event) => {
+          suppressHoverPropagation(event);
+          if (typeof onPointerEnter === "function") onPointerEnter(event);
+        },
         onPointerMove: suppressHoverPropagation,
         onPointerEnterCapture: suppressHoverPropagationCapture,
         onPointerMoveCapture: suppressHoverPropagationCapture,
-        onClick: (event) => {
-          if (!isCoarsePointerDevice()) return;
-          event.preventDefault();
-          event.stopPropagation();
-          dismissTooltipFromTap(event.currentTarget);
-        }
+        onPointerLeave: (event) => {
+          suppressHoverPropagation(event);
+          if (typeof onPointerLeave === "function") onPointerLeave(event);
+        },
+        onClick
       },
       ...lines.map((line, index) => {
         if (line.isTitle) {
@@ -541,10 +622,11 @@
           );
         }
 
-        const subItems = asSubItems(line);
-        const flattenedText = flattenSingleSubItem(line, subItems);
+        const subItems = tooltipLineSubItems(line);
+        const flattenedText = flattenTooltipText(line, subItems);
         const showNestedItems =
-          subItems.length > 1 || (subItems.length === 1 && !flattenedText.includes(String(subItems[0])));
+          subItems.length > 1 ||
+          (subItems.length === 1 && !flattenedText.includes(String(subItems[0])));
         return h(
           "ul",
           {
@@ -599,6 +681,258 @@
         );
       })
     );
+  });
+
+  function createTooltipContent(colors, buildLines, options = {}) {
+    return h(ViewportTooltipContent, { colors, buildLines, options });
+  }
+
+  function stageSampleCountFromRow(row) {
+    const secondary = String(row?.secondaryLabel || "").trim();
+    const match = /n\s*=\s*(\d+)/i.exec(secondary);
+    return match ? toWhole(match[1]) : 0;
+  }
+
+  function isCoarsePointerDevice() {
+    return (
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(pointer: coarse)").matches
+    );
+  }
+
+  function dismissTooltipFromChartWrapper(wrapper) {
+    if (!wrapper || typeof window === "undefined") return;
+    try {
+      wrapper.dispatchEvent(
+        new MouseEvent("mouseleave", {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        })
+      );
+    } catch {
+      // no-op
+    }
+    try {
+      wrapper.dispatchEvent(
+        new Event("touchend", {
+          bubbles: true,
+          cancelable: true
+        })
+      );
+    } catch {
+      // no-op
+    }
+  }
+
+  function toggleLegendKey(prevSet, key) {
+    const next = new Set(prevSet);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    return next;
+  }
+
+  function ViewportTooltipContent({
+    active,
+    payload,
+    coordinate,
+    colors,
+    buildLines,
+    options = {}
+  }) {
+    const anchorRef = React.useRef(null);
+    const cardRef = React.useRef(null);
+    const hideTimerRef = React.useRef(0);
+    const frameRef = React.useRef(0);
+    const snapshotRef = React.useRef(null);
+    const [portalRoot, setPortalRoot] = React.useState(null);
+    const [portalHovered, setPortalHovered] = React.useState(false);
+    const [snapshot, setSnapshot] = React.useState(null);
+    const [position, setPosition] = React.useState(null);
+    const coarsePointer = isCoarsePointerDevice();
+    const dockedTooltip = coarsePointer || isCompactViewport();
+    const hasPayload = active && Array.isArray(payload) && payload.length > 0;
+
+    React.useEffect(() => {
+      setPortalRoot(ensureTooltipPortalRoot());
+      return () => {
+        if (hideTimerRef.current) window.clearTimeout(hideTimerRef.current);
+        if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
+      };
+    }, []);
+
+    React.useEffect(() => {
+      snapshotRef.current = snapshot;
+    }, [snapshot]);
+
+    React.useEffect(() => {
+      if (!hasPayload) return;
+      if (hideTimerRef.current) {
+        window.clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = 0;
+      }
+      const row = payload[0]?.payload || {};
+      setSnapshot((previous) => ({
+        chartWrapper:
+          anchorRef.current?.closest?.(".recharts-wrapper") || previous?.chartWrapper || null,
+        panelElement:
+          anchorRef.current?.closest?.(".panel") ||
+          anchorRef.current?.closest?.(".recharts-wrapper")?.closest?.(".panel") ||
+          previous?.panelElement ||
+          null,
+        coordinate:
+          coordinate &&
+          Number.isFinite(toNumber(coordinate.x)) &&
+          Number.isFinite(toNumber(coordinate.y))
+            ? { x: toNumber(coordinate.x), y: toNumber(coordinate.y) }
+            : previous?.coordinate || null,
+        blocks: buildLines(row, payload)
+      }));
+    }, [buildLines, coordinate, hasPayload, payload]);
+
+    React.useEffect(() => {
+      if (hideTimerRef.current) {
+        window.clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = 0;
+      }
+      if (hasPayload) return;
+      if (!snapshotRef.current) return;
+      if (!coarsePointer && portalHovered) return;
+
+      hideTimerRef.current = window.setTimeout(
+        () => {
+          setSnapshot(null);
+          setPosition(null);
+          hideTimerRef.current = 0;
+        },
+        coarsePointer ? 0 : TOOLTIP_HIDE_DELAY_MS
+      );
+    }, [coarsePointer, hasPayload, portalHovered, snapshot]);
+
+    React.useLayoutEffect(() => {
+      if (!snapshot || !portalRoot) return undefined;
+
+      const updatePosition = () => {
+        const anchorNode = anchorRef.current;
+        const cardNode = cardRef.current;
+        if (!anchorNode || !cardNode) return;
+        const cardRect = cardNode.getBoundingClientRect();
+        const nextPosition = dockedTooltip
+          ? computePanelDockedTooltipPosition(
+              snapshot.panelElement?.getBoundingClientRect?.(),
+              cardRect
+            )
+          : computeTooltipPortalPosition(
+              resolveTooltipAnchorRect(snapshot.chartWrapper, snapshot.coordinate, anchorNode),
+              cardRect
+            );
+        if (!nextPosition) return;
+        setPosition((previous) => {
+          if (
+            previous &&
+            previous.left === nextPosition.left &&
+            previous.top === nextPosition.top &&
+            previous.maxHeight === nextPosition.maxHeight
+          ) {
+            return previous;
+          }
+          return nextPosition;
+        });
+      };
+
+      const requestUpdate = () => {
+        if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
+        frameRef.current = window.requestAnimationFrame(updatePosition);
+      };
+
+      requestUpdate();
+      window.addEventListener("resize", requestUpdate);
+      window.addEventListener("scroll", requestUpdate, true);
+      return () => {
+        window.removeEventListener("resize", requestUpdate);
+        window.removeEventListener("scroll", requestUpdate, true);
+        if (frameRef.current) {
+          window.cancelAnimationFrame(frameRef.current);
+          frameRef.current = 0;
+        }
+      };
+    }, [dockedTooltip, portalRoot, snapshot]);
+
+    const hideNow = () => {
+      if (hideTimerRef.current) {
+        window.clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = 0;
+      }
+      setPortalHovered(false);
+      setSnapshot(null);
+      setPosition(null);
+    };
+
+    return h(
+      React.Fragment,
+      null,
+      h("span", {
+        ref: anchorRef,
+        "aria-hidden": "true",
+        style: {
+          display: "block",
+          width: 0,
+          height: 0,
+          pointerEvents: "none"
+        }
+      }),
+      snapshot && portalRoot
+        ? ReactDOM.createPortal(
+            h(TooltipCardSurface, {
+              ref: cardRef,
+              colors,
+              blocks: snapshot.blocks,
+              options,
+              surfaceStyle: dockedTooltip
+                ? {
+                    position: "fixed",
+                    left: position ? `${position.left}px` : "-9999px",
+                    top: position ? `${position.top}px` : "-9999px",
+                    width: "min(calc(100vw - 24px), 360px)",
+                    maxWidth: "min(calc(100vw - 24px), 360px)",
+                    maxHeight: position ? `${position.maxHeight}px` : "calc(100vh - 24px)",
+                    overflowY: "auto",
+                    visibility: position ? "visible" : "hidden"
+                  }
+                : {
+                    position: "fixed",
+                    left: position ? `${position.left}px` : "-9999px",
+                    top: position ? `${position.top}px` : "-9999px",
+                    visibility: position ? "visible" : "hidden"
+                  },
+              onPointerEnter: () => {
+                if (dockedTooltip || coarsePointer) return;
+                if (hideTimerRef.current) {
+                  window.clearTimeout(hideTimerRef.current);
+                  hideTimerRef.current = 0;
+                }
+                setPortalHovered(true);
+              },
+              onPointerLeave: () => {
+                if (dockedTooltip || coarsePointer || hasPayload) {
+                  setPortalHovered(false);
+                  return;
+                }
+                hideNow();
+              },
+              onClick: (event) => {
+                if (!coarsePointer) return;
+                event.preventDefault();
+                event.stopPropagation();
+                dismissTooltipFromChartWrapper(snapshot.chartWrapper);
+                hideNow();
+              }
+            }),
+            portalRoot
+          )
+        : null
+    );
   }
 
   function renderLegendNode({ colors, defs, hiddenKeys, setHiddenKeys, compact = false }) {
@@ -623,7 +957,11 @@
         className: `series-drawer${collapsible ? " series-drawer--collapsible" : ""}`,
         open: !collapsible
       },
-      h("summary", { className: "series-drawer__summary" }, collapsible ? `Series (${defs.length})` : "Series"),
+      h(
+        "summary",
+        { className: "series-drawer__summary" },
+        collapsible ? `Series (${defs.length})` : "Series"
+      ),
       h(
         "div",
         { className: "series-drawer__items" },
@@ -792,39 +1130,77 @@
   function buildAxisLabel(value, overrides = {}) {
     const text = String(value || "").trim();
     if (!text) return null;
-    const { axis = "x", offset, ...rest } = overrides && typeof overrides === "object" ? overrides : {};
+    const {
+      axis = "x",
+      offset,
+      ...rest
+    } = overrides && typeof overrides === "object" ? overrides : {};
     const compactViewport = isCompactViewport();
-    const safeOffset = Number.isFinite(Number(offset)) ? Number(offset) : axis === "y" ? (compactViewport ? 6 : 10) : 18;
-    const axisDefaults = axis === "y"
-      ? {
-          position: "left",
-          offset: safeOffset,
-          content: ({ viewBox }) => {
-            const safeViewBox = viewBox && typeof viewBox === "object" ? viewBox : {};
-            const x = toNumber(safeViewBox.x) - (safeOffset + (compactViewport ? 10 : 18));
-            const y = toNumber(safeViewBox.y) + toNumber(safeViewBox.height) / 2;
-            return h(
-              "text",
-              {
-                x,
-                y,
-                fill: "rgba(31, 51, 71, 0.82)",
-                fontSize: compactViewport ? 11 : 12,
-                fontWeight: 600,
-                letterSpacing: "0.01em",
-                textAnchor: "middle",
-                dominantBaseline: "central",
-                transform: `rotate(-90 ${x} ${y})`,
-                stroke: "none"
-              },
-              text
-            );
+    const safeOffset = Number.isFinite(Number(offset))
+      ? Number(offset)
+      : axis === "y"
+        ? compactViewport
+          ? 1
+          : 8
+        : compactViewport
+          ? 8
+          : 18;
+    const axisDefaults =
+      axis === "y"
+        ? {
+            position: "left",
+            offset: safeOffset,
+            content: ({ viewBox }) => {
+              const safeViewBox = viewBox && typeof viewBox === "object" ? viewBox : {};
+              const x = toNumber(safeViewBox.x) - (compactViewport ? 7 : 16);
+              const y = toNumber(safeViewBox.y) + toNumber(safeViewBox.height) / 2;
+              return h(
+                "text",
+                {
+                  x,
+                  y,
+                  fill: "rgba(31, 51, 71, 0.82)",
+                  fontSize: compactViewport ? 10 : 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.01em",
+                  textAnchor: "middle",
+                  dominantBaseline: "central",
+                  transform: `rotate(-90 ${x} ${y})`,
+                  stroke: "none"
+                },
+                text
+              );
+            }
           }
-        }
-      : {
-          position: "bottom",
-          offset: safeOffset
-        };
+        : compactViewport
+          ? {
+              position: "bottom",
+              offset: safeOffset,
+              content: ({ viewBox }) => {
+                const safeViewBox = viewBox && typeof viewBox === "object" ? viewBox : {};
+                const x = toNumber(safeViewBox.x) + toNumber(safeViewBox.width) / 2;
+                const y = toNumber(safeViewBox.y) + toNumber(safeViewBox.height) + 10;
+                return h(
+                  "text",
+                  {
+                    x,
+                    y,
+                    fill: "rgba(31, 51, 71, 0.82)",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.01em",
+                    textAnchor: "middle",
+                    dominantBaseline: "hanging",
+                    stroke: "none"
+                  },
+                  text
+                );
+              }
+            }
+          : {
+              position: "bottom",
+              offset: safeOffset
+            };
     return {
       value: text,
       fill: "rgba(31, 51, 71, 0.82)",
@@ -894,12 +1270,41 @@
     };
     if (xAxisProps?.label && typeof xAxisProps.label === "object") {
       const lineCount = Math.max(1, axisLabelLines(xAxisProps.label));
-      resolved.bottom = Math.max(resolved.bottom, 48 + lineCount * 18);
+      resolved.bottom = Math.max(
+        resolved.bottom,
+        compactViewport ? 22 + lineCount * 10 : 46 + lineCount * 16
+      );
     }
     if (yAxisProps?.label && typeof yAxisProps.label === "object") {
-      resolved.left = Math.max(resolved.left, compactViewport ? 42 : 58);
+      resolved.left = Math.max(resolved.left, compactViewport ? 18 : 46);
     }
     return resolved;
+  }
+
+  function withSafeTooltipProps(tooltipProps = {}) {
+    const safeTooltipProps = tooltipProps && typeof tooltipProps === "object" ? tooltipProps : {};
+    const wrapperStyle =
+      safeTooltipProps.wrapperStyle && typeof safeTooltipProps.wrapperStyle === "object"
+        ? safeTooltipProps.wrapperStyle
+        : {};
+    const allowEscapeViewBox =
+      safeTooltipProps.allowEscapeViewBox && typeof safeTooltipProps.allowEscapeViewBox === "object"
+        ? safeTooltipProps.allowEscapeViewBox
+        : {};
+    return {
+      ...safeTooltipProps,
+      allowEscapeViewBox: {
+        x: true,
+        y: true,
+        ...allowEscapeViewBox
+      },
+      wrapperStyle: {
+        zIndex: 40,
+        pointerEvents: "auto",
+        maxWidth: "min(88vw, 320px)",
+        ...wrapperStyle
+      }
+    };
   }
 
   function renderBarChartShell({
@@ -938,10 +1343,14 @@
             barGap: BAR_LAYOUT.groupGap,
             maxBarSize: layout.maxBarSize
           },
-          h(CartesianGrid, { stroke: colors.grid, vertical: gridVertical, horizontal: gridHorizontal }),
+          h(CartesianGrid, {
+            stroke: colors.grid,
+            vertical: gridVertical,
+            horizontal: gridHorizontal
+          }),
           h(XAxis, normalizedXAxisProps),
           h(YAxis, normalizedYAxisProps),
-          h(Tooltip, tooltipProps),
+          h(Tooltip, withSafeTooltipProps(tooltipProps)),
           ...barNodes,
           ...overlayNodes
         )
@@ -1040,7 +1449,8 @@
             key: `series-label-${def.dataKey}`,
             dataKey: def.dataKey,
             position: chartLayout === "vertical" ? "right" : "top",
-            formatter: (value) => (toWhole(value) > 0 ? String(def.seriesLabel || def.name || "") : ""),
+            formatter: (value) =>
+              toWhole(value) > 0 ? String(def.seriesLabel || def.name || "") : "",
             fill: "rgba(31,51,71,0.75)",
             fontSize: 9,
             offset: 2
@@ -1062,7 +1472,9 @@
               const badgeWidth = Math.max(34, text.length * 6.5 + 12);
               return h(
                 "g",
-                { key: `end-label-${def.dataKey}-${String(payload?.team || payload?.phaseLabel || "")}` },
+                {
+                  key: `end-label-${def.dataKey}-${String(payload?.team || payload?.phaseLabel || "")}`
+                },
                 h("rect", {
                   x: badgeX,
                   y: badgeY,
@@ -1099,7 +1511,8 @@
           })
         );
       }
-      const shouldColorByCategory = !isFullyStacked && colorByCategoryKey && effectiveCategoryColors;
+      const shouldColorByCategory =
+        !isFullyStacked && colorByCategoryKey && effectiveCategoryColors;
       if (shouldColorByCategory) {
         rows.forEach((row, index) => {
           const categoryValue = String(row?.[colorByCategoryKey] || "");
@@ -1138,109 +1551,122 @@
         ...barChildren
       );
     });
-    const overlayNodes = chartLayout === "horizontal"
-      ? (Array.isArray(overlayDots) ? overlayDots : []).flatMap((dot, index) => {
-          const keyBase = `overlay-dot-${index}`;
-          const x = dot?.x;
-          const y = toNumber(dot?.y);
-          const yBase = toNumber(dot?.yBase);
-          const r = Math.max(2, toNumber(dot?.r));
-          const haloR = Math.max(r + 3, toNumber(dot?.haloR));
-          const fill = dot?.fill || colors.teams.api;
-          const stem = Number.isFinite(yBase) && Number.isFinite(y) && y > yBase;
-          const nodes = [];
-          if (stem) {
+    const overlayNodes =
+      chartLayout === "horizontal"
+        ? (Array.isArray(overlayDots) ? overlayDots : []).flatMap((dot, index) => {
+            const keyBase = `overlay-dot-${index}`;
+            const x = dot?.x;
+            const y = toNumber(dot?.y);
+            const yBase = toNumber(dot?.yBase);
+            const r = Math.max(2, toNumber(dot?.r));
+            const haloR = Math.max(r + 3, toNumber(dot?.haloR));
+            const fill = dot?.fill || colors.teams.api;
+            const stem = Number.isFinite(yBase) && Number.isFinite(y) && y > yBase;
+            const nodes = [];
+            if (stem) {
+              nodes.push(
+                h(ReferenceLine, {
+                  key: `${keyBase}-stem`,
+                  segment: [
+                    { x, y: yBase },
+                    { x, y }
+                  ],
+                  stroke: dot?.stemColor || "rgba(31,51,71,0.5)",
+                  strokeWidth: Number.isFinite(dot?.stemWidth) ? dot.stemWidth : 1
+                })
+              );
+            }
             nodes.push(
-              h(ReferenceLine, {
-                key: `${keyBase}-stem`,
-                segment: [{ x, y: yBase }, { x, y }],
-                stroke: dot?.stemColor || "rgba(31,51,71,0.5)",
-                strokeWidth: Number.isFinite(dot?.stemWidth) ? dot.stemWidth : 1
+              h(ReferenceDot, {
+                key: `${keyBase}-halo`,
+                x,
+                y,
+                r: haloR,
+                fill,
+                fillOpacity: Number.isFinite(dot?.haloOpacity) ? dot.haloOpacity : 0.22,
+                stroke: "none",
+                isFront: true
               })
             );
-          }
-          nodes.push(
-            h(ReferenceDot, {
-              key: `${keyBase}-halo`,
-              x,
-              y,
-              r: haloR,
-              fill,
-              fillOpacity: Number.isFinite(dot?.haloOpacity) ? dot.haloOpacity : 0.22,
-              stroke: "none",
-              isFront: true
-            })
-          );
-          nodes.push(
-            h(ReferenceDot, {
-              key: `${keyBase}-core`,
-              x,
-              y,
-              r,
-              fill,
-              stroke: dot?.stroke || "rgba(255,255,255,0.95)",
-              strokeWidth: Number.isFinite(dot?.strokeWidth) ? dot.strokeWidth : 1.4,
-              isFront: true
-            })
-          );
-          return nodes;
-        })
-      : chartLayout === "vertical"
-        ? (Array.isArray(overlayDots) ? overlayDots : []).map((dot, index) => {
-            const keyBase = `overlay-label-${index}`;
-            const x = toNumber(dot?.x);
-            const y = String(dot?.y || "");
-            const labelText = String(dot?.labelText || "").trim();
-            if (!Number.isFinite(x) || !y || !labelText) return null;
-            return h(ReferenceDot, {
-              key: keyBase,
-              x,
-              y,
-              r: 0,
-              fill: "transparent",
-              stroke: "none",
-              isFront: true,
-              ifOverflow: "extendDomain",
-              label: ({ viewBox }) => {
-                const labelX = toNumber(viewBox?.x) + (Number.isFinite(toNumber(dot?.labelDx)) ? toNumber(dot?.labelDx) : 10);
-                const labelY = toNumber(viewBox?.y);
-                const isMuted = Boolean(dot?.muted);
-                const labelPrefix = String(dot?.labelPrefix || "").trim();
-                const labelFill = isMuted ? "rgba(31,51,71,0.62)" : String(dot?.labelColor || "rgba(31,51,71,0.84)");
-                const accentFill = String(
-                  dot?.accentColor || (isMuted ? "rgba(113,128,150,0.7)" : "rgba(56,161,105,0.95)")
-                );
-                return h(
-                  "text",
-                  {
-                    key: `${keyBase}-label`,
-                    x: labelX,
-                    y: labelY,
-                    fontSize: Number.isFinite(toNumber(dot?.fontSize)) ? toNumber(dot?.fontSize) : 11,
-                    fontWeight: 600,
-                    dominantBaseline: "middle",
-                    textAnchor: "start"
-                  },
-                  h(
-                    "tspan",
-                    {
-                      fill: accentFill
-                    },
-                    labelPrefix
-                  ),
-                  h(
-                    "tspan",
-                    {
-                      fill: labelFill,
-                      dx: labelPrefix ? 4 : 0
-                    },
-                    labelText
-                  )
-                );
-              }
-            });
-          }).filter(Boolean)
-      : [];
+            nodes.push(
+              h(ReferenceDot, {
+                key: `${keyBase}-core`,
+                x,
+                y,
+                r,
+                fill,
+                stroke: dot?.stroke || "rgba(255,255,255,0.95)",
+                strokeWidth: Number.isFinite(dot?.strokeWidth) ? dot.strokeWidth : 1.4,
+                isFront: true
+              })
+            );
+            return nodes;
+          })
+        : chartLayout === "vertical"
+          ? (Array.isArray(overlayDots) ? overlayDots : [])
+              .map((dot, index) => {
+                const keyBase = `overlay-label-${index}`;
+                const x = toNumber(dot?.x);
+                const y = String(dot?.y || "");
+                const labelText = String(dot?.labelText || "").trim();
+                if (!Number.isFinite(x) || !y || !labelText) return null;
+                return h(ReferenceDot, {
+                  key: keyBase,
+                  x,
+                  y,
+                  r: 0,
+                  fill: "transparent",
+                  stroke: "none",
+                  isFront: true,
+                  ifOverflow: "extendDomain",
+                  label: ({ viewBox }) => {
+                    const labelX =
+                      toNumber(viewBox?.x) +
+                      (Number.isFinite(toNumber(dot?.labelDx)) ? toNumber(dot?.labelDx) : 10);
+                    const labelY = toNumber(viewBox?.y);
+                    const isMuted = Boolean(dot?.muted);
+                    const labelPrefix = String(dot?.labelPrefix || "").trim();
+                    const labelFill = isMuted
+                      ? "rgba(31,51,71,0.62)"
+                      : String(dot?.labelColor || "rgba(31,51,71,0.84)");
+                    const accentFill = String(
+                      dot?.accentColor ||
+                        (isMuted ? "rgba(113,128,150,0.7)" : "rgba(56,161,105,0.95)")
+                    );
+                    return h(
+                      "text",
+                      {
+                        key: `${keyBase}-label`,
+                        x: labelX,
+                        y: labelY,
+                        fontSize: Number.isFinite(toNumber(dot?.fontSize))
+                          ? toNumber(dot?.fontSize)
+                          : 11,
+                        fontWeight: 600,
+                        dominantBaseline: "middle",
+                        textAnchor: "start"
+                      },
+                      h(
+                        "tspan",
+                        {
+                          fill: accentFill
+                        },
+                        labelPrefix
+                      ),
+                      h(
+                        "tspan",
+                        {
+                          fill: labelFill,
+                          dx: labelPrefix ? 4 : 0
+                        },
+                        labelText
+                      )
+                    );
+                  }
+                });
+              })
+              .filter(Boolean)
+          : [];
     return renderBarChartShell({
       rows,
       colors,
@@ -1341,15 +1767,17 @@
             });
             return next;
           })
-      : sourceRows;
-    const yValues = seriesDefs.flatMap((series) => chartRows.map((row) => toNumber(row?.[series.key])));
+        : sourceRows;
+    const yValues = seriesDefs.flatMap((series) =>
+      chartRows.map((row) => toNumber(row?.[series.key]))
+    );
     const normalizedYUpperOverride =
       Number.isFinite(yUpperOverride) && yUpperOverride > 0
         ? displayInWeeks
           ? toWholeWeeksForChart(yUpperOverride)
           : displayInMonths
             ? toMonthsForChart(yUpperOverride)
-          : yUpperOverride
+            : yUpperOverride
         : null;
     const yUpper =
       Number.isFinite(normalizedYUpperOverride) && normalizedYUpperOverride > 0
@@ -1364,17 +1792,19 @@
         ? weeklyAxis
         : displayInMonths
           ? monthlyAxis
-        : buildNiceNumberAxis(yUpper)
+          : buildNiceNumberAxis(yUpper)
       : null;
     const niceYAxis = !isHorizontal
       ? displayInWeeks
         ? weeklyAxis
         : displayInMonths
           ? monthlyAxis
-        : buildNiceNumberAxis(yUpper)
+          : buildNiceNumberAxis(yUpper)
       : null;
     const normalizedValueTicks =
-      Array.isArray(valueTicks) && valueTicks.length > 1 ? valueTicks.map((value) => toNumber(value)) : null;
+      Array.isArray(valueTicks) && valueTicks.length > 1
+        ? valueTicks.map((value) => toNumber(value))
+        : null;
     const resolvedChartMargin =
       chartMargin && typeof chartMargin === "object"
         ? {
@@ -1466,8 +1896,12 @@
             ...providedYAxisProps,
             dataKey: categoryKey,
             type: "category",
-            width: Number.isFinite(providedYAxisProps.width) ? providedYAxisProps.width : HORIZONTAL_CATEGORY_AXIS_WIDTH,
-            tick: providedYAxisProps.tick || (effectiveCategoryTickTwoLine ? twoLineCategoryTickHorizontal : undefined)
+            width: Number.isFinite(providedYAxisProps.width)
+              ? providedYAxisProps.width
+              : HORIZONTAL_CATEGORY_AXIS_WIDTH,
+            tick:
+              providedYAxisProps.tick ||
+              (effectiveCategoryTickTwoLine ? twoLineCategoryTickHorizontal : undefined)
           }
         : {
             ...providedYAxisProps,
@@ -1480,7 +1914,8 @@
       chartLayout: isHorizontal ? "vertical" : "horizontal",
       tooltipProps: {
         content: createTooltipContent(colors, (row, payload) => {
-          const categoryLabel = row?.teamWithSampleBase || row?.[categoryKey] || row.team || "Category";
+          const categoryLabel =
+            row?.teamWithSampleBase || row?.[categoryKey] || row.team || "Category";
           const teamLabel = String(categoryLabel).replace(/\s*\(.*\)\s*$/, "");
           const hasDone = Number.isFinite(row?.doneCount);
           if (tooltipLayout === "summary_n_average") {
@@ -1499,11 +1934,16 @@
                 `${teamLabel}${seriesName ? ` • ${seriesName}` : ""}`,
                 colors
               ),
-              makeTooltipLine("average", `Team takes on average ${durationText} to ship an idea`, colors, {
-                margin: "2px 0",
-                fontSize: "12px",
-                lineHeight: "1.45"
-              }),
+              makeTooltipLine(
+                "average",
+                `Team takes on average ${durationText} to ship an idea`,
+                colors,
+                {
+                  margin: "2px 0",
+                  fontSize: "12px",
+                  lineHeight: "1.45"
+                }
+              ),
               makeTooltipLine(
                 "sample",
                 Object.prototype.hasOwnProperty.call(row || {}, "cycleDoneCount")
@@ -1526,7 +1966,8 @@
                 return { item, meta };
               })
               .filter(({ meta }) => toWhole(meta?.n) > 0);
-            const totalText = stageSampleCountFromRow(row) > 0 ? `n = ${stageSampleCountFromRow(row)}` : "";
+            const totalText =
+              stageSampleCountFromRow(row) > 0 ? `n = ${stageSampleCountFromRow(row)}` : "";
             const lines = [
               tooltipTitleLine(
                 "team",
@@ -1567,7 +2008,11 @@
           const lines = [
             tooltipTitleLine(
               "team",
-              hasDone ? teamLabel : timeWindowLabel ? `${categoryLabel} • ${timeWindowLabel}` : `${categoryLabel}`,
+              hasDone
+                ? teamLabel
+                : timeWindowLabel
+                  ? `${categoryLabel} • ${timeWindowLabel}`
+                  : `${categoryLabel}`,
               colors
             )
           ];
@@ -1577,23 +2022,23 @@
             const valueDays = toWhole(item?.value);
             if (valueDays <= 0) return;
             const sampleRaw = Number(meta.n);
-            const sampleText = Number.isFinite(sampleRaw) && sampleRaw >= 0 ? String(toWhole(sampleRaw)) : "-";
+            const sampleText =
+              Number.isFinite(sampleRaw) && sampleRaw >= 0 ? String(toWhole(sampleRaw)) : "-";
             const seriesName = meta.team || item.name;
-            const customSubItems = Array.isArray(meta.subItems) && meta.subItems.length > 0 ? meta.subItems : null;
+            const customSubItems =
+              Array.isArray(meta.subItems) && meta.subItems.length > 0 ? meta.subItems : null;
             lines.push(
               makeTooltipLine(key, `${String(seriesName)} n=${sampleText}`, colors, {
                 margin: "2px 0",
                 fontSize: "12px",
                 lineHeight: "1.45",
-                subItems:
-                  customSubItems ||
-                  [
-                    displayInWeeks
-                      ? formatAverageLabel(meta.average, "weeks")
-                      : displayInMonths
-                        ? formatAverageLabel(meta.average, "months")
-                        : formatAverageLabel(meta.average, "days")
-                  ]
+                subItems: customSubItems || [
+                  displayInWeeks
+                    ? formatAverageLabel(meta.average, "weeks")
+                    : displayInMonths
+                      ? formatAverageLabel(meta.average, "months")
+                      : formatAverageLabel(meta.average, "days")
+                ]
               })
             );
           });
@@ -1652,7 +2097,8 @@
     toWholeWeeksForChart,
     tooltipTitleLine,
     trendLayoutForViewport,
-    twoLineCategoryTickFactory
+    twoLineCategoryTickFactory,
+    withSafeTooltipProps
   };
   window.DashboardCharts = { ...(window.DashboardCharts || {}), clearChart };
 })();

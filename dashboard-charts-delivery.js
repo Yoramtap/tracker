@@ -219,7 +219,10 @@
           subItems:
             Array.isArray(row?.ticketStateItems) && row.ticketStateItems.length > 0
               ? row.ticketStateItems
-              : [`Done = ${toWhole(row?.doneIssues)}`, `Not done = ${toWhole(row?.notDoneIssues ?? row?.activeIssues)}`]
+              : [
+                  `Done = ${toWhole(row?.doneIssues)}`,
+                  `Not done = ${toWhole(row?.notDoneIssues ?? row?.activeIssues)}`
+                ]
         }
       })),
       defs: [{ key: "total", name: "Contribution totals", color: fillColor }],

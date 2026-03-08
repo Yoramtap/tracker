@@ -22,7 +22,10 @@
               <p><strong>Cycle time per team</strong> is computed from lifecycle timestamps.</p>
               <ul>
                 <li>Cycle time = time spent in In Development + UAT, including ongoing work.</li>
-                <li>Shipped counts include only ideas that reached Done through recorded Development/UAT time and not adminned to Done.</li>
+                <li>
+                  Shipped counts include only ideas that reached Done through recorded
+                  Development/UAT time and not adminned to Done.
+                </li>
                 <li>Aggregated by team using selected sample scope.</li>
               </ul>
             </div>
@@ -31,12 +34,21 @@
         <div class="radio-control-groups" aria-label="Product cycle controls">
           <fieldset class="radio-group-card">
             <legend>Scope</legend>
-            <label><input type="radio" name="product-cycle-scope" value="inception" checked /> All ideas</label>
-            <label><input type="radio" name="product-cycle-scope" value="since_2026" /> Created in 2026</label>
+            <label
+              ><input type="radio" name="product-cycle-scope" value="inception" checked /> All
+              ideas</label
+            >
+            <label
+              ><input type="radio" name="product-cycle-scope" value="since_2026" /> Created in
+              2026</label
+            >
           </fieldset>
         </div>
         <div class="chart">
-          <div id="cycle-time-parking-lot-to-done-chart" class="chart-canvas chart-canvas--dense"></div>
+          <div
+            id="cycle-time-parking-lot-to-done-chart"
+            class="chart-canvas chart-canvas--dense"
+          ></div>
         </div>
         <p id="product-cycle-totals" class="panel-summary" hidden></p>
         <p id="product-cycle-status" class="panel-status" hidden></p>
@@ -49,17 +61,25 @@
           <details class="help-wrap">
             <summary class="help-tip" aria-label="Lifecycle chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
-              <p><strong>Current time in stage</strong> shows how long active ideas have currently been sitting in each stage.</p>
+              <p>
+                <strong>Current time in stage</strong> shows how long active ideas have currently
+                been sitting in each stage.
+              </p>
               <ul>
                 <li>Stages: Parking, Design, Ready, In Development, UAT.</li>
                 <li>Bars are grouped by mapped team.</li>
-                <li>The label under each stage is the total current TPS item count for that stage.</li>
+                <li>
+                  The label under each stage is the total current TPS item count for that stage.
+                </li>
               </ul>
             </div>
           </details>
         </div>
         <div class="chart">
-          <div id="lifecycle-time-spent-per-phase-chart" class="chart-canvas chart-canvas--dense"></div>
+          <div
+            id="lifecycle-time-spent-per-phase-chart"
+            class="chart-canvas chart-canvas--dense"
+          ></div>
         </div>
         <p id="lifecycle-days-status" class="panel-status" hidden></p>
       </section>
@@ -67,11 +87,15 @@
       <section id="contributors-panel" class="panel" aria-label="Top contributors by ticket status">
         <h2>Top contributors</h2>
         <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="contributors-context" class="panel-context">Contributors label scope • status mix</span>
+          <span id="contributors-context" class="panel-context"
+            >Contributors label scope • status mix</span
+          >
           <details class="help-wrap">
             <summary class="help-tip" aria-label="Top contributors chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
-              <p><strong>Top contributors</strong> ranks assigned contributors by total ticket count.</p>
+              <p>
+                <strong>Top contributors</strong> ranks assigned contributors by total ticket count.
+              </p>
               <ul>
                 <li>Bars are single-color totals; hover to see status breakdown details.</li>
                 <li>Unassigned and Duplicate-status tickets are excluded from this chart.</li>
@@ -88,11 +112,18 @@
       <section id="management-facility-panel" class="panel" aria-label="Broadcast flow by facility">
         <h2>Development vs UAT by facility</h2>
         <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="management-facility-context" class="panel-context">Broadcast, -- ongoing work (sample)</span>
+          <span id="management-facility-context" class="panel-context"
+            >Broadcast, -- ongoing work (sample)</span
+          >
           <details class="help-wrap">
-            <summary class="help-tip" aria-label="Development vs UAT by facility chart explainer">i</summary>
+            <summary class="help-tip" aria-label="Development vs UAT by facility chart explainer">
+              i
+            </summary>
             <div class="help-popover" role="tooltip">
-              <p><strong>Development vs UAT by facility</strong> compares average stage time per facility.</p>
+              <p>
+                <strong>Development vs UAT by facility</strong> compares average stage time per
+                facility.
+              </p>
               <ul>
                 <li>Use the toggle to compare ongoing vs done scope.</li>
                 <li>Tooltip includes issue links for drill-down.</li>
@@ -103,12 +134,20 @@
         <div class="radio-control-groups" aria-label="Development vs UAT controls">
           <fieldset class="radio-group-card">
             <legend>Scope</legend>
-            <label><input type="radio" name="management-facility-flow-scope" value="ongoing" checked /> Ongoing</label>
-            <label><input type="radio" name="management-facility-flow-scope" value="done" /> Done</label>
+            <label
+              ><input type="radio" name="management-facility-flow-scope" value="ongoing" checked />
+              Ongoing</label
+            >
+            <label
+              ><input type="radio" name="management-facility-flow-scope" value="done" /> Done</label
+            >
           </fieldset>
         </div>
         <div class="chart">
-          <div id="development-vs-uat-by-facility-chart" class="chart-canvas chart-canvas--standard"></div>
+          <div
+            id="development-vs-uat-by-facility-chart"
+            class="chart-canvas chart-canvas--standard"
+          ></div>
         </div>
         <p id="management-facility-status" class="panel-status" hidden></p>
       </section>
@@ -116,7 +155,9 @@
       <section id="trend-panel" class="panel" aria-label="Bug backlog trend by team">
         <h1>Bug backlog trend by team</h1>
         <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="trend-context" class="panel-context">Open bugs across tracked teams plus BC aging overlays</span>
+          <span id="trend-context" class="panel-context"
+            >Open bugs across tracked teams plus BC aging overlays</span
+          >
           <details class="help-wrap">
             <summary class="help-tip" aria-label="Bug backlog trend chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
@@ -137,11 +178,16 @@
       <section id="composition-panel" class="panel" aria-label="Backlog stacked bars">
         <h2>Bug composition by priority</h2>
         <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="composition-context" class="panel-context">Open bug mix across the last 10 snapshots</span>
+          <span id="composition-context" class="panel-context"
+            >Open bug mix across the last 10 snapshots</span
+          >
           <details class="help-wrap">
             <summary class="help-tip" aria-label="Bug composition chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
-              <p><strong>Composition chart</strong> shows how open work is distributed across priority bands.</p>
+              <p>
+                <strong>Composition chart</strong> shows how open work is distributed across
+                priority bands.
+              </p>
               <ul>
                 <li>Each segment is a priority bucket.</li>
                 <li>Use Team filter to compare where urgent load sits.</li>
@@ -152,15 +198,22 @@
         <div class="radio-control-groups" aria-label="Composition controls">
           <fieldset class="radio-group-card">
             <legend>Team</legend>
-            <label><input type="radio" name="composition-team-scope" value="bc" checked /> BC</label>
+            <label
+              ><input type="radio" name="composition-team-scope" value="bc" checked /> BC</label
+            >
             <label><input type="radio" name="composition-team-scope" value="api" /> API</label>
-            <label><input type="radio" name="composition-team-scope" value="legacy" /> Legacy</label>
+            <label
+              ><input type="radio" name="composition-team-scope" value="legacy" /> Legacy</label
+            >
             <label><input type="radio" name="composition-team-scope" value="react" /> React</label>
             <label><input type="radio" name="composition-team-scope" value="all" /> All</label>
           </fieldset>
         </div>
         <div class="chart">
-          <div id="bug-composition-chart" class="chart-canvas chart-canvas--dense bar-chart-wrap"></div>
+          <div
+            id="bug-composition-chart"
+            class="chart-canvas chart-canvas--dense bar-chart-wrap"
+          ></div>
         </div>
         <p id="composition-status" class="panel-status" hidden></p>
       </section>
@@ -177,5 +230,6 @@
     <script src="./dashboard-charts-delivery.js"></script>
     <script src="./dashboard-charts-product.js"></script>
     <script src="./dashboard-app.js"></script>
+    <script src="./agentation-local-loader.js"></script>
   </body>
 </html>

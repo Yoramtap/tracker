@@ -21,7 +21,8 @@ const CHART_CONFIG = {
     contextId: "composition-context",
     containerId: "bug-composition-chart",
     rendererName: "renderBugCompositionByPriorityChart",
-    missingMessage: "Composition chart unavailable: Recharts did not load. Check local script paths."
+    missingMessage:
+      "Composition chart unavailable: Recharts did not load. Check local script paths."
   },
   "management-facility": {
     panelId: "management-facility-panel",
@@ -153,12 +154,7 @@ const {
   getModeFromUrl,
   isEmbedMode
 } = dashboardUiUtils;
-const {
-  buildTeamColorMap,
-  buildTintMap,
-  orderProductCycleTeams,
-  toCount
-} = dashboardDataUtils;
+const { buildTeamColorMap, buildTintMap, orderProductCycleTeams, toCount } = dashboardDataUtils;
 const { buildAxisLabel, h, isCompactViewport } = dashboardChartCore;
 
 function buildLifecycleMobileTick(colors, secondaryLabels) {
@@ -174,7 +170,9 @@ function buildLifecycleMobileTick(colors, secondaryLabels) {
     const raw = String(payload?.value || "");
     const line1 = stageLabelMap[raw] || raw;
     const line2 =
-      secondaryLabels && typeof secondaryLabels === "object" ? String(secondaryLabels[raw] || "") : "";
+      secondaryLabels && typeof secondaryLabels === "object"
+        ? String(secondaryLabels[raw] || "")
+        : "";
     return h(
       "g",
       { transform: `translate(${x},${y})` },
@@ -214,7 +212,11 @@ function getConfig(configKey) {
   return CHART_CONFIG[configKey] || null;
 }
 
-function getRenderer(config, rendererName = config.rendererName, missingMessage = config.missingMessage) {
+function getRenderer(
+  config,
+  rendererName = config.rendererName,
+  missingMessage = config.missingMessage
+) {
   const renderer = window.DashboardCharts?.[rendererName];
   if (renderer) return renderer;
   setStatusMessage(config.statusId, missingMessage);
@@ -343,7 +345,11 @@ function renderBugCompositionByPriorityChart() {
     react: "React",
     all: "All"
   };
-  setConfigContext(config, `${scopeLabelMap[scope] || "BC"} • last 10 snapshots`, getSnapshotUpdatedAt());
+  setConfigContext(
+    config,
+    `${scopeLabelMap[scope] || "BC"} • last 10 snapshots`,
+    getSnapshotUpdatedAt()
+  );
   renderSnapshotChart(config, { scope });
 }
 
@@ -374,29 +380,27 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData, scope) {
   const { status, context, config } = panel;
   if (titleNode) titleNode.textContent = "Cycle time by team";
 
-  const rows = (Array.isArray(chartScopeData.rows) ? chartScopeData.rows.slice() : []).sort((left, right) => {
-    const leftN = toCount(left?.meta_cycle?.n);
-    const rightN = toCount(right?.meta_cycle?.n);
-    if (leftN === 0 && rightN > 0) return 1;
-    if (rightN === 0 && leftN > 0) return -1;
-    const cycleDiff = toNumber(left?.cycle) - toNumber(right?.cycle);
-    if (cycleDiff !== 0) return cycleDiff;
-    return String(left?.team || "").localeCompare(String(right?.team || ""));
-  });
-  const teams = orderProductCycleTeams(
-    rows.map((row) => String(row?.team || "")).filter(Boolean)
+  const rows = (Array.isArray(chartScopeData.rows) ? chartScopeData.rows.slice() : []).sort(
+    (left, right) => {
+      const leftN = toCount(left?.meta_cycle?.n);
+      const rightN = toCount(right?.meta_cycle?.n);
+      if (leftN === 0 && rightN > 0) return 1;
+      if (rightN === 0 && leftN > 0) return -1;
+      const cycleDiff = toNumber(left?.cycle) - toNumber(right?.cycle);
+      if (cycleDiff !== 0) return cycleDiff;
+      return String(left?.team || "").localeCompare(String(right?.team || ""));
+    }
   );
+  const teams = orderProductCycleTeams(rows.map((row) => String(row?.team || "")).filter(Boolean));
   if (teams.length === 0) return false;
 
   const fallbackCycleSampleCount = rows.reduce((sum, row) => sum + toCount(row?.meta_cycle?.n), 0);
   const cycleSampleCount = toCount(chartScopeData.cycleSampleCount) || fallbackCycleSampleCount;
   const sampleCount = Math.max(toCount(chartScopeData.sampleCount), cycleSampleCount);
-  const scopeLabel = String(chartScopeData.scopeLabel || PRODUCT_CYCLE_SCOPE_LABELS[scope] || "Created in 2026");
-  setPanelContext(
-    context,
-    `${scopeLabel} • n=${cycleSampleCount}`,
-    getProductCycleUpdatedAt()
+  const scopeLabel = String(
+    chartScopeData.scopeLabel || PRODUCT_CYCLE_SCOPE_LABELS[scope] || "Created in 2026"
   );
+  setPanelContext(context, `${scopeLabel} • n=${cycleSampleCount}`, getProductCycleUpdatedAt());
 
   if (sampleCount === 0) {
     showPanelStatus(status, `No product-cycle items found for ${scopeLabel.toLowerCase()}.`, {
@@ -423,27 +427,34 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData, scope) {
       : "Cycle time: the average time it takes teams to ship from development to UAT to done.\nShipped counts include only ideas that reached Done through recorded Development/UAT time and not adminned to Done.",
     { offset: compactViewport ? 16 : 22 }
   );
-  const overlayDots = rows.map((row) => {
-    const cycleN = toCount(row?.meta_cycle?.n);
-    const hasExplicitCycleDoneCount = Object.prototype.hasOwnProperty.call(row || {}, "cycleDoneCount");
-    const cycleDoneCount = Math.min(
-      cycleN,
-      hasExplicitCycleDoneCount ? toCount(row?.cycleDoneCount) : Math.min(toCount(row?.doneCount), cycleN)
-    );
-    if (cycleN <= 0) return null;
-    return {
-      x: toNumber(row?.cycle) / 30.4375,
-      y: String(row?.team || ""),
-      labelPrefix: cycleDoneCount > 0 ? "✓" : "",
-      accentColor: "rgba(56,161,105,0.95)",
-      labelText: compactViewport
-        ? String(cycleDoneCount)
-        : `${cycleDoneCount} ${cycleDoneCount === 1 ? "idea" : "ideas"} shipped`,
-      muted: cycleDoneCount <= 0,
-      fontSize: compactViewport ? 10 : 11,
-      labelDx: compactViewport ? 6 : 10
-    };
-  }).filter(Boolean);
+  const overlayDots = rows
+    .map((row) => {
+      const cycleN = toCount(row?.meta_cycle?.n);
+      const hasExplicitCycleDoneCount = Object.prototype.hasOwnProperty.call(
+        row || {},
+        "cycleDoneCount"
+      );
+      const cycleDoneCount = Math.min(
+        cycleN,
+        hasExplicitCycleDoneCount
+          ? toCount(row?.cycleDoneCount)
+          : Math.min(toCount(row?.doneCount), cycleN)
+      );
+      if (cycleN <= 0) return null;
+      return {
+        x: toNumber(row?.cycle) / 30.4375,
+        y: String(row?.team || ""),
+        labelPrefix: cycleDoneCount > 0 ? "✓" : "",
+        accentColor: "rgba(56,161,105,0.95)",
+        labelText: compactViewport
+          ? String(cycleDoneCount)
+          : `${cycleDoneCount} ${cycleDoneCount === 1 ? "idea" : "ideas"} shipped`,
+        muted: cycleDoneCount <= 0,
+        fontSize: compactViewport ? 10 : 11,
+        labelDx: compactViewport ? 6 : 10
+      };
+    })
+    .filter(Boolean);
   const seriesDefs = [
     {
       key: "cycle",
@@ -498,17 +509,18 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData, scope) {
 function computeLifecycleChartYUpper(chartData) {
   const currentStageSnapshot = chartData?.currentStageSnapshot;
   const rows = Array.isArray(currentStageSnapshot?.rows) ? currentStageSnapshot.rows : [];
-  const teamDefs = Array.isArray(currentStageSnapshot?.teamDefs) ? currentStageSnapshot.teamDefs : [];
-  const plottedValues = teamDefs.flatMap((teamDef, index) => {
-    const key = String(teamDef?.slot || `slot_${index}`);
-    return rows.map((row) => row?.[key]);
-  }).filter((value) => Number.isFinite(value) && value > 0);
+  const teamDefs = Array.isArray(currentStageSnapshot?.teamDefs)
+    ? currentStageSnapshot.teamDefs
+    : [];
+  const plottedValues = teamDefs
+    .flatMap((teamDef, index) => {
+      const key = String(teamDef?.slot || `slot_${index}`);
+      return rows.map((row) => row?.[key]);
+    })
+    .filter((value) => Number.isFinite(value) && value > 0);
 
   const storedUpper = toNumber(currentStageSnapshot?.yUpper);
-  const fallbackUpper = Math.max(
-    1,
-    plottedValues.length > 0 ? Math.max(...plottedValues) : 0
-  );
+  const fallbackUpper = Math.max(1, plottedValues.length > 0 ? Math.max(...plottedValues) : 0);
   return Math.max(storedUpper, fallbackUpper);
 }
 
@@ -531,7 +543,8 @@ function normalizeCurrentStageChartData(chartSnapshotData) {
     return row;
   });
   const rawSecondaryLabels =
-    chartSnapshotData.categorySecondaryLabels && typeof chartSnapshotData.categorySecondaryLabels === "object"
+    chartSnapshotData.categorySecondaryLabels &&
+    typeof chartSnapshotData.categorySecondaryLabels === "object"
       ? chartSnapshotData.categorySecondaryLabels
       : {};
   const categorySecondaryLabels = { ...rawSecondaryLabels };
@@ -566,7 +579,9 @@ function renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData) {
     Array.isArray(normalizedChartData.teams) ? normalizedChartData.teams.filter(Boolean) : []
   );
   const rows = Array.isArray(normalizedChartData.rows) ? normalizedChartData.rows : [];
-  const teamDefsBase = Array.isArray(normalizedChartData.teamDefs) ? normalizedChartData.teamDefs : [];
+  const teamDefsBase = Array.isArray(normalizedChartData.teamDefs)
+    ? normalizedChartData.teamDefs
+    : [];
   if (teams.length === 0 || teamDefsBase.length === 0) return false;
 
   const themeColors = getThemeColors();
@@ -613,7 +628,9 @@ function renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData) {
       categoryAxisHeight: compactViewport ? 60 : 72,
       xAxisProps: {
         label: buildAxisLabel("Ideas per stage"),
-        tick: compactViewport ? buildLifecycleMobileTick(themeColors, categorySecondaryLabels) : undefined
+        tick: compactViewport
+          ? buildLifecycleMobileTick(themeColors, categorySecondaryLabels)
+          : undefined
       },
       yAxisProps: {
         label: buildAxisLabel("Average time (months)", { axis: "y", offset: 6 })
@@ -627,11 +644,7 @@ function renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData) {
     },
     { missingMessage: "Lifecycle chart unavailable: Recharts renderer missing." }
   );
-  setPanelContext(
-    context,
-    `Current snapshot • n=${sampleSize}`,
-    getProductCycleUpdatedAt()
-  );
+  setPanelContext(context, `Current snapshot • n=${sampleSize}`, getProductCycleUpdatedAt());
   return true;
 }
 
@@ -680,7 +693,9 @@ function renderLifecycleTimeSpentPerStageChart() {
     if (renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData)) return null;
     const config = getConfig("lifecycle-days");
     return {
-      error: config?.missingMessage || "No current lifecycle chart data found in product-cycle-snapshot.json.",
+      error:
+        config?.missingMessage ||
+        "No current lifecycle chart data found in product-cycle-snapshot.json.",
       clearContainer: true
     };
   });
@@ -690,7 +705,9 @@ function renderDevelopmentVsUatByFacilityChart() {
   renderChartWithState("management-facility", () => {
     const scope = normalizeOption(state.managementFlowScope, MANAGEMENT_FLOW_SCOPES, "ongoing");
     syncRadioValue("management-facility-flow-scope", scope);
-    const rows = Array.isArray(state.snapshot?.chartData?.managementFacility?.byScope?.[scope]?.rows)
+    const rows = Array.isArray(
+      state.snapshot?.chartData?.managementFacility?.byScope?.[scope]?.rows
+    )
       ? state.snapshot.chartData.managementFacility.byScope[scope].rows
       : [];
     if (rows.length === 0) {
@@ -737,7 +754,7 @@ function renderTopContributorsChart() {
 
     const summary = contributorsSnapshot?.summary || {};
     return {
-      contextText: `${toNumber(summary.active_issues)} not done • ${toNumber(summary.done_issues)} done • ${toNumber(summary.total_issues)} total`,
+      contextText: `${toNumber(summary.total_issues)} total • ${toNumber(summary.done_issues)} done • ${toNumber(summary.active_issues)} not done`,
       updatedAt: state.contributors?.updatedAt || getSnapshotUpdatedAt(),
       props: {
         rows,
