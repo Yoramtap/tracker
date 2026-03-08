@@ -849,6 +849,11 @@ function seedVisibleChartModes() {
     return;
   }
 
+  if (isEmbedMode()) {
+    Object.keys(CHART_CONFIG).forEach((mode) => visibleChartModes.add(mode));
+    return;
+  }
+
   const viewportHeight = window.innerHeight || 0;
   const preloadOffset = 240;
   Object.entries(CHART_CONFIG).forEach(([mode, config]) => {

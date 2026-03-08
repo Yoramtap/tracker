@@ -197,7 +197,8 @@
               strokeWidth: lineDef.strokeWidth,
               dot: lineDef.dot,
               activeDot: activeLineDot(colors),
-              hide: hiddenKeys.has(lineDef.dataKey)
+              hide: hiddenKeys.has(lineDef.dataKey),
+              isAnimationActive: false
             })
           )
         )

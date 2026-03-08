@@ -112,6 +112,11 @@ body.embedded-frame-mode main {
   -webkit-overflow-scrolling: touch;
 }
 
+body.embedded-frame-mode .panel {
+  content-visibility: visible;
+  contain-intrinsic-size: auto;
+}
+
 .panel {
   border: 1px solid rgba(31, 51, 71, 0.08);
   border-radius: 20px;
