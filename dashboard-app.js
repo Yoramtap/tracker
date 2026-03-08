@@ -257,28 +257,41 @@ function applyModeVisibility() {
   }
 }
 
-function contextWithUpdated(text, updatedAt) {
-  const baseText = String(text || "").trim();
-  const updatedText = formatUpdatedAt(updatedAt);
-  if (!baseText) return `Updated ${updatedText}`;
-  return `${baseText} • updated ${updatedText}`;
-}
-
-function setPanelContext(node, text, updatedAt) {
+function setPanelContext(node, text) {
   if (!node) return;
-  node.textContent = contextWithUpdated(text, updatedAt);
+  node.textContent = String(text || "").trim();
 }
 
-function setConfigContext(config, text, updatedAt) {
-  setPanelContext(document.getElementById(config.contextId), text, updatedAt);
+function setConfigContext(config, text) {
+  setPanelContext(document.getElementById(config.contextId), text);
 }
 
-function getSnapshotUpdatedAt() {
-  return state.snapshot?.updatedAt || "";
+function getLatestDashboardUpdatedAt() {
+  const candidates = [
+    state.snapshot?.updatedAt,
+    state.productCycle?.generatedAt,
+    state.contributors?.updatedAt
+  ]
+    .map((value) => {
+      const text = String(value || "").trim();
+      const time = new Date(text).getTime();
+      return Number.isFinite(time) ? { text, time } : null;
+    })
+    .filter(Boolean);
+  if (candidates.length === 0) return "";
+  candidates.sort((left, right) => right.time - left.time);
+  return candidates[0].text;
 }
 
-function getProductCycleUpdatedAt() {
-  return state.productCycle?.generatedAt || getSnapshotUpdatedAt();
+function renderDashboardRefreshStrip() {
+  const panel = document.getElementById("dashboard-refresh-panel");
+  const textNode = document.getElementById("dashboard-refresh-text");
+  if (!panel || !textNode) return;
+  const latestUpdatedAt = getLatestDashboardUpdatedAt();
+  panel.hidden = latestUpdatedAt.length === 0;
+  textNode.textContent = latestUpdatedAt
+    ? `Last updated ${formatUpdatedAt(latestUpdatedAt)}`
+    : "";
 }
 
 function getBroadcastScopeLabel() {
@@ -320,7 +333,7 @@ function renderChartWithState(configKey, buildResult) {
       return;
     }
     if (Object.prototype.hasOwnProperty.call(result, "contextText")) {
-      setPanelContext(context, result.contextText, result.updatedAt || getSnapshotUpdatedAt());
+      setPanelContext(context, result.contextText);
     }
     renderNamedChart(
       config,
@@ -347,15 +360,14 @@ function renderBugCompositionByPriorityChart() {
   };
   setConfigContext(
     config,
-    `${scopeLabelMap[scope] || "BC"} • last 10 snapshots`,
-    getSnapshotUpdatedAt()
+    `${scopeLabelMap[scope] || "BC"} • last 10 snapshots`
   );
   renderSnapshotChart(config, { scope });
 }
 
 function renderTrendChart() {
   const config = getConfig("trend");
-  setConfigContext(config, "", getSnapshotUpdatedAt());
+  setConfigContext(config, "Open bugs across tracked teams plus BC aging overlays");
   renderSnapshotChart(config);
 }
 
@@ -400,7 +412,7 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData, scope) {
   const scopeLabel = String(
     chartScopeData.scopeLabel || PRODUCT_CYCLE_SCOPE_LABELS[scope] || "Created in 2026"
   );
-  setPanelContext(context, `${scopeLabel} • n=${cycleSampleCount}`, getProductCycleUpdatedAt());
+  setPanelContext(context, `${scopeLabel} • n=${cycleSampleCount}`);
 
   if (sampleCount === 0) {
     showPanelStatus(status, `No product-cycle items found for ${scopeLabel.toLowerCase()}.`, {
@@ -424,7 +436,7 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData, scope) {
   const topAxisLabel = buildAxisLabel(
     compactViewport
       ? "Cycle time"
-      : "Cycle time: the average time it takes teams to ship from development to UAT to done.\nShipped counts include only ideas that reached Done through recorded Development/UAT time and not adminned to Done.",
+      : "Cycle time: the average time it takes teams to ship from development to UAT to done.",
     { offset: compactViewport ? 16 : 22 }
   );
   const overlayDots = rows
@@ -627,7 +639,6 @@ function renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData) {
       categoryKey: "phaseLabel",
       categoryAxisHeight: compactViewport ? 60 : 72,
       xAxisProps: {
-        label: buildAxisLabel("Ideas per stage"),
         tick: compactViewport
           ? buildLifecycleMobileTick(themeColors, categorySecondaryLabels)
           : undefined
@@ -644,7 +655,7 @@ function renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData) {
     },
     { missingMessage: "Lifecycle chart unavailable: Recharts renderer missing." }
   );
-  setPanelContext(context, `Current snapshot • n=${sampleSize}`, getProductCycleUpdatedAt());
+  setPanelContext(context, `Current snapshot • n=${sampleSize}`);
   return true;
 }
 
@@ -755,7 +766,6 @@ function renderTopContributorsChart() {
     const summary = contributorsSnapshot?.summary || {};
     return {
       contextText: `${toNumber(summary.total_issues)} total • ${toNumber(summary.done_issues)} done • ${toNumber(summary.active_issues)} not done`,
-      updatedAt: state.contributors?.updatedAt || getSnapshotUpdatedAt(),
       props: {
         rows,
         barColor: readThemeColor("--team-react", "#5ba896")
@@ -806,11 +816,13 @@ async function loadSnapshot() {
   state.contributors = null;
   state.loadErrors = {};
   state.mode = getModeFromUrl();
+  renderDashboardRefreshStrip();
   applyModeVisibility();
 
   try {
     const requiredSourceKeys = getRequiredSourceKeys(state.mode);
     await Promise.all(requiredSourceKeys.map((sourceKey) => loadDataSource(sourceKey)));
+    renderDashboardRefreshStrip();
     bindDashboardControls();
     renderVisibleCharts();
   } catch (error) {
@@ -818,6 +830,7 @@ async function loadSnapshot() {
       error instanceof Error ? error.message : String(error)
     }`;
     setStatusMessageForIds(CHART_STATUS_IDS, message);
+    renderDashboardRefreshStrip();
   }
 }
 

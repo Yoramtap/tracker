@@ -73,6 +73,27 @@ main {
   gap: 18px;
 }
 
+.dashboard-refresh-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid rgba(31, 51, 71, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 10px 24px rgba(36, 64, 94, 0.05);
+}
+
+.dashboard-refresh-text {
+  margin: 0;
+  color: rgba(31, 51, 71, 0.78);
+  font-size: 0.79rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
 body.embed-mode main {
   max-width: none;
 }
@@ -129,11 +150,20 @@ h2 {
   color: rgba(31, 51, 71, 0.92);
 }
 
-.panel > h1,
-.panel > h2 {
+.panel-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.panel-title-row > h1,
+.panel-title-row > h2 {
   display: block;
-  max-width: 28ch;
-  margin: 0 auto 2px;
+  max-width: min(28ch, calc(100% - 34px));
+  margin: 0;
   text-wrap: balance;
 }
 
@@ -156,29 +186,6 @@ h2 {
   font-weight: 500;
   letter-spacing: 0;
   line-height: 1.4;
-}
-
-.panel-subtitle--with-help {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 6px 8px;
-  width: fit-content;
-  max-width: min(100%, 62ch + 32px);
-  margin: 0 auto;
-}
-
-.panel-subtitle--with-help > span:first-child {
-  display: block;
-  min-width: 0;
-  width: auto;
-  max-width: 62ch;
-  overflow-wrap: anywhere;
-}
-
-.panel-context-inline {
-  display: inline;
 }
 
 .help-wrap {
@@ -571,6 +578,17 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
     border-radius: 18px;
   }
 
+  .dashboard-refresh-panel {
+    min-height: 32px;
+    padding: 6px 10px;
+    border-radius: 12px;
+  }
+
+  .dashboard-refresh-text {
+    font-size: 0.74rem;
+    line-height: 1.2;
+  }
+
   body.embedded-frame-mode main {
     padding: 6px 0 14px;
     gap: 10px;
@@ -581,8 +599,8 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
     gap: 8px;
   }
 
-  body.embedded-frame-mode .panel > h1,
-  body.embedded-frame-mode .panel > h2 {
+  body.embedded-frame-mode .panel-title-row > h1,
+  body.embedded-frame-mode .panel-title-row > h2 {
     max-width: 16ch;
     margin-bottom: 0;
   }
@@ -596,10 +614,6 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
   body.embedded-frame-mode .radio-control-groups {
     gap: 6px;
     margin-bottom: 4px;
-  }
-
-  .panel-subtitle--with-help {
-    gap: 4px 6px;
   }
 
   .panel-context {
@@ -731,8 +745,8 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
     gap: 5px;
   }
 
-  body.embed-mode .panel > h1,
-  body.embed-mode .panel > h2 {
+  body.embed-mode .panel-title-row > h1,
+  body.embed-mode .panel-title-row > h2 {
     max-width: none;
     margin-bottom: 0;
     font-size: 1.08rem;

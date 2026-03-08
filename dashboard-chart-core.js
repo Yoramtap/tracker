@@ -869,6 +869,19 @@
       setPosition(null);
     };
 
+    React.useEffect(() => {
+      if (!dockedTooltip || !snapshot) return undefined;
+      const dismissOnScroll = () => {
+        setPortalHovered(false);
+        setSnapshot(null);
+        setPosition(null);
+      };
+      window.addEventListener("scroll", dismissOnScroll, true);
+      return () => {
+        window.removeEventListener("scroll", dismissOnScroll, true);
+      };
+    }, [dockedTooltip, snapshot]);
+
     return h(
       React.Fragment,
       null,
@@ -897,7 +910,8 @@
                     width: "min(calc(100vw - 24px), 360px)",
                     maxWidth: "min(calc(100vw - 24px), 360px)",
                     maxHeight: position ? `${position.maxHeight}px` : "calc(100vh - 24px)",
-                    overflowY: "auto",
+                    overflow: "hidden",
+                    pointerEvents: "none",
                     visibility: position ? "visible" : "hidden"
                   }
                 : {

@@ -12,10 +12,13 @@
   </head>
   <body>
     <main>
+      <section id="dashboard-refresh-panel" class="dashboard-refresh-panel" aria-label="Dashboard freshness" hidden>
+        <p id="dashboard-refresh-text" class="dashboard-refresh-text"></p>
+      </section>
+
       <section id="product-cycle-panel" class="panel" aria-label="Product cycle time by team">
-        <h2 id="product-cycle-title">Cycle time by team</h2>
-        <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="product-cycle-context" class="panel-context">--</span>
+        <div class="panel-title-row">
+          <h2 id="product-cycle-title">Cycle time by team</h2>
           <details class="help-wrap">
             <summary class="help-tip" aria-label="Product cycle chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
@@ -30,6 +33,9 @@
               </ul>
             </div>
           </details>
+        </div>
+        <div class="panel-subtitle">
+          <span id="product-cycle-context" class="panel-context">--</span>
         </div>
         <div class="radio-control-groups" aria-label="Product cycle controls">
           <fieldset class="radio-group-card">
@@ -55,9 +61,8 @@
       </section>
 
       <section id="lifecycle-days-panel" class="panel" aria-label="Current time in stage by team">
-        <h2>Current time in stage by team</h2>
-        <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="lifecycle-days-context" class="panel-context">--</span>
+        <div class="panel-title-row">
+          <h2>Current time in stage by team</h2>
           <details class="help-wrap">
             <summary class="help-tip" aria-label="Lifecycle chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
@@ -75,6 +80,9 @@
             </div>
           </details>
         </div>
+        <div class="panel-subtitle">
+          <span id="lifecycle-days-context" class="panel-context">--</span>
+        </div>
         <div class="chart">
           <div
             id="lifecycle-time-spent-per-phase-chart"
@@ -85,11 +93,8 @@
       </section>
 
       <section id="contributors-panel" class="panel" aria-label="Top contributors by ticket status">
-        <h2>Top contributors</h2>
-        <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="contributors-context" class="panel-context"
-            >Contributors label scope • status mix</span
-          >
+        <div class="panel-title-row">
+          <h2>Top contributors</h2>
           <details class="help-wrap">
             <summary class="help-tip" aria-label="Top contributors chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
@@ -103,6 +108,11 @@
             </div>
           </details>
         </div>
+        <div class="panel-subtitle">
+          <span id="contributors-context" class="panel-context"
+            >Contributors label scope • status mix</span
+          >
+        </div>
         <div class="chart">
           <div id="top-contributors-chart" class="chart-canvas chart-canvas--dense"></div>
         </div>
@@ -110,11 +120,8 @@
       </section>
 
       <section id="management-facility-panel" class="panel" aria-label="Broadcast flow by facility">
-        <h2>Development vs UAT by facility</h2>
-        <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="management-facility-context" class="panel-context"
-            >Broadcast, -- ongoing work (sample)</span
-          >
+        <div class="panel-title-row">
+          <h2>Development vs UAT by facility</h2>
           <details class="help-wrap">
             <summary class="help-tip" aria-label="Development vs UAT by facility chart explainer">
               i
@@ -130,6 +137,11 @@
               </ul>
             </div>
           </details>
+        </div>
+        <div class="panel-subtitle">
+          <span id="management-facility-context" class="panel-context"
+            >Broadcast, -- ongoing work (sample)</span
+          >
         </div>
         <div class="radio-control-groups" aria-label="Development vs UAT controls">
           <fieldset class="radio-group-card">
@@ -153,11 +165,8 @@
       </section>
 
       <section id="trend-panel" class="panel" aria-label="Bug backlog trend by team">
-        <h1>Bug backlog trend by team</h1>
-        <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="trend-context" class="panel-context"
-            >Open bugs across tracked teams plus BC aging overlays</span
-          >
+        <div class="panel-title-row">
+          <h1>Bug backlog trend by team</h1>
           <details class="help-wrap">
             <summary class="help-tip" aria-label="Bug backlog trend chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
@@ -169,6 +178,11 @@
             </div>
           </details>
         </div>
+        <div class="panel-subtitle">
+          <span id="trend-context" class="panel-context"
+            >Open bugs across tracked teams plus BC aging overlays</span
+          >
+        </div>
         <div class="chart">
           <div id="bug-trend-chart" class="chart-canvas chart-canvas--standard"></div>
         </div>
@@ -176,11 +190,8 @@
       </section>
 
       <section id="composition-panel" class="panel" aria-label="Backlog stacked bars">
-        <h2>Bug composition by priority</h2>
-        <div class="panel-subtitle panel-subtitle--with-help">
-          <span id="composition-context" class="panel-context"
-            >Open bug mix across the last 10 snapshots</span
-          >
+        <div class="panel-title-row">
+          <h2>Bug composition by priority</h2>
           <details class="help-wrap">
             <summary class="help-tip" aria-label="Bug composition chart explainer">i</summary>
             <div class="help-popover" role="tooltip">
@@ -194,6 +205,11 @@
               </ul>
             </div>
           </details>
+        </div>
+        <div class="panel-subtitle">
+          <span id="composition-context" class="panel-context"
+            >Open bug mix across the last 10 snapshots</span
+          >
         </div>
         <div class="radio-control-groups" aria-label="Composition controls">
           <fieldset class="radio-group-card">
