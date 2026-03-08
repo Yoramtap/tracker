@@ -124,12 +124,18 @@ const state = {
   snapshot: null,
   contributors: null,
   productCycle: null,
+  loadedSources: {},
   loadErrors: {},
   mode: "all",
   compositionTeamScope: "bc",
   managementFlowScope: "ongoing",
   productCycleScope: "inception"
 };
+
+const visibleChartModes = new Set();
+const queuedChartModes = new Set();
+let chartVisibilityObserver = null;
+let chartRenderFrame = 0;
 
 const dashboardUiUtils = window.DashboardViewUtils;
 if (!dashboardUiUtils) {
@@ -775,9 +781,8 @@ function bindDashboardControls() {
 
 function renderVisibleCharts() {
   Object.entries(CHART_RENDERERS).forEach(([mode, run]) => {
-    const requiredSources = CHART_DATA_SOURCES[mode] || [];
-    if (requiredSources.some((key) => state.loadErrors[key])) return;
-    if (state.mode === "all" || state.mode === mode) run();
+    if (!isChartActive(mode) || !isChartReady(mode)) return;
+    queueChartRender(mode, run);
   });
 }
 
@@ -786,19 +791,126 @@ function getRequiredSourceKeys(mode) {
   return CHART_DATA_SOURCES[mode] || ["snapshot"];
 }
 
+function isChartActive(mode) {
+  if (state.mode !== "all") return state.mode === mode;
+  return visibleChartModes.has(mode);
+}
+
+function isChartReady(mode) {
+  const requiredSources = CHART_DATA_SOURCES[mode] || [];
+  if (requiredSources.length === 0) return true;
+  if (requiredSources.some((sourceKey) => state.loadErrors[sourceKey])) return false;
+  return requiredSources.every((sourceKey) => state.loadedSources[sourceKey] === true);
+}
+
+function flushChartRenderQueue() {
+  chartRenderFrame = 0;
+  const iterator = queuedChartModes.values().next();
+  if (iterator.done) return;
+
+  const mode = iterator.value;
+  queuedChartModes.delete(mode);
+
+  if (isChartActive(mode) && isChartReady(mode)) {
+    const renderChart = CHART_RENDERERS[mode];
+    if (typeof renderChart === "function") renderChart();
+  }
+
+  if (queuedChartModes.size > 0) {
+    chartRenderFrame = window.requestAnimationFrame(flushChartRenderQueue);
+  }
+}
+
+function queueChartRender(mode, renderChart) {
+  if (!mode || typeof renderChart !== "function") return;
+  queuedChartModes.add(mode);
+  if (chartRenderFrame !== 0) return;
+  chartRenderFrame = window.requestAnimationFrame(flushChartRenderQueue);
+}
+
+function disconnectChartVisibilityObserver() {
+  if (!chartVisibilityObserver) return;
+  chartVisibilityObserver.disconnect();
+  chartVisibilityObserver = null;
+}
+
+function markChartModeVisible(mode) {
+  if (!mode || visibleChartModes.has(mode)) return;
+  visibleChartModes.add(mode);
+  renderVisibleCharts();
+}
+
+function seedVisibleChartModes() {
+  visibleChartModes.clear();
+
+  if (state.mode !== "all") {
+    visibleChartModes.add(state.mode);
+    return;
+  }
+
+  const viewportHeight = window.innerHeight || 0;
+  const preloadOffset = 240;
+  Object.entries(CHART_CONFIG).forEach(([mode, config]) => {
+    const panel = document.getElementById(config.panelId);
+    if (!panel || panel.hidden) return;
+    const { top } = panel.getBoundingClientRect();
+    if (top <= viewportHeight + preloadOffset) visibleChartModes.add(mode);
+  });
+}
+
+function initChartVisibility() {
+  disconnectChartVisibilityObserver();
+  seedVisibleChartModes();
+
+  if (state.mode !== "all") return;
+  if (typeof window.IntersectionObserver !== "function") {
+    Object.keys(CHART_CONFIG).forEach((mode) => visibleChartModes.add(mode));
+    return;
+  }
+
+  chartVisibilityObserver = new window.IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const mode = entry.target?.dataset?.chartMode || "";
+        markChartModeVisible(mode);
+        chartVisibilityObserver?.unobserve(entry.target);
+      });
+    },
+    {
+      root: null,
+      rootMargin: "240px 0px",
+      threshold: 0.01
+    }
+  );
+
+  Object.entries(CHART_CONFIG).forEach(([mode, config]) => {
+    const panel = document.getElementById(config.panelId);
+    if (!panel || panel.hidden || visibleChartModes.has(mode)) return;
+    panel.dataset.chartMode = mode;
+    chartVisibilityObserver.observe(panel);
+  });
+}
+
 async function loadDataSource(sourceKey) {
   const source = DATA_SOURCE_CONFIG[sourceKey];
   if (!source) return;
   try {
-    const response = await fetch(source.url, { cache: "no-store" });
+    const response = await fetch(source.url, { cache: "no-cache" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     state[source.stateKey] = await response.json();
+    state.loadedSources[sourceKey] = true;
+    delete state.loadErrors[sourceKey];
+    renderDashboardRefreshStrip();
+    renderVisibleCharts();
   } catch (error) {
     state[source.stateKey] = null;
     const message = `${source.errorMessage}: ${error instanceof Error ? error.message : String(error)}`;
     state.loadErrors[sourceKey] = message;
+    state.loadedSources[sourceKey] = true;
     setStatusMessageForIds(source.statusIds || [], message);
     (source.clearContainers || []).forEach(clearChartContainer);
+    renderDashboardRefreshStrip();
   }
 }
 
@@ -807,16 +919,18 @@ async function loadSnapshot() {
   state.snapshot = null;
   state.productCycle = null;
   state.contributors = null;
+  state.loadedSources = {};
   state.loadErrors = {};
   state.mode = getModeFromUrl();
   renderDashboardRefreshStrip();
   applyModeVisibility();
+  initChartVisibility();
+  bindDashboardControls();
 
   try {
     const requiredSourceKeys = getRequiredSourceKeys(state.mode);
-    await Promise.all(requiredSourceKeys.map((sourceKey) => loadDataSource(sourceKey)));
+    await Promise.allSettled(requiredSourceKeys.map((sourceKey) => loadDataSource(sourceKey)));
     renderDashboardRefreshStrip();
-    bindDashboardControls();
     renderVisibleCharts();
   } catch (error) {
     const message = `Failed to load backlog-snapshot.json: ${
