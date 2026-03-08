@@ -128,6 +128,7 @@
           dataKey: "uatTime",
           name: "Time in UAT",
           fill: uatColor,
+          legendSwatchBackground: `linear-gradient(90deg, ${uatColor} 0 52%, ${relaxedUatAlertFill} 52% 100%)`,
           cellFillAccessor: (row) =>
             highlightLongUat && toNumber(row?.uatTime) >= UAT_ALERT_MONTH_THRESHOLD
               ? relaxedUatAlertFill

@@ -985,7 +985,7 @@
         defs.map((item) => {
           const key = item?.dataKey || "";
           const hidden = hiddenKeys.has(key);
-          const swatchColor = item?.stroke || item?.fill || colors.text;
+          const swatchColor = item?.legendSwatchBackground || item?.stroke || item?.fill || colors.text;
           return h(
             "button",
             {
