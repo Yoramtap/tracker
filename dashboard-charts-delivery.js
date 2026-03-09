@@ -57,7 +57,7 @@
 
   function buildIssueSubItems(issueItems, jiraBrowseBase, colors) {
     const safeIssueItems = Array.isArray(issueItems) ? issueItems : [];
-    const issueDisplayLimit = 8;
+    const issueDisplayLimit = isCompactViewport() ? 5 : 8;
     const browseBase = String(jiraBrowseBase || "").replace(/\/$/, "");
     const items = safeIssueItems
       .slice(0, issueDisplayLimit)
@@ -249,11 +249,13 @@
         return {
           x: totalContributions,
           y: String(row?.contributor || ""),
-          labelPrefix: doneContributions > 0 ? "✓" : "",
+          labelPrefix: compactViewport ? "" : doneContributions > 0 ? "✓" : "",
           accentColor: "rgba(56,161,105,0.95)",
           labelText: compactViewport
             ? String(doneContributions)
-            : `${doneContributions} ${doneContributions === 1 ? "contribution" : "contributions"} done`,
+            : `${doneContributions} ${
+                doneContributions === 1 ? "contribution" : "contributions"
+              } done`,
           fontSize: compactViewport ? 10 : 11,
           labelDx: compactViewport ? 6 : 10
         };

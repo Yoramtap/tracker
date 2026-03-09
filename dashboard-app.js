@@ -456,7 +456,7 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData, scope) {
       return {
         x: toNumber(row?.cycle) / 30.4375,
         y: String(row?.team || ""),
-        labelPrefix: cycleDoneCount > 0 ? "✓" : "",
+        labelPrefix: compactViewport ? "" : cycleDoneCount > 0 ? "✓" : "",
         accentColor: "rgba(56,161,105,0.95)",
         labelText: compactViewport
           ? String(cycleDoneCount)

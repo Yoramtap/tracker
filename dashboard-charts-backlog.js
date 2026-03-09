@@ -122,12 +122,12 @@
         name,
         stroke: colors.teams[colorKey],
         strokeWidth: 2.5,
-        dot: { r: 3 }
+        dot: false
       })),
       ...TREND_LONG_LINES.map((line) => ({
         ...line,
         strokeWidth: 2,
-        dot: { r: 3 }
+        dot: false
       }))
     ];
   }
