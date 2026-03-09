@@ -128,8 +128,8 @@ body.embedded-frame-mode .panel {
   position: relative;
   display: grid;
   gap: 10px;
-  content-visibility: auto;
-  contain-intrinsic-size: 440px;
+  content-visibility: visible;
+  contain-intrinsic-size: auto;
 }
 
 .panel[hidden] {

@@ -835,12 +835,6 @@ function disconnectChartVisibilityObserver() {
   chartVisibilityObserver = null;
 }
 
-function markChartModeVisible(mode) {
-  if (!mode || visibleChartModes.has(mode)) return;
-  visibleChartModes.add(mode);
-  renderVisibleCharts();
-}
-
 function seedVisibleChartModes() {
   visibleChartModes.clear();
 
@@ -848,54 +842,12 @@ function seedVisibleChartModes() {
     visibleChartModes.add(state.mode);
     return;
   }
-
-  if (isEmbedMode()) {
-    Object.keys(CHART_CONFIG).forEach((mode) => visibleChartModes.add(mode));
-    return;
-  }
-
-  const viewportHeight = window.innerHeight || 0;
-  const preloadOffset = 240;
-  Object.entries(CHART_CONFIG).forEach(([mode, config]) => {
-    const panel = document.getElementById(config.panelId);
-    if (!panel || panel.hidden) return;
-    const { top } = panel.getBoundingClientRect();
-    if (top <= viewportHeight + preloadOffset) visibleChartModes.add(mode);
-  });
+  Object.keys(CHART_CONFIG).forEach((mode) => visibleChartModes.add(mode));
 }
 
 function initChartVisibility() {
   disconnectChartVisibilityObserver();
   seedVisibleChartModes();
-
-  if (state.mode !== "all") return;
-  if (typeof window.IntersectionObserver !== "function") {
-    Object.keys(CHART_CONFIG).forEach((mode) => visibleChartModes.add(mode));
-    return;
-  }
-
-  chartVisibilityObserver = new window.IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        const mode = entry.target?.dataset?.chartMode || "";
-        markChartModeVisible(mode);
-        chartVisibilityObserver?.unobserve(entry.target);
-      });
-    },
-    {
-      root: null,
-      rootMargin: "240px 0px",
-      threshold: 0.01
-    }
-  );
-
-  Object.entries(CHART_CONFIG).forEach(([mode, config]) => {
-    const panel = document.getElementById(config.panelId);
-    if (!panel || panel.hidden || visibleChartModes.has(mode)) return;
-    panel.dataset.chartMode = mode;
-    chartVisibilityObserver.observe(panel);
-  });
 }
 
 async function loadDataSource(sourceKey) {
