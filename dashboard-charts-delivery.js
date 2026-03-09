@@ -100,15 +100,7 @@
     uatColor,
     jiraBrowseBase = "https://nepgroup.atlassian.net/browse/"
   }) {
-    const chartRows = toChartRows(rows)
-      .slice()
-      .sort((left, right) => {
-        const uatDiff = toNumber(right?.uatAvg) - toNumber(left?.uatAvg);
-        if (uatDiff !== 0) return uatDiff;
-        const devDiff = toNumber(right?.devAvg) - toNumber(left?.devAvg);
-        if (devDiff !== 0) return devDiff;
-        return String(left?.label || "").localeCompare(String(right?.label || ""));
-      });
+    const chartRows = toChartRows(rows).slice();
     const compactViewport = isCompactViewport();
     const UAT_ALERT_MONTH_THRESHOLD = 1;
     const uatWithinGoalFill = "#a7cfb4";

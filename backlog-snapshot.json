@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-03-08T23:14:21.345Z",
+  "updatedAt": "2026-03-09T13:58:52.966Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-03-08T23:14:21.345Z"
+    "syncedAt": "2026-03-09T13:58:52.966Z"
   },
   "uatAging": {
     "scope": {
@@ -16,17 +16,13 @@
         "ongoing": {
           "rows": [
             {
-              "label": "Business unit unmapped",
-              "devAvg": 14.49,
-              "uatAvg": 93.48,
-              "devCount": 2,
-              "uatCount": 2,
-              "sampleCount": 2,
+              "label": "ANZJ",
+              "devAvg": 0.87,
+              "uatAvg": 27.5,
+              "devCount": 1,
+              "uatCount": 1,
+              "sampleCount": 1,
               "issueItems": [
-                {
-                  "issueId": "TFC-14540",
-                  "facilityLabel": "Facility unmapped"
-                },
                 {
                   "issueId": "TFC-15958",
                   "facilityLabel": "Facility unmapped"
@@ -36,7 +32,7 @@
             {
               "label": "EU",
               "devAvg": 0.17,
-              "uatAvg": 22.98,
+              "uatAvg": 23.6,
               "devCount": 3,
               "uatCount": 3,
               "sampleCount": 3,
@@ -58,7 +54,7 @@
             {
               "label": "MEA",
               "devAvg": 1.1,
-              "uatAvg": 31.61,
+              "uatAvg": 32.22,
               "devCount": 1,
               "uatCount": 1,
               "sampleCount": 1,
@@ -72,7 +68,7 @@
             {
               "label": "US",
               "devAvg": 0.95,
-              "uatAvg": 42.62,
+              "uatAvg": 43.24,
               "devCount": 3,
               "uatCount": 3,
               "sampleCount": 3,
@@ -90,6 +86,20 @@
                   "facilityLabel": "Facility US USCP"
                 }
               ]
+            },
+            {
+              "label": "Tech Debt",
+              "devAvg": 28.11,
+              "uatAvg": 160.71,
+              "devCount": 1,
+              "uatCount": 1,
+              "sampleCount": 1,
+              "issueItems": [
+                {
+                  "issueId": "TFC-14540",
+                  "facilityLabel": "Facility unmapped"
+                }
+              ]
             }
           ]
         },
@@ -97,11 +107,11 @@
           "rows": [
             {
               "label": "ANZJ",
-              "devAvg": 69.17,
-              "uatAvg": 115.94,
-              "devCount": 6,
-              "uatCount": 6,
-              "sampleCount": 6,
+              "devAvg": 51.88,
+              "uatAvg": 87.14,
+              "devCount": 8,
+              "uatCount": 8,
+              "sampleCount": 8,
               "issueItems": [
                 {
                   "issueId": "TFC-15598",
@@ -125,28 +135,6 @@
                 },
                 {
                   "issueId": "TFC-15120",
-                  "facilityLabel": "Facility unmapped"
-                }
-              ]
-            },
-            {
-              "label": "Business unit unmapped",
-              "devAvg": 8.19,
-              "uatAvg": 31.65,
-              "devCount": 5,
-              "uatCount": 5,
-              "sampleCount": 5,
-              "issueItems": [
-                {
-                  "issueId": "TFC-14891",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-14978",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-15824",
                   "facilityLabel": "Facility unmapped"
                 },
                 {
@@ -191,6 +179,28 @@
                 },
                 {
                   "issueId": "TFC-15894",
+                  "facilityLabel": "Facility unmapped"
+                }
+              ]
+            },
+            {
+              "label": "Tech Debt",
+              "devAvg": 13.65,
+              "uatAvg": 52.25,
+              "devCount": 3,
+              "uatCount": 3,
+              "sampleCount": 3,
+              "issueItems": [
+                {
+                  "issueId": "TFC-14891",
+                  "facilityLabel": "Facility unmapped"
+                },
+                {
+                  "issueId": "TFC-14978",
+                  "facilityLabel": "Facility unmapped"
+                },
+                {
+                  "issueId": "TFC-15824",
                   "facilityLabel": "Facility unmapped"
                 }
               ]
@@ -581,8 +591,8 @@
         "medium": 120,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 181,
-        "longstanding_60d_plus": 167
+        "longstanding_30d_plus": 182,
+        "longstanding_60d_plus": 168
       }
     }
   ]
