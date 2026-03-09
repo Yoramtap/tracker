@@ -712,17 +712,54 @@ function renderLifecycleTimeSpentPerStageChart() {
   });
 }
 
+function compareBusinessUnitLabels(left, right) {
+  const leftLabel = String(left || "").trim();
+  const rightLabel = String(right || "").trim();
+  const leftIsTechDebt = leftLabel.toLowerCase() === "tech debt";
+  const rightIsTechDebt = rightLabel.toLowerCase() === "tech debt";
+  if (leftIsTechDebt && !rightIsTechDebt) return 1;
+  if (!leftIsTechDebt && rightIsTechDebt) return -1;
+  return leftLabel.localeCompare(rightLabel);
+}
+
+function buildEmptyBusinessUnitRow(label) {
+  return {
+    label,
+    devAvg: 0,
+    uatAvg: 0,
+    devCount: 0,
+    uatCount: 0,
+    sampleCount: 0,
+    issueIds: [],
+    issueItems: [],
+    facilities: []
+  };
+}
+
+function getAlignedBusinessUnitRows(scope) {
+  const byScope = state.snapshot?.chartData?.managementBusinessUnit?.byScope;
+  const ongoingRows = Array.isArray(byScope?.ongoing?.rows) ? byScope.ongoing.rows : [];
+  const doneRows = Array.isArray(byScope?.done?.rows) ? byScope.done.rows : [];
+  const labels = Array.from(
+    new Set(
+      [...ongoingRows, ...doneRows]
+        .map((row) => String(row?.label || "").trim())
+        .filter(Boolean)
+    )
+  ).sort(compareBusinessUnitLabels);
+  const targetRows = scope === "done" ? doneRows : ongoingRows;
+  const rowMap = new Map(
+    targetRows.map((row) => [String(row?.label || "").trim(), row])
+  );
+  return labels.map((label) => rowMap.get(label) || buildEmptyBusinessUnitRow(label));
+}
+
 function renderDevelopmentVsUatByFacilityChart() {
   renderChartWithState("management-facility", () => {
     const scope = normalizeOption(state.managementFlowScope, MANAGEMENT_FLOW_SCOPES, "ongoing");
     const titleNode = document.getElementById("management-facility-title");
     syncRadioValue("management-facility-flow-scope", scope);
-    const businessUnitRows = Array.isArray(
-      state.snapshot?.chartData?.managementBusinessUnit?.byScope?.[scope]?.rows
-    )
-      ? state.snapshot.chartData.managementBusinessUnit.byScope[scope].rows
-      : [];
-    const rows = businessUnitRows;
+    const rows = getAlignedBusinessUnitRows(scope);
     if (rows.length === 0) {
       return { error: `No ${scope} Business Unit chart data found in backlog-snapshot.json.` };
     }
