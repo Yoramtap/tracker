@@ -111,9 +111,9 @@
       });
     const compactViewport = isCompactViewport();
     const UAT_ALERT_MONTH_THRESHOLD = 1;
-    const uatWithinGoalFill = "#82bd95";
-    const uatWatchFill = "rgba(201, 150, 88, 0.9)";
-    const uatRiskFill = "#8d3f38";
+    const uatWithinGoalFill = "#a7cfb4";
+    const uatWatchFill = "#d8bf93";
+    const uatRiskFill = "#c98b84";
     const UAT_RISK_MONTH_THRESHOLD = 2;
     const displayRows = chartRows.map((row) => ({
       ...row,
@@ -233,7 +233,7 @@
             cardStyle: {
               maxWidth: "240px"
             },
-            interactive: false,
+            interactive: true,
             trackPointer: false
           }
         ),
