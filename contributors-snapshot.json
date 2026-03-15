@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-03-13T23:06:53.380Z",
+  "updatedAt": "2026-03-15T13:59:27.559Z",
   "summary": {
     "total_issues": 26,
     "active_issues": 9,
@@ -20,7 +20,7 @@
         "notDoneIssues": 1,
         "ticketStateItems": [
           "Done = 6",
-          "Selected for Development = 1"
+          "In Progress = 1"
         ]
       },
       {
