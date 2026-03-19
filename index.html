@@ -132,6 +132,51 @@
         <p id="contributors-status" class="panel-status" hidden></p>
       </section>
 
+      <section id="management-facility-panel" class="panel" aria-label="Broadcast development vs UAT">
+        <div class="panel-title-row">
+          <h2 id="management-facility-title">Development vs UAT by Business Unit</h2>
+          <details class="help-wrap">
+            <summary class="help-tip" aria-label="Development vs UAT chart explainer">
+              i
+            </summary>
+            <div class="help-popover" role="tooltip">
+              <p>
+                <strong>Development vs UAT</strong> compares average stage time by Business Unit.
+              </p>
+              <ul>
+                <li>Use the toggle to compare ongoing vs done scope.</li>
+                <li>Development bars stay blue; UAT bars are green under 1 month, yellow from 1 to 2 months, and red above 2 months.</li>
+                <li>Tooltip includes facility detail and issue links for drill-down.</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+        <div class="panel-subtitle">
+          <span id="management-facility-context" class="panel-context"
+            >Broadcast, -- ongoing work (sample)</span
+          >
+        </div>
+        <div class="radio-control-groups" aria-label="Development vs UAT controls">
+          <fieldset class="radio-group-card">
+            <legend>Scope</legend>
+            <label
+              ><input type="radio" name="management-facility-flow-scope" value="ongoing" checked />
+              Ongoing</label
+            >
+            <label
+              ><input type="radio" name="management-facility-flow-scope" value="done" /> Done</label
+            >
+          </fieldset>
+        </div>
+        <div class="chart">
+          <div
+            id="development-vs-uat-by-facility-chart"
+            class="chart-canvas chart-canvas--standard"
+          ></div>
+        </div>
+        <p id="management-facility-status" class="panel-status" hidden></p>
+      </section>
+
       <section id="pr-activity-panel" class="panel" aria-label="Jira-linked pull request activity">
         <div class="panel-title-row">
           <h2>PR activity by team (Jira proxy)</h2>
@@ -177,51 +222,6 @@
         </div>
         <p id="pr-activity-status" class="panel-status" hidden></p>
         <p id="pr-activity-note" class="panel-note" hidden></p>
-      </section>
-
-      <section id="management-facility-panel" class="panel" aria-label="Broadcast development vs UAT">
-        <div class="panel-title-row">
-          <h2 id="management-facility-title">Development vs UAT by Business Unit</h2>
-          <details class="help-wrap">
-            <summary class="help-tip" aria-label="Development vs UAT chart explainer">
-              i
-            </summary>
-            <div class="help-popover" role="tooltip">
-              <p>
-                <strong>Development vs UAT</strong> compares average stage time by Business Unit.
-              </p>
-              <ul>
-                <li>Use the toggle to compare ongoing vs done scope.</li>
-                <li>Development bars stay blue; UAT bars are green under 1 month, yellow from 1 to 2 months, and red above 2 months.</li>
-                <li>Tooltip includes facility detail and issue links for drill-down.</li>
-              </ul>
-            </div>
-          </details>
-        </div>
-        <div class="panel-subtitle">
-          <span id="management-facility-context" class="panel-context"
-            >Broadcast, -- ongoing work (sample)</span
-          >
-        </div>
-        <div class="radio-control-groups" aria-label="Development vs UAT controls">
-          <fieldset class="radio-group-card">
-            <legend>Scope</legend>
-            <label
-              ><input type="radio" name="management-facility-flow-scope" value="ongoing" checked />
-              Ongoing</label
-            >
-            <label
-              ><input type="radio" name="management-facility-flow-scope" value="done" /> Done</label
-            >
-          </fieldset>
-        </div>
-        <div class="chart">
-          <div
-            id="development-vs-uat-by-facility-chart"
-            class="chart-canvas chart-canvas--standard"
-          ></div>
-        </div>
-        <p id="management-facility-status" class="panel-status" hidden></p>
       </section>
 
       <section id="trend-panel" class="panel" aria-label="Bug backlog trend by team">

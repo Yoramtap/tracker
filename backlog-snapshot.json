@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-03-19T15:06:29.029Z",
+  "updatedAt": "2026-03-19T15:26:53.260Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-03-19T15:06:29.029Z",
+    "syncedAt": "2026-03-19T15:26:53.260Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). UAT aging is generated from current UAT issues and changelog-derived status entry timestamps. PR activity is derived from Jira dev-status pull request details."
   },
   "uatAging": {
@@ -13,7 +13,7 @@
       "status": "UAT",
       "label": "Broadcast"
     },
-    "generatedAt": "2026-03-19T15:03:39.738Z",
+    "generatedAt": "2026-03-19T15:24:05.347Z",
     "totalIssues": 10,
     "buckets": [
       {
@@ -117,7 +117,7 @@
     "candidateIssueCount": 2222,
     "uniquePrCount": 2710,
     "conflictCount": 7,
-    "caveat": "Counts are deduped from Jira dev-status pull request records and attributed by Jira team label. Inflow dates use the earliest available PR lastUpdate and source-branch last commit timestamp. Merged dates use Jira PR lastUpdate as a merge proxy. Review-to-merge time is a ticket proxy: first Jira In Review status to linked merged PR proxy date.",
+    "caveat": "Counts are deduped from Jira dev-status pull request records and attributed by Jira team label. Inflow dates use the earliest available PR lastUpdate and source-branch last commit timestamp. Merged dates use Jira PR lastUpdate as a merge proxy. Review-to-merge time is a ticket proxy: first Jira In Review status to linked merged PR proxy date. Multiple done Jira tickets can still map to the same underlying PR.",
     "points": [
       {
         "date": "2025-01-01",
