@@ -5,6 +5,7 @@ const PRODUCT_CYCLE_SCOPE_LABELS = {
   inception: "All ideas",
   since_2026: "Created in 2026"
 };
+const PR_CYCLE_WINDOWS = ["90d", "6m", "1y"];
 const MANAGEMENT_FLOW_SCOPES = ["ongoing", "done"];
 const CHART_CONFIG = {
   trend: {
@@ -56,6 +57,13 @@ const CHART_CONFIG = {
     rendererName: "renderLeadAndCycleTimeByTeamChart",
     missingMessage: "No product cycle aggregates found in product-cycle-snapshot.json."
   },
+  "pr-cycle-experiment": {
+    panelId: "pr-cycle-experiment-panel",
+    statusId: "pr-cycle-experiment-status",
+    contextId: "pr-cycle-experiment-context",
+    containerId: "pr-cycle-experiment-card",
+    missingMessage: "No PR cycle experiment data found in pr-cycle-snapshot.json."
+  },
   "lifecycle-days": {
     panelId: "lifecycle-days-panel",
     statusId: "lifecycle-days-status",
@@ -90,6 +98,13 @@ const DATA_SOURCE_CONFIG = {
     errorMessage: "Failed to load contributors-snapshot.json",
     statusIds: ["contributors-status"],
     clearContainers: ["top-contributors-chart"]
+  },
+  prCycle: {
+    stateKey: "prCycle",
+    url: "./pr-cycle-snapshot.json",
+    errorMessage: "Failed to load pr-cycle-snapshot.json",
+    statusIds: ["pr-cycle-experiment-status"],
+    clearContainers: ["pr-cycle-experiment-card"]
   }
 };
 const PRELOADED_DATA_SOURCE_PROMISES =
@@ -101,6 +116,7 @@ const CHART_DATA_SOURCES = {
   "pr-activity": ["snapshot"],
   contributors: ["contributors"],
   "product-cycle": ["productCycle"],
+  "pr-cycle-experiment": ["prCycle"],
   "lifecycle-days": ["productCycle"]
 };
 const CHART_RENDERERS = {
@@ -110,6 +126,7 @@ const CHART_RENDERERS = {
   "pr-activity": renderPrActivityCharts,
   contributors: renderTopContributorsChart,
   "product-cycle": renderLeadAndCycleTimeByTeamChart,
+  "pr-cycle-experiment": renderPrCycleExperiment,
   "lifecycle-days": renderLifecycleTimeSpentPerStageChart
 };
 const CONTROL_BINDINGS = [
@@ -143,6 +160,20 @@ const CONTROL_BINDINGS = [
     controlType: "checkbox"
   },
   {
+    name: "pr-cycle-team",
+    stateKey: "prCycleTeam",
+    defaultValue: "bc",
+    normalizeValue: (value) => String(value || "").trim().toLowerCase() || "bc",
+    onChangeRender: renderPrCycleExperiment
+  },
+  {
+    name: "pr-cycle-window",
+    stateKey: "prCycleWindow",
+    defaultValue: "90d",
+    normalizeValue: (value) => normalizeOption(value, PR_CYCLE_WINDOWS, "90d"),
+    onChangeRender: renderPrCycleExperiment
+  },
+  {
     name: "product-cycle-scope",
     stateKey: "productCycleScope",
     defaultValue: "inception",
@@ -158,6 +189,7 @@ const state = {
   snapshot: null,
   contributors: null,
   productCycle: null,
+  prCycle: null,
   loadedSources: {},
   loadErrors: {},
   mode: "all",
@@ -166,6 +198,8 @@ const state = {
   prActivityHiddenKeys: [],
   showPrActivityMarkers: true,
   managementFlowScope: "ongoing",
+  prCycleTeam: "bc",
+  prCycleWindow: "90d",
   productCycleScope: "inception"
 };
 
@@ -376,7 +410,8 @@ function getDashboardRefreshUpdatedAt() {
     state.snapshot?.updatedAt,
     state.snapshot?.chartData ? state.snapshot?.chartDataUpdatedAt : "",
     state.productCycle?.generatedAt,
-    state.contributors?.updatedAt
+    state.contributors?.updatedAt,
+    state.prCycle?.updatedAt
   ]);
 }
 
@@ -1275,6 +1310,127 @@ function bindCheckboxState(name, stateKey, normalizeChecked, onChangeRender) {
   });
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function formatStageDuration(value) {
+  return `${toNumber(value).toFixed(1)}d`;
+}
+
+function getPrCycleStageDisplayLabel(stage) {
+  const key = String(stage?.key || "").trim();
+  if (key === "coding") return "Progress";
+  if (key === "review") return "Review";
+  if (key === "merge") return "QA";
+  return String(stage?.label || "").trim();
+}
+
+function getPrCycleTeamColor(teamKey) {
+  const normalizedKey = String(teamKey || "").trim().toLowerCase();
+  const baseMap = buildTeamColorMap([normalizedKey]);
+  return baseMap[normalizedKey] || "#4f8fcb";
+}
+
+function renderPrCycleExperimentCard(containerId, team, snapshot) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const stages = Array.isArray(team?.stages) ? team.stages : [];
+  const teamColor = getPrCycleTeamColor(team?.key);
+  const maxDays = stages.reduce((highest, stage) => Math.max(highest, toNumber(stage?.days)), 0) || 1;
+  const rowsMarkup = stages
+    .map((stage) => {
+      const width = Math.max(12, Math.round((toNumber(stage?.days) / maxDays) * 100));
+      const tone = ["amber", "blue", "stone"].includes(String(stage?.tone || ""))
+        ? String(stage.tone)
+        : "amber";
+      const sampleCount = toCount(stage?.sampleCount);
+      return `
+        <div class="pr-cycle-stage-row" data-stage="${escapeHtml(String(stage?.key || ""))}">
+          <div class="pr-cycle-stage-row__label">
+            <span class="pr-cycle-stage-row__label-text">${escapeHtml(getPrCycleStageDisplayLabel(stage))}</span>
+            <span class="pr-cycle-stage-row__sample">${sampleCount > 0 ? `n=${sampleCount}` : "n=0"}</span>
+          </div>
+          <div class="pr-cycle-stage-row__track" aria-hidden="true">
+            <div class="pr-cycle-stage-row__fill pr-cycle-stage-row__fill--${tone}" style="width:${width}%"></div>
+          </div>
+          <div class="pr-cycle-stage-row__value">${formatStageDuration(stage?.days)}</div>
+        </div>
+      `;
+    })
+    .join("");
+  const issueCount = toNumber(team?.issueCount || team?.pullRequestCount);
+  const footerPrimary = issueCount > 0 ? `${issueCount} issues sampled` : "No sampled issues";
+  const footerSecondary = String(snapshot?.windowLabel || "").trim();
+
+  container.innerHTML = `
+    <article class="pr-cycle-stage-card" data-team="${escapeHtml(String(team?.key || ""))}" style="--pr-cycle-accent:${escapeHtml(teamColor)};">
+      <div class="pr-cycle-stage-card__header">
+        <div class="pr-cycle-stage-card__meta">
+          <div class="pr-cycle-stage-card__team">${escapeHtml(team?.label || "")}</div>
+          <div class="pr-cycle-stage-card__total">${formatStageDuration(team?.totalCycleDays)}</div>
+          <div class="pr-cycle-stage-card__submeta">${escapeHtml(snapshot?.windowLabel || "")}</div>
+        </div>
+      </div>
+      <div class="pr-cycle-stage-list">${rowsMarkup}</div>
+      <div class="pr-cycle-stage-card__footer">
+        <span><strong>${escapeHtml(footerPrimary)}</strong>${footerSecondary ? ` • ${escapeHtml(footerSecondary)}` : ""}</span>
+        <span>Bottleneck: <strong>${escapeHtml(team?.bottleneckLabel || "")}</strong></span>
+      </div>
+    </article>
+  `;
+}
+
+function renderPrCycleExperiment() {
+  withChart("pr-cycle-experiment", ({ status, context, config }) => {
+    const windows = state.prCycle?.windows && typeof state.prCycle.windows === "object"
+      ? state.prCycle.windows
+      : null;
+    const availableWindowKeys = Object.keys(windows || {});
+    const fallbackWindowKey =
+      String(state.prCycle?.defaultWindow || "").trim().toLowerCase() || "90d";
+    const selectedWindowKey = availableWindowKeys.includes(state.prCycleWindow)
+      ? state.prCycleWindow
+      : availableWindowKeys.includes(fallbackWindowKey)
+        ? fallbackWindowKey
+        : "90d";
+    const selectedWindowSnapshot =
+      windows?.[selectedWindowKey] && typeof windows[selectedWindowKey] === "object"
+        ? windows[selectedWindowKey]
+        : state.prCycle;
+    const teams = Array.isArray(selectedWindowSnapshot?.teams) ? selectedWindowSnapshot.teams : [];
+    if (teams.length === 0) {
+      clearChartContainer(config.containerId);
+      showPanelStatus(status, config.missingMessage);
+      return;
+    }
+
+    const availableKeys = teams.map((team) => String(team?.key || "").trim().toLowerCase());
+    const fallbackTeamKey =
+      String(state.prCycle?.defaultTeam || "").trim().toLowerCase() || availableKeys[0];
+    const selectedKey = availableKeys.includes(state.prCycleTeam)
+      ? state.prCycleTeam
+      : fallbackTeamKey;
+    const selectedTeam =
+      teams.find((team) => String(team?.key || "").trim().toLowerCase() === selectedKey) || teams[0];
+
+    state.prCycleTeam = selectedKey;
+    state.prCycleWindow = selectedWindowKey;
+    syncRadioValue("pr-cycle-team", selectedKey);
+    syncRadioValue("pr-cycle-window", selectedWindowKey);
+    status.hidden = true;
+    setPanelContext(
+      context,
+      `${selectedTeam.label} • ${toNumber(selectedTeam.issueCount || selectedTeam.pullRequestCount)} issues • ${String(selectedWindowSnapshot?.windowLabel || state.prCycle?.windowLabel || "")}`
+    );
+    renderPrCycleExperimentCard(config.containerId, selectedTeam, selectedWindowSnapshot);
+  });
+}
+
 function renderLifecycleTimeSpentPerStageChart() {
   renderChartWithState("lifecycle-days", () => {
     const chartData = state.productCycle?.chartData;
@@ -1501,6 +1657,7 @@ async function loadSnapshot() {
   state.snapshot = null;
   state.productCycle = null;
   state.contributors = null;
+  state.prCycle = null;
   state.loadedSources = {};
   state.loadErrors = {};
   state.mode = getModeFromUrl();

@@ -18,10 +18,7 @@
         "bugIssues": 4,
         "linkedIssues": 4,
         "notDoneIssues": 1,
-        "ticketStateItems": [
-          "Done = 6",
-          "In Progress = 1"
-        ]
+        "ticketStateItems": ["Done = 6", "In Progress = 1"]
       },
       {
         "contributor": "Tesoro Fedel",
@@ -31,10 +28,7 @@
         "bugIssues": 3,
         "linkedIssues": 1,
         "notDoneIssues": 2,
-        "ticketStateItems": [
-          "Done = 4",
-          "In Review = 2"
-        ]
+        "ticketStateItems": ["Done = 4", "In Review = 2"]
       },
       {
         "contributor": "Sven Kommers",
@@ -44,11 +38,7 @@
         "bugIssues": 1,
         "linkedIssues": 6,
         "notDoneIssues": 2,
-        "ticketStateItems": [
-          "Done = 2",
-          "In Review = 1",
-          "Selected for Development = 1"
-        ]
+        "ticketStateItems": ["Done = 2", "In Review = 1", "Selected for Development = 1"]
       },
       {
         "contributor": "David Oxe",
@@ -58,9 +48,7 @@
         "bugIssues": 0,
         "linkedIssues": 4,
         "notDoneIssues": 0,
-        "ticketStateItems": [
-          "Done = 2"
-        ]
+        "ticketStateItems": ["Done = 2"]
       },
       {
         "contributor": "Jack Woodgate",
@@ -70,9 +58,7 @@
         "bugIssues": 1,
         "linkedIssues": 0,
         "notDoneIssues": 0,
-        "ticketStateItems": [
-          "Done = 1"
-        ]
+        "ticketStateItems": ["Done = 1"]
       },
       {
         "contributor": "Mitchell Kalika",
@@ -82,9 +68,7 @@
         "bugIssues": 0,
         "linkedIssues": 1,
         "notDoneIssues": 0,
-        "ticketStateItems": [
-          "Done = 1"
-        ]
+        "ticketStateItems": ["Done = 1"]
       }
     ]
   }

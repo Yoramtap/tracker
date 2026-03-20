@@ -4,7 +4,8 @@
   const DATA_SOURCE_URLS = {
     snapshot: "./backlog-snapshot.json",
     productCycle: "./product-cycle-snapshot.json",
-    contributors: "./contributors-snapshot.json"
+    contributors: "./contributors-snapshot.json",
+    prCycle: "./pr-cycle-snapshot.json"
   };
 
   function getRequestedMode() {
@@ -25,6 +26,7 @@
         return "management-facility";
       }
       if (chart === "pr" || chart === "prs" || chart === "pr-activity") return "pr-activity";
+      if (chart === "pr-cycle" || chart === "pr-cycle-experiment") return "pr-cycle-experiment";
       if (chart === "contributors") return "contributors";
       if (chart === "product-cycle" || chart === "cycle-time") return "product-cycle";
       if (chart === "lifecycle-days") return "lifecycle-days";
@@ -38,6 +40,7 @@
     const mode = getRequestedMode();
     if (mode === "all") return Object.keys(DATA_SOURCE_URLS);
     if (mode === "contributors") return ["contributors"];
+    if (mode === "pr-cycle-experiment") return ["prCycle"];
     if (mode === "product-cycle" || mode === "lifecycle-days") return ["productCycle"];
     return ["snapshot"];
   }

@@ -120,6 +120,7 @@
       return "management-facility";
     }
     if (chart === "pr" || chart === "prs" || chart === "pr-activity") return "pr-activity";
+    if (chart === "pr-cycle" || chart === "pr-cycle-experiment") return "pr-cycle-experiment";
     if (chart === "contributors") return "contributors";
     if (chart === "product-cycle" || chart === "cycle-time") return "product-cycle";
     if (chart === "lifecycle-days") return "lifecycle-days";

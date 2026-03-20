@@ -116,10 +116,15 @@
     const categorySecondaryLabels = Object.fromEntries(
       chartRows.map((row) => [String(row?.label || ""), `n=${toWhole(row?.sampleCount)}`])
     );
-    const isBusinessUnitGrouping = String(groupingLabel || "").trim().toLowerCase() === "business unit";
+    const isBusinessUnitGrouping =
+      String(groupingLabel || "")
+        .trim()
+        .toLowerCase() === "business unit";
     const xInterval = compactViewport ? tickIntervalForMobileLabels(chartRows.length) : 0;
     renderGroupedBars(containerId, chartRows.length > 0, {
       rows: displayRows,
+      categoryKey: "label",
+      valueUnit: "months",
       referenceNodes: [
         h(ReferenceLine, {
           y: UAT_ALERT_MONTH_THRESHOLD,
@@ -275,6 +280,7 @@
       defs: [{ key: "total", name: "Contribution totals", color: fillColor }],
       colors,
       showLegend: false,
+      valueUnit: "count",
       orientation: "horizontal",
       categoryKey: "contributor",
       chartMargin: compactViewport

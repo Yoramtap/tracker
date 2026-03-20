@@ -6,15 +6,7 @@
     "leadCycleByScope": {
       "inception": {
         "scopeLabel": "All ideas",
-        "teams": [
-          "API",
-          "Frontend",
-          "Broadcast",
-          "Orchestration",
-          "Titanium",
-          "Shift",
-          "UNMAPPED"
-        ],
+        "teams": ["API", "Frontend", "Broadcast", "Orchestration", "Titanium", "Shift", "UNMAPPED"],
         "rows": [
           {
             "team": "API",
@@ -181,15 +173,7 @@
       },
       "since_2026": {
         "scopeLabel": "Created in 2026",
-        "teams": [
-          "API",
-          "Frontend",
-          "Broadcast",
-          "Orchestration",
-          "Titanium",
-          "Shift",
-          "UNMAPPED"
-        ],
+        "teams": ["API", "Frontend", "Broadcast", "Orchestration", "Titanium", "Shift", "UNMAPPED"],
         "rows": [
           {
             "team": "API",
@@ -358,15 +342,7 @@
     "lifecycleByScope": {
       "inception": {
         "scopeLabel": "All ideas",
-        "teams": [
-          "API",
-          "Frontend",
-          "Broadcast",
-          "Orchestration",
-          "Titanium",
-          "Shift",
-          "UNMAPPED"
-        ],
+        "teams": ["API", "Frontend", "Broadcast", "Orchestration", "Titanium", "Shift", "UNMAPPED"],
         "teamDefs": [
           {
             "slot": "slot_0",
@@ -609,15 +585,7 @@
       },
       "since_2026": {
         "scopeLabel": "Created in 2026",
-        "teams": [
-          "API",
-          "Frontend",
-          "Broadcast",
-          "Orchestration",
-          "Titanium",
-          "Shift",
-          "UNMAPPED"
-        ],
+        "teams": ["API", "Frontend", "Broadcast", "Orchestration", "Titanium", "Shift", "UNMAPPED"],
         "teamDefs": [
           {
             "slot": "slot_0",
@@ -797,15 +765,7 @@
       }
     },
     "currentStageSnapshot": {
-      "teams": [
-        "API",
-        "Frontend",
-        "Broadcast",
-        "Orchestration",
-        "Titanium",
-        "Shift",
-        "UNMAPPED"
-      ],
+      "teams": ["API", "Frontend", "Broadcast", "Orchestration", "Titanium", "Shift", "UNMAPPED"],
       "teamDefs": [
         {
           "slot": "slot_0",

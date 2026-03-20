@@ -6,7 +6,7 @@
     throw new Error("Dashboard UI helpers not loaded.");
   }
 
-  const PRODUCT_CYCLE_TEAM_ORDER = ["api", "frontend", "broadcast", "orchestration", "titanium", "shift"];
+  const PRODUCT_CYCLE_TEAM_ORDER = ["api", "frontend", "broadcast", "workers", "titanium", "shift"];
   const TEAM_FALLBACK_PALETTE = [
     "#4f8fcb",
     "#c78b2e",
@@ -26,6 +26,7 @@
     broadcast: "#7b63c7",
     bc: "#7b63c7",
     orchestration: "#5e6b84",
+    workers: "#5e6b84",
     titanium: "#b07aa1",
     shift: "#8a6a4a",
     unmapped: "#4a758e"
@@ -51,7 +52,9 @@
   }
 
   function hashTeamName(teamName) {
-    const text = String(teamName || "").trim().toLowerCase();
+    const text = String(teamName || "")
+      .trim()
+      .toLowerCase();
     let hash = 0;
     for (let index = 0; index < text.length; index += 1) {
       hash = (hash * 31 + text.charCodeAt(index)) >>> 0;
@@ -85,10 +88,17 @@
     const key = raw.toLowerCase();
     if (DASHBOARD_TEAM_BASE_COLORS[key]) return DASHBOARD_TEAM_BASE_COLORS[key];
     if (key.includes("api")) return DASHBOARD_TEAM_BASE_COLORS.api;
-    if (key.includes("legacy") || key.includes("frontend")) return DASHBOARD_TEAM_BASE_COLORS.frontend;
+    if (key.includes("legacy") || key.includes("frontend"))
+      return DASHBOARD_TEAM_BASE_COLORS.frontend;
     if (key.includes("react")) return DASHBOARD_TEAM_BASE_COLORS.react;
     if (key.includes("broadcast")) return DASHBOARD_TEAM_BASE_COLORS.broadcast;
-    return TEAM_FALLBACK_PALETTE[hashTeamName(raw || `team-${index}`) % TEAM_FALLBACK_PALETTE.length];
+    if (key.includes("worker")) return DASHBOARD_TEAM_BASE_COLORS.workers;
+    if (key.includes("orchestration")) return DASHBOARD_TEAM_BASE_COLORS.orchestration;
+    if (key.includes("titanium") || key.includes("media"))
+      return DASHBOARD_TEAM_BASE_COLORS.titanium;
+    return TEAM_FALLBACK_PALETTE[
+      hashTeamName(raw || `team-${index}`) % TEAM_FALLBACK_PALETTE.length
+    ];
   }
 
   function pickUniqueTeamColor(teamName, usedColors) {
@@ -105,7 +115,9 @@
 
   function buildTeamColorMap(teams, { ensureUnique = false } = {}) {
     if (!ensureUnique) {
-      return Object.fromEntries(teams.map((team, index) => [team, resolveTeamBaseColor(team, index)]));
+      return Object.fromEntries(
+        teams.map((team, index) => [team, resolveTeamBaseColor(team, index)])
+      );
     }
 
     const colorMap = {};

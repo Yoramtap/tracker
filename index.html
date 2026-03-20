@@ -43,6 +43,7 @@
           <nav class="dashboard-jump-links" aria-label="Jump to chart">
             <a href="#management-facility-panel">UAT</a>
             <a href="#product-cycle-panel">Cycle time</a>
+            <a href="#pr-cycle-experiment-panel">PR stages</a>
             <a href="#lifecycle-days-panel">Stages</a>
             <a href="#contributors-panel">Contributors</a>
             <a href="#trend-panel">Bug trend</a>
@@ -152,6 +153,85 @@
         <p id="product-cycle-totals" class="panel-summary" hidden></p>
         <p
           id="product-cycle-status"
+          class="panel-status"
+          aria-live="polite"
+          role="status"
+          hidden
+        ></p>
+      </section>
+
+      <section
+        id="pr-cycle-experiment-panel"
+        class="panel"
+        aria-label="Workflow breakdown"
+      >
+        <div class="panel-title-row">
+          <h2>Workflow breakdown</h2>
+          <details class="help-wrap">
+            <summary class="help-tip" aria-label="Workflow breakdown explainer">i</summary>
+            <div class="help-popover" role="tooltip">
+              <p>
+                <strong>Workflow breakdown</strong> shows average time spent in the tracked board
+                workflow stages for each team.
+              </p>
+              <ul>
+                <li>This shows average days spent in each tracked Jira workflow stage.</li>
+                <li>The current stages are Progress and Review, plus QA where that board has a QA column.</li>
+                <li>The data source is board-backed Jira status history over the selected time window.</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+        <div class="panel-subtitle">
+          <span id="pr-cycle-experiment-context" class="panel-context">--</span>
+        </div>
+        <div class="radio-control-groups" aria-label="Workflow breakdown time range">
+          <fieldset class="radio-group-card">
+            <legend>Time range</legend>
+            <label
+              ><input type="radio" name="pr-cycle-window" value="90d" checked /> Last 90
+              days</label
+            >
+            <label
+              ><input type="radio" name="pr-cycle-window" value="6m" /> Last 6 months</label
+            >
+            <label><input type="radio" name="pr-cycle-window" value="1y" /> Last year</label>
+          </fieldset>
+        </div>
+        <div class="pr-cycle-team-switch" role="radiogroup" aria-label="Workflow breakdown team">
+          <label class="pr-cycle-team-pill">
+            <input type="radio" name="pr-cycle-team" value="api" />
+            <span>API</span>
+          </label>
+          <label class="pr-cycle-team-pill">
+            <input type="radio" name="pr-cycle-team" value="legacy" />
+            <span>Legacy FE</span>
+          </label>
+          <label class="pr-cycle-team-pill">
+            <input type="radio" name="pr-cycle-team" value="react" />
+            <span>React FE</span>
+          </label>
+          <label class="pr-cycle-team-pill">
+            <input type="radio" name="pr-cycle-team" value="bc" checked />
+            <span>BC</span>
+          </label>
+          <label class="pr-cycle-team-pill">
+            <input type="radio" name="pr-cycle-team" value="workers" />
+            <span>Workers</span>
+          </label>
+          <label class="pr-cycle-team-pill">
+            <input type="radio" name="pr-cycle-team" value="titanium" />
+            <span>Titanium</span>
+          </label>
+        </div>
+        <div class="chart">
+          <div
+            id="pr-cycle-experiment-card"
+            class="chart-canvas chart-canvas--dense pr-cycle-experiment-canvas"
+          ></div>
+        </div>
+        <p
+          id="pr-cycle-experiment-status"
           class="panel-status"
           aria-live="polite"
           role="status"
