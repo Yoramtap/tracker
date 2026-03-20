@@ -42,8 +42,8 @@
           <p id="dashboard-refresh-text" class="dashboard-refresh-text"></p>
           <nav class="dashboard-jump-links" aria-label="Jump to chart">
             <a href="#management-facility-panel">UAT</a>
-            <a href="#product-cycle-panel">Cycle time</a>
             <a href="#pr-cycle-experiment-panel">PR stages</a>
+            <a href="#product-cycle-panel">Cycle time</a>
             <a href="#lifecycle-days-panel">Stages</a>
             <a href="#contributors-panel">Contributors</a>
             <a href="#trend-panel">Bug trend</a>
@@ -103,56 +103,6 @@
         </div>
         <p
           id="management-facility-status"
-          class="panel-status"
-          aria-live="polite"
-          role="status"
-          hidden
-        ></p>
-      </section>
-
-      <section id="product-cycle-panel" class="panel" aria-label="Product cycle time by team">
-        <div class="panel-title-row">
-          <h2 id="product-cycle-title">Cycle time by team</h2>
-          <details class="help-wrap">
-            <summary class="help-tip" aria-label="Product cycle chart explainer">i</summary>
-            <div class="help-popover" role="tooltip">
-              <p><strong>Cycle time per team</strong> is computed from lifecycle timestamps.</p>
-              <ul>
-                <li>Cycle time = time spent in In Development + UAT, including ongoing work.</li>
-                <li>
-                  Shipped counts include only ideas that reached Done through recorded
-                  Development/UAT time and not adminned to Done.
-                </li>
-                <li>Aggregated by team using selected sample scope.</li>
-              </ul>
-            </div>
-          </details>
-        </div>
-        <div class="panel-subtitle">
-          <span id="product-cycle-context" class="panel-context">--</span>
-        </div>
-        <div class="radio-control-groups" aria-label="Product cycle controls">
-          <fieldset class="radio-group-card">
-            <legend>Scope</legend>
-            <label
-              ><input type="radio" name="product-cycle-scope" value="inception" checked /> All
-              ideas</label
-            >
-            <label
-              ><input type="radio" name="product-cycle-scope" value="since_2026" /> Created in
-              2026</label
-            >
-          </fieldset>
-        </div>
-        <div class="chart">
-          <div
-            id="cycle-time-parking-lot-to-done-chart"
-            class="chart-canvas chart-canvas--dense"
-          ></div>
-        </div>
-        <p id="product-cycle-totals" class="panel-summary" hidden></p>
-        <p
-          id="product-cycle-status"
           class="panel-status"
           aria-live="polite"
           role="status"
@@ -232,6 +182,56 @@
         </div>
         <p
           id="pr-cycle-experiment-status"
+          class="panel-status"
+          aria-live="polite"
+          role="status"
+          hidden
+        ></p>
+      </section>
+
+      <section id="product-cycle-panel" class="panel" aria-label="Product cycle time by team">
+        <div class="panel-title-row">
+          <h2 id="product-cycle-title">Cycle time by team</h2>
+          <details class="help-wrap">
+            <summary class="help-tip" aria-label="Product cycle chart explainer">i</summary>
+            <div class="help-popover" role="tooltip">
+              <p><strong>Cycle time per team</strong> is computed from lifecycle timestamps.</p>
+              <ul>
+                <li>Cycle time = time spent in In Development + UAT, including ongoing work.</li>
+                <li>
+                  Shipped counts include only ideas that reached Done through recorded
+                  Development/UAT time and not adminned to Done.
+                </li>
+                <li>Aggregated by team using selected sample scope.</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+        <div class="panel-subtitle">
+          <span id="product-cycle-context" class="panel-context">--</span>
+        </div>
+        <div class="radio-control-groups" aria-label="Product cycle controls">
+          <fieldset class="radio-group-card">
+            <legend>Scope</legend>
+            <label
+              ><input type="radio" name="product-cycle-scope" value="inception" checked /> All
+              ideas</label
+            >
+            <label
+              ><input type="radio" name="product-cycle-scope" value="since_2026" /> Created in
+              2026</label
+            >
+          </fieldset>
+        </div>
+        <div class="chart">
+          <div
+            id="cycle-time-parking-lot-to-done-chart"
+            class="chart-canvas chart-canvas--dense"
+          ></div>
+        </div>
+        <p id="product-cycle-totals" class="panel-summary" hidden></p>
+        <p
+          id="product-cycle-status"
           class="panel-status"
           aria-live="polite"
           role="status"
