@@ -9,6 +9,13 @@
       content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; style-src-elem 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'"
     />
     <title>Backlog Trends</title>
+    <link rel="stylesheet" href="./node_modules/@fontsource/inter/latin-400.css" />
+    <link rel="stylesheet" href="./node_modules/@fontsource/inter/latin-500.css" />
+    <link rel="stylesheet" href="./node_modules/@fontsource/inter/latin-600.css" />
+    <link rel="stylesheet" href="./node_modules/@fontsource/inter/latin-700.css" />
+    <link rel="stylesheet" href="./node_modules/@fontsource/ibm-plex-serif/latin-500.css" />
+    <link rel="stylesheet" href="./node_modules/@fontsource/ibm-plex-serif/latin-600.css" />
+    <link rel="stylesheet" href="./node_modules/@fontsource/ibm-plex-serif/latin-700.css" />
     <link rel="stylesheet" href="./dashboard-styles.css" />
     <script src="./dashboard-preload.js"></script>
     <script defer src="./vendor/react.production.min.js"></script>
@@ -42,12 +49,11 @@
           <p id="dashboard-refresh-text" class="dashboard-refresh-text"></p>
           <nav class="dashboard-jump-links" aria-label="Jump to chart">
             <a href="#management-facility-panel">UAT</a>
-            <a href="#pr-cycle-experiment-panel">PR stages</a>
             <a href="#product-cycle-panel">Cycle time</a>
-            <a href="#lifecycle-days-panel">Stages</a>
+            <a href="#lifecycle-days-panel">Ideas breakdown</a>
             <a href="#contributors-panel">Contributors</a>
-            <a href="#trend-panel">Bug trend</a>
-            <a href="#composition-panel">Bug composition</a>
+            <a href="#pr-cycle-experiment-panel">Workflow breakdown</a>
+            <a href="#composition-panel">Backlog mix</a>
             <a href="#pr-inflow-block">PR inflow</a>
             <a href="#pr-review-merge-block">Review to merge</a>
           </nav>
@@ -78,13 +84,8 @@
             </div>
           </details>
         </div>
-        <div class="panel-subtitle">
-          <span id="management-facility-context" class="panel-context"
-            >Broadcast, -- ongoing work (sample)</span
-          >
-        </div>
         <div class="radio-control-groups" aria-label="Development vs UAT controls">
-          <fieldset class="radio-group-card">
+          <fieldset class="radio-group-card radio-group-card--primary">
             <legend>Scope</legend>
             <label
               ><input type="radio" name="management-facility-flow-scope" value="ongoing" checked />
@@ -101,6 +102,7 @@
             class="chart-canvas chart-canvas--standard"
           ></div>
         </div>
+        <p id="management-facility-context" class="panel-summary panel-summary--meta" hidden></p>
         <p
           id="management-facility-status"
           class="panel-status"
@@ -110,11 +112,7 @@
         ></p>
       </section>
 
-      <section
-        id="pr-cycle-experiment-panel"
-        class="panel"
-        aria-label="Workflow breakdown"
-      >
+      <section id="pr-cycle-experiment-panel" class="panel" aria-label="Workflow breakdown">
         <div class="panel-title-row">
           <h2>Workflow breakdown</h2>
           <details class="help-wrap">
@@ -126,25 +124,24 @@
               </p>
               <ul>
                 <li>This shows average days spent in each tracked Jira workflow stage.</li>
-                <li>The current stages are Progress and Review, plus QA where that board has a QA column.</li>
-                <li>The data source is board-backed Jira status history over the selected time window.</li>
+                <li>
+                  The current stages are Progress and Review, plus QA where that board has a QA
+                  column.
+                </li>
+                <li>
+                  The data source is board-backed Jira status history over the selected time window.
+                </li>
               </ul>
             </div>
           </details>
         </div>
-        <div class="panel-subtitle">
-          <span id="pr-cycle-experiment-context" class="panel-context">--</span>
-        </div>
         <div class="radio-control-groups" aria-label="Workflow breakdown time range">
-          <fieldset class="radio-group-card">
+          <fieldset class="radio-group-card radio-group-card--primary">
             <legend>Time range</legend>
             <label
-              ><input type="radio" name="pr-cycle-window" value="90d" checked /> Last 90
-              days</label
+              ><input type="radio" name="pr-cycle-window" value="90d" checked /> Last 90 days</label
             >
-            <label
-              ><input type="radio" name="pr-cycle-window" value="6m" /> Last 6 months</label
-            >
+            <label><input type="radio" name="pr-cycle-window" value="6m" /> Last 6 months</label>
             <label><input type="radio" name="pr-cycle-window" value="1y" /> Last year</label>
           </fieldset>
         </div>
@@ -180,6 +177,7 @@
             class="chart-canvas chart-canvas--dense pr-cycle-experiment-canvas"
           ></div>
         </div>
+        <p id="pr-cycle-experiment-context" class="panel-summary panel-summary--meta" hidden></p>
         <p
           id="pr-cycle-experiment-status"
           class="panel-status"
@@ -207,11 +205,8 @@
             </div>
           </details>
         </div>
-        <div class="panel-subtitle">
-          <span id="product-cycle-context" class="panel-context">--</span>
-        </div>
         <div class="radio-control-groups" aria-label="Product cycle controls">
-          <fieldset class="radio-group-card">
+          <fieldset class="radio-group-card radio-group-card--primary">
             <legend>Scope</legend>
             <label
               ><input type="radio" name="product-cycle-scope" value="inception" checked /> All
@@ -229,7 +224,7 @@
             class="chart-canvas chart-canvas--dense"
           ></div>
         </div>
-        <p id="product-cycle-totals" class="panel-summary" hidden></p>
+        <p id="product-cycle-context" class="panel-summary panel-summary--meta" hidden></p>
         <p
           id="product-cycle-status"
           class="panel-status"
@@ -239,15 +234,15 @@
         ></p>
       </section>
 
-      <section id="lifecycle-days-panel" class="panel" aria-label="Time spent in open ideas">
+      <section id="lifecycle-days-panel" class="panel" aria-label="Ideas breakdown">
         <div class="panel-title-row">
-          <h2>Time spent in open ideas</h2>
+          <h2>Ideas breakdown</h2>
           <details class="help-wrap">
-            <summary class="help-tip" aria-label="Lifecycle chart explainer">i</summary>
+            <summary class="help-tip" aria-label="Ideas breakdown explainer">i</summary>
             <div class="help-popover" role="tooltip">
               <p>
-                <strong>Current time in stage</strong> shows how long active ideas have currently
-                been sitting in each stage.
+                <strong>Ideas breakdown</strong> shows how long active ideas have currently been
+                sitting in each stage.
               </p>
               <ul>
                 <li>Stages: Parking, Design, Ready, In Development, UAT.</li>
@@ -259,15 +254,13 @@
             </div>
           </details>
         </div>
-        <div class="panel-subtitle">
-          <span id="lifecycle-days-context" class="panel-context">--</span>
-        </div>
         <div class="chart">
           <div
             id="lifecycle-time-spent-per-phase-chart"
             class="chart-canvas chart-canvas--dense"
           ></div>
         </div>
+        <p id="lifecycle-days-context" class="panel-summary panel-summary--meta" hidden></p>
         <p
           id="lifecycle-days-status"
           class="panel-status"
@@ -295,14 +288,10 @@
             </div>
           </details>
         </div>
-        <div class="panel-subtitle">
-          <span id="contributors-context" class="panel-context"
-            >Contributors label scope • status mix</span
-          >
-        </div>
         <div class="chart">
           <div id="top-contributors-chart" class="chart-canvas chart-canvas--dense"></div>
         </div>
+        <p id="contributors-context" class="panel-summary panel-summary--meta" hidden></p>
         <p
           id="contributors-status"
           class="panel-status"
@@ -312,73 +301,28 @@
         ></p>
       </section>
 
-      <section id="trend-panel" class="panel" aria-label="Bug backlog trend by team">
+      <section id="composition-panel" class="panel" aria-label="Bugs across teams">
         <div class="panel-title-row">
-          <h2>Bug backlog trend by team</h2>
+          <h2>Bugs across teams</h2>
           <details class="help-wrap">
-            <summary class="help-tip" aria-label="Bug backlog trend chart explainer">i</summary>
-            <div class="help-popover" role="tooltip">
-              <p><strong>Bug backlog trend</strong> tracks open backlog over time by team.</p>
-              <ul>
-                <li>Each line is one team.</li>
-                <li>Dashed BC lines show long-standing backlog overlays.</li>
-              </ul>
-            </div>
-          </details>
-        </div>
-        <div class="panel-subtitle">
-          <span id="trend-context" class="panel-context"
-            >Open bugs across tracked teams plus BC aging overlays</span
-          >
-        </div>
-        <div class="chart">
-          <div id="bug-trend-chart" class="chart-canvas chart-canvas--standard"></div>
-        </div>
-        <p id="trend-status" class="panel-status" aria-live="polite" role="status" hidden></p>
-      </section>
-
-      <section id="composition-panel" class="panel" aria-label="Backlog stacked bars">
-        <div class="panel-title-row">
-          <h2>Bug composition by priority</h2>
-          <details class="help-wrap">
-            <summary class="help-tip" aria-label="Bug composition chart explainer">i</summary>
+            <summary class="help-tip" aria-label="Backlog mix explainer">i</summary>
             <div class="help-popover" role="tooltip">
               <p>
-                <strong>Composition chart</strong> shows how open work is distributed across
-                priority bands.
+                <strong>Current bug backlog and priority mix</strong> shows the latest open-bug
+                total, recent bug-backlog change, and current priority split for each tracked team.
               </p>
               <ul>
-                <li>Each segment is a priority bucket.</li>
-                <li>Use Team filter to compare where urgent load sits.</li>
+                <li>Percentages are calculated within each team row.</li>
+                <li>Change stacks 30d, 90d, and 6m movement in one place.</li>
+                <li>Use it as the main bug-health summary across teams.</li>
               </ul>
             </div>
           </details>
         </div>
-        <div class="panel-subtitle">
-          <span id="composition-context" class="panel-context"
-            >Open bug mix across the last 10 snapshots</span
-          >
-        </div>
-        <div class="radio-control-groups" aria-label="Composition controls">
-          <fieldset class="radio-group-card">
-            <legend>Team</legend>
-            <label
-              ><input type="radio" name="composition-team-scope" value="bc" checked /> BC</label
-            >
-            <label><input type="radio" name="composition-team-scope" value="api" /> API</label>
-            <label
-              ><input type="radio" name="composition-team-scope" value="legacy" /> Legacy</label
-            >
-            <label><input type="radio" name="composition-team-scope" value="react" /> React</label>
-            <label><input type="radio" name="composition-team-scope" value="all" /> All</label>
-          </fieldset>
-        </div>
         <div class="chart">
-          <div
-            id="bug-composition-chart"
-            class="chart-canvas chart-canvas--dense bar-chart-wrap"
-          ></div>
+          <div id="bug-composition-chart" class="chart-canvas composition-table-wrap"></div>
         </div>
+        <p id="composition-context" class="panel-summary panel-summary--meta" hidden></p>
         <p id="composition-status" class="panel-status" aria-live="polite" role="status" hidden></p>
       </section>
 
@@ -390,36 +334,28 @@
             <div class="help-popover" role="tooltip">
               <p>
                 <strong>PR inflow</strong>, <strong>Merged PRs</strong>, and
-                <strong>Review to merge time (ticket proxy)</strong> show deduped Jira-linked pull
-                requests over time by team using Jira-derived proxy dates.
+                <strong>Review to merge time</strong> show how work is flowing through review over
+                time by team.
               </p>
               <ul>
                 <li>Each line is one team.</li>
+                <li>`PR inflow` is the first clear signal that linked PR work showed up.</li>
+                <li>`Merged PRs` is the best available Jira-linked merge signal.</li>
                 <li>
-                  Inflow uses the earliest available PR last update and source-branch last commit.
-                  Merged uses Jira PR last update as a merge proxy.
+                  `Review to merge time` tracks the time from first entering review to the linked
+                  merge date.
                 </li>
-                <li>
-                  Review to merge time uses the first Jira <strong>In Review</strong> status on the
-                  ticket to the linked merged PR proxy date.
-                </li>
-                <li>
-                  PRs are deduped before counting, but attribution still depends on the Jira ticket
-                  label.
-                </li>
+                <li>Use this panel directionally to compare teams and spot spikes or slowdowns.</li>
               </ul>
+              <p id="pr-activity-help-meta" class="help-popover__meta" hidden></p>
+              <p id="pr-activity-help-note" class="help-popover__note" hidden></p>
             </div>
           </details>
-        </div>
-        <div class="panel-subtitle">
-          <span id="pr-activity-context" class="panel-context"
-            >Monthly deduped Jira-linked PR inflow, merged PRs, and review-to-merge time</span
-          >
         </div>
         <div class="chart-stack">
           <div id="pr-inflow-block" class="chart-block">
             <div class="radio-control-groups" aria-label="PR activity metric controls">
-              <fieldset class="radio-group-card">
+              <fieldset class="radio-group-card radio-group-card--primary">
                 <legend>Metric</legend>
                 <label
                   ><input type="radio" name="pr-activity-metric" value="offered" checked /> PR
@@ -429,7 +365,7 @@
                   ><input type="radio" name="pr-activity-metric" value="merged" /> Merged PRs</label
                 >
               </fieldset>
-              <fieldset class="radio-group-card">
+              <fieldset class="radio-group-card radio-group-card--quiet radio-group-card--utility">
                 <legend>Events</legend>
                 <label
                   ><input type="checkbox" name="pr-activity-show-markers" checked /> Show event
@@ -449,7 +385,6 @@
           </div>
         </div>
         <p id="pr-activity-status" class="panel-status" aria-live="polite" role="status" hidden></p>
-        <p id="pr-activity-note" class="panel-note" hidden></p>
       </section>
     </main>
   </body>

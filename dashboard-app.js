@@ -163,7 +163,10 @@ const CONTROL_BINDINGS = [
     name: "pr-cycle-team",
     stateKey: "prCycleTeam",
     defaultValue: "bc",
-    normalizeValue: (value) => String(value || "").trim().toLowerCase() || "bc",
+    normalizeValue: (value) =>
+      String(value || "")
+        .trim()
+        .toLowerCase() || "bc",
     onChangeRender: renderPrCycleExperiment
   },
   {
@@ -398,7 +401,9 @@ function applyModeVisibility() {
 
 function setPanelContext(node, text) {
   if (!node) return;
-  node.textContent = String(text || "").trim();
+  const safeText = String(text || "").trim();
+  node.hidden = safeText.length === 0;
+  node.textContent = safeText;
 }
 
 function setConfigContext(config, text) {
@@ -436,7 +441,7 @@ function getChartNodes(configKey) {
   if (!config) return null;
   const status = document.getElementById(config.statusId);
   const context = document.getElementById(config.contextId);
-  return status && context ? { config, status, context } : null;
+  return status ? { config, status, context } : null;
 }
 
 function withChart(configKey, onReady, { resetStatus = true } = {}) {
@@ -482,31 +487,36 @@ function renderChartWithState(configKey, buildResult) {
 
 function renderBugCompositionByPriorityChart() {
   const config = getConfig("composition");
-  const scope = state.compositionTeamScope || "bc";
-  syncRadioValue("composition-team-scope", scope);
-  const scopeLabelMap = {
-    bc: "BC",
-    api: "API",
-    legacy: "Legacy",
-    react: "React",
-    all: "All"
-  };
-  setConfigContext(config, `${scopeLabelMap[scope] || "BC"} • last 10 snapshots`);
-  renderSnapshotChart(config, { scope });
+  const points = Array.isArray(state.snapshot?.combinedPoints) ? state.snapshot.combinedPoints : [];
+  const latestPoint = points.length > 0 ? points[points.length - 1] : null;
+  setConfigContext(config, latestPoint?.date ? `Latest snapshot • ${latestPoint.date}` : "");
+  renderSnapshotChart(config);
 }
 
 function renderTrendChart() {
   const config = getConfig("trend");
-  setConfigContext(config, "Open bugs across tracked teams plus BC aging overlays");
+  setConfigContext(config, "Context only • last 5 snapshots");
   renderSnapshotChart(config);
 }
 
-function setPrActivityNote(text = "") {
-  const note = document.getElementById("pr-activity-note");
-  if (!note) return;
-  const safeText = String(text || "").trim();
-  note.hidden = safeText.length === 0;
-  note.textContent = safeText;
+function setPrActivityHelpDetails({ since = "", caveat = "" } = {}) {
+  const metaNode = document.getElementById("pr-activity-help-meta");
+  const noteNode = document.getElementById("pr-activity-help-note");
+  const safeSince = String(since || "").trim();
+  const safeCaveat = String(caveat || "").trim();
+
+  if (metaNode) {
+    metaNode.hidden = safeSince.length === 0;
+    metaNode.textContent = safeSince ? `Current view starts on ${safeSince}.` : "";
+  }
+
+  if (noteNode) {
+    const friendlyNote = safeCaveat
+      ? "These are Jira-linked proxy dates, so use the trends for direction rather than exact operational accounting. One underlying PR can still be associated with more than one done Jira ticket."
+      : "";
+    noteNode.hidden = friendlyNote.length === 0;
+    noteNode.textContent = friendlyNote;
+  }
 }
 
 function normalizeDisplayTeamName(name) {
@@ -728,7 +738,7 @@ function PrActivityChartView({
             xTicks.length > 0 ? [xTicks[0], xTicks[xTicks.length - 1]] : ["dataMin", "dataMax"],
           ticks: xTicks,
           stroke: colors.text,
-          tick: { fill: colors.text, fontSize: layout.xTickFontSize },
+          tick: { fill: colors.text, fontSize: layout.xTickFontSize, fontFamily: "var(--font-ui)" },
           tickMargin: layout.xTickMargin,
           interval: layout.xAxisInterval,
           minTickGap: layout.minTickGap,
@@ -737,7 +747,7 @@ function PrActivityChartView({
         }),
         h(YAxis, {
           stroke: colors.text,
-          tick: { fill: colors.text, fontSize: layout.yTickFontSize },
+          tick: { fill: colors.text, fontSize: layout.yTickFontSize, fontFamily: "var(--font-ui)" },
           domain: [0, niceYAxis.upper],
           ticks: niceYAxis.ticks,
           allowDecimals: false,
@@ -847,7 +857,7 @@ function renderPrActivityCharts() {
     if (points.length === 0) {
       clearChartContainer("pr-offered-chart");
       clearChartContainer("pr-merge-time-chart");
-      setPrActivityNote("");
+      setPrActivityHelpDetails({});
       showPanelStatus(status, "No Jira-linked PR activity found in backlog-snapshot.json.");
       return;
     }
@@ -858,13 +868,8 @@ function renderPrActivityCharts() {
     const metricKey = state.prActivityMetric === "merged" ? "merged" : "offered";
     syncRadioValue("pr-activity-metric", metricKey);
     syncCheckboxValue("pr-activity-show-markers", state.showPrActivityMarkers);
-    setPanelContext(
-      context,
-      metricKey === "merged"
-        ? `Monthly deduped Jira-linked merged PRs and review-to-merge time since ${since}`
-        : `Monthly deduped Jira-linked PR inflow and review-to-merge time since ${since}`
-    );
-    setPrActivityNote(caveat);
+    setPanelContext(context, "");
+    setPrActivityHelpDetails({ since, caveat });
     renderPrActivityChart("pr-offered-chart");
     renderPrMergeTimeChart("pr-merge-time-chart");
   });
@@ -924,8 +929,8 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData, scope) {
   setPanelContext(
     context,
     fetchedCount > 0
-      ? `${scopeLabel} with measurable cycle time • n=${cycleSampleCount} of ${fetchedCount} fetched`
-      : `${scopeLabel} • n=${cycleSampleCount}`
+      ? `${scopeLabel} • ${cycleSampleCount} teams sampled from ${fetchedCount} fetched ideas`
+      : `${scopeLabel} • ${cycleSampleCount} teams sampled`
   );
 
   if (sampleCount === 0) {
@@ -1031,7 +1036,8 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData, scope) {
             tick: {
               fill: themeColors.text,
               fontSize: 11,
-              fontWeight: 500
+              fontWeight: 500,
+              fontFamily: "var(--font-ui)"
             }
           }
         : null,
@@ -1206,8 +1212,8 @@ function renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData) {
   setPanelContext(
     context,
     fetchedCount > 0
-      ? `Current open ideas in tracked stages • n=${sampleSize} of ${fetchedCount} fetched`
-      : `Current snapshot • n=${sampleSize}`
+      ? `${sampleSize} open ideas sampled • current snapshot`
+      : `Current snapshot • ${sampleSize} open ideas sampled`
   );
   return true;
 }
@@ -1331,7 +1337,9 @@ function getPrCycleStageDisplayLabel(stage) {
 }
 
 function getPrCycleTeamColor(teamKey) {
-  const normalizedKey = String(teamKey || "").trim().toLowerCase();
+  const normalizedKey = String(teamKey || "")
+    .trim()
+    .toLowerCase();
   const baseMap = buildTeamColorMap([normalizedKey]);
   return baseMap[normalizedKey] || "#4f8fcb";
 }
@@ -1341,7 +1349,8 @@ function renderPrCycleExperimentCard(containerId, team, snapshot) {
   if (!container) return;
   const stages = Array.isArray(team?.stages) ? team.stages : [];
   const teamColor = getPrCycleTeamColor(team?.key);
-  const maxDays = stages.reduce((highest, stage) => Math.max(highest, toNumber(stage?.days)), 0) || 1;
+  const maxDays =
+    stages.reduce((highest, stage) => Math.max(highest, toNumber(stage?.days)), 0) || 1;
   const rowsMarkup = stages
     .map((stage) => {
       const width = Math.max(12, Math.round((toNumber(stage?.days) / maxDays) * 100));
@@ -1384,12 +1393,15 @@ function renderPrCycleExperimentCard(containerId, team, snapshot) {
 
 function renderPrCycleExperiment() {
   withChart("pr-cycle-experiment", ({ status, context, config }) => {
-    const windows = state.prCycle?.windows && typeof state.prCycle.windows === "object"
-      ? state.prCycle.windows
-      : null;
+    const windows =
+      state.prCycle?.windows && typeof state.prCycle.windows === "object"
+        ? state.prCycle.windows
+        : null;
     const availableWindowKeys = Object.keys(windows || {});
     const fallbackWindowKey =
-      String(state.prCycle?.defaultWindow || "").trim().toLowerCase() || "90d";
+      String(state.prCycle?.defaultWindow || "")
+        .trim()
+        .toLowerCase() || "90d";
     const selectedWindowKey = availableWindowKeys.includes(state.prCycleWindow)
       ? state.prCycleWindow
       : availableWindowKeys.includes(fallbackWindowKey)
@@ -1406,24 +1418,32 @@ function renderPrCycleExperiment() {
       return;
     }
 
-    const availableKeys = teams.map((team) => String(team?.key || "").trim().toLowerCase());
+    const availableKeys = teams.map((team) =>
+      String(team?.key || "")
+        .trim()
+        .toLowerCase()
+    );
     const fallbackTeamKey =
-      String(state.prCycle?.defaultTeam || "").trim().toLowerCase() || availableKeys[0];
+      String(state.prCycle?.defaultTeam || "")
+        .trim()
+        .toLowerCase() || availableKeys[0];
     const selectedKey = availableKeys.includes(state.prCycleTeam)
       ? state.prCycleTeam
       : fallbackTeamKey;
     const selectedTeam =
-      teams.find((team) => String(team?.key || "").trim().toLowerCase() === selectedKey) || teams[0];
+      teams.find(
+        (team) =>
+          String(team?.key || "")
+            .trim()
+            .toLowerCase() === selectedKey
+      ) || teams[0];
 
     state.prCycleTeam = selectedKey;
     state.prCycleWindow = selectedWindowKey;
     syncRadioValue("pr-cycle-team", selectedKey);
     syncRadioValue("pr-cycle-window", selectedWindowKey);
     status.hidden = true;
-    setPanelContext(
-      context,
-      `${selectedTeam.label} • ${toNumber(selectedTeam.issueCount || selectedTeam.pullRequestCount)} issues • ${String(selectedWindowSnapshot?.windowLabel || state.prCycle?.windowLabel || "")}`
-    );
+    setPanelContext(context, "");
     renderPrCycleExperimentCard(config.containerId, selectedTeam, selectedWindowSnapshot);
   });
 }
@@ -1495,7 +1515,7 @@ function renderDevelopmentVsUatByFacilityChart() {
     const doneScope = scope === "done";
     if (titleNode) titleNode.textContent = "Development vs UAT by Business Unit";
     return {
-      contextText: `${getBroadcastScopeLabel()} • Business Unit • ${doneScope ? "done" : "ongoing"} • n=${rows.reduce((sum, row) => sum + row.sampleCount, 0)}`,
+      contextText: `${getBroadcastScopeLabel()} • ${doneScope ? "done" : "ongoing"} scope • ${rows.reduce((sum, row) => sum + row.sampleCount, 0)} issues sampled`,
       props: {
         rows,
         groupingLabel: "Business Unit",
@@ -1530,7 +1550,7 @@ function renderTopContributorsChart() {
 
     const summary = contributorsSnapshot?.summary || {};
     return {
-      contextText: `${toNumber(summary.total_issues)} total • ${toNumber(summary.done_issues)} done • ${toNumber(summary.active_issues)} not done`,
+      contextText: `${toNumber(summary.total_issues)} total • ${toNumber(summary.done_issues)} done • ${toNumber(summary.active_issues)} active`,
       props: {
         rows,
         barColor: readThemeColor("--team-react", "#5ba896")

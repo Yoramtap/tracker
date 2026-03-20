@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-03-19T23:34:33.135Z",
+  "updatedAt": "2026-03-20T23:05:30.898Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-03-19T23:34:33.135Z",
+    "syncedAt": "2026-03-20T23:05:30.898Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). UAT aging is generated from current UAT issues and changelog-derived status entry timestamps. PR activity is derived from Jira dev-status pull request details."
   },
   "uatAging": {
@@ -13,7 +13,7 @@
       "status": "UAT",
       "label": "Broadcast"
     },
-    "generatedAt": "2026-03-19T23:29:45.276Z",
+    "generatedAt": "2026-03-20T23:02:31.152Z",
     "totalIssues": 10,
     "buckets": [
       {
@@ -50,8 +50,8 @@
     "priorities": {
       "highest": {
         "count": 2,
-        "avgDays": 8.5,
-        "maxDays": 17,
+        "avgDays": 9.5,
+        "maxDays": 18,
         "buckets": {
           "d0_7": 1,
           "d8_14": 0,
@@ -62,8 +62,8 @@
       },
       "high": {
         "count": 5,
-        "avgDays": 29.8,
-        "maxDays": 92,
+        "avgDays": 30.8,
+        "maxDays": 93,
         "buckets": {
           "d0_7": 2,
           "d8_14": 0,
@@ -74,8 +74,8 @@
       },
       "medium": {
         "count": 3,
-        "avgDays": 68,
-        "maxDays": 97,
+        "avgDays": 69,
+        "maxDays": 98,
         "buckets": {
           "d0_7": 0,
           "d8_14": 0,
@@ -114,8 +114,8 @@
     "since": "2025-01-01",
     "interval": "month",
     "source": "jira_dev_status_detail",
-    "candidateIssueCount": 2222,
-    "uniquePrCount": 2710,
+    "candidateIssueCount": 2228,
+    "uniquePrCount": 2715,
     "conflictCount": 7,
     "caveat": "Counts are deduped from Jira dev-status pull request records and attributed by Jira team label. Inflow dates use the earliest available PR lastUpdate and source-branch last commit timestamp. Merged dates use Jira PR lastUpdate as a merge proxy. Review-to-merge time is a ticket proxy: first Jira In Review status to linked merged PR proxy date. Multiple done Jira tickets can still map to the same underlying PR.",
     "points": [
@@ -473,8 +473,8 @@
       {
         "date": "2025-10-01",
         "api": {
-          "offered": 47,
-          "merged": 44,
+          "offered": 46,
+          "merged": 43,
           "avgReviewToMergeDays": 4,
           "avgReviewToMergeSampleCount": 37
         },
@@ -512,10 +512,10 @@
       {
         "date": "2025-11-01",
         "api": {
-          "offered": 37,
-          "merged": 36,
+          "offered": 36,
+          "merged": 35,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 32
+          "avgReviewToMergeSampleCount": 31
         },
         "legacy": {
           "offered": 18,
@@ -668,28 +668,28 @@
       {
         "date": "2026-03-01",
         "api": {
-          "offered": 53,
-          "merged": 26,
-          "avgReviewToMergeDays": 7,
-          "avgReviewToMergeSampleCount": 17
+          "offered": 56,
+          "merged": 29,
+          "avgReviewToMergeDays": 6,
+          "avgReviewToMergeSampleCount": 20
         },
         "legacy": {
-          "offered": 11,
-          "merged": 4,
-          "avgReviewToMergeDays": 6,
-          "avgReviewToMergeSampleCount": 4
+          "offered": 12,
+          "merged": 6,
+          "avgReviewToMergeDays": 5,
+          "avgReviewToMergeSampleCount": 6
         },
         "react": {
-          "offered": 42,
-          "merged": 24,
+          "offered": 40,
+          "merged": 27,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 8
+          "avgReviewToMergeSampleCount": 9
         },
         "bc": {
-          "offered": 56,
-          "merged": 41,
+          "offered": 59,
+          "merged": 43,
           "avgReviewToMergeDays": 45,
-          "avgReviewToMergeSampleCount": 29
+          "avgReviewToMergeSampleCount": 30
         },
         "workers": {
           "offered": 24,
@@ -698,7 +698,7 @@
           "avgReviewToMergeSampleCount": 16
         },
         "titanium": {
-          "offered": 12,
+          "offered": 14,
           "merged": 11,
           "avgReviewToMergeDays": 1,
           "avgReviewToMergeSampleCount": 3
@@ -742,6 +742,22 @@
         "lowest": 0,
         "longstanding_30d_plus": 148,
         "longstanding_60d_plus": 138
+      },
+      "workers": {
+        "date": "2025-09-29",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2025-09-29",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
       }
     },
     {
@@ -779,6 +795,22 @@
         "lowest": 0,
         "longstanding_30d_plus": 148,
         "longstanding_60d_plus": 140
+      },
+      "workers": {
+        "date": "2025-10-13",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2025-10-13",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
       }
     },
     {
@@ -816,6 +848,22 @@
         "lowest": 0,
         "longstanding_30d_plus": 148,
         "longstanding_60d_plus": 141
+      },
+      "workers": {
+        "date": "2025-10-27",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2025-10-27",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
       }
     },
     {
@@ -853,6 +901,22 @@
         "lowest": 0,
         "longstanding_30d_plus": 159,
         "longstanding_60d_plus": 144
+      },
+      "workers": {
+        "date": "2025-11-10",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2025-11-10",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
       }
     },
     {
@@ -890,6 +954,22 @@
         "lowest": 0,
         "longstanding_30d_plus": 162,
         "longstanding_60d_plus": 147
+      },
+      "workers": {
+        "date": "2025-11-24",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2025-11-24",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
       }
     },
     {
@@ -927,6 +1007,22 @@
         "lowest": 0,
         "longstanding_30d_plus": 172,
         "longstanding_60d_plus": 153
+      },
+      "workers": {
+        "date": "2025-12-08",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2025-12-08",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
       }
     },
     {
@@ -964,6 +1060,22 @@
         "lowest": 0,
         "longstanding_30d_plus": 173,
         "longstanding_60d_plus": 154
+      },
+      "workers": {
+        "date": "2025-12-22",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2025-12-22",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
       }
     },
     {
@@ -1001,6 +1113,22 @@
         "lowest": 0,
         "longstanding_30d_plus": 183,
         "longstanding_60d_plus": 166
+      },
+      "workers": {
+        "date": "2026-01-05",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2026-01-05",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
       }
     },
     {
@@ -1038,6 +1166,22 @@
         "lowest": 0,
         "longstanding_30d_plus": 181,
         "longstanding_60d_plus": 165
+      },
+      "workers": {
+        "date": "2026-01-19",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2026-01-19",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
       }
     },
     {
@@ -1075,6 +1219,22 @@
         "lowest": 0,
         "longstanding_30d_plus": 174,
         "longstanding_60d_plus": 164
+      },
+      "workers": {
+        "date": "2026-02-02",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2026-02-02",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
       }
     },
     {
@@ -1112,6 +1272,22 @@
         "lowest": 0,
         "longstanding_30d_plus": 179,
         "longstanding_60d_plus": 168
+      },
+      "workers": {
+        "date": "2026-02-16",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2026-02-16",
+        "highest": 2,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
       }
     },
     {
@@ -1149,6 +1325,22 @@
         "lowest": 0,
         "longstanding_30d_plus": 181,
         "longstanding_60d_plus": 166
+      },
+      "workers": {
+        "date": "2026-03-02",
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2026-03-02",
+        "highest": 1,
+        "high": 2,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
       }
     },
     {
@@ -1186,6 +1378,22 @@
         "lowest": 0,
         "longstanding_30d_plus": 183,
         "longstanding_60d_plus": 170
+      },
+      "workers": {
+        "date": "2026-03-16",
+        "highest": 0,
+        "high": 2,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2026-03-16",
+        "highest": 1,
+        "high": 2,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
       }
     },
     {
@@ -1202,7 +1410,7 @@
         "date": "2026-03-30",
         "highest": 0,
         "high": 1,
-        "medium": 5,
+        "medium": 6,
         "low": 24,
         "lowest": 0
       },
@@ -1217,12 +1425,28 @@
       "bc": {
         "date": "2026-03-30",
         "highest": 7,
-        "high": 80,
+        "high": 79,
         "medium": 123,
         "low": 8,
         "lowest": 0,
         "longstanding_30d_plus": 196,
         "longstanding_60d_plus": 178
+      },
+      "workers": {
+        "date": "2026-03-30",
+        "highest": 0,
+        "high": 1,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2026-03-30",
+        "highest": 1,
+        "high": 1,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
       }
     }
   ],

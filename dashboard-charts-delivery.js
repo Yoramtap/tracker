@@ -292,7 +292,8 @@
             tick: {
               fill: colors.text,
               fontSize: 11,
-              fontWeight: 500
+              fontWeight: 500,
+              fontFamily: "var(--font-ui)"
             }
           }
         : null,

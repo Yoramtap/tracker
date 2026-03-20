@@ -82,7 +82,9 @@
     { key: "api", label: "API" },
     { key: "legacy", label: "Legacy FE" },
     { key: "react", label: "React FE" },
-    { key: "bc", label: "BC" }
+    { key: "bc", label: "BC" },
+    { key: "workers", label: "Workers" },
+    { key: "titanium", label: "Titanium" }
   ];
   const PRIORITY_CONFIG = [
     { key: "medium", label: "Medium" },
@@ -576,6 +578,7 @@
           border: `1px solid ${colors.tooltip.border}`,
           background: colors.tooltip.bg,
           color: colors.tooltip.text,
+          fontFamily: "var(--font-ui)",
           borderRadius: "6px",
           padding: isCompactViewport() ? "7px 9px" : "8px 10px",
           boxShadow: "0 4px 14px rgba(0,0,0,0.1)",
@@ -1048,7 +1051,12 @@
   }
 
   function axisTick(colors) {
-    return { fill: colors.text, fontSize: 12, fontWeight: 500 };
+    return {
+      fill: colors.text,
+      fontSize: 12,
+      fontWeight: 500,
+      fontFamily: "var(--font-ui)"
+    };
   }
 
   function buildCategoryColorsFromRows(rows, categoryKey) {
@@ -1093,7 +1101,8 @@
               y: 12,
               textAnchor: "middle",
               fill: colors.text,
-              fontSize: 12
+              fontSize: 12,
+              fontFamily: "var(--font-ui)"
             },
             line1
           ),
@@ -1105,7 +1114,8 @@
                   y: 28,
                   textAnchor: "middle",
                   fill: "rgba(31,51,71,0.78)",
-                  fontSize: 11
+                  fontSize: 11,
+                  fontFamily: "var(--font-ui)"
                 },
                 line2
               )
@@ -1123,11 +1133,22 @@
             dy,
             textAnchor,
             fill: colors.text,
-            fontSize: 12
+            fontSize: 12,
+            fontFamily: "var(--font-ui)"
           },
-          h("tspan", { x: 0, dy: 0 }, line1),
+          h("tspan", { x: 0, dy: 0, fontFamily: "var(--font-ui)" }, line1),
           line2
-            ? h("tspan", { x: 0, dy: line2Dy, fill: "rgba(31,51,71,0.75)", fontSize: 11 }, line2)
+            ? h(
+                "tspan",
+                {
+                  x: 0,
+                  dy: line2Dy,
+                  fill: "rgba(31,51,71,0.75)",
+                  fontSize: 11,
+                  fontFamily: "var(--font-ui)"
+                },
+                line2
+              )
             : null
         )
       );
@@ -1206,6 +1227,7 @@
                   x,
                   y,
                   fill: "rgba(31, 51, 71, 0.82)",
+                  fontFamily: "var(--font-ui)",
                   fontSize: compactViewport ? 10 : 12,
                   fontWeight: 600,
                   letterSpacing: "0.01em",
@@ -1232,6 +1254,7 @@
                     x,
                     y,
                     fill: "rgba(31, 51, 71, 0.82)",
+                    fontFamily: "var(--font-ui)",
                     fontSize: 11,
                     fontWeight: 600,
                     letterSpacing: "0.01em",
@@ -1250,6 +1273,7 @@
     return {
       value: text,
       fill: "rgba(31, 51, 71, 0.82)",
+      fontFamily: "var(--font-ui)",
       fontSize: 12,
       fontWeight: 600,
       stroke: "none",
@@ -1492,6 +1516,7 @@
               return `${roundedValue}d · n=${n}`;
             },
             fill: colors.text,
+            fontFamily: "var(--font-ui)",
             fontSize: 11,
             offset: 8
           })
@@ -1506,6 +1531,7 @@
             formatter: (value) =>
               toWhole(value) > 0 ? String(def.seriesLabel || def.name || "") : "",
             fill: "rgba(31,51,71,0.75)",
+            fontFamily: "var(--font-ui)",
             fontSize: 9,
             offset: 2
           })
@@ -1546,6 +1572,7 @@
                     x: badgeX + 6,
                     y: badgeY + 9,
                     fill: def.endLabelColor || "rgba(31,51,71,0.84)",
+                    fontFamily: "var(--font-ui)",
                     fontSize: 11,
                     fontWeight: 600,
                     dominantBaseline: "middle",
@@ -1698,6 +1725,7 @@
                         key: `${keyBase}-label`,
                         x: labelX,
                         y: labelY,
+                        fontFamily: "var(--font-ui)",
                         fontSize: Number.isFinite(toNumber(dot?.fontSize))
                           ? toNumber(dot?.fontSize)
                           : 11,
