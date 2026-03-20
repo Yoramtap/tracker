@@ -668,6 +668,10 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
   min-width: 0;
 }
 
+.composition-cards {
+  display: none;
+}
+
 .composition-table-scroll {
   overflow-x: auto;
   padding-bottom: 2px;
@@ -677,7 +681,7 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
   width: 100%;
   min-width: 760px;
   border-collapse: separate;
-  border-spacing: 0;
+  border-spacing: 0 8px;
   font-size: 0.84rem;
   color: rgba(31, 51, 71, 0.9);
 }
@@ -685,7 +689,6 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
 .composition-table th,
 .composition-table td {
   padding: 10px 10px;
-  border-bottom: 1px solid rgba(72, 114, 167, 0.12);
   text-align: center;
   vertical-align: middle;
   white-space: nowrap;
@@ -694,32 +697,43 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
 .composition-table thead th {
   padding-top: 4px;
   padding-bottom: 11px;
+  border-bottom: 1px solid rgba(72, 114, 167, 0.12);
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   color: rgba(31, 51, 71, 0.58);
+  background: transparent;
 }
 
-.composition-table tbody tr:last-child th,
-.composition-table tbody tr:last-child td {
-  border-bottom: 0;
+.composition-table tbody th,
+.composition-table tbody td {
+  background: rgba(248, 251, 255, 0.72);
+}
+
+.composition-table tbody th:first-child,
+.composition-table tbody td:first-child {
+  border-top-left-radius: 14px;
+  border-bottom-left-radius: 14px;
+}
+
+.composition-table tbody th:last-child,
+.composition-table tbody td:last-child {
+  border-top-right-radius: 14px;
+  border-bottom-right-radius: 14px;
 }
 
 .composition-table__team-header,
 .composition-table__team-cell {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  text-align: center;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.96));
+  position: static;
+  left: auto;
+  z-index: auto;
+  background: transparent;
 }
 
 .composition-table__team-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  padding-left: 18px;
+  text-align: left;
   font-weight: 700;
   color: rgba(31, 51, 71, 0.94);
 }
@@ -728,7 +742,9 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
   width: 10px;
   height: 10px;
   border-radius: 999px;
-  flex: 0 0 auto;
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
 .composition-table__metric-cell {
@@ -747,7 +763,7 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
 }
 
 .composition-table__urgent-primary {
-  font-weight: 700;
+  font-weight: 650;
 }
 
 .composition-table__urgent-cell,
@@ -758,14 +774,14 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
 }
 
 .composition-table__urgent-cell {
-  color: rgba(149, 68, 46, 0.92);
+  color: rgba(52, 78, 104, 0.9);
 }
 
 .composition-table__urgent-meta {
   margin-top: 2px;
   font-size: 0.73rem;
-  font-weight: 600;
-  color: rgba(149, 68, 46, 0.78);
+  font-weight: 550;
+  color: rgba(52, 78, 104, 0.66);
 }
 
 .composition-table__change-cell {
@@ -812,7 +828,7 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
 
 .composition-table tbody tr:hover th,
 .composition-table tbody tr:hover td {
-  background: rgba(248, 251, 255, 0.72);
+  background: rgba(243, 248, 254, 0.92);
 }
 
 .panel-status {
@@ -1404,100 +1420,68 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
     min-height: 34px;
   }
 
-  .composition-table {
-    min-width: 0;
-    display: block;
-    font-size: 0.8rem;
-  }
-
   .composition-table-scroll {
-    overflow: visible;
-  }
-
-  .composition-table thead {
     display: none;
   }
 
-  .composition-table tbody {
+  .composition-cards {
     display: grid;
     gap: 10px;
   }
 
-  .composition-table tbody tr {
+  .composition-card {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-areas:
-      "team total"
-      "urgent urgent"
-      "change change"
-      "medium low";
-    gap: 10px 12px;
+    gap: 10px;
     padding: 12px;
     border: 1px solid rgba(72, 114, 167, 0.12);
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.94);
+    background: rgba(255, 255, 255, 0.95);
     box-shadow: 0 10px 28px rgba(83, 121, 167, 0.08);
   }
 
-  .composition-table th,
-  .composition-table td {
-    display: block;
-    padding: 0;
-    border-bottom: 0;
-    white-space: normal;
-    text-align: left;
+  .composition-card__top,
+  .composition-card__primary,
+  .composition-card__secondary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
   }
 
-  .composition-table__team-header,
-  .composition-table__team-cell {
-    position: static;
-    left: auto;
-    z-index: auto;
-    background: transparent;
-  }
-
-  .composition-table__team-cell {
-    grid-area: team;
-    justify-content: flex-start;
-    text-align: left;
-    gap: 7px;
-    padding-right: 8px;
-  }
-
-  .composition-table__total-cell {
-    grid-area: total;
-    text-align: right;
-    font-size: 1.18rem;
-    line-height: 1;
-  }
-
-  .composition-table__urgent-cell {
-    grid-area: urgent;
-    text-align: left;
-  }
-
-  .composition-table__change-cell {
-    grid-area: change;
+  .composition-card__team,
+  .composition-card__block,
+  .composition-card__metric {
     min-width: 0;
   }
 
-  .composition-table__metric-cell--medium {
-    grid-area: medium;
+  .composition-card__team {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 700;
+    color: rgba(31, 51, 71, 0.94);
   }
 
-  .composition-table__metric-cell--low {
-    grid-area: low;
+  .composition-card__team-label {
+    line-height: 1.2;
   }
 
-  .composition-table__metric-cell--lowest {
-    display: none;
+  .composition-card__total {
+    text-align: right;
   }
 
-  .composition-table__total-cell::before,
-  .composition-table__change-cell::before,
-  .composition-table__urgent-cell::before,
-  .composition-table__metric-cell::before {
-    content: attr(data-label);
+  .composition-card__total strong {
+    display: block;
+    font-size: 1.18rem;
+    line-height: 1;
+    color: rgba(31, 51, 71, 0.92);
+  }
+
+  .composition-card__block--change {
+    display: grid;
+    gap: 2px;
+  }
+
+  .composition-card__eyebrow {
     display: block;
     margin-bottom: 4px;
     font-size: 0.68rem;
@@ -1507,27 +1491,23 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
     color: rgba(31, 51, 71, 0.5);
   }
 
-  .composition-table__change-item {
+  .composition-card .composition-table__change-item {
     justify-content: flex-start;
   }
 
-  .composition-table__change-item + .composition-table__change-item {
+  .composition-card .composition-table__change-item + .composition-table__change-item {
     margin-top: 2px;
   }
 
-  .composition-table__urgent-primary {
+  .composition-card .composition-table__urgent-primary {
     font-size: 1.02rem;
   }
 
-  .composition-table__urgent-meta {
+  .composition-card .composition-table__urgent-meta {
     margin-top: 1px;
   }
 
-  .composition-table__metric-cell {
-    min-width: 0;
-  }
-
-  .composition-table__metric-value {
+  .composition-card .composition-table__metric-value {
     font-size: 0.96rem;
   }
 
