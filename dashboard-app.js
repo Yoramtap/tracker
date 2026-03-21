@@ -261,7 +261,7 @@ const PR_ACTIVITY_LINE_DEFS = [
   { dataKey: "api", name: "API", colorKey: "api" },
   { dataKey: "legacy", name: "Legacy FE", colorKey: "legacy" },
   { dataKey: "react", name: "React FE", colorKey: "react" },
-  { dataKey: "bc", name: "BC", colorKey: "bc" },
+  { dataKey: "bc", name: "Broadcast", colorKey: "bc" },
   { dataKey: "workers", name: "Workers", colorKey: "workers" },
   { dataKey: "titanium", name: "Titanium", colorKey: "titanium" }
 ];
