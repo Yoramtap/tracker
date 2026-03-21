@@ -347,10 +347,6 @@ function countPriority(counts, priorityName) {
   if (priorityKey) counts[priorityKey] += 1;
 }
 
-function emptyPrCounts() {
-  return { offered: 0, merged: 0, avgReviewToMergeDays: 0, avgReviewToMergeSampleCount: 0 };
-}
-
 function emptyPrAccumulator() {
   return {
     offered: 0,
