@@ -1140,8 +1140,12 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
 }
 
 .pr-cycle-team-pill input[value="broadcast"]:checked + span,
-.pr-cycle-team-pill input[value="react"]:checked + span {
+.pr-cycle-team-pill input[value="bc"]:checked + span {
   color: color-mix(in srgb, var(--team-bc) 78%, black);
+}
+
+.pr-cycle-team-pill input[value="react"]:checked + span {
+  color: color-mix(in srgb, var(--team-react) 78%, black);
 }
 
 .pr-cycle-team-pill input[value="workers"]:checked + span {
