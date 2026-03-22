@@ -38,6 +38,25 @@
       <h1 class="sr-only">Backlog Trends dashboard</h1>
 
       <section
+        id="actions-required-panel"
+        class="panel actions-required-panel"
+        aria-label="Actions required"
+      >
+        <div class="panel-title-row">
+          <h2>Actions required</h2>
+        </div>
+        <p id="actions-required-context" class="panel-summary panel-summary--meta" hidden></p>
+        <div id="actions-required-list" class="actions-required-grid"></div>
+        <p
+          id="actions-required-status"
+          class="panel-status"
+          aria-live="polite"
+          role="status"
+          hidden
+        ></p>
+      </section>
+
+      <section
         id="management-facility-panel"
         class="panel panel--frame-fill"
         aria-label="How long ideas stay in UAT by Business Unit"
@@ -175,7 +194,10 @@
         <div class="panel-title-row">
           <h2 id="product-cycle-title">How long ready product ideas take to ship</h2>
           <details class="help-wrap">
-            <summary class="help-tip" aria-label="How long ready product ideas take to ship explainer">
+            <summary
+              class="help-tip"
+              aria-label="How long ready product ideas take to ship explainer"
+            >
               i
             </summary>
             <div class="help-popover" role="tooltip">

@@ -260,6 +260,53 @@ body.embedded-frame-mode .panel {
   padding-top: 8px;
 }
 
+.actions-required-panel {
+  gap: 10px;
+  padding: 16px 18px 14px;
+}
+
+.actions-required-grid {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+
+.action-link-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.action-link-list__item + .action-link-list__item {
+  margin-top: 8px;
+}
+
+.action-link-list__link {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  line-height: 1.2;
+  color: rgba(31, 51, 71, 0.94);
+  text-decoration: none;
+}
+
+.action-link-list__link:hover {
+  text-decoration: underline;
+}
+
+.action-link-list__link:focus-visible {
+  outline: 3px solid rgba(72, 114, 167, 0.22);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.action-card__empty {
+  margin: 0;
+  text-align: center;
+  font-size: 0.84rem;
+  color: rgba(31, 51, 71, 0.66);
+}
+
 .chart-block {
   scroll-margin-top: var(--anchor-offset);
 }
@@ -304,6 +351,10 @@ body.embedded-frame-mode .panel {
 
 #dashboard-main > .dashboard-group-marker--product {
   order: 1;
+}
+
+#actions-required-panel {
+  order: 0;
 }
 
 #management-facility-panel {
@@ -1271,7 +1322,11 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
   display: inline-flex;
   align-items: baseline;
   justify-content: flex-end;
+  width: 100%;
   min-width: 100%;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  border-radius: 10px;
   color: rgba(31, 51, 71, 0.94);
   font-size: 0.96rem;
   font-weight: 700;
@@ -1279,12 +1334,6 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
   text-shadow:
     0 0 1px rgba(255, 255, 255, 0.98),
     0 0 3px rgba(255, 255, 255, 0.96);
-}
-
-.pr-cycle-stage-row__value-frame--warning,
-.pr-cycle-stage-row__value-frame--critical {
-  padding: 6px 10px;
-  border-radius: 10px;
 }
 
 .pr-cycle-stage-row__value-frame--warning {
@@ -1418,7 +1467,7 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
 }
 
 .product-cycle-team-card .pr-cycle-stage-row {
-  grid-template-columns: 104px minmax(0, 1fr) 62px;
+  grid-template-columns: 104px minmax(0, 1fr) 108px;
   gap: 14px;
 }
 
@@ -1446,7 +1495,7 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
 }
 
 .product-cycle-compare-card .pr-cycle-stage-row {
-  grid-template-columns: 86px minmax(0, 1fr) 84px;
+  grid-template-columns: 86px minmax(0, 1fr) 108px;
 }
 
 .workflow-breakdown-card .pr-cycle-stage-row {
@@ -1465,6 +1514,7 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
 
 .product-cycle-team-card .pr-cycle-stage-row__value {
   justify-content: flex-start;
+  text-align: left;
 }
 
 .workflow-breakdown-card .pr-cycle-stage-row__value {
@@ -1478,7 +1528,15 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
 .product-cycle-team-card .pr-cycle-stage-row__value-frame,
 .product-cycle-compare-card .pr-cycle-stage-row__value-frame,
 .workflow-breakdown-card .pr-cycle-stage-row__value-frame {
+  align-items: flex-start;
   justify-content: flex-start;
+}
+
+.product-cycle-team-card .pr-cycle-stage-row__value > :not(.pr-cycle-stage-row__value-frame) {
+  width: 100%;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  text-align: left;
 }
 
 .stacked-duration {

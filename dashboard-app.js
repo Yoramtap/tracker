@@ -263,7 +263,7 @@ const PR_ACTIVITY_LINE_DEFS = [
   { dataKey: "api", name: "API", colorKey: "api" },
   { dataKey: "legacy", name: "Legacy FE", colorKey: "legacy" },
   { dataKey: "react", name: "React FE", colorKey: "react" },
-  { dataKey: "bc", name: "Broadcast", colorKey: "bc" },
+  { dataKey: "bc", name: "BC", colorKey: "bc" },
   { dataKey: "workers", name: "Workers", colorKey: "workers" },
   { dataKey: "titanium", name: "Titanium", colorKey: "titanium" }
 ];
@@ -435,9 +435,11 @@ function applyModeVisibility() {
   const selectedMode = validModes.has(state.mode) ? state.mode : "all";
   const showAll = selectedMode === "all";
   const embedMode = isEmbedMode();
+  const actionsPanel = document.getElementById("actions-required-panel");
   document.body.classList.toggle("embed-mode", embedMode);
   document.body.classList.toggle("single-chart-mode", embedMode && !showAll);
   document.body.classList.toggle("embedded-frame-mode", embedMode && showAll);
+  if (actionsPanel) actionsPanel.hidden = !showAll;
   for (const [mode, config] of Object.entries(CHART_CONFIG)) {
     const panel = document.getElementById(config.panelId);
     if (!panel) continue;
@@ -476,6 +478,184 @@ function renderDashboardRefreshStrip() {
   textNode.textContent = refreshUpdatedAt
     ? `Last updated ${formatUpdatedAt(refreshUpdatedAt)}`
     : "";
+}
+
+function buildBugActionItem() {
+  const points = Array.isArray(state.snapshot?.combinedPoints) ? state.snapshot.combinedPoints : [];
+  if (points.length === 0) return null;
+  const latestPoint = points[points.length - 1];
+  const previousPoint = points.length > 1 ? points[points.length - 2] : null;
+  const teamDefs = [
+    { key: "api", label: "API" },
+    { key: "legacy", label: "Legacy FE" },
+    { key: "react", label: "React FE" },
+    { key: "bc", label: "Broadcast" },
+    { key: "workers", label: "Workers" },
+    { key: "titanium", label: "Titanium" }
+  ];
+
+  const rankedTeams = teamDefs
+    .map((team) => {
+      const latest = latestPoint?.[team.key] && typeof latestPoint[team.key] === "object" ? latestPoint[team.key] : {};
+      const previous =
+        previousPoint?.[team.key] && typeof previousPoint[team.key] === "object"
+          ? previousPoint[team.key]
+          : {};
+      const highest = toNumber(latest.highest);
+      const high = toNumber(latest.high);
+      const medium = toNumber(latest.medium);
+      const low = toNumber(latest.low);
+      const lowest = toNumber(latest.lowest);
+      const total = highest + high + medium + low + lowest;
+      const previousTotal =
+        toNumber(previous.highest) +
+        toNumber(previous.high) +
+        toNumber(previous.medium) +
+        toNumber(previous.low) +
+        toNumber(previous.lowest);
+      const delta = total - previousTotal;
+      const aged30 = toNumber(latest.longstanding_30d_plus);
+      const aged60 = toNumber(latest.longstanding_60d_plus);
+      const highestHigh = highest + high;
+      const score =
+        highest * 20 +
+        high * 2 +
+        aged60 * 0.45 +
+        aged30 * 0.2 +
+        Math.max(delta, 0) * 3;
+      return {
+        ...team,
+        total,
+        highestHigh,
+        delta,
+        aged30,
+        aged60,
+        score
+      };
+    })
+    .filter((team) => team.total > 0)
+    .sort((left, right) => right.score - left.score);
+
+  const leadTeam = rankedTeams[0];
+  if (!leadTeam || (leadTeam.highestHigh === 0 && leadTeam.aged30 === 0 && leadTeam.delta <= 0)) {
+    return null;
+  }
+
+  return {
+    key: "bug-pressure",
+    score: leadTeam.score,
+    title:
+      leadTeam.key === "bc" && leadTeam.aged30 > 0
+        ? "Address Broadcast bugs"
+        : `Address ${leadTeam.label} bugs`,
+    href: "#composition-panel",
+    linkLabel: "Open bug graph"
+  };
+}
+
+function buildUatActionItem() {
+  const rows = Array.isArray(state.snapshot?.chartData?.managementBusinessUnit?.byScope?.ongoing?.rows)
+    ? state.snapshot.chartData.managementBusinessUnit.byScope.ongoing.rows
+    : [];
+  const rankedRows = rows
+    .map((row) => ({
+      label: String(row?.label || "").trim(),
+      sampleCount: toNumber(row?.sampleCount),
+      uatAvg: toNumber(row?.uatAvg),
+      score: toNumber(row?.sampleCount) * 8 + toNumber(row?.uatAvg)
+    }))
+    .filter((row) => row.label && row.sampleCount > 0 && row.uatAvg > 1)
+    .sort((left, right) => right.score - left.score);
+  const leadRow = rankedRows[0];
+  if (!leadRow) return null;
+
+  return {
+    key: "uat-pressure",
+    score: leadRow.score,
+    title: "Address UAT",
+    href: "#management-facility-panel",
+    linkLabel: "Open UAT graph"
+  };
+}
+
+function buildFlowActionItem() {
+  const teams = Array.isArray(state.prCycle?.windows?.["90d"]?.teams)
+    ? state.prCycle.windows["90d"].teams
+    : [];
+  const rankedTeams = teams
+    .map((team) => ({
+      label: String(team?.label || "").trim(),
+      issueCount: toNumber(team?.issueCount),
+      totalCycleDays: toNumber(team?.totalCycleDays),
+      bottleneckLabel: String(team?.bottleneckLabel || "").trim(),
+      score: toNumber(team?.totalCycleDays) * Math.max(1, toNumber(team?.issueCount) / 10)
+    }))
+    .filter((team) => team.label && team.issueCount > 0 && team.totalCycleDays > 7)
+    .sort((left, right) => right.score - left.score);
+  const leadTeam = rankedTeams[0];
+  if (!leadTeam) return null;
+
+  return {
+    key: "flow-pressure",
+    score: leadTeam.score,
+    title:
+      leadTeam.key === "workers"
+        ? "Address Workers team in review bottleneck"
+        : `Address ${leadTeam.label} team in ${leadTeam.bottleneckLabel.toLowerCase()} bottleneck`,
+    href: "#pr-cycle-experiment-panel",
+    linkLabel: "Open workflow graph"
+  };
+}
+
+function buildActionsRequiredItems() {
+  return [buildBugActionItem(), buildUatActionItem(), buildFlowActionItem()]
+    .filter(Boolean)
+    .sort((left, right) => right.score - left.score)
+    .slice(0, 3);
+}
+
+function renderActionsRequiredFrame() {
+  const panel = document.getElementById("actions-required-panel");
+  const listNode = document.getElementById("actions-required-list");
+  const contextNode = document.getElementById("actions-required-context");
+  const statusNode = document.getElementById("actions-required-status");
+  if (!panel || !listNode || !contextNode || !statusNode) return;
+
+  if (state.mode !== "all") {
+    panel.hidden = true;
+    return;
+  }
+
+  panel.hidden = false;
+  const actionItems = buildActionsRequiredItems();
+  const points = Array.isArray(state.snapshot?.combinedPoints) ? state.snapshot.combinedPoints : [];
+  const latestSnapshotDate = points.length > 0 ? String(points[points.length - 1]?.date || "") : "";
+  setPanelContext(
+    contextNode,
+    latestSnapshotDate ? `Latest snapshot • ${latestSnapshotDate} • ranked by current pressure` : ""
+  );
+
+  if (actionItems.length === 0) {
+    statusNode.hidden = true;
+    listNode.innerHTML =
+      '<p class="action-card__empty">No urgent action card is firing from the current snapshot.</p>';
+    return;
+  }
+
+  statusNode.hidden = true;
+  listNode.innerHTML = `
+    <ul class="action-link-list">
+      ${actionItems
+        .map(
+          (item) => `
+            <li class="action-link-list__item">
+              <a class="action-link-list__link" href="${escapeHtml(item.href || "#")}">${escapeHtml(item.title || "")}</a>
+            </li>
+          `
+        )
+        .join("")}
+    </ul>
+  `;
 }
 
 function getBroadcastScopeLabel() {
@@ -576,7 +756,6 @@ function setPrActivityHelpDetails({ since = "", until = "", caveat = "", interva
 
 function normalizeDisplayTeamName(name) {
   const raw = String(name || "").trim();
-  if (raw.toLowerCase() === "bc") return "Broadcast";
   if (raw.toLowerCase() === "orchestration") return "Workers";
   return raw;
 }
@@ -1399,7 +1578,6 @@ function formatStackedCycleMonthsValueMarkup(valueInDays) {
 function getAlertLevelFromMonths(valueInMonths) {
   const safeValue = Math.max(0, toNumber(valueInMonths));
   if (safeValue >= 2) return "critical";
-  if (safeValue > 1) return "warning";
   return "";
 }
 
@@ -1428,7 +1606,6 @@ function renderProductCycleSingleTeamCard(containerId, row, allRows) {
   const cycleWidth = cycleSample > 0 ? getCycleFillWidth(row?.cycle, maxCycleDays) : 0;
   const shippedWidth = shippedCount > 0 ? getCycleFillWidth(shippedCount, maxShipped) : 0;
   const ongoingWidth = ongoingCount > 0 ? getCycleFillWidth(ongoingCount, maxOngoing) : 0;
-  const cycleAlertLevel = getAlertLevelFromMonths(toNumber(row?.cycle) / 30.4375);
 
   container.innerHTML = `
     <div class="product-cycle-team-card-wrap">
@@ -1449,10 +1626,7 @@ function renderProductCycleSingleTeamCard(containerId, row, allRows) {
             <div class="pr-cycle-stage-row__track" aria-hidden="true">
               <div class="pr-cycle-stage-row__fill" style="width:${cycleWidth}%"></div>
             </div>
-            <div class="pr-cycle-stage-row__value">${formatStageValueFrame(
-              formatStackedCycleMonthsValueMarkup(row?.cycle),
-              cycleAlertLevel ? `pr-cycle-stage-row__value-frame--${cycleAlertLevel}` : ""
-            )}</div>
+            <div class="pr-cycle-stage-row__value">${formatStageValueFrame(formatStackedCycleMonthsValueMarkup(row?.cycle))}</div>
           </div>
           <div class="pr-cycle-stage-row product-cycle-team-card__row" data-stage="shipped">
             <div class="pr-cycle-stage-row__label">
@@ -1462,7 +1636,7 @@ function renderProductCycleSingleTeamCard(containerId, row, allRows) {
             <div class="pr-cycle-stage-row__track" aria-hidden="true">
               <div class="pr-cycle-stage-row__fill" style="width:${shippedWidth}%"></div>
             </div>
-            <div class="pr-cycle-stage-row__value">${shippedCount}</div>
+            <div class="pr-cycle-stage-row__value">${formatStageValueFrame(String(shippedCount))}</div>
           </div>
           <div class="pr-cycle-stage-row product-cycle-team-card__row" data-stage="ongoing">
             <div class="pr-cycle-stage-row__label">
@@ -1472,7 +1646,7 @@ function renderProductCycleSingleTeamCard(containerId, row, allRows) {
             <div class="pr-cycle-stage-row__track" aria-hidden="true">
               <div class="pr-cycle-stage-row__fill" style="width:${ongoingWidth}%"></div>
             </div>
-            <div class="pr-cycle-stage-row__value">${ongoingCount}</div>
+            <div class="pr-cycle-stage-row__value">${formatStageValueFrame(String(ongoingCount))}</div>
           </div>
         </div>
         <div class="pr-cycle-stage-card__footer">
@@ -1494,6 +1668,7 @@ function renderProductCycleComparisonCard(containerId, rows, scopeLabel) {
       const cycleSample = toCount(row?.meta_cycle?.n);
       const teamColor = getPrCycleTeamColor(row?.team);
       const cycleWidth = cycleSample > 0 ? getCycleFillWidth(row?.cycle, maxCycleDays) : 0;
+      const cycleAlertLevel = getAlertLevelFromMonths(toNumber(row?.cycle) / 30.4375);
       return `
         <div class="pr-cycle-stage-row product-cycle-compare-row" data-stage="cycle">
           <div class="pr-cycle-stage-row__label">
@@ -1507,7 +1682,10 @@ function renderProductCycleComparisonCard(containerId, rows, scopeLabel) {
               teamColor
             )};"></div>
           </div>
-          <div class="pr-cycle-stage-row__value">${formatStageValueFrame(formatStackedCycleMonthsValueMarkup(row?.cycle))}</div>
+          <div class="pr-cycle-stage-row__value">${formatStageValueFrame(
+            formatStackedCycleMonthsValueMarkup(row?.cycle),
+            cycleAlertLevel ? `pr-cycle-stage-row__value-frame--${cycleAlertLevel}` : ""
+          )}</div>
         </div>
       `;
     })
@@ -2031,6 +2209,7 @@ async function loadDataSource(sourceKey) {
     state.loadedSources[sourceKey] = true;
     delete state.loadErrors[sourceKey];
     renderDashboardRefreshStrip();
+    renderActionsRequiredFrame();
     renderVisibleCharts();
   } catch (error) {
     state[source.stateKey] = null;
@@ -2040,6 +2219,7 @@ async function loadDataSource(sourceKey) {
     setStatusMessageForIds(source.statusIds || [], message);
     (source.clearContainers || []).forEach(clearChartContainer);
     renderDashboardRefreshStrip();
+    renderActionsRequiredFrame();
   }
 }
 
@@ -2054,6 +2234,7 @@ async function loadSnapshot() {
   state.mode = getModeFromUrl();
   readDashboardControlStateFromUrl();
   renderDashboardRefreshStrip();
+  renderActionsRequiredFrame();
   applyModeVisibility();
   initChartVisibility();
   syncDashboardControlsFromState();
@@ -2063,6 +2244,7 @@ async function loadSnapshot() {
     const requiredSourceKeys = getRequiredSourceKeys(state.mode);
     await Promise.allSettled(requiredSourceKeys.map((sourceKey) => loadDataSource(sourceKey)));
     renderDashboardRefreshStrip();
+    renderActionsRequiredFrame();
     renderVisibleCharts();
   } catch (error) {
     const message = `Failed to load backlog-snapshot.json: ${
@@ -2070,6 +2252,7 @@ async function loadSnapshot() {
     }`;
     setStatusMessageForIds(CHART_STATUS_IDS, message);
     renderDashboardRefreshStrip();
+    renderActionsRequiredFrame();
   }
 }
 
