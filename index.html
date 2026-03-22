@@ -29,23 +29,13 @@
     <script defer src="./dashboard-charts-backlog.js"></script>
     <script defer src="./dashboard-charts-delivery.js"></script>
     <script defer src="./dashboard-charts-product.js"></script>
-    <script defer src="./dashboard-app.js"></script>
-    <script defer src="./agentation-local-loader.js"></script>
+    <script defer src="./dashboard-app.js?v=local2"></script>
+    <script defer src="./agentation-local-loader.js?v=local2"></script>
   </head>
   <body>
     <a class="skip-link" href="#dashboard-main">Skip to main content</a>
     <main id="dashboard-main" tabindex="-1">
       <h1 class="sr-only">Backlog Trends dashboard</h1>
-      <section
-        id="dashboard-refresh-panel"
-        class="dashboard-refresh-panel"
-        aria-label="Latest snapshot"
-        hidden
-      >
-        <div class="dashboard-refresh-inner">
-          <p id="dashboard-refresh-text" class="dashboard-refresh-text" hidden></p>
-        </div>
-      </section>
 
       <section
         id="management-facility-panel"
@@ -180,12 +170,12 @@
       <section
         id="product-cycle-panel"
         class="panel panel--frame-fill"
-        aria-label="How long product ideas take to ship"
+        aria-label="How long ready product ideas take to ship"
       >
         <div class="panel-title-row">
-          <h2 id="product-cycle-title">How long product ideas take to ship</h2>
+          <h2 id="product-cycle-title">How long ready product ideas take to ship</h2>
           <details class="help-wrap">
-            <summary class="help-tip" aria-label="How long product ideas take to ship explainer">
+            <summary class="help-tip" aria-label="How long ready product ideas take to ship explainer">
               i
             </summary>
             <div class="help-popover" role="tooltip">

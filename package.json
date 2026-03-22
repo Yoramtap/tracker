@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@fontsource/ibm-plex-serif": "^5.2.7",
-    "@fontsource/inter": "^5.2.8"
+    "@fontsource/inter": "^5.2.8",
+    "agentation": "^2.3.3"
   }
 }

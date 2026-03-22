@@ -292,11 +292,10 @@
   function getPriorityActionTone(row, priorityKey) {
     const share = getPriorityShare(row, priorityKey);
     if (priorityKey === "highest") {
-      if (share <= 0) return "";
-      return share >= 10 ? "critical" : "warning";
+      return share > 0 ? "critical" : "";
     }
     if (priorityKey === "high" && share > 30) {
-      return share >= 50 ? "critical" : "warning";
+      return "warning";
     }
     return "";
   }
@@ -306,6 +305,10 @@
     if (priorityKey === "highest") return share > 0;
     if (priorityKey === "high") return share > 30;
     return false;
+  }
+
+  function shouldHighlightPriorityCell(row, priorityKey) {
+    return Boolean(getPriorityActionTone(row, priorityKey));
   }
 
   function CompositionTableView({ rows }) {
@@ -405,7 +408,7 @@
                   "span",
                   {
                     className: "composition-card__team-label composition-table__team-name",
-                    style: { color: row.teamColor || "" }
+                    style: { color: row.teamColor || undefined }
                   },
                   row.teamLabel
                 )
@@ -467,18 +470,18 @@
               null,
                 h(
                   "th",
-                  { className: "composition-table__team-header composition-table__column-divider", scope: "col" },
+                  { className: "composition-table__team-header composition-table__cell-divider", scope: "col" },
                   "Team"
                 ),
                 h(
                   "th",
-                  { className: "composition-table__header composition-table__column-divider", scope: "col" },
+                  { className: "composition-table__header composition-table__cell-divider", scope: "col" },
                   "Total"
                 ),
                 h("th", { className: "composition-table__header", scope: "col" }, "Highest"),
                 h(
                   "th",
-                  { className: "composition-table__header composition-table__column-divider", scope: "col" },
+                  { className: "composition-table__header composition-table__cell-divider", scope: "col" },
                   "High"
                 ),
                 h("th", { className: "composition-table__header", scope: "col" }, "Change")
@@ -495,14 +498,14 @@
                   "th",
                   {
                     scope: "row",
-                    className: "composition-table__team-cell composition-table__column-divider",
+                    className: "composition-table__team-cell composition-table__cell-divider",
                     "data-label": "Team"
                   },
                   h(
                     "span",
                     {
                       className: "composition-table__team-name",
-                      style: { color: row.teamColor || "" }
+                      style: { color: row.teamColor || undefined }
                     },
                     row.teamLabel
                   )
@@ -510,7 +513,7 @@
                 h(
                   "td",
                   {
-                    className: "composition-table__total-cell composition-table__column-divider",
+                    className: "composition-table__total-cell composition-table__cell-divider",
                     "data-label": "Total"
                   },
                   String(row.total)
@@ -518,11 +521,7 @@
                 h(
                   "td",
                   {
-                    className: `composition-table__urgent-cell${
-                      getPriorityActionTone(row, "highest")
-                        ? ` composition-table__urgent-cell--${getPriorityActionTone(row, "highest")}`
-                        : ""
-                    }`,
+                    className: "composition-table__urgent-cell",
                     "data-label": "Highest"
                   },
                   renderPriorityPrimary(row, "highest")
@@ -530,11 +529,7 @@
                 h(
                   "td",
                   {
-                    className: `composition-table__metric-cell composition-table__metric-cell--high composition-table__column-divider${
-                      getPriorityActionTone(row, "high")
-                        ? ` composition-table__metric-cell--${getPriorityActionTone(row, "high")}`
-                        : ""
-                    }`,
+                    className: "composition-table__metric-cell composition-table__metric-cell--high composition-table__cell-divider",
                     "data-label": "High"
                   },
                   renderPriorityPrimary(row, "high")

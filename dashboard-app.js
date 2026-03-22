@@ -1,5 +1,7 @@
 "use strict";
 
+(function initDashboardApp() {
+
 const PRODUCT_CYCLE_SCOPE = "inception";
 const PRODUCT_CYCLE_SCOPE_LABEL = "All ideas";
 const PR_ACTIVITY_INFLOW_SPLIT = 15;
@@ -10,7 +12,7 @@ const PR_CYCLE_WINDOWS = ["90d", "6m", "1y"];
 const PR_ACTIVITY_WINDOWS = ["90d", "6m", "1y"];
 const MANAGEMENT_FLOW_SCOPES = ["ongoing", "done"];
 const LIFECYCLE_TEAM_SCOPE_DEFAULT = "all";
-const PRODUCT_CYCLE_TEAM_DEFAULT = "all";
+const PRODUCT_CYCLE_TEAM_DEFAULT = "frontend";
 const CHART_CONFIG = {
   trend: {
     panelId: "trend-panel",
@@ -226,6 +228,7 @@ if (!dashboardChartCore) {
 const {
   toNumber,
   formatUpdatedAt,
+  getOldestTimestamp,
   setStatusMessage,
   setStatusMessageForIds,
   getThemeColors,
@@ -454,21 +457,13 @@ function setConfigContext(config, text) {
 }
 
 function getDashboardRefreshUpdatedAt() {
-  const candidates = [
+  return getOldestTimestamp([
     state.snapshot?.updatedAt,
     state.snapshot?.chartData ? state.snapshot?.chartDataUpdatedAt : "",
     state.productCycle?.generatedAt,
     state.contributors?.updatedAt,
     state.prCycle?.updatedAt
-  ]
-    .map((value) => {
-      const text = String(value || "").trim();
-      const time = new Date(text).getTime();
-      return Number.isFinite(time) ? { text, time } : null;
-    })
-    .filter(Boolean)
-    .sort((left, right) => right.time - left.time);
-  return candidates[0]?.text || "";
+  ]);
 }
 
 function renderDashboardRefreshStrip() {
@@ -476,10 +471,10 @@ function renderDashboardRefreshStrip() {
   const textNode = document.getElementById("dashboard-refresh-text");
   if (!panel || !textNode) return;
   const refreshUpdatedAt = getDashboardRefreshUpdatedAt();
-  panel.hidden = refreshUpdatedAt.length === 0;
+  panel.hidden = false;
   textNode.hidden = refreshUpdatedAt.length === 0;
   textNode.textContent = refreshUpdatedAt
-    ? `Latest snapshot ${formatUpdatedAt(refreshUpdatedAt)}`
+    ? `Last updated ${formatUpdatedAt(refreshUpdatedAt)}`
     : "";
 }
 
@@ -948,7 +943,7 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData) {
   const titleNode = document.getElementById("product-cycle-title");
   if (!panel || !chartCore || !chartScopeData || typeof chartScopeData !== "object") return false;
   const { status, context, config } = panel;
-  if (titleNode) titleNode.textContent = "How long product ideas take to ship";
+  if (titleNode) titleNode.textContent = "How long ready product ideas take to ship";
 
   const rows = (Array.isArray(chartScopeData.rows) ? chartScopeData.rows.slice() : [])
     .map((row) => ({
@@ -1393,6 +1388,17 @@ function formatCycleMonthsValueMarkup(valueInDays) {
   return `<span class="metric-duration__value">${rounded}</span><span class="metric-duration__unit">${unit}</span>`;
 }
 
+function formatStackedCycleMonthsValueMarkup(valueInDays) {
+  const months = Math.max(0, toNumber(valueInDays) / 30.4375);
+  const rounded = months === 0 ? "0" : months.toFixed(1);
+  const unit = Math.abs(months - 1) < 0.05 ? "month" : "months";
+  return `<span class="stacked-duration"><span class="stacked-duration__value">${rounded}</span><span class="stacked-duration__unit">${unit}</span></span>`;
+}
+
+function formatStageValueFrame(markup) {
+  return `<span class="pr-cycle-stage-row__value-frame">${markup}</span>`;
+}
+
 function getCycleFillWidth(value, upperBound) {
   const safeUpper = Math.max(1, toNumber(upperBound));
   const safeValue = Math.max(0, toNumber(value));
@@ -1433,7 +1439,7 @@ function renderProductCycleSingleTeamCard(containerId, row, allRows) {
             <div class="pr-cycle-stage-row__track" aria-hidden="true">
               <div class="pr-cycle-stage-row__fill" style="width:${cycleWidth}%"></div>
             </div>
-            <div class="pr-cycle-stage-row__value">${formatCycleMonthsValueMarkup(row?.cycle)}</div>
+            <div class="pr-cycle-stage-row__value">${formatStageValueFrame(formatStackedCycleMonthsValueMarkup(row?.cycle))}</div>
           </div>
           <div class="pr-cycle-stage-row product-cycle-team-card__row" data-stage="shipped">
             <div class="pr-cycle-stage-row__label">
@@ -1488,7 +1494,7 @@ function renderProductCycleComparisonCard(containerId, rows, scopeLabel) {
               teamColor
             )};"></div>
           </div>
-          <div class="pr-cycle-stage-row__value">${formatCycleMonthsValueMarkup(row?.cycle)}</div>
+          <div class="pr-cycle-stage-row__value">${formatStageValueFrame(formatStackedCycleMonthsValueMarkup(row?.cycle))}</div>
         </div>
       `;
     })
@@ -1622,6 +1628,13 @@ function formatStageDurationValueMarkup(value) {
   return `<span class="metric-duration__value">${rounded}</span><span class="metric-duration__unit">${unit}</span>`;
 }
 
+function formatStackedStageDurationValueMarkup(value) {
+  const safeValue = toNumber(value);
+  const rounded = safeValue.toFixed(1);
+  const unit = Math.abs(safeValue - 1) < 0.05 ? "day" : "days";
+  return `<span class="stacked-duration"><span class="stacked-duration__value">${rounded}</span><span class="stacked-duration__unit">${unit}</span></span>`;
+}
+
 function getPrCycleStageDisplayLabel(stage) {
   const key = String(stage?.key || "").trim();
   if (key === "coding") return "Progress";
@@ -1658,7 +1671,7 @@ function renderPrCycleExperimentCard(containerId, team, snapshot) {
           <div class="pr-cycle-stage-row__track" aria-hidden="true">
             <div class="pr-cycle-stage-row__fill" style="width:${width}%"></div>
           </div>
-          <div class="pr-cycle-stage-row__value">${formatStageDurationValueMarkup(stage?.days)}</div>
+          <div class="pr-cycle-stage-row__value">${formatStageValueFrame(formatStackedStageDurationValueMarkup(stage?.days))}</div>
         </div>
       `;
     })
@@ -1865,7 +1878,6 @@ function renderTopContributorsCard(containerId, rows, summary) {
           <div class="pr-cycle-stage-card__meta">
             <div class="pr-cycle-stage-card__team">Community contributors</div>
             <div class="pr-cycle-stage-card__total">${totalIssues}</div>
-            <div class="pr-cycle-stage-card__submeta">${doneIssues} done • ${activeIssues} active</div>
           </div>
         </div>
         <div class="pr-cycle-stage-list">${rowsMarkup}</div>
@@ -2049,3 +2061,5 @@ async function loadSnapshot() {
 }
 
 loadSnapshot();
+
+})();
