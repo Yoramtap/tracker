@@ -56,7 +56,12 @@
     const months = toWhole(value);
     if (months <= 0) return "0";
     if (months === 12) return "1 year";
-    if (months > 12) return `+${months - 12}m`;
+    if (months > 12) {
+      const years = Math.floor(months / 12);
+      const remainingMonths = months % 12;
+      if (remainingMonths === 0) return years === 1 ? "1 year" : `${years} years`;
+      return `${years}y ${remainingMonths}m`;
+    }
     return `${months}m`;
   }
 

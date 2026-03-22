@@ -47,7 +47,7 @@
     return `${root}/issues/?jql=${encodeURIComponent(jql)}`;
   }
 
-  function FacilityUatListCard({ rows, groupingLabel, jiraBrowseBase, scope = "ongoing" }) {
+  function FacilityUatListCard({ rows, groupingLabel, jiraBrowseBase }) {
     const displayRows = toChartRows(rows).map((row) => ({
       ...row,
       uatMonths: toNumber(row?.uatAvg) / 30.4375
@@ -81,7 +81,7 @@
             const uatMonths = toNumber(row?.uatMonths);
             const sampleCount = toWhole(row?.sampleCount);
             const hasLink = sampleCount > 0;
-            const needsAction = scope === "ongoing" && hasLink;
+            const needsAction = hasLink;
             const alertLevel = uatMonths >= 2 ? "critical" : uatMonths > 1 ? "warning" : "";
             const monthParts = formatFacilityMonthsParts(uatMonths);
             const width = sampleCount > 0 ? Math.max(0, Math.round((uatMonths / maxMonths) * 100)) : 0;
@@ -122,7 +122,7 @@
                         href: buildJiraSearchUrl(row?.issueItems, jiraBrowseBase),
                         target: "_blank",
                         rel: "noopener noreferrer",
-                        "aria-label": `Take action on ${String(row?.label || "")} Jira issues in new tab`,
+                        "aria-label": `Open ${String(row?.label || "")} Jira issues in new tab`,
                         title: "Open Jira search in new tab"
                       },
                       h(
@@ -176,16 +176,14 @@
     containerId,
     rows,
     groupingLabel = "facility",
-    jiraBrowseBase = "https://nepgroup.atlassian.net/browse/",
-    scope = "ongoing"
+    jiraBrowseBase = "https://nepgroup.atlassian.net/browse/"
   }) {
     const chartRows = toChartRows(rows).slice();
     renderSvgChart(containerId, chartRows.length > 0, () =>
       h(FacilityUatListCard, {
         rows: chartRows,
         groupingLabel,
-        jiraBrowseBase,
-        scope
+        jiraBrowseBase
       })
     );
   }

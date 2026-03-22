@@ -40,6 +40,7 @@
     const mode = getRequestedMode();
     if (mode === "all") return Object.keys(DATA_SOURCE_URLS);
     if (mode === "contributors") return ["contributors"];
+    if (mode === "pr-activity") return ["snapshot", "prCycle"];
     if (mode === "pr-cycle-experiment") return ["prCycle"];
     if (mode === "product-cycle" || mode === "lifecycle-days") return ["productCycle"];
     return ["snapshot"];

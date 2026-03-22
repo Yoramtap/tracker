@@ -13,6 +13,7 @@
 
   const {
     TEAM_CONFIG,
+    TREND_LONG_LINES,
     TREND_TEAM_LINES,
     React,
     computeYUpper,
@@ -41,6 +42,20 @@
     titanium: 'project = MESO AND type = Bug AND labels = "READY"'
   };
 
+  function isoDateOnlyFromTimestamp(value) {
+    const parsed = new Date(String(value || ""));
+    if (!Number.isFinite(parsed.getTime())) return "";
+    return parsed.toISOString().slice(0, 10);
+  }
+
+  function capDateToSnapshot(dateText, snapshotUpdatedAt) {
+    const safeDate = String(dateText || "").trim();
+    const ceilingDate = isoDateOnlyFromTimestamp(snapshotUpdatedAt);
+    if (!safeDate) return "";
+    if (!ceilingDate) return safeDate;
+    return safeDate > ceilingDate ? ceilingDate : safeDate;
+  }
+
   function totalForPoint(point) {
     return (
       toNumber(point?.highest) +
@@ -54,18 +69,26 @@
   function buildTrendData(snapshot, maxPoints) {
     const allPoints = Array.isArray(snapshot?.combinedPoints) ? snapshot.combinedPoints : [];
     const points = allPoints.slice(-maxPoints);
+    const snapshotUpdatedAt = snapshot?.updatedAt;
     return points.map((point) => {
       const api = point?.api || {};
       const legacy = point?.legacy || {};
       const react = point?.react || {};
       const bc = point?.bc || {};
+      const workers = point?.workers || {};
+      const titanium = point?.titanium || {};
+      const displayDate = capDateToSnapshot(point?.date, snapshotUpdatedAt) || point?.date;
       return {
-        date: point.date,
-        dateShort: formatDateShort(point.date),
+        date: displayDate,
+        dateShort: formatDateShort(displayDate),
         api: totalForPoint(api),
         legacy: totalForPoint(legacy),
         react: totalForPoint(react),
-        bc: totalForPoint(bc)
+        bc: totalForPoint(bc),
+        workers: totalForPoint(workers),
+        titanium: totalForPoint(titanium),
+        bcLong30: toNumber(bc?.longstanding_30d_plus),
+        bcLong60: toNumber(bc?.longstanding_60d_plus)
       };
     });
   }
@@ -74,12 +97,17 @@
     const points = Array.isArray(snapshot?.combinedPoints) ? snapshot.combinedPoints : [];
     const latestPoint = points.length > 0 ? points[points.length - 1] : null;
     if (!latestPoint) return [];
-    const latestMs = new Date(`${latestPoint.date}T00:00:00Z`).getTime();
+    const snapshotUpdatedAt = snapshot?.updatedAt;
+    const latestDate = capDateToSnapshot(latestPoint?.date, snapshotUpdatedAt) || latestPoint?.date;
+    const latestMs = new Date(`${latestDate}T00:00:00Z`).getTime();
 
     function findLookbackPoint(days) {
       const targetMs = latestMs - days * 24 * 60 * 60 * 1000;
       return (
-        points.find((point) => new Date(`${point.date}T00:00:00Z`).getTime() >= targetMs) ||
+        points.find((point) => {
+          const pointDate = capDateToSnapshot(point?.date, snapshotUpdatedAt) || point?.date;
+          return new Date(`${pointDate}T00:00:00Z`).getTime() >= targetMs;
+        }) ||
         points[0] ||
         latestPoint
       );
@@ -138,22 +166,29 @@
   }
 
   function trendLineDefs(colors) {
-    return TREND_TEAM_LINES.map(([dataKey, name, colorKey]) => ({
-      dataKey,
-      name,
-      stroke: colors.teams[colorKey],
-      strokeWidth: 2.5,
-      dot: true
-    }));
+    return [
+      ...TREND_TEAM_LINES.map(([dataKey, name, colorKey]) => ({
+        dataKey,
+        name,
+        stroke: colors.teams[colorKey],
+        strokeWidth: 2.5,
+        dot: true
+      })),
+      ...TREND_LONG_LINES.map((lineDef) => ({
+        ...lineDef,
+        strokeWidth: 1.9,
+        dot: false
+      }))
+    ];
   }
 
-  function buildTrendTicks(yUpper) {
+  function buildTrendAxis(yUpper) {
     const safeUpper = Math.max(10, Math.ceil(toNumber(yUpper)));
-    const roughStep = safeUpper <= 40 ? 10 : safeUpper <= 80 ? 20 : 25;
+    const step = safeUpper <= 40 ? 10 : safeUpper <= 80 ? 20 : 25;
+    const upper = Math.max(step, Math.ceil(safeUpper / step) * step);
     const ticks = [];
-    for (let tick = 0; tick <= safeUpper; tick += roughStep) ticks.push(tick);
-    if (ticks[ticks.length - 1] !== safeUpper) ticks.push(safeUpper);
-    return ticks;
+    for (let tick = 0; tick <= upper; tick += step) ticks.push(tick);
+    return { upper, ticks };
   }
 
   function buildTrendPath(points) {
@@ -163,22 +198,32 @@
       .join(" ");
   }
 
+  function viewportWidthPx() {
+    if (typeof window === "undefined") return 1024;
+    const direct = Number(window.innerWidth);
+    if (Number.isFinite(direct) && direct > 0) return direct;
+    const fallback = Number(document?.documentElement?.clientWidth);
+    return Number.isFinite(fallback) && fallback > 0 ? fallback : 1024;
+  }
+
   function TrendSvgChart({ rows, colors, yUpper }) {
     const [hiddenKeys, setHiddenKeys] = React.useState(() => new Set());
     const [tooltipContent, setTooltipContent] = React.useState(null);
     const lineDefs = trendLineDefs(colors);
     const compactViewport = isCompactViewport();
-    const width = 960;
-    const height = compactViewport ? 290 : 340;
+    const width = compactViewport ? Math.max(300, Math.min(960, viewportWidthPx() - 32)) : 960;
+    const height = compactViewport ? 258 : 340;
     const margin = compactViewport
-      ? { top: 16, right: 14, bottom: 54, left: 46 }
+      ? { top: 14, right: 12, bottom: 42, left: 40 }
       : { top: 20, right: 18, bottom: 60, left: 54 };
     const plotLeft = margin.left;
     const plotRight = width - margin.right;
     const plotTop = margin.top;
     const plotBottom = height - margin.bottom;
-    const safeUpper = Math.max(10, Math.ceil(toNumber(yUpper)));
-    const yTicks = buildTrendTicks(safeUpper);
+    const yAxis = buildTrendAxis(yUpper);
+    const safeUpper = yAxis.upper;
+    const yTicks = yAxis.ticks;
+    const xLabelStride = compactViewport && rows.length > 5 ? 2 : 1;
     const legendItems = lineDefs.map((lineDef) => ({
       key: lineDef.dataKey,
       label: lineDef.name,
@@ -222,6 +267,10 @@
       );
     }
 
+    function hideTooltip() {
+      setTooltipContent(null);
+    }
+
     return h(
       "div",
       { className: "chart-series-shell" },
@@ -236,8 +285,10 @@
               key: `trend-legend-${item.key}`,
               type: "button",
               className: `svg-chart-legend__button${hidden ? " svg-chart-legend__button--off" : ""}`,
+              title: `Toggle ${item.label}`,
               onClick: () => toggleLine(item.key),
-              "aria-pressed": hidden ? "false" : "true"
+              "aria-pressed": hidden ? "false" : "true",
+              style: compactViewport ? { minHeight: "36px", padding: "8px 10px" } : undefined
             },
             h("span", {
               className: "svg-chart-legend__swatch",
@@ -280,7 +331,10 @@
               )
             );
           }),
-          ...rows.map((row, index) => {
+          ...rows.flatMap((row, index) => {
+            const shouldRenderLabel =
+              !compactViewport || rows.length <= 5 || index % xLabelStride === 0 || index === rows.length - 1;
+            if (!shouldRenderLabel) return [];
             const x =
               rows.length <= 1
                 ? (plotLeft + plotRight) / 2
@@ -290,9 +344,9 @@
               {
                 key: `trend-x-${row.date}`,
                 x,
-                y: plotBottom + 20,
+                y: plotBottom + 18,
                 fill: colors.text,
-                fontSize: compactViewport ? 10 : 11,
+                fontSize: compactViewport ? 11 : 11,
                 fontWeight: 600,
                 textAnchor: "middle"
               },
@@ -306,33 +360,49 @@
               fill: "none",
               stroke: series.stroke,
               strokeWidth: series.strokeWidth,
+              strokeDasharray: series.strokeDasharray || undefined,
               strokeLinecap: "round",
               strokeLinejoin: "round"
             }),
-            ...series.points.map((point) =>
-              h("circle", {
-                key: point.key,
-                cx: point.x,
-                cy: point.y,
-                r: compactViewport ? 3 : 3.5,
-                fill: series.stroke,
-                stroke: "#ffffff",
-                strokeWidth: 1.25,
-                onMouseEnter: () => showTooltip(point),
-                onMouseLeave: () => setTooltipContent(null)
-              })
-            )
+              ...(series.dot === false
+              ? []
+              : series.points.map((point) =>
+                  h("circle", {
+                    key: point.key,
+                    cx: point.x,
+                    cy: point.y,
+                    r: compactViewport ? 3.75 : 3.5,
+                    fill: series.stroke,
+                    stroke: "#ffffff",
+                    strokeWidth: compactViewport ? 1.4 : 1.25,
+                    onMouseEnter: () => showTooltip(point),
+                    onMouseLeave: hideTooltip,
+                    onClick: () => showTooltip(point),
+                    onFocus: () => showTooltip(point),
+                    onBlur: hideTooltip,
+                    onKeyDown: (event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        showTooltip(point);
+                      }
+                    },
+                    tabIndex: 0,
+                    role: "button",
+                    "aria-label": `${point.lineDef.name} on ${point.dateShort}: ${toWhole(point.value)} open bugs`,
+                    style: { cursor: "pointer" }
+                  })
+                ))
           ]),
           h(
             "text",
             {
-              x: plotLeft - 42,
+              x: plotLeft - 34,
               y: plotTop + (plotBottom - plotTop) / 2,
               fill: "rgba(31, 51, 71, 0.92)",
-              fontSize: compactViewport ? 10 : 11,
+              fontSize: compactViewport ? 11 : 11,
               fontWeight: 700,
               textAnchor: "middle",
-              transform: `rotate(-90 ${plotLeft - 42} ${plotTop + (plotBottom - plotTop) / 2})`
+              transform: `rotate(-90 ${plotLeft - 34} ${plotTop + (plotBottom - plotTop) / 2})`
             },
             "Open bugs"
           ),
@@ -340,13 +410,13 @@
             "text",
             {
               x: plotLeft + (plotRight - plotLeft) / 2,
-              y: plotBottom + 42,
+              y: plotBottom + 38,
               fill: "rgba(31, 51, 71, 0.92)",
-              fontSize: compactViewport ? 10 : 11,
+              fontSize: compactViewport ? 11 : 11,
               fontWeight: 700,
               textAnchor: "middle"
             },
-            "Sprint start"
+            "Sprint bucket"
           )
         )
       )
@@ -397,12 +467,47 @@
   }
 
   function CompositionTableView({ rows }) {
+    const compactViewport = isCompactViewport();
+
     function renderChangeItems(row) {
-      return [
+      const changeItems = [
         ["30d", row.change30d],
         ["90d", row.change90d],
         ["6m", row.change180d]
-      ].map(([label, change]) =>
+      ];
+      if (compactViewport) {
+        return [
+          h(
+            "div",
+            {
+              key: "compact-change",
+              className: "composition-table__change-item composition-table__change-item--flat",
+              style: {
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "6px 10px",
+                alignItems: "baseline"
+              }
+            },
+            ...changeItems.map(([label, change]) =>
+              h(
+                "span",
+                {
+                  key: label,
+                  style: {
+                    display: "inline-flex",
+                    gap: "4px",
+                    alignItems: "baseline"
+                  }
+                },
+                h("span", { className: "composition-table__change-label" }, label),
+                h("span", { className: "composition-table__change-value" }, formatSignedCount(change.delta))
+              )
+            )
+          )
+        ];
+      }
+      return changeItems.map(([label, change]) =>
         h(
           "div",
           {
@@ -417,6 +522,46 @@
           },
           h("span", { className: "composition-table__change-label" }, label),
           h("span", { className: "composition-table__change-value" }, formatSignedCount(change.delta))
+        )
+      );
+    }
+
+    function renderPrioritySummary(row) {
+      if (!compactViewport) return null;
+      const mediumShare = getPriorityShare(row, "medium");
+      const lowShare = getPriorityShare(row, "low");
+      const lowestShare = getPriorityShare(row, "lowest");
+      return h(
+        "div",
+        {
+          className: "composition-card__secondary-summary",
+          style: {
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "4px 10px",
+            alignItems: "baseline",
+            fontSize: "0.74rem",
+            lineHeight: 1.25,
+            color: "rgba(31, 51, 71, 0.72)"
+          }
+        },
+        h(
+          "span",
+          null,
+          "Med ",
+          h("strong", null, formatPercent(mediumShare))
+        ),
+        h(
+          "span",
+          null,
+          "Low ",
+          h("strong", null, formatPercent(lowShare))
+        ),
+        h(
+          "span",
+          null,
+          "Lowest ",
+          h("strong", null, formatPercent(lowestShare))
         )
       );
     }
@@ -536,7 +681,7 @@
             h(
               "div",
               { className: "composition-card__secondary" },
-              null
+              renderPrioritySummary(row)
             )
           )
         )
@@ -639,7 +784,11 @@
         ...rows.map((row) => row.api),
         ...rows.map((row) => row.legacy),
         ...rows.map((row) => row.react),
-        ...rows.map((row) => row.bc)
+        ...rows.map((row) => row.bc),
+        ...rows.map((row) => row.workers),
+        ...rows.map((row) => row.titanium),
+        ...rows.map((row) => row.bcLong30),
+        ...rows.map((row) => row.bcLong60)
       ],
       { min: 10, pad: 1.08 }
     );

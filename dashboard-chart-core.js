@@ -35,24 +35,24 @@
   const BAR_LAYOUT = { categoryGap: "14%", groupGap: 2, denseMax: 14, normalMax: 20 };
   const CHART_HEIGHTS = { standard: 280, dense: 320 };
   const MOBILE_COMPACT_CHART_HEIGHTS = {
-    trend: 400,
-    composition: 420,
-    uat: 380,
-    management: 380,
-    "management-facility": 420,
-    contributors: 360,
-    "product-cycle": 400,
-    "lifecycle-days": 420
+    trend: 280,
+    composition: 280,
+    uat: 300,
+    management: 290,
+    "management-facility": 300,
+    contributors: 270,
+    "product-cycle": 280,
+    "lifecycle-days": 280
   };
   const SINGLE_CHART_EMBED_HEIGHTS = {
-    trend: 520,
-    composition: 560,
-    uat: 460,
-    management: 440,
-    "management-facility": 520,
-    contributors: 520,
-    "product-cycle": 560,
-    "lifecycle-days": 560
+    trend: 360,
+    composition: 390,
+    uat: 330,
+    management: 320,
+    "management-facility": 360,
+    contributors: 340,
+    "product-cycle": 360,
+    "lifecycle-days": 380
   };
   const DASHBOARD_EMBED_CHART_HEIGHTS = {
     trend: 340,
@@ -65,16 +65,16 @@
     "lifecycle-days": 330
   };
   const MOBILE_DASHBOARD_EMBED_CHART_HEIGHTS = {
-    trend: 320,
-    composition: 340,
-    uat: 300,
-    management: 300,
-    "management-facility": 300,
-    contributors: 250,
-    "product-cycle": 270,
-    "lifecycle-days": 290
+    trend: 290,
+    composition: 300,
+    uat: 280,
+    management: 280,
+    "management-facility": 290,
+    contributors: 240,
+    "product-cycle": 250,
+    "lifecycle-days": 270
   };
-  const HORIZONTAL_CATEGORY_AXIS_WIDTH = 190;
+  const HORIZONTAL_CATEGORY_AXIS_WIDTH = 172;
   const BAR_CURSOR_FILL = "rgba(31,51,71,0.04)";
   const TOOLTIP_PORTAL_ROOT_ID = "dashboard-tooltip-layer";
   const TOOLTIP_VIEWPORT_PADDING = 10;
@@ -106,7 +106,9 @@
     ["api", "API", "api"],
     ["legacy", "Legacy FE", "legacy"],
     ["react", "React FE", "react"],
-    ["bc", "BC", "bc"]
+    ["bc", "BC", "bc"],
+    ["workers", "Workers", "workers"],
+    ["titanium", "Titanium", "titanium"]
   ];
   const TREND_LONG_LINES = [
     {
@@ -245,9 +247,10 @@
 
   function trendTickInterval(pointsCount) {
     const count = Math.max(0, toWhole(pointsCount));
-    if (count <= 8) return 0;
-    if (count <= 16) return 1;
-    return 2;
+    if (count <= 6) return 0;
+    if (count <= 12) return 1;
+    if (count <= 18) return 2;
+    return 3;
   }
 
   function viewportWidthPx() {
@@ -283,30 +286,31 @@
 
   function tickIntervalForMobileLabels(pointsCount) {
     const count = Math.max(0, toWhole(pointsCount));
-    if (count <= 8) return 0;
-    if (count <= 12) return 1;
-    if (count <= 18) return 2;
-    return 3;
+    if (count <= 6) return 0;
+    if (count <= 10) return 1;
+    if (count <= 14) return 2;
+    if (count <= 18) return 3;
+    return 4;
   }
 
   function trendLayoutForViewport(pointsCount) {
     const width = viewportWidthPx();
     if (width <= 680) {
       return {
-        chartHeight: singleChartHeightForMode("trend", 360),
-        margin: { top: 4, right: 14, bottom: 20, left: 20 },
-        xTickFontSize: 9,
-        yTickFontSize: 10,
+        chartHeight: singleChartHeightForMode("trend", 300),
+        margin: { top: 2, right: 10, bottom: 16, left: 16 },
+        xTickFontSize: 8,
+        yTickFontSize: 9,
         xTickMargin: 0,
-        minTickGap: 6,
+        minTickGap: 4,
         legendCompact: true,
         xAxisInterval: trendTickInterval(pointsCount)
       };
     }
     if (width <= 1024) {
       return {
-        chartHeight: singleChartHeightForMode("trend", 300),
-        margin: { top: 12, right: 10, bottom: 60, left: 60 },
+        chartHeight: singleChartHeightForMode("trend", 290),
+        margin: { top: 8, right: 10, bottom: 54, left: 54 },
         xTickFontSize: 11,
         yTickFontSize: 11,
         xTickMargin: 5,
@@ -349,23 +353,27 @@
   }
 
   function groupedBarGeometry(rowsCount, seriesCount = 2) {
+    const compactViewport = isCompactViewport();
     const safeSeriesCount = Math.max(1, Math.floor(toNumber(seriesCount) || 1));
-    let categoryGap = BAR_LAYOUT.categoryGap;
-    let targetGroupWidth = 68;
+    let categoryGap = compactViewport ? "10%" : BAR_LAYOUT.categoryGap;
+    let targetGroupWidth = compactViewport ? 60 : 68;
     if (rowsCount <= 8) {
-      categoryGap = "30%";
-      targetGroupWidth = 88;
+      categoryGap = compactViewport ? "20%" : "30%";
+      targetGroupWidth = compactViewport ? 80 : 88;
     } else if (rowsCount <= 14) {
-      categoryGap = "14%";
-      targetGroupWidth = 102;
+      categoryGap = compactViewport ? "12%" : "14%";
+      targetGroupWidth = compactViewport ? 92 : 102;
+    } else if (compactViewport) {
+      categoryGap = "8%";
+      targetGroupWidth = 56;
     }
     const rawBarSize =
       (targetGroupWidth - BAR_LAYOUT.groupGap * (safeSeriesCount - 1)) / safeSeriesCount;
-    const barSize = Math.max(12, Math.round(rawBarSize));
+    const barSize = Math.max(compactViewport ? 10 : 12, Math.round(rawBarSize));
     return {
       categoryGap,
       barSize,
-      maxBarSize: Math.max(barSize, Math.round(barSize * 1.25))
+      maxBarSize: Math.max(barSize, Math.round(barSize * (compactViewport ? 1.15 : 1.25)))
     };
   }
 
@@ -561,6 +569,7 @@
     { colors, blocks, options = {}, surfaceStyle = null, onPointerEnter, onPointerLeave, onClick },
     ref
   ) {
+    const compactViewport = isCompactViewport();
     const suppressHoverPropagation = (event) => {
       if (!event) return;
       event.stopPropagation();
@@ -583,9 +592,9 @@
           color: colors.tooltip.text,
           fontFamily: "var(--font-ui)",
           borderRadius: "6px",
-          padding: isCompactViewport() ? "7px 9px" : "8px 10px",
+          padding: compactViewport ? "6px 8px" : "8px 10px",
           boxShadow: "0 4px 14px rgba(0,0,0,0.1)",
-          maxWidth: "min(88vw, 320px)",
+          maxWidth: compactViewport ? "min(92vw, 300px)" : "min(88vw, 320px)",
           whiteSpace: "normal",
           overflowWrap: "anywhere",
           pointerEvents: interactive ? "auto" : "none",
@@ -620,9 +629,9 @@
               style: {
                 margin: "0 0 6px",
                 color: line?.style?.color || colors.text,
-                fontSize: line?.style?.fontSize || "12px",
+                fontSize: line?.style?.fontSize || (compactViewport ? "11px" : "12px"),
                 fontWeight: line?.style?.fontWeight || 700,
-                lineHeight: line?.style?.lineHeight || "1.4"
+                lineHeight: line?.style?.lineHeight || (compactViewport ? "1.35" : "1.4")
               }
             },
             String(line.text || "")
@@ -640,7 +649,7 @@
             key: line.key || `tooltip-ul-${index}`,
             style: {
               margin: 0,
-              paddingLeft: "18px",
+              paddingLeft: compactViewport ? "16px" : "18px",
               listStyleType: "disc"
             }
           },
@@ -650,9 +659,9 @@
               style: {
                 margin: "2px 0",
                 color: line?.style?.color || colors.text,
-                fontSize: line?.style?.fontSize || "12px",
+                fontSize: line?.style?.fontSize || (compactViewport ? "11px" : "12px"),
                 fontWeight: 500,
-                lineHeight: line?.style?.lineHeight || "1.4"
+                lineHeight: line?.style?.lineHeight || (compactViewport ? "1.35" : "1.4")
               }
             },
             h("span", null, flattenedText),
@@ -662,7 +671,7 @@
                   {
                     style: {
                       margin: "4px 0 0",
-                      paddingLeft: "16px",
+                      paddingLeft: compactViewport ? "14px" : "16px",
                       listStyleType: "circle"
                     }
                   },
@@ -673,9 +682,9 @@
                         key: `${line.key || index}-sub-${subIndex}`,
                         style: {
                           margin: "1px 0",
-                          fontSize: "11px",
+                          fontSize: compactViewport ? "10px" : "11px",
                           fontWeight: 500,
-                          lineHeight: "1.35",
+                          lineHeight: compactViewport ? "1.3" : "1.35",
                           color: "rgba(31,51,71,0.9)"
                         }
                       },
@@ -942,8 +951,8 @@
                     position: "fixed",
                     left: position ? `${position.left}px` : "-9999px",
                     top: position ? `${position.top}px` : "-9999px",
-                    width: "min(calc(100vw - 24px), 360px)",
-                    maxWidth: "min(calc(100vw - 24px), 360px)",
+                    width: "min(calc(100vw - 20px), 320px)",
+                    maxWidth: "min(calc(100vw - 20px), 320px)",
                     maxHeight: position ? `${position.maxHeight}px` : "calc(100vh - 24px)",
                     overflowX: "hidden",
                     overflowY: "auto",
@@ -987,15 +996,14 @@
   }
 
   function renderLegendNode({ colors, defs, hiddenKeys, setHiddenKeys, compact = false }) {
-    const collapsible =
-      compact &&
-      defs.length > 3 &&
-      typeof dashboardUiUtils.isEmbedMode === "function" &&
-      dashboardUiUtils.isEmbedMode() &&
-      getModeFromUrl() === "all";
+    const compactViewport = isCompactViewport();
+    const useCompactLayout = compact || compactViewport;
+    const embeddedMode =
+      typeof dashboardUiUtils.isEmbedMode === "function" && dashboardUiUtils.isEmbedMode();
+    const collapsible = useCompactLayout && defs.length > 4 && (!embeddedMode || getModeFromUrl() === "all");
     const shortLabel = (value) => {
       const raw = String(value || "");
-      if (!compact) return raw;
+      if (!useCompactLayout) return raw;
       if (raw === "BC long-standing (30d+)") return "BC 30d+";
       if (raw === "BC long-standing (60d+)") return "BC 60d+";
       if (raw === "Median Dev") return "Dev";
@@ -1010,12 +1018,31 @@
       },
       h(
         "summary",
-        { className: "series-drawer__summary" },
+        {
+          className: "series-drawer__summary",
+          style: useCompactLayout
+            ? {
+                minHeight: "32px",
+                padding: "2px 6px"
+              }
+            : null
+        },
         collapsible ? `Series (${defs.length})` : "Series"
       ),
       h(
         "div",
-        { className: "series-drawer__items" },
+        {
+          className: "series-drawer__items",
+          style: useCompactLayout
+            ? {
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+                gap: "6px 8px",
+                justifyItems: "stretch",
+                alignItems: "stretch"
+              }
+            : null
+        },
         defs.map((item) => {
           const key = item?.dataKey || "";
           const hidden = hiddenKeys.has(key);
@@ -1028,11 +1055,24 @@
               className: "series-drawer__item",
               "aria-pressed": hidden ? "false" : "true",
               title: hidden ? `Show ${item.name}` : `Hide ${item.name}`,
+              style: useCompactLayout
+                ? {
+                    width: "100%",
+                    minHeight: "34px",
+                    padding: "6px 8px",
+                    justifyContent: "flex-start"
+                  }
+                : null,
               onClick: () => setHiddenKeys((prev) => toggleLegendKey(prev, key))
             },
             h("span", {
               className: "series-drawer__swatch",
-              style: { background: swatchColor, opacity: hidden ? 0.35 : 1 }
+              style: {
+                background: swatchColor,
+                opacity: hidden ? 0.35 : 1,
+                width: useCompactLayout ? "8px" : "10px",
+                height: useCompactLayout ? "8px" : "10px"
+              }
             }),
             h(
               "span",
@@ -1042,7 +1082,10 @@
                   color: "var(--text, #1f3347)",
                   opacity: hidden ? 0.45 : 1,
                   textDecoration: hidden ? "line-through" : "none",
-                  fontSize: compact ? 11 : 12
+                  fontSize: useCompactLayout ? 11 : 12,
+                  whiteSpace: useCompactLayout ? "normal" : "nowrap",
+                  lineHeight: useCompactLayout ? "1.05" : "1.2",
+                  overflowWrap: useCompactLayout ? "anywhere" : "normal"
                 }
               },
               shortLabel(item.name)
@@ -1345,11 +1388,11 @@
       const lineCount = Math.max(1, axisLabelLines(xAxisProps.label));
       resolved.bottom = Math.max(
         resolved.bottom,
-        compactViewport ? 22 + lineCount * 10 : 46 + lineCount * 16
+        compactViewport ? 18 + lineCount * 8 : 46 + lineCount * 16
       );
     }
     if (yAxisProps?.label && typeof yAxisProps.label === "object") {
-      resolved.left = Math.max(resolved.left, compactViewport ? 18 : 46);
+      resolved.left = Math.max(resolved.left, compactViewport ? 16 : 46);
     }
     return resolved;
   }
@@ -1374,7 +1417,7 @@
       wrapperStyle: {
         zIndex: 40,
         pointerEvents: "auto",
-        maxWidth: "min(88vw, 320px)",
+        maxWidth: isCompactViewport() ? "min(92vw, 300px)" : "min(88vw, 320px)",
         ...wrapperStyle
       }
     };
@@ -1983,9 +2026,9 @@
                   : effectiveCategoryTickTwoLine
                     ? 72
                     : compactViewport
-                      ? 52
+                      ? 46
                       : 34,
-              minTickGap: compactViewport ? 10 : 4,
+              minTickGap: compactViewport ? 8 : 4,
               tick:
                 providedXAxisProps.tick ||
                 (effectiveCategoryTickTwoLine
@@ -2000,7 +2043,9 @@
             type: "category",
             width: Number.isFinite(providedYAxisProps.width)
               ? providedYAxisProps.width
-              : HORIZONTAL_CATEGORY_AXIS_WIDTH,
+              : compactViewport
+                ? 144
+                : HORIZONTAL_CATEGORY_AXIS_WIDTH,
             tick:
               providedYAxisProps.tick ||
               (effectiveCategoryTickTwoLine ? twoLineCategoryTickHorizontal : undefined)

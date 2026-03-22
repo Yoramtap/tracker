@@ -1,11 +1,11 @@
 {
-  "updatedAt": "2026-03-15T13:59:27.559Z",
+  "updatedAt": "2026-03-22T19:06:16.421Z",
   "summary": {
-    "total_issues": 26,
-    "active_issues": 9,
-    "done_issues": 17,
+    "total_issues": 25,
+    "active_issues": 5,
+    "done_issues": 20,
     "total_contributors": 6,
-    "linked_issues": 16
+    "linked_issues": 19
   },
   "chartData": {
     "rows": [
@@ -22,6 +22,12 @@
         "activeIssues": 2
       },
       {
+        "contributor": "Mitchell Kalika",
+        "totalIssues": 5,
+        "doneIssues": 5,
+        "activeIssues": 0
+      },
+      {
         "contributor": "Sven Kommers",
         "totalIssues": 4,
         "doneIssues": 2,
@@ -35,12 +41,6 @@
       },
       {
         "contributor": "Jack Woodgate",
-        "totalIssues": 1,
-        "doneIssues": 1,
-        "activeIssues": 0
-      },
-      {
-        "contributor": "Mitchell Kalika",
         "totalIssues": 1,
         "doneIssues": 1,
         "activeIssues": 0
