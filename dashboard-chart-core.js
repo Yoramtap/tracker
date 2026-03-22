@@ -12,7 +12,15 @@
   }
 
   const h = React.createElement;
-  const PRODUCT_CYCLE_TEAM_ORDER = ["api", "frontend", "broadcast", "workers", "titanium", "shift"];
+  const PRODUCT_CYCLE_TEAM_ORDER = [
+    "multi team",
+    "api",
+    "frontend",
+    "broadcast",
+    "workers",
+    "titanium",
+    "shift"
+  ];
   const TEAM_FALLBACK_PALETTE = [
     "#4f8fcb",
     "#c78b2e",
@@ -25,12 +33,18 @@
   ];
   const TEAM_FALLBACK_HUES = [208, 220, 232, 244, 256, 268, 282, 36, 30, 24];
   const DASHBOARD_TEAM_BASE_COLORS = {
+    all: "#98a4b3",
+    "all teams": "#98a4b3",
+    "all teams avg": "#98a4b3",
     api: "#4f8fcb",
     frontend: "#c78b2e",
     legacy: "#c78b2e",
     react: "#2f9fb4",
     broadcast: "#7b63c7",
     bc: "#7b63c7",
+    "multi team": "#667a4d",
+    "multi-team": "#667a4d",
+    multiteam: "#667a4d",
     orchestration: "#5e6b84",
     workers: "#5e6b84",
     titanium: "#b07aa1",
@@ -277,6 +291,8 @@
       return DASHBOARD_TEAM_BASE_COLORS.frontend;
     if (key.includes("react")) return DASHBOARD_TEAM_BASE_COLORS.react;
     if (key.includes("broadcast")) return DASHBOARD_TEAM_BASE_COLORS.broadcast;
+    if (key === "multi team" || key === "multi-team" || key === "multiteam")
+      return DASHBOARD_TEAM_BASE_COLORS["multi team"];
     if (key.includes("worker")) return DASHBOARD_TEAM_BASE_COLORS.workers;
     if (key.includes("orchestration")) return DASHBOARD_TEAM_BASE_COLORS.orchestration;
     if (key.includes("titanium") || key.includes("media"))
@@ -1418,10 +1434,16 @@
       .trim()
       .toLowerCase();
     if (!colors?.teams) return "#6f9fc6";
+    if (safeLabel === "all" || safeLabel === "all teams" || safeLabel === "all teams avg") {
+      return colors.teams.all || "#98a4b3";
+    }
     if (safeLabel === "api") return colors.teams.api;
     if (safeLabel === "legacy fe" || safeLabel === "frontend") return colors.teams.legacy;
     if (safeLabel === "react fe" || safeLabel === "newfrontend") return colors.teams.react;
     if (safeLabel === "bc" || safeLabel === "broadcast") return colors.teams.bc;
+    if (safeLabel === "multi team" || safeLabel === "multi-team" || safeLabel === "multiteam") {
+      return colors.teams.multiteam || "#667a4d";
+    }
     if (safeLabel === "workers" || safeLabel === "orchestration") return colors.teams.workers;
     if (safeLabel === "titanium" || safeLabel === "media") return colors.teams.titanium;
     return colors.teams.api;

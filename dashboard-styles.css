@@ -15,10 +15,12 @@
   --accent-soft: rgba(72, 114, 167, 0.1);
   --accent-border: rgba(72, 114, 167, 0.26);
   --team-api: #6f9fc6;
+  --team-all: #98a4b3;
   --team-legacy: #b88f56;
   --team-react: #5ba896;
   --contributors-not-done: #9ecfc4;
   --team-bc: #8a79bc;
+  --team-multi-team: #667a4d;
   --team-workers: #7d889d;
   --team-titanium: #b07aa1;
   --priority-highest: #3f638f;
@@ -1194,6 +1196,12 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
 .pr-cycle-team-pill input[value="broadcast"]:checked + span,
 .pr-cycle-team-pill input[value="bc"]:checked + span {
   color: color-mix(in srgb, var(--team-bc) 78%, black);
+}
+
+.pr-cycle-team-pill input[value="multi team"]:checked + span,
+.pr-cycle-team-pill input[value="multi-team"]:checked + span,
+.pr-cycle-team-pill input[value="multiteam"]:checked + span {
+  color: color-mix(in srgb, var(--team-multi-team) 78%, black);
 }
 
 .pr-cycle-team-pill input[value="react"]:checked + span {

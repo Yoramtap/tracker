@@ -316,10 +316,12 @@
       grid: readThemeColor("--chart-grid", "rgba(9,30,66,0.14)"),
       active: readThemeColor("--chart-active", "#0c66e4"),
       teams: {
+        all: readThemeColor("--team-all", "#98a4b3"),
         api: readThemeColor("--team-api", "#2f6ea8"),
         legacy: readThemeColor("--team-legacy", "#8d6f3f"),
         react: readThemeColor("--team-react", "#3f7f75"),
         bc: readThemeColor("--team-bc", "#76649a"),
+        multiteam: readThemeColor("--team-multi-team", "#667a4d"),
         workers: readThemeColor("--team-workers", "#5e6b84"),
         titanium: readThemeColor("--team-titanium", "#b07aa1")
       },

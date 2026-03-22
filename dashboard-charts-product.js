@@ -68,10 +68,18 @@
     return Math.max(12, Math.round((safeValue / safeUpper) * 100));
   }
 
+  function normalizeProductCycleTeamKey(value) {
+    const raw = String(value || "").trim().toLowerCase();
+    if (!raw) return "";
+    if (raw === "orchestration" || raw === "workers") return "workers";
+    if (raw === "multi team" || raw === "multi-team" || raw === "multiteam") {
+      return "multiteam";
+    }
+    return raw;
+  }
+
   function getPrCycleTeamColor(teamKey) {
-    const normalizedKey = String(teamKey || "")
-      .trim()
-      .toLowerCase();
+    const normalizedKey = normalizeProductCycleTeamKey(teamKey);
     const baseMap = buildTeamColorMap([normalizedKey]);
     return baseMap[normalizedKey] || "#4f8fcb";
   }
@@ -86,7 +94,10 @@
 
   function normalizeDisplayTeamName(name) {
     const raw = String(name || "").trim();
-    return raw.toLowerCase() === "orchestration" ? "Workers" : raw;
+    const key = normalizeProductCycleTeamKey(raw);
+    if (key === "workers") return "Workers";
+    if (key === "multiteam") return "Multi team";
+    return raw;
   }
 
   function renderProductCycleCard(containerId, { className = "", teamKey = "", teamColor = "", headerMarkup = "", rowsMarkup = "", footerMarkup = "" }) {
@@ -992,7 +1003,9 @@
             );
             const x = position.x + seriesIndex * (barWidth + innerGap);
             const y = plotBottom - barHeight;
-            const color = teamColorForLabel(colors, seriesDef?.name || seriesDef?.team);
+            const color =
+              String(seriesDef?.color || "").trim() ||
+              teamColorForLabel(colors, seriesDef?.name || seriesDef?.team);
             return h("rect", {
               key: `bar-${position.label}-${seriesDef.key}`,
               x,

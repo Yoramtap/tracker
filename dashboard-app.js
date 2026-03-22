@@ -4,6 +4,18 @@
 
 const PRODUCT_CYCLE_SCOPE = "inception";
 const PRODUCT_CYCLE_SCOPE_LABEL = "All ideas";
+const PRODUCT_CYCLE_MULTI_TEAM_KEY = "multiteam";
+const PRODUCT_CYCLE_MULTI_TEAM_LABEL = "Multi team";
+const PRODUCT_CYCLE_TEAM_ORDER = [
+  PRODUCT_CYCLE_MULTI_TEAM_KEY,
+  "api",
+  "frontend",
+  "broadcast",
+  "workers",
+  "titanium",
+  "shift",
+  "unmapped"
+];
 const PR_ACTIVITY_INFLOW_SPLIT = 15;
 const PR_ACTIVITY_INFLOW_AXIS_MIN_UPPER = 30;
 const PR_ACTIVITY_INFLOW_AXIS_STEP = 5;
@@ -301,7 +313,7 @@ if (!dashboardSvgCore) {
   escapeHtml,
   isEmbedMode
 } = dashboardUiUtils;
-const { buildTeamColorMap, buildTintMap, orderProductCycleTeams, toCount } = dashboardDataUtils;
+const { buildTeamColorMap, buildTintMap, toCount } = dashboardDataUtils;
 const {
   React,
   ResponsiveContainer,
@@ -899,7 +911,19 @@ function buildLegacyPrActivityMonthlyPoints() {
 
 function normalizeDisplayTeamName(name) {
   const raw = String(name || "").trim();
-  if (raw.toLowerCase() === "orchestration") return "Workers";
+  const key = normalizeProductCycleTeamKey(raw);
+  if (key === "workers") return "Workers";
+  if (key === PRODUCT_CYCLE_MULTI_TEAM_KEY) return PRODUCT_CYCLE_MULTI_TEAM_LABEL;
+  return raw;
+}
+
+function normalizeProductCycleTeamKey(value) {
+  const raw = String(value || "").trim().toLowerCase();
+  if (!raw) return PRODUCT_CYCLE_TEAM_DEFAULT;
+  if (raw === "orchestration" || raw === "workers") return "workers";
+  if (raw === PRODUCT_CYCLE_MULTI_TEAM_KEY || raw === "multi team" || raw === "multi-team") {
+    return PRODUCT_CYCLE_MULTI_TEAM_KEY;
+  }
   return raw;
 }
 
@@ -1788,7 +1812,9 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData) {
         if (cycleDiff !== 0) return cycleDiff;
         return String(left?.team || "").localeCompare(String(right?.team || ""));
       });
-    const teams = orderProductCycleTeams(rows.map((row) => String(row?.team || "")).filter(Boolean));
+    const teams = orderProductCycleTeamsForDisplay(
+      rows.map((row) => String(row?.team || "")).filter(Boolean)
+    );
     if (teams.length === 0) {
       return {
         error: `No product-cycle items found for ${PRODUCT_CYCLE_SCOPE_LABEL.toLowerCase()}.`,
@@ -1962,11 +1988,7 @@ function normalizeCurrentStageChartData(chartSnapshotData) {
 }
 
 function lifecycleTeamScopeKey(value) {
-  return (
-    String(value || "")
-      .trim()
-      .toLowerCase() || LIFECYCLE_TEAM_SCOPE_DEFAULT
-  );
+  return normalizeProductCycleTeamKey(value) || LIFECYCLE_TEAM_SCOPE_DEFAULT;
 }
 
 function totalLifecycleSampleCount(teamDef, rows) {
@@ -1981,7 +2003,7 @@ function totalLifecycleSampleCount(teamDef, rows) {
 function getLifecycleTeamOptions(normalizedChartData) {
   const rows = Array.isArray(normalizedChartData?.rows) ? normalizedChartData.rows : [];
   const teamDefs = Array.isArray(normalizedChartData?.teamDefs) ? normalizedChartData.teamDefs : [];
-  const orderedTeamDefs = orderProductCycleTeams(
+  const orderedTeamDefs = orderProductCycleTeamsForDisplay(
     teamDefs.map((teamDef) => String(teamDef?.team || "")).filter(Boolean)
   )
     .map((teamName) => teamDefs.find((teamDef) => String(teamDef?.team || "") === teamName))
@@ -2100,7 +2122,9 @@ function renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData) {
     if (!filteredView) {
       return { error: "No current lifecycle stage counts found.", clearContainer: true };
     }
-    const teams = orderProductCycleTeams(filteredView.teamDefs.map((teamDef) => String(teamDef?.team || "")).filter(Boolean));
+    const teams = orderProductCycleTeamsForDisplay(
+      filteredView.teamDefs.map((teamDef) => String(teamDef?.team || "")).filter(Boolean)
+    );
     const rows = Array.isArray(filteredView.rows) ? filteredView.rows : [];
     const teamDefsBase = Array.isArray(filteredView.teamDefs) ? filteredView.teamDefs : [];
     if (teams.length === 0 || teamDefsBase.length === 0) {
@@ -2109,11 +2133,18 @@ function renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData) {
 
     const themeColors = getThemeColors();
     const compactViewport = isCompactViewport();
-    const lifecycleTintByTeam = buildTintMap(buildTeamColorMap(teams), 0.02);
+    const lifecycleTeamColorMap =
+      selectedTeamKey === LIFECYCLE_TEAM_SCOPE_DEFAULT
+        ? { "All teams avg": themeColors.teams.all }
+        : buildTeamColorMap(teams);
+    const lifecycleTintByTeam = buildTintMap(lifecycleTeamColorMap, 0.02);
     const teamDefs = teamDefsBase.map((teamDef, index) => ({
       key: String(teamDef?.slot || `slot_${index}`),
       ...teamDef,
-      color: themeColors.teams.api,
+      color:
+        lifecycleTeamColorMap[String(teamDef?.team || "")] ||
+        buildTeamColorMap([String(teamDef?.team || "")])[String(teamDef?.team || "")] ||
+        themeColors.teams.api,
       showSeriesLabel: false,
       metaTeamColorMap: lifecycleTintByTeam
     }));
@@ -2211,11 +2242,31 @@ function renderLeadAndCycleTimeByTeamChart() {
 }
 
 function productCycleTeamKey(value) {
-  return (
-    String(value || "")
-      .trim()
-      .toLowerCase() || PRODUCT_CYCLE_TEAM_DEFAULT
-  );
+  return normalizeProductCycleTeamKey(value);
+}
+
+function orderProductCycleTeamsForDisplay(teams) {
+  const rankByTeam = new Map(PRODUCT_CYCLE_TEAM_ORDER.map((team, index) => [team, index]));
+  const seenKeys = new Set();
+  return (Array.isArray(teams) ? teams : [])
+    .map((team) => String(team || "").trim())
+    .filter(Boolean)
+    .filter((team) => {
+      const key = productCycleTeamKey(team);
+      if (seenKeys.has(key)) return false;
+      seenKeys.add(key);
+      return true;
+    })
+    .sort((left, right) => {
+      const leftRank = rankByTeam.has(productCycleTeamKey(left))
+        ? rankByTeam.get(productCycleTeamKey(left))
+        : Number.MAX_SAFE_INTEGER;
+      const rightRank = rankByTeam.has(productCycleTeamKey(right))
+        ? rankByTeam.get(productCycleTeamKey(right))
+        : Number.MAX_SAFE_INTEGER;
+      if (leftRank !== rightRank) return leftRank - rightRank;
+      return String(left || "").localeCompare(String(right || ""));
+    });
 }
 
 function renderPrCycleExperiment() {
