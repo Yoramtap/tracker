@@ -190,6 +190,83 @@
       </section>
 
       <section
+        id="pr-activity-legacy-panel"
+        class="panel"
+        aria-label="PR activity over time"
+      >
+        <div class="panel-title-row">
+          <h2>PR trends over time</h2>
+          <details class="help-wrap">
+            <summary class="help-tip" aria-label="PR activity over time chart explainer">i</summary>
+            <div class="help-popover" role="tooltip">
+              <p>
+                <strong>PR activity over time</strong> restores the older team-by-team timeline view
+                so we can review whether it is still useful.
+              </p>
+              <ul>
+                <li>Each line is one team.</li>
+                <li>The first chart toggles between PR inflow and merged PR counts.</li>
+                <li>The second chart shows the old review-to-merge Jira proxy metric.</li>
+                <li>Vertical event lines mark NAB, IBC, and Codex.</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+        <div class="radio-control-groups" aria-label="PR activity over time controls">
+          <fieldset class="radio-group-card">
+            <legend>Metric</legend>
+            <label
+              ><input
+                type="radio"
+                name="pr-activity-legacy-metric"
+                value="offered"
+                checked
+              />
+              PR inflow</label
+            >
+            <label
+              ><input type="radio" name="pr-activity-legacy-metric" value="merged" /> Merged PRs</label
+            >
+          </fieldset>
+          <fieldset class="radio-group-card">
+            <legend>Events</legend>
+            <label
+              ><input type="checkbox" name="pr-activity-legacy-show-markers" checked /> Show
+              event lines</label
+            >
+          </fieldset>
+        </div>
+        <div class="chart-stack">
+          <div class="chart-block">
+            <p class="chart-section-title">PR inflow / merged PRs</p>
+            <div class="chart">
+              <div
+                id="pr-activity-legacy-count-chart"
+                class="chart-canvas chart-canvas--standard"
+              ></div>
+            </div>
+          </div>
+          <div class="chart-block">
+            <p class="chart-section-title">Review to merge time (ticket proxy)</p>
+            <div class="chart">
+              <div
+                id="pr-activity-legacy-merge-time-chart"
+                class="chart-canvas chart-canvas--standard"
+              ></div>
+            </div>
+          </div>
+        </div>
+        <p id="pr-activity-legacy-context" class="panel-summary panel-summary--meta" hidden></p>
+        <p
+          id="pr-activity-legacy-status"
+          class="panel-status"
+          aria-live="polite"
+          role="status"
+          hidden
+        ></p>
+      </section>
+
+      <section
         id="product-cycle-panel"
         class="panel panel--frame-fill"
         aria-label="How long ready product ideas take to ship"
@@ -276,6 +353,27 @@
         ></p>
       </section>
 
+      <section id="trend-panel" class="panel" aria-label="Bug backlog trend by team">
+        <div class="panel-title-row">
+          <h2>Bug backlog trend by team</h2>
+          <details class="help-wrap">
+            <summary class="help-tip" aria-label="Bug backlog trend chart explainer">i</summary>
+            <div class="help-popover" role="tooltip">
+              <p><strong>Bug backlog trend</strong> tracks open backlog over time by team.</p>
+              <ul>
+                <li>Each line is one team.</li>
+                <li>Dashed BC lines show long-standing backlog overlays.</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+        <div class="chart">
+          <div id="bug-trend-chart" class="chart-canvas chart-canvas--standard"></div>
+        </div>
+        <p id="trend-context" class="panel-summary panel-summary--meta" hidden></p>
+        <p id="trend-status" class="panel-status" aria-live="polite" role="status" hidden></p>
+      </section>
+
       <section id="composition-panel" class="panel" aria-label="Bugs across teams">
         <div class="panel-title-row">
           <h2>Bugs across teams</h2>
@@ -348,6 +446,7 @@
         <p id="pr-activity-context" class="panel-summary panel-summary--meta" hidden></p>
         <p id="pr-activity-status" class="panel-status" aria-live="polite" role="status" hidden></p>
       </section>
+
     </main>
   </body>
 </html>

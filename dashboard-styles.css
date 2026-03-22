@@ -377,16 +377,24 @@ body.embedded-frame-mode .panel {
   order: 6;
 }
 
-#pr-activity-panel {
+#pr-activity-legacy-panel {
   order: 7;
 }
 
-#composition-panel {
+#pr-activity-panel {
   order: 8;
 }
 
-#contributors-panel {
+#trend-panel {
   order: 9;
+}
+
+#composition-panel {
+  order: 10;
+}
+
+#contributors-panel {
+  order: 11;
 }
 
 body.embed-mode.single-chart-mode .panel {
@@ -590,6 +598,10 @@ h2 {
   font-weight: 600;
 }
 
+#pr-activity-legacy-panel .chart-section-title {
+  margin-bottom: 8px;
+}
+
 body.embed-mode .panel-status,
 body.embed-mode .panel-note,
 body.embed-mode .panel-summary {
@@ -664,6 +676,22 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
   align-items: center;
   gap: 6px;
   min-width: 0;
+}
+
+.svg-chart-legend__button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.svg-chart-legend__button--off .svg-chart-legend__label {
+  color: rgba(31, 51, 71, 0.52);
 }
 
 .svg-chart-legend__swatch {

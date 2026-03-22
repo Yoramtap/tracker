@@ -49,6 +49,13 @@ const CHART_CONFIG = {
     containerId: "pr-position-chart",
     missingMessage: "No Jira-linked PR activity found in backlog-snapshot.json."
   },
+  "pr-activity-legacy": {
+    panelId: "pr-activity-legacy-panel",
+    statusId: "pr-activity-legacy-status",
+    contextId: "pr-activity-legacy-context",
+    containerId: "pr-activity-legacy-count-chart",
+    missingMessage: "No Jira-linked PR activity found in backlog-snapshot.json."
+  },
   contributors: {
     panelId: "contributors-panel",
     statusId: "contributors-status",
@@ -89,7 +96,8 @@ const DATA_SOURCE_CONFIG = {
       "trend-status",
       "composition-status",
       "management-facility-status",
-      "pr-activity-status"
+      "pr-activity-status",
+      "pr-activity-legacy-status"
     ]
   },
   productCycle: {
@@ -120,6 +128,7 @@ const CHART_DATA_SOURCES = {
   composition: ["snapshot"],
   "management-facility": ["snapshot"],
   "pr-activity": ["snapshot"],
+  "pr-activity-legacy": ["snapshot"],
   contributors: ["contributors"],
   "product-cycle": ["productCycle"],
   "pr-cycle-experiment": ["prCycle"],
@@ -130,6 +139,7 @@ const CHART_RENDERERS = {
   composition: renderBugCompositionByPriorityChart,
   "management-facility": renderDevelopmentVsUatByFacilityChart,
   "pr-activity": renderPrActivityCharts,
+  "pr-activity-legacy": renderLegacyPrActivityCharts,
   contributors: renderTopContributorsChart,
   "product-cycle": renderLeadAndCycleTimeByTeamChart,
   "pr-cycle-experiment": renderPrCycleExperiment,
@@ -175,6 +185,21 @@ const CONTROL_BINDINGS = [
     onChangeRender: renderPrActivityCharts
   },
   {
+    name: "pr-activity-legacy-metric",
+    stateKey: "prActivityLegacyMetric",
+    defaultValue: "offered",
+    normalizeValue: (value) => (value === "merged" ? "merged" : "offered"),
+    onChangeRender: renderLegacyPrActivityCharts
+  },
+  {
+    name: "pr-activity-legacy-show-markers",
+    stateKey: "showLegacyPrActivityMarkers",
+    defaultValue: true,
+    normalizeChecked: (checked) => checked !== false,
+    onChangeRender: renderLegacyPrActivityCharts,
+    controlType: "checkbox"
+  },
+  {
     name: "product-cycle-team",
     stateKey: "productCycleTeam",
     defaultValue: PRODUCT_CYCLE_TEAM_DEFAULT,
@@ -203,7 +228,10 @@ const state = {
   mode: "all",
   compositionTeamScope: "bc",
   prActivityHiddenKeys: [],
+  prActivityLegacyHiddenKeys: [],
   prActivityWindow: THIRTY_DAY_WINDOW_KEY,
+  prActivityLegacyMetric: "offered",
+  showLegacyPrActivityMarkers: true,
   productCycleTeam: PRODUCT_CYCLE_TEAM_DEFAULT,
   managementFlowScope: "ongoing",
   prCycleTeam: "bc",
@@ -228,6 +256,10 @@ const dashboardChartCore = window.DashboardChartCore;
 if (!dashboardChartCore) {
   throw new Error("Dashboard chart core not loaded.");
 }
+const dashboardSvgCore = window.DashboardSvgCore;
+if (!dashboardSvgCore) {
+  throw new Error("Dashboard SVG core not loaded.");
+}
 const {
   toNumber,
   formatUpdatedAt,
@@ -242,15 +274,21 @@ const {
 const { buildTeamColorMap, buildTintMap, orderProductCycleTeams, toCount } = dashboardDataUtils;
 const {
   ResponsiveContainer,
+  LineChart,
+  Line,
   ScatterChart,
   Scatter,
   ReferenceArea,
   ReferenceLine,
+  CartesianGrid,
   XAxis,
   YAxis,
   Tooltip,
+  activeLineDot,
   buildAxisLabel,
+  buildNiceNumberAxis,
   createTooltipContent,
+  formatDateShort,
   h,
   isCompactViewport,
   makeTooltipLine,
@@ -258,8 +296,10 @@ const {
   renderWithRoot,
   singleChartHeightForMode,
   tooltipTitleLine,
+  trendLayoutForViewport,
   withSafeTooltipProps
 } = dashboardChartCore;
+const { SvgChartShell, linearScale, withAlpha } = dashboardSvgCore;
 
 const PR_ACTIVITY_LINE_DEFS = [
   { dataKey: "api", name: "API", colorKey: "api" },
@@ -268,6 +308,11 @@ const PR_ACTIVITY_LINE_DEFS = [
   { dataKey: "bc", name: "BC", colorKey: "bc" },
   { dataKey: "workers", name: "Workers", colorKey: "workers" },
   { dataKey: "titanium", name: "Titanium", colorKey: "titanium" }
+];
+const PR_ACTIVITY_REFERENCE_MARKERS = [
+  { date: "2025-04-01", label: "NAB" },
+  { date: "2025-09-01", label: "IBC" },
+  { date: "2026-01-01", label: "Codex" }
 ];
 const chartMonthRangeShortFormatter = new Intl.DateTimeFormat(undefined, {
   month: "short",
@@ -278,6 +323,24 @@ const chartMonthRangeShortFormatter = new Intl.DateTimeFormat(undefined, {
 function toChartDateValue(dateText) {
   const timestamp = new Date(`${String(dateText || "")}T00:00:00Z`).getTime();
   return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function formatChartDateTick(value) {
+  if (!Number.isFinite(value) || value <= 0) return "";
+  return new Date(value).toLocaleDateString("en-US", {
+    month: "short",
+    year: "2-digit",
+    timeZone: "UTC"
+  });
+}
+
+function formatCompactChartDateTick(value) {
+  if (!Number.isFinite(value) || value <= 0) return "";
+  return new Date(value).toLocaleDateString("en-US", {
+    month: "short",
+    year: "2-digit",
+    timeZone: "UTC"
+  });
 }
 
 function normalizePrActivityInterval(interval) {
@@ -741,7 +804,7 @@ function renderBugCompositionByPriorityChart() {
 
 function renderTrendChart() {
   const config = getConfig("trend");
-  setConfigContext(config, "Context only • last 5 snapshots");
+  setConfigContext(config, "Last 10 sprints");
   renderSnapshotChart(config);
 }
 
@@ -772,6 +835,52 @@ function setPrActivityHelpDetails({ since = "", until = "", caveat = "", interva
     noteNode.hidden = friendlyNote.length === 0;
     noteNode.textContent = friendlyNote;
   }
+}
+
+function buildLegacyPrActivityRows(metricKey = "offered") {
+  const points = Array.isArray(state.snapshot?.prActivity?.points) ? state.snapshot.prActivity.points : [];
+  return points.map((point) => ({
+    date: String(point?.date || ""),
+    dateValue: toChartDateValue(point?.date),
+    api: toNumber(point?.api?.[metricKey]),
+    legacy: toNumber(point?.legacy?.[metricKey]),
+    react: toNumber(point?.react?.[metricKey]),
+    bc: toNumber(point?.bc?.[metricKey]),
+    workers: toNumber(point?.workers?.[metricKey]),
+    titanium: toNumber(point?.titanium?.[metricKey])
+  }));
+}
+
+function buildLegacyPrMergeTimeRows() {
+  const points = Array.isArray(state.snapshot?.prActivity?.points) ? state.snapshot.prActivity.points : [];
+  return points.map((point) => ({
+    date: String(point?.date || ""),
+    dateValue: toChartDateValue(point?.date),
+    api:
+      toCount(point?.api?.avgReviewToMergeSampleCount) > 0
+        ? toNumber(point?.api?.avgReviewToMergeDays)
+        : null,
+    legacy:
+      toCount(point?.legacy?.avgReviewToMergeSampleCount) > 0
+        ? toNumber(point?.legacy?.avgReviewToMergeDays)
+        : null,
+    react:
+      toCount(point?.react?.avgReviewToMergeSampleCount) > 0
+        ? toNumber(point?.react?.avgReviewToMergeDays)
+        : null,
+    bc:
+      toCount(point?.bc?.avgReviewToMergeSampleCount) > 0
+        ? toNumber(point?.bc?.avgReviewToMergeDays)
+        : null,
+    workers:
+      toCount(point?.workers?.avgReviewToMergeSampleCount) > 0
+        ? toNumber(point?.workers?.avgReviewToMergeDays)
+        : null,
+    titanium:
+      toCount(point?.titanium?.avgReviewToMergeSampleCount) > 0
+        ? toNumber(point?.titanium?.avgReviewToMergeDays)
+        : null
+  }));
 }
 
 function normalizeDisplayTeamName(name) {
@@ -857,6 +966,91 @@ function getPrActivityLineDefs(colors) {
     ...line,
     stroke: colors.teams[line.colorKey]
   }));
+}
+
+function getLegacyPrActivityYUpper(rows, lineDefs) {
+  return (Array.isArray(rows) ? rows : []).reduce((highest, row) => {
+    const rowMax = lineDefs.reduce(
+      (lineHighest, lineDef) => Math.max(lineHighest, toNumber(row?.[lineDef.dataKey])),
+      0
+    );
+    return Math.max(highest, rowMax);
+  }, 0);
+}
+
+function getLegacySharedPrCountYUpper() {
+  const offeredRows = buildLegacyPrActivityRows("offered");
+  const mergedRows = buildLegacyPrActivityRows("merged");
+  const lineDefs = getPrActivityLineDefs(getThemeColors());
+  return Math.max(
+    getLegacyPrActivityYUpper(offeredRows, lineDefs),
+    getLegacyPrActivityYUpper(mergedRows, lineDefs)
+  );
+}
+
+function wrapReferenceLabel(text, maxLineLength = 16) {
+  const words = String(text || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (words.length === 0) return [];
+
+  const lines = [];
+  let currentLine = words[0];
+
+  for (const word of words.slice(1)) {
+    const nextLine = `${currentLine} ${word}`;
+    if (nextLine.length <= maxLineLength) {
+      currentLine = nextLine;
+      continue;
+    }
+    lines.push(currentLine);
+    currentLine = word;
+  }
+
+  lines.push(currentLine);
+  return lines;
+}
+
+function renderPrActivityReferenceLine(marker, compactViewport, showLabel = true) {
+  const lines = wrapReferenceLabel(marker.label, compactViewport ? 12 : 16);
+  const lineHeight = compactViewport ? 12 : 14;
+  return h(ReferenceLine, {
+    key: marker.date,
+    x: toChartDateValue(marker.date),
+    stroke: "rgba(0, 0, 0, 0.9)",
+    strokeDasharray: "7 5",
+    strokeWidth: 1.8,
+    ifOverflow: "extendDomain",
+    label: !showLabel
+      ? undefined
+      : ({ viewBox }) =>
+          h(
+            "text",
+            {
+              x: toNumber(viewBox?.x),
+              y:
+                toNumber(viewBox?.y) -
+                (compactViewport ? 10 : 14) -
+                lineHeight * (lines.length - 1),
+              fill: "rgba(0, 0, 0, 0.95)",
+              fontSize: compactViewport ? 10 : 11,
+              fontWeight: 700,
+              textAnchor: "middle"
+            },
+            lines.map((line, index) =>
+              h(
+                "tspan",
+                {
+                  key: `${marker.date}-${index}`,
+                  x: toNumber(viewBox?.x),
+                  dy: index === 0 ? 0 : lineHeight
+                },
+                line
+              )
+            )
+          )
+  });
 }
 
 function formatWholeCountLabel(value) {
@@ -1000,6 +1194,350 @@ function setSharedPrActivityHiddenKeys(updater) {
   const nextSet = nextValue instanceof Set ? nextValue : new Set(nextValue || []);
   state.prActivityHiddenKeys = Array.from(nextSet);
   renderPrActivityCharts();
+}
+
+function getLegacyPrActivityHiddenKeys() {
+  return new Set(
+    Array.isArray(state.prActivityLegacyHiddenKeys) ? state.prActivityLegacyHiddenKeys : []
+  );
+}
+
+function setLegacyPrActivityHiddenKeys(updater) {
+  const previous = getLegacyPrActivityHiddenKeys();
+  const nextValue = typeof updater === "function" ? updater(previous) : updater;
+  const nextSet = nextValue instanceof Set ? nextValue : new Set(nextValue || []);
+  state.prActivityLegacyHiddenKeys = Array.from(nextSet);
+  renderLegacyPrActivityCharts();
+}
+
+function buildLegacyPrActivityTicks(yUpper) {
+  const safeUpper = Math.max(1, Math.ceil(toNumber(yUpper)));
+  if (safeUpper <= 10) return Array.from({ length: safeUpper + 1 }, (_, index) => index);
+  const step = safeUpper <= 40 ? 5 : safeUpper <= 80 ? 10 : 20;
+  const ticks = [];
+  for (let tick = 0; tick <= safeUpper; tick += step) ticks.push(tick);
+  if (ticks[ticks.length - 1] !== safeUpper) ticks.push(safeUpper);
+  return ticks;
+}
+
+function buildLegacyPrActivityPath(points) {
+  if (!Array.isArray(points) || points.length === 0) return "";
+  if (points.length === 1) return `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+  let path = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const previous = points[index - 1] || points[index];
+    const current = points[index];
+    const next = points[index + 1];
+    const afterNext = points[index + 2] || next;
+    const control1X = current.x + (next.x - previous.x) / 6;
+    const control1Y = current.y + (next.y - previous.y) / 6;
+    const control2X = next.x - (afterNext.x - current.x) / 6;
+    const control2Y = next.y - (afterNext.y - current.y) / 6;
+    path += ` C ${control1X.toFixed(2)} ${control1Y.toFixed(2)} ${control2X.toFixed(2)} ${control2Y.toFixed(2)} ${next.x.toFixed(2)} ${next.y.toFixed(2)}`;
+  }
+  return path;
+}
+
+function buildLegacyPrActivityDisplayedXTicks(rows, compactViewport) {
+  const safeRows = Array.isArray(rows) ? rows.filter(Boolean) : [];
+  if (safeRows.length <= 3) return safeRows.map((row) => row.dateValue).filter((value) => value > 0);
+  const step = compactViewport ? 3 : 2;
+  const ticks = safeRows
+    .filter((_, index) => index % step === 0 || index === safeRows.length - 1)
+    .map((row) => row.dateValue)
+    .filter((value) => value > 0);
+  return Array.from(new Set(ticks));
+}
+
+function LegacyPrActivitySvgChart({
+  rows,
+  colors,
+  yAxisLabel,
+  tooltipLabel,
+  tooltipValueFormatter,
+  yAxisUpperOverride = 0,
+  yAxisPadRatio = 1,
+  hiddenKeys,
+  setHiddenKeys,
+  showLegend = true,
+  hideReferenceLabelsOnCompact = false,
+  xAxisLabel = "Period"
+}) {
+  const lineDefs = getPrActivityLineDefs(colors);
+  const compactViewport = isCompactViewport();
+  const rawYUpper = Math.max(yAxisUpperOverride, getLegacyPrActivityYUpper(rows, lineDefs));
+  const yUpper = Math.max(1, Math.ceil(rawYUpper * Math.max(1, toNumber(yAxisPadRatio))));
+  const width = 960;
+  const height = compactViewport ? 320 : 360;
+  const margin = compactViewport
+    ? { top: 22, right: 14, bottom: 54, left: 48 }
+    : { top: 26, right: 18, bottom: 62, left: 56 };
+  const plotLeft = margin.left;
+  const plotRight = width - margin.right;
+  const plotTop = margin.top;
+  const plotBottom = height - margin.bottom;
+  const xTicks = rows.map((row) => row.dateValue).filter((value) => value > 0);
+  const displayedXTicks = buildLegacyPrActivityDisplayedXTicks(rows, compactViewport);
+  const xMin = xTicks.length > 0 ? xTicks[0] : 0;
+  const xMax = xTicks.length > 0 ? xTicks[xTicks.length - 1] : 1;
+  const yTicks = buildLegacyPrActivityTicks(yUpper);
+  const visibleDefs = lineDefs.filter((lineDef) => !hiddenKeys.has(lineDef.dataKey));
+  const visibleReferenceMarkers =
+    state.showLegacyPrActivityMarkers && xTicks.length > 0
+      ? PR_ACTIVITY_REFERENCE_MARKERS.filter((marker) => {
+          const markerValue = toChartDateValue(marker.date);
+          return markerValue >= xTicks[0] && markerValue <= xTicks[xTicks.length - 1];
+        })
+      : [];
+  const seriesRows = visibleDefs.map((lineDef) => ({
+    ...lineDef,
+    points: rows
+      .map((row) => {
+        const value = row?.[lineDef.dataKey];
+        if (!Number.isFinite(value) || value === null) return null;
+        return {
+          key: `${lineDef.dataKey}-${row.date}`,
+          date: row.date,
+          value: toNumber(value),
+          x: linearScale(row.dateValue, xMin, xMax, plotLeft, plotRight),
+          y: linearScale(toNumber(value), 0, yUpper, plotBottom, plotTop),
+          lineDef
+        };
+      })
+      .filter(Boolean)
+  }));
+  const [tooltipContent, setTooltipContent] = React.useState(null);
+
+  function showTooltip(point) {
+    setTooltipContent(
+      h(
+        "div",
+        null,
+        h("p", null, h("strong", null, point.lineDef.name)),
+        h("p", null, point.date || ""),
+        h("p", null, tooltipValueFormatter(point.value))
+      )
+    );
+  }
+
+  return h(
+    "div",
+    { className: "chart-series-shell" },
+    showLegend
+      ? h(
+          "div",
+          { className: "svg-chart-legend", role: "group", "aria-label": `${tooltipLabel} line toggles` },
+          ...lineDefs.map((lineDef) => {
+            const hidden = hiddenKeys.has(lineDef.dataKey);
+            return h(
+              "button",
+              {
+                key: `legacy-pr-legend-${lineDef.dataKey}`,
+                type: "button",
+                className: `svg-chart-legend__button${hidden ? " svg-chart-legend__button--off" : ""}`,
+                onClick: () =>
+                  setHiddenKeys((previous) => {
+                    const next = new Set(previous);
+                    if (next.has(lineDef.dataKey)) next.delete(lineDef.dataKey);
+                    else next.add(lineDef.dataKey);
+                    return next;
+                  }),
+                "aria-pressed": hidden ? "false" : "true"
+              },
+              h("span", {
+                className: "svg-chart-legend__swatch",
+                style: { background: hidden ? withAlpha(lineDef.stroke, 0.28) : lineDef.stroke }
+              }),
+              h("span", { className: "svg-chart-legend__label" }, lineDef.name)
+            );
+          })
+        )
+      : null,
+    h(
+      SvgChartShell,
+      { width, height, colors, tooltipContent, legendItems: [] },
+      h(
+        "g",
+        null,
+        ...yTicks.map((tick) => {
+          const y = linearScale(tick, 0, yUpper, plotBottom, plotTop);
+          return h(
+            "g",
+            { key: `legacy-pr-y-${tick}` },
+            h("line", {
+              x1: plotLeft,
+              x2: plotRight,
+              y1: y,
+              y2: y,
+              stroke: colors.grid,
+              strokeWidth: tick === 0 ? 1.2 : 1
+            }),
+            h(
+              "text",
+              {
+                x: plotLeft - 8,
+                y: y + 4,
+                fill: colors.text,
+                fontSize: compactViewport ? 10 : 11,
+                fontWeight: 600,
+                textAnchor: "end"
+              },
+              String(tick)
+            )
+          );
+        }),
+        ...displayedXTicks.map((tick) =>
+          h(
+            "text",
+            {
+              key: `legacy-pr-x-${tick}`,
+              x: linearScale(tick, xMin, xMax, plotLeft, plotRight),
+              y: plotBottom + 20,
+              fill: colors.text,
+              fontSize: compactViewport ? 10 : 11,
+              fontWeight: 600,
+              textAnchor: "middle"
+            },
+            formatCompactChartDateTick(tick)
+          )
+        ),
+        ...visibleReferenceMarkers.map((marker) =>
+          h(
+            "g",
+            { key: `legacy-pr-marker-${marker.date}` },
+            h("line", {
+              x1: linearScale(toChartDateValue(marker.date), xMin, xMax, plotLeft, plotRight),
+              x2: linearScale(toChartDateValue(marker.date), xMin, xMax, plotLeft, plotRight),
+              y1: plotTop,
+              y2: plotBottom,
+              stroke: "rgba(31, 51, 71, 0.58)",
+              strokeDasharray: "7 5",
+              strokeWidth: 1.8
+            }),
+            !(hideReferenceLabelsOnCompact && compactViewport)
+              ? h(
+                  "text",
+                  {
+                    x: linearScale(toChartDateValue(marker.date), xMin, xMax, plotLeft, plotRight),
+                    y: plotTop - 6,
+                    fill: "rgba(0, 0, 0, 0.95)",
+                    fontSize: compactViewport ? 10 : 11,
+                    fontWeight: 700,
+                    textAnchor: "middle"
+                  },
+                  marker.label
+                )
+              : null
+          )
+        ),
+        ...seriesRows.flatMap((series) => [
+          h("path", {
+            key: `legacy-pr-line-${series.dataKey}`,
+            d: buildLegacyPrActivityPath(series.points),
+            fill: "none",
+            stroke: series.stroke,
+            strokeWidth: 2.5,
+            strokeLinecap: "round",
+            strokeLinejoin: "round"
+          }),
+          ...series.points.map((point) =>
+            h("circle", {
+              key: point.key,
+              cx: point.x,
+              cy: point.y,
+              r: compactViewport ? 3 : 3.5,
+              fill: series.stroke,
+              stroke: "#ffffff",
+              strokeWidth: 1.25,
+              onMouseEnter: () => showTooltip(point),
+              onMouseLeave: () => setTooltipContent(null)
+            })
+          )
+        ]),
+        h(
+          "text",
+          {
+            x: plotLeft - 42,
+            y: plotTop + (plotBottom - plotTop) / 2,
+            fill: "rgba(31, 51, 71, 0.92)",
+            fontSize: compactViewport ? 10 : 11,
+            fontWeight: 700,
+            textAnchor: "middle",
+            transform: `rotate(-90 ${plotLeft - 42} ${plotTop + (plotBottom - plotTop) / 2})`
+          },
+          yAxisLabel
+        ),
+        h(
+          "text",
+          {
+            x: plotLeft + (plotRight - plotLeft) / 2,
+            y: plotBottom + 42,
+            fill: "rgba(31, 51, 71, 0.92)",
+            fontSize: compactViewport ? 10 : 11,
+            fontWeight: 700,
+            textAnchor: "middle"
+          },
+          xAxisLabel
+        ),
+      )
+    )
+  );
+}
+
+function renderLegacyPrActivityCountChart(containerId) {
+  const metricKey = state.prActivityLegacyMetric === "merged" ? "merged" : "offered";
+  const rows = buildLegacyPrActivityRows(metricKey);
+  const colors = getThemeColors();
+  const yAxisLabel = metricKey === "merged" ? "Merged PRs" : "PR inflow";
+  const hiddenKeys = getLegacyPrActivityHiddenKeys();
+  renderWithRoot(containerId, rows.length > 0, (root) => {
+    root.render(
+      h(LegacyPrActivitySvgChart, {
+        rows,
+        colors,
+        yAxisLabel,
+        tooltipLabel: yAxisLabel,
+        tooltipValueFormatter: (value) => `${value} ${yAxisLabel.toLowerCase()}`,
+        yAxisUpperOverride: getLegacySharedPrCountYUpper(),
+        hiddenKeys,
+        setHiddenKeys: setLegacyPrActivityHiddenKeys,
+        showLegend: true,
+        xAxisLabel:
+          normalizePrActivityInterval(state.snapshot?.prActivity?.interval) === "sprint"
+            ? "Sprint start"
+            : "Month"
+      })
+    );
+  });
+}
+
+function renderLegacyPrMergeTimeChart(containerId) {
+  const rows = buildLegacyPrMergeTimeRows();
+  const colors = getThemeColors();
+  const hiddenKeys = getLegacyPrActivityHiddenKeys();
+  renderWithRoot(containerId, rows.length > 0, (root) => {
+    root.render(
+      h(LegacyPrActivitySvgChart, {
+        rows,
+        colors,
+        yAxisLabel: "Avg days to merge",
+        tooltipLabel: "Average review-to-merge time",
+        tooltipValueFormatter: (value) => {
+          const roundedDays = Math.max(0, Math.round(Number(value) || 0));
+          return `~${roundedDays} day${roundedDays === 1 ? "" : "s"}`;
+        },
+        hiddenKeys,
+        setHiddenKeys: setLegacyPrActivityHiddenKeys,
+        yAxisPadRatio: 1.12,
+        showLegend: false,
+        hideReferenceLabelsOnCompact: true,
+        xAxisLabel:
+          normalizePrActivityInterval(state.snapshot?.prActivity?.interval) === "sprint"
+            ? "Sprint start"
+            : "Month"
+      })
+    );
+  });
 }
 
 function PrActivityScatterView({ series, colors, hiddenKeys, setHiddenKeys, interval, axisRows }) {
@@ -1200,6 +1738,32 @@ function renderPrActivityCharts() {
       interval
     });
     renderPrActivityPositionChart("pr-position-chart");
+  });
+}
+
+function renderLegacyPrActivityCharts() {
+  withChart("pr-activity-legacy", ({ status, context }) => {
+    const prActivity = state.snapshot?.prActivity;
+    const points = Array.isArray(prActivity?.points) ? prActivity.points : [];
+    if (points.length === 0) {
+      clearChartContainer("pr-activity-legacy-count-chart");
+      clearChartContainer("pr-activity-legacy-merge-time-chart");
+      showPanelStatus(status, "No Jira-linked PR activity found in backlog-snapshot.json.");
+      return;
+    }
+
+    status.hidden = true;
+    const since = String(prActivity?.since || "");
+    const interval = normalizePrActivityInterval(prActivity?.interval);
+    const metricKey = state.prActivityLegacyMetric === "merged" ? "merged" : "offered";
+    syncRadioValue("pr-activity-legacy-metric", metricKey);
+    syncCheckboxValue("pr-activity-legacy-show-markers", state.showLegacyPrActivityMarkers);
+    setPanelContext(
+      context,
+      `${interval === "sprint" ? "Sprint" : "Monthly"} Jira-linked PR activity since ${since || points[0]?.date || ""}`
+    );
+    renderLegacyPrActivityCountChart("pr-activity-legacy-count-chart");
+    renderLegacyPrMergeTimeChart("pr-activity-legacy-merge-time-chart");
   });
 }
 

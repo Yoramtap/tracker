@@ -1,40 +1,29 @@
 "use strict";
 
 (function initDashboardBacklogCharts() {
-  const RECENT_TREND_POINTS = 5;
+  const RECENT_TREND_POINTS = 10;
   const core = window.DashboardChartCore;
+  const svgCore = window.DashboardSvgCore;
   if (!core) {
     throw new Error("Dashboard chart core not loaded.");
+  }
+  if (!svgCore) {
+    throw new Error("Dashboard SVG core not loaded.");
   }
 
   const {
     TEAM_CONFIG,
-    TREND_LONG_LINES,
     TREND_TEAM_LINES,
     React,
-    ResponsiveContainer,
-    LineChart,
-    Line,
-    CartesianGrid,
-    XAxis,
-    YAxis,
-    Tooltip,
-    activeLineDot,
-    buildAxisLabel,
-    buildNiceNumberAxis,
     computeYUpper,
-    createTooltipContent,
     formatDateShort,
     h,
     isCompactViewport,
-    makeTooltipLine,
-    renderLegendNode,
     renderWithRoot,
     toNumber,
-    tooltipTitleLine,
-    trendLayoutForViewport,
-    withSafeTooltipProps
+    toWhole
   } = core;
+  const { SvgChartShell, linearScale, renderSvgChart, withAlpha } = svgCore;
 
   const PRIORITY_TABLE_ORDER = [
     { key: "highest", label: "Highest" },
@@ -76,9 +65,7 @@
         api: totalForPoint(api),
         legacy: totalForPoint(legacy),
         react: totalForPoint(react),
-        bc: totalForPoint(bc),
-        bcLong30: toNumber(bc.longstanding_30d_plus),
-        bcLong60: toNumber(bc.longstanding_60d_plus)
+        bc: totalForPoint(bc)
       };
     });
   }
@@ -151,117 +138,215 @@
   }
 
   function trendLineDefs(colors) {
-    return [
-      ...TREND_TEAM_LINES.map(([dataKey, name, colorKey]) => ({
-        dataKey,
-        name,
-        stroke: colors.teams[colorKey],
-        strokeWidth: 2.5,
-        dot: true
-      })),
-      ...TREND_LONG_LINES.map((line) => ({
-        ...line,
-        strokeWidth: 2,
-        dot: true
-      }))
-    ];
+    return TREND_TEAM_LINES.map(([dataKey, name, colorKey]) => ({
+      dataKey,
+      name,
+      stroke: colors.teams[colorKey],
+      strokeWidth: 2.5,
+      dot: true
+    }));
   }
 
-  function TrendChartView({ rows, colors, yUpper, supporting = false }) {
+  function buildTrendTicks(yUpper) {
+    const safeUpper = Math.max(10, Math.ceil(toNumber(yUpper)));
+    const roughStep = safeUpper <= 40 ? 10 : safeUpper <= 80 ? 20 : 25;
+    const ticks = [];
+    for (let tick = 0; tick <= safeUpper; tick += roughStep) ticks.push(tick);
+    if (ticks[ticks.length - 1] !== safeUpper) ticks.push(safeUpper);
+    return ticks;
+  }
+
+  function buildTrendPath(points) {
+    if (!Array.isArray(points) || points.length === 0) return "";
+    return points
+      .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
+      .join(" ");
+  }
+
+  function TrendSvgChart({ rows, colors, yUpper }) {
     const [hiddenKeys, setHiddenKeys] = React.useState(() => new Set());
+    const [tooltipContent, setTooltipContent] = React.useState(null);
     const lineDefs = trendLineDefs(colors);
-    const layout = trendLayoutForViewport(rows.length);
     const compactViewport = isCompactViewport();
-    const niceYAxis = buildNiceNumberAxis(yUpper);
-    const chartHeight = supporting ? Math.max(224, layout.chartHeight - 96) : layout.chartHeight;
-    const chartMargin = supporting
-      ? {
-          top: 4,
-          right: 8,
-          bottom: 50,
-          left: compactViewport ? 44 : 52
-        }
-      : layout.margin;
+    const width = 960;
+    const height = compactViewport ? 290 : 340;
+    const margin = compactViewport
+      ? { top: 16, right: 14, bottom: 54, left: 46 }
+      : { top: 20, right: 18, bottom: 60, left: 54 };
+    const plotLeft = margin.left;
+    const plotRight = width - margin.right;
+    const plotTop = margin.top;
+    const plotBottom = height - margin.bottom;
+    const safeUpper = Math.max(10, Math.ceil(toNumber(yUpper)));
+    const yTicks = buildTrendTicks(safeUpper);
+    const legendItems = lineDefs.map((lineDef) => ({
+      key: lineDef.dataKey,
+      label: lineDef.name,
+      color: lineDef.stroke
+    }));
+    const visibleLineDefs = lineDefs.filter((lineDef) => !hiddenKeys.has(lineDef.dataKey));
+    const seriesRows = visibleLineDefs.map((lineDef) => ({
+      ...lineDef,
+      points: rows.map((row, index) => ({
+        key: `${lineDef.dataKey}-${row.date}`,
+        date: row.date,
+        label: row.dateShort,
+        value: toNumber(row?.[lineDef.dataKey]),
+        x:
+          rows.length <= 1
+            ? (plotLeft + plotRight) / 2
+            : linearScale(index, 0, rows.length - 1, plotLeft, plotRight),
+        y: linearScale(toNumber(row?.[lineDef.dataKey]), 0, safeUpper, plotBottom, plotTop),
+        lineDef
+      }))
+    }));
+
+    function toggleLine(dataKey) {
+      setHiddenKeys((previous) => {
+        const next = new Set(previous);
+        if (next.has(dataKey)) next.delete(dataKey);
+        else next.add(dataKey);
+        return next;
+      });
+    }
+
+    function showTooltip(point) {
+      setTooltipContent(
+        h(
+          "div",
+          null,
+          h("p", null, h("strong", null, point.lineDef.name)),
+          h("p", null, point.date || ""),
+          h("p", null, `Open bugs: ${toWhole(point.value)}`)
+        )
+      );
+    }
 
     return h(
       "div",
-      {
-        className: `chart-series-shell${supporting ? " chart-series-shell--supporting" : ""}`
-      },
-      renderLegendNode({
-        colors,
-        defs: lineDefs,
-        hiddenKeys,
-        setHiddenKeys,
-        compact: supporting || layout.legendCompact
-      }),
+      { className: "chart-series-shell" },
       h(
-        ResponsiveContainer,
-        { width: "100%", height: chartHeight },
+        "div",
+        { className: "svg-chart-legend", role: "group", "aria-label": "Trend line toggles" },
+        ...legendItems.map((item) => {
+          const hidden = hiddenKeys.has(item.key);
+          return h(
+            "button",
+            {
+              key: `trend-legend-${item.key}`,
+              type: "button",
+              className: `svg-chart-legend__button${hidden ? " svg-chart-legend__button--off" : ""}`,
+              onClick: () => toggleLine(item.key),
+              "aria-pressed": hidden ? "false" : "true"
+            },
+            h("span", {
+              className: "svg-chart-legend__swatch",
+              style: { background: hidden ? withAlpha(item.color, 0.28) : item.color }
+            }),
+            h("span", { className: "svg-chart-legend__label" }, item.label)
+          );
+        })
+      ),
+      h(
+        SvgChartShell,
+        { width, height, colors, tooltipContent, legendItems: [] },
         h(
-          LineChart,
-          {
-            data: rows,
-            margin: chartMargin
-          },
-          h(CartesianGrid, { stroke: colors.grid, vertical: false }),
-          h(XAxis, {
-            dataKey: "dateShort",
-            stroke: colors.text,
-            tick: {
-              fill: colors.text,
-              fontSize: layout.xTickFontSize,
-              fontFamily: "var(--font-ui)"
-            },
-            tickMargin: layout.xTickMargin,
-            interval: layout.xAxisInterval,
-            minTickGap: layout.minTickGap,
-            label: buildAxisLabel("Sprint start")
+          "g",
+          null,
+          ...yTicks.map((tick) => {
+            const y = linearScale(tick, 0, safeUpper, plotBottom, plotTop);
+            return h(
+              "g",
+              { key: `trend-y-${tick}` },
+              h("line", {
+                x1: plotLeft,
+                x2: plotRight,
+                y1: y,
+                y2: y,
+                stroke: colors.grid,
+                strokeWidth: tick === 0 ? 1.2 : 1
+              }),
+              h(
+                "text",
+                {
+                  x: plotLeft - 8,
+                  y: y + 4,
+                  fill: colors.text,
+                  fontSize: compactViewport ? 10 : 11,
+                  fontWeight: 600,
+                  textAnchor: "end"
+                },
+                String(tick)
+              )
+            );
           }),
-          h(YAxis, {
-            stroke: colors.text,
-            tick: {
-              fill: colors.text,
-              fontSize: layout.yTickFontSize,
-              fontFamily: "var(--font-ui)"
-            },
-            domain: [0, niceYAxis.upper],
-            ticks: niceYAxis.ticks,
-            label: buildAxisLabel("Open bugs", { axis: "y", offset: 6 })
+          ...rows.map((row, index) => {
+            const x =
+              rows.length <= 1
+                ? (plotLeft + plotRight) / 2
+                : linearScale(index, 0, rows.length - 1, plotLeft, plotRight);
+            return h(
+              "text",
+              {
+                key: `trend-x-${row.date}`,
+                x,
+                y: plotBottom + 20,
+                fill: colors.text,
+                fontSize: compactViewport ? 10 : 11,
+                fontWeight: 600,
+                textAnchor: "middle"
+              },
+              row.dateShort || ""
+            );
           }),
+          ...seriesRows.flatMap((series) => [
+            h("path", {
+              key: `trend-line-${series.dataKey}`,
+              d: buildTrendPath(series.points),
+              fill: "none",
+              stroke: series.stroke,
+              strokeWidth: series.strokeWidth,
+              strokeLinecap: "round",
+              strokeLinejoin: "round"
+            }),
+            ...series.points.map((point) =>
+              h("circle", {
+                key: point.key,
+                cx: point.x,
+                cy: point.y,
+                r: compactViewport ? 3 : 3.5,
+                fill: series.stroke,
+                stroke: "#ffffff",
+                strokeWidth: 1.25,
+                onMouseEnter: () => showTooltip(point),
+                onMouseLeave: () => setTooltipContent(null)
+              })
+            )
+          ]),
           h(
-            Tooltip,
-            withSafeTooltipProps({
-              content: createTooltipContent(colors, (row, payload) => [
-                tooltipTitleLine("date", row.date || "", colors),
-                ...payload.map((item) =>
-                  makeTooltipLine(item.dataKey, `${item.name}: ${toNumber(item.value)}`, colors)
-                )
-              ]),
-              cursor: { stroke: colors.active, strokeWidth: 1.5, strokeDasharray: "3 3" }
-            })
+            "text",
+            {
+              x: plotLeft - 42,
+              y: plotTop + (plotBottom - plotTop) / 2,
+              fill: "rgba(31, 51, 71, 0.92)",
+              fontSize: compactViewport ? 10 : 11,
+              fontWeight: 700,
+              textAnchor: "middle",
+              transform: `rotate(-90 ${plotLeft - 42} ${plotTop + (plotBottom - plotTop) / 2})`
+            },
+            "Open bugs"
           ),
-          lineDefs.map((lineDef) =>
-            h(Line, {
-              key: lineDef.dataKey,
-              type: "monotone",
-              dataKey: lineDef.dataKey,
-              name: lineDef.name,
-              stroke: lineDef.stroke,
-              strokeDasharray: lineDef.strokeDasharray,
-              strokeWidth: lineDef.strokeWidth,
-              dot: lineDef.dot
-                ? {
-                    r: compactViewport ? 2.75 : 3.25,
-                    fill: lineDef.stroke,
-                    stroke: "#ffffff",
-                    strokeWidth: 1.25
-                  }
-                : false,
-              activeDot: activeLineDot(colors),
-              hide: hiddenKeys.has(lineDef.dataKey),
-              isAnimationActive: false
-            })
+          h(
+            "text",
+            {
+              x: plotLeft + (plotRight - plotLeft) / 2,
+              y: plotBottom + 42,
+              fill: "rgba(31, 51, 71, 0.92)",
+              fontSize: compactViewport ? 10 : 11,
+              fontWeight: 700,
+              textAnchor: "middle"
+            },
+            "Sprint start"
           )
         )
       )
@@ -549,20 +634,16 @@
 
   function renderBugBacklogTrendByTeamChart({ containerId, snapshot, colors }) {
     const rows = buildTrendData(snapshot, RECENT_TREND_POINTS);
-    renderWithRoot(containerId, rows.length > 0, (root) => {
-      const yUpper = computeYUpper(
-        [
-          ...rows.map((row) => row.api),
-          ...rows.map((row) => row.legacy),
-          ...rows.map((row) => row.react),
-          ...rows.map((row) => row.bc),
-          ...rows.map((row) => row.bcLong30),
-          ...rows.map((row) => row.bcLong60)
-        ],
-        { min: 10, pad: 1.08 }
-      );
-      root.render(h(TrendChartView, { rows, colors, yUpper, supporting: true }));
-    });
+    const yUpper = computeYUpper(
+      [
+        ...rows.map((row) => row.api),
+        ...rows.map((row) => row.legacy),
+        ...rows.map((row) => row.react),
+        ...rows.map((row) => row.bc)
+      ],
+      { min: 10, pad: 1.08 }
+    );
+    renderSvgChart(containerId, rows.length > 0, () => h(TrendSvgChart, { rows, colors, yUpper }));
   }
 
   function renderBugCompositionByPriorityChart({ containerId, snapshot, colors }) {
