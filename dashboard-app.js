@@ -838,7 +838,7 @@ function setPrActivityHelpDetails({ since = "", until = "", caveat = "", interva
 }
 
 function buildLegacyPrActivityRows(metricKey = "offered") {
-  const points = Array.isArray(state.snapshot?.prActivity?.points) ? state.snapshot.prActivity.points : [];
+  const points = buildLegacyPrActivitySourcePoints();
   return points.map((point) => ({
     date: String(point?.date || ""),
     dateValue: toChartDateValue(point?.date),
@@ -851,8 +851,75 @@ function buildLegacyPrActivityRows(metricKey = "offered") {
   }));
 }
 
-function buildLegacyPrMergeTimeRows() {
+function monthBucketDate(isoDate) {
+  const safeValue = String(isoDate || "").trim();
+  if (!safeValue) return "";
+  const date = new Date(`${safeValue}T00:00:00Z`);
+  if (!Number.isFinite(date.getTime())) return "";
+  return date.toISOString().slice(0, 7) + "-01";
+}
+
+function buildLegacyPrActivityMonthlyPoints() {
   const points = Array.isArray(state.snapshot?.prActivity?.points) ? state.snapshot.prActivity.points : [];
+  const teamKeys = PR_ACTIVITY_LINE_DEFS.map((lineDef) => lineDef.dataKey);
+  const byMonth = new Map();
+
+  for (const point of points) {
+    const monthDate = monthBucketDate(point?.date);
+    if (!monthDate) continue;
+    let bucket = byMonth.get(monthDate);
+    if (!bucket) {
+      bucket = { date: monthDate };
+      for (const teamKey of teamKeys) {
+        bucket[teamKey] = {
+          offered: 0,
+          merged: 0,
+          reviewToMergeDaysTotal: 0,
+          avgReviewToMergeSampleCount: 0
+        };
+      }
+      byMonth.set(monthDate, bucket);
+    }
+
+    for (const teamKey of teamKeys) {
+      const teamPoint = point?.[teamKey];
+      const offered = toCount(teamPoint?.offered);
+      const merged = toCount(teamPoint?.merged);
+      const sampleCount = toCount(teamPoint?.avgReviewToMergeSampleCount);
+      const averageDays = toNumber(teamPoint?.avgReviewToMergeDays);
+
+      bucket[teamKey].offered += offered;
+      bucket[teamKey].merged += merged;
+      bucket[teamKey].avgReviewToMergeSampleCount += sampleCount;
+      bucket[teamKey].reviewToMergeDaysTotal += averageDays * sampleCount;
+    }
+  }
+
+  return Array.from(byMonth.values())
+    .sort((left, right) => String(left?.date || "").localeCompare(String(right?.date || "")))
+    .map((bucket) => {
+      const row = { date: bucket.date };
+      for (const teamKey of teamKeys) {
+        const teamBucket = bucket[teamKey];
+        const sampleCount = toCount(teamBucket?.avgReviewToMergeSampleCount);
+        row[teamKey] = {
+          offered: toCount(teamBucket?.offered),
+          merged: toCount(teamBucket?.merged),
+          avgReviewToMergeSampleCount: sampleCount,
+          avgReviewToMergeDays:
+            sampleCount > 0 ? teamBucket.reviewToMergeDaysTotal / sampleCount : null
+        };
+      }
+      return row;
+    });
+}
+
+function buildLegacyPrActivitySourcePoints() {
+  return buildLegacyPrActivityMonthlyPoints();
+}
+
+function buildLegacyPrMergeTimeRows() {
+  const points = buildLegacyPrActivitySourcePoints();
   return points.map((point) => ({
     date: String(point?.date || ""),
     dateValue: toChartDateValue(point?.date),
@@ -1241,7 +1308,7 @@ function buildLegacyPrActivityPath(points) {
 function buildLegacyPrActivityDisplayedXTicks(rows, compactViewport) {
   const safeRows = Array.isArray(rows) ? rows.filter(Boolean) : [];
   if (safeRows.length <= 3) return safeRows.map((row) => row.dateValue).filter((value) => value > 0);
-  const step = compactViewport ? 3 : 2;
+  const step = compactViewport ? 2 : 1;
   const ticks = safeRows
     .filter((_, index) => index % step === 0 || index === safeRows.length - 1)
     .map((row) => row.dateValue)
@@ -1502,10 +1569,7 @@ function renderLegacyPrActivityCountChart(containerId) {
         hiddenKeys,
         setHiddenKeys: setLegacyPrActivityHiddenKeys,
         showLegend: true,
-        xAxisLabel:
-          normalizePrActivityInterval(state.snapshot?.prActivity?.interval) === "sprint"
-            ? "Sprint start"
-            : "Month"
+        xAxisLabel: "Month"
       })
     );
   });
@@ -1531,10 +1595,7 @@ function renderLegacyPrMergeTimeChart(containerId) {
         yAxisPadRatio: 1.12,
         showLegend: false,
         hideReferenceLabelsOnCompact: true,
-        xAxisLabel:
-          normalizePrActivityInterval(state.snapshot?.prActivity?.interval) === "sprint"
-            ? "Sprint start"
-            : "Month"
+        xAxisLabel: "Month"
       })
     );
   });
@@ -1744,7 +1805,7 @@ function renderPrActivityCharts() {
 function renderLegacyPrActivityCharts() {
   withChart("pr-activity-legacy", ({ status, context }) => {
     const prActivity = state.snapshot?.prActivity;
-    const points = Array.isArray(prActivity?.points) ? prActivity.points : [];
+    const points = buildLegacyPrActivitySourcePoints();
     if (points.length === 0) {
       clearChartContainer("pr-activity-legacy-count-chart");
       clearChartContainer("pr-activity-legacy-merge-time-chart");
@@ -1753,14 +1814,13 @@ function renderLegacyPrActivityCharts() {
     }
 
     status.hidden = true;
-    const since = String(prActivity?.since || "");
-    const interval = normalizePrActivityInterval(prActivity?.interval);
+    const since = String(points[0]?.date || prActivity?.since || "");
     const metricKey = state.prActivityLegacyMetric === "merged" ? "merged" : "offered";
     syncRadioValue("pr-activity-legacy-metric", metricKey);
     syncCheckboxValue("pr-activity-legacy-show-markers", state.showLegacyPrActivityMarkers);
     setPanelContext(
       context,
-      `${interval === "sprint" ? "Sprint" : "Monthly"} Jira-linked PR activity since ${since || points[0]?.date || ""}`
+      `Monthly Jira-linked PR activity since ${since || points[0]?.date || ""}`
     );
     renderLegacyPrActivityCountChart("pr-activity-legacy-count-chart");
     renderLegacyPrMergeTimeChart("pr-activity-legacy-merge-time-chart");
