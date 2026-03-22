@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-03-21T18:56:01.021Z",
+  "updatedAt": "2026-03-22T11:55:18.267Z",
   "chartDataUpdatedAt": "2026-03-19T15:26:53.260Z",
   "chartData": {
     "managementBusinessUnit": {
@@ -106,17 +106,17 @@
     }
   },
   "prActivity": {
-    "since": "2025-03-21",
+    "since": "2025-03-31",
     "interval": "sprint",
     "caveat": "Counts are deduped from Jira dev-status pull request records and attributed by Jira team label. Inflow dates use the earliest available PR lastUpdate and source-branch last commit timestamp, then are bucketed to Jira sprint points. Merged dates use Jira PR lastUpdate as a merge proxy and are bucketed to the corresponding sprint point. Review-to-merge time is a ticket proxy: first Jira In Review status to linked merged PR proxy date. Multiple done Jira tickets can still map to the same underlying PR.",
     "points": [
       {
         "date": "2025-03-31",
         "api": {
-          "offered": 23,
-          "merged": 20,
+          "offered": 22,
+          "merged": 19,
           "avgReviewToMergeDays": 4,
-          "avgReviewToMergeSampleCount": 17
+          "avgReviewToMergeSampleCount": 16
         },
         "legacy": {
           "offered": 19,
@@ -125,16 +125,16 @@
           "avgReviewToMergeSampleCount": 10
         },
         "react": {
-          "offered": 11,
-          "merged": 10,
+          "offered": 10,
+          "merged": 9,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 7
+          "avgReviewToMergeSampleCount": 6
         },
         "bc": {
-          "offered": 124,
-          "merged": 90,
-          "avgReviewToMergeDays": 19,
-          "avgReviewToMergeSampleCount": 37
+          "offered": 105,
+          "merged": 73,
+          "avgReviewToMergeDays": 16,
+          "avgReviewToMergeSampleCount": 29
         },
         "workers": {
           "offered": 0,
@@ -314,10 +314,10 @@
           "avgReviewToMergeSampleCount": 15
         },
         "legacy": {
-          "offered": 10,
-          "merged": 9,
+          "offered": 11,
+          "merged": 10,
           "avgReviewToMergeDays": 0,
-          "avgReviewToMergeSampleCount": 5
+          "avgReviewToMergeSampleCount": 6
         },
         "react": {
           "offered": 10,
@@ -593,10 +593,10 @@
           "avgReviewToMergeSampleCount": 1
         },
         "react": {
-          "offered": 42,
-          "merged": 38,
+          "offered": 41,
+          "merged": 37,
           "avgReviewToMergeDays": 1,
-          "avgReviewToMergeSampleCount": 38
+          "avgReviewToMergeSampleCount": 37
         },
         "bc": {
           "offered": 19,
@@ -800,10 +800,10 @@
           "avgReviewToMergeSampleCount": 14
         },
         "workers": {
-          "offered": 2,
-          "merged": 2,
-          "avgReviewToMergeDays": 8,
-          "avgReviewToMergeSampleCount": 1
+          "offered": 3,
+          "merged": 3,
+          "avgReviewToMergeDays": 9,
+          "avgReviewToMergeSampleCount": 2
         },
         "titanium": {
           "offered": 2,
@@ -893,38 +893,38 @@
       {
         "date": "2026-01-05",
         "api": {
-          "offered": 3,
+          "offered": 5,
+          "merged": 5,
+          "avgReviewToMergeDays": 10,
+          "avgReviewToMergeSampleCount": 4
+        },
+        "legacy": {
+          "offered": 4,
           "merged": 3,
           "avgReviewToMergeDays": 17,
           "avgReviewToMergeSampleCount": 2
         },
-        "legacy": {
-          "offered": 1,
-          "merged": 1,
-          "avgReviewToMergeDays": 18,
-          "avgReviewToMergeSampleCount": 1
-        },
         "react": {
-          "offered": 19,
-          "merged": 18,
+          "offered": 39,
+          "merged": 33,
           "avgReviewToMergeDays": 1,
-          "avgReviewToMergeSampleCount": 17
+          "avgReviewToMergeSampleCount": 18
         },
         "bc": {
-          "offered": 3,
-          "merged": 4,
-          "avgReviewToMergeDays": 29,
-          "avgReviewToMergeSampleCount": 4
+          "offered": 43,
+          "merged": 31,
+          "avgReviewToMergeDays": 37,
+          "avgReviewToMergeSampleCount": 14
         },
         "workers": {
-          "offered": 0,
-          "merged": 0,
+          "offered": 2,
+          "merged": 1,
           "avgReviewToMergeDays": 0,
           "avgReviewToMergeSampleCount": 0
         },
         "titanium": {
-          "offered": 0,
-          "merged": 0,
+          "offered": 2,
+          "merged": 2,
           "avgReviewToMergeDays": 0,
           "avgReviewToMergeSampleCount": 0
         }
@@ -932,10 +932,10 @@
       {
         "date": "2026-01-19",
         "api": {
-          "offered": 23,
-          "merged": 19,
-          "avgReviewToMergeDays": 15,
-          "avgReviewToMergeSampleCount": 15
+          "offered": 21,
+          "merged": 17,
+          "avgReviewToMergeDays": 7,
+          "avgReviewToMergeSampleCount": 14
         },
         "legacy": {
           "offered": 2,
@@ -950,8 +950,8 @@
           "avgReviewToMergeSampleCount": 23
         },
         "bc": {
-          "offered": 21,
-          "merged": 18,
+          "offered": 22,
+          "merged": 19,
           "avgReviewToMergeDays": 38,
           "avgReviewToMergeSampleCount": 13
         },
@@ -1012,8 +1012,8 @@
         "api": {
           "offered": 32,
           "merged": 33,
-          "avgReviewToMergeDays": 13,
-          "avgReviewToMergeSampleCount": 23
+          "avgReviewToMergeDays": 8,
+          "avgReviewToMergeSampleCount": 22
         },
         "legacy": {
           "offered": 5,
@@ -1022,10 +1022,10 @@
           "avgReviewToMergeSampleCount": 6
         },
         "react": {
-          "offered": 40,
-          "merged": 36,
-          "avgReviewToMergeDays": 6,
-          "avgReviewToMergeSampleCount": 28
+          "offered": 39,
+          "merged": 35,
+          "avgReviewToMergeDays": 2,
+          "avgReviewToMergeSampleCount": 27
         },
         "bc": {
           "offered": 43,
@@ -1034,7 +1034,7 @@
           "avgReviewToMergeSampleCount": 18
         },
         "workers": {
-          "offered": 17,
+          "offered": 16,
           "merged": 10,
           "avgReviewToMergeDays": 34,
           "avgReviewToMergeSampleCount": 8
@@ -1088,7 +1088,7 @@
       {
         "date": "2026-03-16",
         "api": {
-          "offered": 23,
+          "offered": 20,
           "merged": 14,
           "avgReviewToMergeDays": 7,
           "avgReviewToMergeSampleCount": 8
@@ -1106,10 +1106,10 @@
           "avgReviewToMergeSampleCount": 4
         },
         "bc": {
-          "offered": 34,
-          "merged": 27,
-          "avgReviewToMergeDays": 55,
-          "avgReviewToMergeSampleCount": 17
+          "offered": 35,
+          "merged": 28,
+          "avgReviewToMergeDays": 52,
+          "avgReviewToMergeSampleCount": 18
         },
         "workers": {
           "offered": 14,
@@ -1127,7 +1127,7 @@
       {
         "date": "2026-03-30",
         "api": {
-          "offered": 34,
+          "offered": 36,
           "merged": 15,
           "avgReviewToMergeDays": 6,
           "avgReviewToMergeSampleCount": 12

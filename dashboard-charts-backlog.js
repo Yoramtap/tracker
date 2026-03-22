@@ -292,11 +292,10 @@
   function getPriorityActionTone(row, priorityKey) {
     const share = getPriorityShare(row, priorityKey);
     if (priorityKey === "highest") {
-      if (share <= 0) return "";
-      return share >= 10 ? "critical" : "warning";
+      return share > 0 ? "critical" : "";
     }
     if (priorityKey === "high" && share > 30) {
-      return share >= 50 ? "critical" : "warning";
+      return "warning";
     }
     return "";
   }
@@ -306,6 +305,10 @@
     if (priorityKey === "highest") return share > 0;
     if (priorityKey === "high") return share > 30;
     return false;
+  }
+
+  function shouldHighlightPriorityCell(row, priorityKey) {
+    return Boolean(getPriorityActionTone(row, priorityKey));
   }
 
   function CompositionTableView({ rows }) {
@@ -518,11 +521,7 @@
                 h(
                   "td",
                   {
-                    className: `composition-table__urgent-cell${
-                      getPriorityActionTone(row, "highest")
-                        ? ` composition-table__urgent-cell--${getPriorityActionTone(row, "highest")}`
-                        : ""
-                    }`,
+                    className: "composition-table__urgent-cell",
                     "data-label": "Highest"
                   },
                   renderPriorityPrimary(row, "highest")
@@ -530,11 +529,7 @@
                 h(
                   "td",
                   {
-                    className: `composition-table__metric-cell composition-table__metric-cell--high${
-                      getPriorityActionTone(row, "high")
-                        ? ` composition-table__metric-cell--${getPriorityActionTone(row, "high")}`
-                        : ""
-                    } composition-table__cell-divider`,
+                    className: "composition-table__metric-cell composition-table__metric-cell--high composition-table__cell-divider",
                     "data-label": "High"
                   },
                   renderPriorityPrimary(row, "high")

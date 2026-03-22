@@ -26,10 +26,8 @@
   }
 
   function getFacilityUatFill(months) {
-    const value = toNumber(months);
-    if (value >= 2) return "#c98b84";
-    if (value >= 1) return "#d8bf93";
-    return "#a7cfb4";
+    void months;
+    return "rgba(121, 136, 156, 0.5)";
   }
 
   function buildJiraSearchUrl(issueItems, jiraBrowseBase) {
@@ -72,7 +70,7 @@
             h(
               "div",
               { className: "pr-cycle-stage-card__submeta" },
-              `${String(groupingLabel || "Business Unit")} • Measured in months • Target: 1 month`
+              `${String(groupingLabel || "Business Unit")} • Target: 1 month`
             )
           )
         ),
@@ -118,24 +116,20 @@
                   ? h(
                       "a",
                       {
-                        className: "management-uat-row__action management-uat-row__action--inline",
+                        className: `management-uat-row__action management-uat-row__action--inline${
+                          alertLevel ? ` management-uat-row__action--${alertLevel}` : ""
+                        }`,
                         href: buildJiraSearchUrl(row?.issueItems, jiraBrowseBase),
                         target: "_blank",
                         rel: "noopener noreferrer",
                         "aria-label": `Take action on ${String(row?.label || "")} Jira issues in new tab`,
                         title: "Open Jira search in new tab"
                       },
-                      alertLevel
-                        ? h("span", {
-                            className: `management-uat-row__alert management-uat-row__alert--${alertLevel}`,
-                            "aria-hidden": "true"
-                          })
-                        : null,
                       h(
                         "span",
-                        { className: "management-uat-row__action-value metric-duration" },
-                        h("span", { className: "metric-duration__value" }, monthParts.value),
-                        h("span", { className: "metric-duration__unit" }, monthParts.unit)
+                        { className: "management-uat-row__action-value" },
+                        h("span", { className: "management-uat-row__value-text" }, monthParts.value),
+                        h("span", { className: "management-uat-row__value-unit" }, monthParts.unit)
                       ),
                       h(
                         "svg",
@@ -157,19 +151,18 @@
                     )
                   : h(
                       "span",
-                      { className: "management-uat-row__plain-value" },
-                      alertLevel
-                        ? h("span", {
-                            className: `management-uat-row__alert management-uat-row__alert--${alertLevel}`,
-                            "aria-hidden": "true"
-                          })
-                        : null,
+                      {
+                        className: `management-uat-row__plain-value${
+                          alertLevel ? ` management-uat-row__plain-value--${alertLevel}` : ""
+                        }`
+                      },
                       h(
                         "span",
-                        { className: "metric-duration" },
-                        h("span", { className: "metric-duration__value" }, monthParts.value),
-                        h("span", { className: "metric-duration__unit" }, monthParts.unit)
-                      )
+                        { className: "management-uat-row__action-value" },
+                        h("span", { className: "management-uat-row__value-text" }, monthParts.value),
+                        h("span", { className: "management-uat-row__value-unit" }, monthParts.unit)
+                      ),
+                      h("span", { className: "management-uat-row__icon-spacer", "aria-hidden": "true" })
                     )
               )
             );

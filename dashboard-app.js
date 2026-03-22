@@ -1,5 +1,7 @@
 "use strict";
 
+(function initDashboardApp() {
+
 const PRODUCT_CYCLE_SCOPE = "inception";
 const PRODUCT_CYCLE_SCOPE_LABEL = "All ideas";
 const PR_ACTIVITY_INFLOW_SPLIT = 15;
@@ -942,7 +944,7 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData) {
   const titleNode = document.getElementById("product-cycle-title");
   if (!panel || !chartCore || !chartScopeData || typeof chartScopeData !== "object") return false;
   const { status, context, config } = panel;
-  if (titleNode) titleNode.textContent = "How long product ideas take to ship";
+  if (titleNode) titleNode.textContent = "How long ready product ideas take to ship";
 
   const rows = (Array.isArray(chartScopeData.rows) ? chartScopeData.rows.slice() : [])
     .map((row) => ({
@@ -1387,6 +1389,25 @@ function formatCycleMonthsValueMarkup(valueInDays) {
   return `<span class="metric-duration__value">${rounded}</span><span class="metric-duration__unit">${unit}</span>`;
 }
 
+function formatStackedCycleMonthsValueMarkup(valueInDays) {
+  const months = Math.max(0, toNumber(valueInDays) / 30.4375);
+  const rounded = months === 0 ? "0" : months.toFixed(1);
+  const unit = Math.abs(months - 1) < 0.05 ? "month" : "months";
+  return `<span class="stacked-duration"><span class="stacked-duration__value">${rounded}</span><span class="stacked-duration__unit">${unit}</span></span>`;
+}
+
+function getAlertLevelFromMonths(valueInMonths) {
+  const safeValue = Math.max(0, toNumber(valueInMonths));
+  if (safeValue >= 2) return "critical";
+  if (safeValue > 1) return "warning";
+  return "";
+}
+
+function formatStageValueFrame(markup, className = "") {
+  const modifier = String(className || "").trim();
+  return `<span class="pr-cycle-stage-row__value-frame${modifier ? ` ${modifier}` : ""}">${markup}</span>`;
+}
+
 function getCycleFillWidth(value, upperBound) {
   const safeUpper = Math.max(1, toNumber(upperBound));
   const safeValue = Math.max(0, toNumber(value));
@@ -1407,6 +1428,7 @@ function renderProductCycleSingleTeamCard(containerId, row, allRows) {
   const cycleWidth = cycleSample > 0 ? getCycleFillWidth(row?.cycle, maxCycleDays) : 0;
   const shippedWidth = shippedCount > 0 ? getCycleFillWidth(shippedCount, maxShipped) : 0;
   const ongoingWidth = ongoingCount > 0 ? getCycleFillWidth(ongoingCount, maxOngoing) : 0;
+  const cycleAlertLevel = getAlertLevelFromMonths(toNumber(row?.cycle) / 30.4375);
 
   container.innerHTML = `
     <div class="product-cycle-team-card-wrap">
@@ -1427,7 +1449,10 @@ function renderProductCycleSingleTeamCard(containerId, row, allRows) {
             <div class="pr-cycle-stage-row__track" aria-hidden="true">
               <div class="pr-cycle-stage-row__fill" style="width:${cycleWidth}%"></div>
             </div>
-            <div class="pr-cycle-stage-row__value">${formatCycleMonthsValueMarkup(row?.cycle)}</div>
+            <div class="pr-cycle-stage-row__value">${formatStageValueFrame(
+              formatStackedCycleMonthsValueMarkup(row?.cycle),
+              cycleAlertLevel ? `pr-cycle-stage-row__value-frame--${cycleAlertLevel}` : ""
+            )}</div>
           </div>
           <div class="pr-cycle-stage-row product-cycle-team-card__row" data-stage="shipped">
             <div class="pr-cycle-stage-row__label">
@@ -1482,7 +1507,7 @@ function renderProductCycleComparisonCard(containerId, rows, scopeLabel) {
               teamColor
             )};"></div>
           </div>
-          <div class="pr-cycle-stage-row__value">${formatCycleMonthsValueMarkup(row?.cycle)}</div>
+          <div class="pr-cycle-stage-row__value">${formatStageValueFrame(formatStackedCycleMonthsValueMarkup(row?.cycle))}</div>
         </div>
       `;
     })
@@ -1616,6 +1641,13 @@ function formatStageDurationValueMarkup(value) {
   return `<span class="metric-duration__value">${rounded}</span><span class="metric-duration__unit">${unit}</span>`;
 }
 
+function formatStackedStageDurationValueMarkup(value) {
+  const safeValue = toNumber(value);
+  const rounded = safeValue.toFixed(1);
+  const unit = Math.abs(safeValue - 1) < 0.05 ? "day" : "days";
+  return `<span class="stacked-duration"><span class="stacked-duration__value">${rounded}</span><span class="stacked-duration__unit">${unit}</span></span>`;
+}
+
 function getPrCycleStageDisplayLabel(stage) {
   const key = String(stage?.key || "").trim();
   if (key === "coding") return "Progress";
@@ -1652,7 +1684,7 @@ function renderPrCycleExperimentCard(containerId, team, snapshot) {
           <div class="pr-cycle-stage-row__track" aria-hidden="true">
             <div class="pr-cycle-stage-row__fill" style="width:${width}%"></div>
           </div>
-          <div class="pr-cycle-stage-row__value">${formatStageDurationValueMarkup(stage?.days)}</div>
+          <div class="pr-cycle-stage-row__value">${formatStageValueFrame(formatStackedStageDurationValueMarkup(stage?.days))}</div>
         </div>
       `;
     })
@@ -1859,7 +1891,6 @@ function renderTopContributorsCard(containerId, rows, summary) {
           <div class="pr-cycle-stage-card__meta">
             <div class="pr-cycle-stage-card__team">Community contributors</div>
             <div class="pr-cycle-stage-card__total">${totalIssues}</div>
-            <div class="pr-cycle-stage-card__submeta">${doneIssues} done • ${activeIssues} active</div>
           </div>
         </div>
         <div class="pr-cycle-stage-list">${rowsMarkup}</div>
@@ -2043,3 +2074,5 @@ async function loadSnapshot() {
 }
 
 loadSnapshot();
+
+})();
