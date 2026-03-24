@@ -12,6 +12,10 @@
     "format:check": "prettier \"**/*.{js,mjs,css,html,json}\" --check",
     "refresh:full": "node scripts/refresh-report-data.mjs",
     "refresh:pr-cycle": "PR_CYCLE_ONLY=true node scripts/refresh-report-data.mjs",
+    "refresh:pr-activity": "PR_ACTIVITY_ONLY=true SKIP_TREND_REFRESH=true node scripts/refresh-report-data.mjs",
+    "refresh:product-cycle": "PRODUCT_CYCLE_ONLY=true node scripts/refresh-report-data.mjs",
+    "refresh:uat-flow": "UAT_ONLY=true SKIP_UAT_AGING=true node scripts/refresh-report-data.mjs",
+    "benchmark:refresh": "node scripts/benchmark-refresh-phases.mjs",
     "analyze:brief": "node scripts/analyze-report-data.mjs --output reports/latest-analysis.md",
     "backlog:setup-auth": "node scripts/setup-backlog-auth.mjs",
     "export:public": "node scripts/export-public.mjs"

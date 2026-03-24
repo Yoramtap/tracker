@@ -39,10 +39,33 @@ function sanitizeBacklogCombinedPoint(point) {
 function sanitizeBusinessUnitRow(row) {
   return {
     label: sanitizeText(row?.label),
+    devAvg: sanitizeNumber(row?.devAvg),
     sampleCount: sanitizeNumber(row?.sampleCount),
+    devCount: sanitizeNumber(row?.devCount),
+    uatCount: sanitizeNumber(row?.uatCount),
     uatAvg: sanitizeNumber(row?.uatAvg),
     issueItems: Array.isArray(row?.issueItems)
-      ? row.issueItems.map((item) => sanitizeText(item?.issueId || item)).filter(Boolean)
+      ? row.issueItems
+          .map((item) => ({
+            issueId: sanitizeText(item?.issueId || item),
+            facilityLabel: sanitizeText(item?.facilityLabel)
+          }))
+          .filter((item) => item.issueId)
+      : [],
+    facilities: Array.isArray(row?.facilities)
+      ? row.facilities
+          .map((facility) => ({
+            label: sanitizeText(facility?.label),
+            devAvg: sanitizeNumber(facility?.devAvg),
+            uatAvg: sanitizeNumber(facility?.uatAvg),
+            devCount: sanitizeNumber(facility?.devCount),
+            uatCount: sanitizeNumber(facility?.uatCount),
+            sampleCount: sanitizeNumber(facility?.sampleCount),
+            issueIds: Array.isArray(facility?.issueIds)
+              ? facility.issueIds.map((issueId) => sanitizeText(issueId)).filter(Boolean)
+              : []
+          }))
+          .filter((facility) => facility.label)
       : []
   };
 }
@@ -181,11 +204,13 @@ function sanitizePrCycleWindow(windowSnapshot) {
 }
 
 export function sanitizeBacklogSnapshot(snapshot) {
-  const byScope = snapshot?.chartData?.managementBusinessUnit?.byScope;
+  const managementBusinessUnit = snapshot?.chartData?.managementBusinessUnit;
+  const byScope = managementBusinessUnit?.byScope;
   const chartData =
     byScope && typeof byScope === "object"
       ? {
           managementBusinessUnit: {
+            scopeLabel: sanitizeText(managementBusinessUnit?.scopeLabel),
             byScope: {
               ongoing: sanitizeBusinessUnitScope(byScope.ongoing),
               done: sanitizeBusinessUnitScope(byScope.done)
@@ -214,9 +239,14 @@ export function sanitizeBacklogSnapshot(snapshot) {
           prActivity: {
             since: sanitizeText(snapshot?.prActivity?.since),
             interval: sanitizeText(snapshot?.prActivity?.interval),
+            monthlySince: sanitizeText(snapshot?.prActivity?.monthlySince),
+            monthlyInterval: sanitizeText(snapshot?.prActivity?.monthlyInterval),
             caveat: sanitizeText(snapshot?.prActivity?.caveat),
             points: Array.isArray(snapshot?.prActivity?.points)
               ? snapshot.prActivity.points.map(sanitizePrActivityPoint)
+              : [],
+            monthlyPoints: Array.isArray(snapshot?.prActivity?.monthlyPoints)
+              ? snapshot.prActivity.monthlyPoints.map(sanitizePrActivityPoint)
               : []
           }
         }

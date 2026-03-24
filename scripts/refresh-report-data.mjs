@@ -3,7 +3,17 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-import { sanitizeBacklogSnapshot, sanitizePrCycleSnapshot } from "./snapshot-sanitizers.mjs";
+import {
+  sanitizeBacklogSnapshot,
+  sanitizeContributorsSnapshot,
+  sanitizePrCycleSnapshot,
+  sanitizeProductCycleSnapshot
+} from "./snapshot-sanitizers.mjs";
+import {
+  refreshBusinessUnitUatChartData,
+  refreshContributorsSnapshot,
+  refreshProductCycleSnapshot
+} from "./refresh-derived-snapshots.mjs";
 
 const FALLBACK_DATES = [
   "2025-06-23",
@@ -62,19 +72,36 @@ const JIRA_REQUEST_TIMEOUT_MS = 30000;
 const PR_DETAIL_CONCURRENCY = 12;
 const UAT_CHANGELOG_CONCURRENCY = 6;
 const PR_CYCLE_CHANGELOG_CONCURRENCY = 6;
+const DEFAULT_TREND_COUNT_CONCURRENCY = 2;
 const SNAPSHOT_PATH = path.resolve(process.cwd(), "snapshot.json");
 const SNAPSHOT_TMP_PATH = path.resolve(process.cwd(), "snapshot.json.tmp");
 const BACKLOG_SNAPSHOT_PATH = path.resolve(process.cwd(), "backlog-snapshot.json");
 const BACKLOG_SNAPSHOT_TMP_PATH = path.resolve(process.cwd(), "backlog-snapshot.json.tmp");
+const CONTRIBUTORS_SNAPSHOT_PATH = path.resolve(process.cwd(), "contributors-snapshot.json");
+const CONTRIBUTORS_SNAPSHOT_TMP_PATH = path.resolve(
+  process.cwd(),
+  "contributors-snapshot.json.tmp"
+);
+const PRODUCT_CYCLE_SNAPSHOT_PATH = path.resolve(process.cwd(), "product-cycle-snapshot.json");
+const PRODUCT_CYCLE_SNAPSHOT_TMP_PATH = path.resolve(
+  process.cwd(),
+  "product-cycle-snapshot.json.tmp"
+);
 const PR_CYCLE_SNAPSHOT_PATH = path.resolve(process.cwd(), "pr-cycle-snapshot.json");
 const PR_CYCLE_SNAPSHOT_TMP_PATH = path.resolve(process.cwd(), "pr-cycle-snapshot.json.tmp");
+const PR_ACTIVITY_ISSUE_CACHE_PATH = path.resolve(process.cwd(), "pr-activity-issue-cache.json");
+const PR_ACTIVITY_ISSUE_CACHE_TMP_PATH = path.resolve(
+  process.cwd(),
+  "pr-activity-issue-cache.json.tmp"
+);
 const SNAPSHOTS_DIR_PATH = path.resolve(process.cwd(), "snapshots");
 const SNAPSHOT_SCHEMA_VERSION = 3;
 const DEFAULT_SNAPSHOT_RETENTION_COUNT = 26;
 const ALLOW_EMPTY = process.argv.includes("--allow-empty");
 const PRIORITY_ORDER = ["highest", "high", "medium", "low", "lowest"];
 const PR_SUMMARY_FIELD = "customfield_10000";
-const PR_ACTIVITY_MAX_WINDOW_KEY = "1y";
+const PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY = "30d";
+const PR_ACTIVITY_HISTORY_FLOOR = "2025-01-01";
 const PR_REVIEW_STATUS = "In Review";
 const PR_ACTIVITY_PROJECT_KEYS = ["TFC", "TFO", "MESO"];
 const TEAM_KEYS = ["api", "legacy", "react", "bc", "workers", "titanium"];
@@ -104,7 +131,11 @@ const DEFAULT_SPRINT_PROJECT = "TFC";
 const DEFAULT_SPRINT_LOOKBACK_COUNT = 14;
 const DEFAULT_SPRINT_POINT = "end";
 const DEFAULT_SPRINT_MONDAY_ANCHOR = true;
-const PR_CYCLE_WINDOW_DEFAULT_KEY = "90d";
+const PR_CYCLE_WINDOW_DEFAULT_KEY = "30d";
+const PR_CYCLE_REFRESH_WINDOW_KEYS = ["30d", "90d"];
+const PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS = 7;
+const DEFAULT_TREND_BOARD_CONCURRENCY = 2;
+const ISSUE_CHANGELOG_CACHE = new Map();
 const PR_CYCLE_TEAM_KEYS = ["api", "legacy", "react", "bc", "workers", "titanium"];
 const PR_CYCLE_TEAM_LABELS = {
   api: "API",
@@ -149,6 +180,24 @@ function envPositiveInt(name, fallback) {
   const parsed = Number.parseInt(env(name, String(fallback)), 10);
   if (!Number.isFinite(parsed) || parsed < 1) return fallback;
   return parsed;
+}
+
+function formatDurationMs(durationMs) {
+  const safeDurationMs = Math.max(0, Number(durationMs) || 0);
+  if (safeDurationMs < 1000) return `${safeDurationMs}ms`;
+  if (safeDurationMs < 60000) return `${(safeDurationMs / 1000).toFixed(1)}s`;
+  const minutes = Math.floor(safeDurationMs / 60000);
+  const seconds = ((safeDurationMs % 60000) / 1000).toFixed(1);
+  return `${minutes}m ${seconds}s`;
+}
+
+async function withTiming(label, work, logger = console) {
+  const startedAtMs = Date.now();
+  try {
+    return await work();
+  } finally {
+    logger.log(`Timing ${label}: ${formatDurationMs(Date.now() - startedAtMs)}.`);
+  }
 }
 
 function isPlaceholderCredential(value) {
@@ -326,10 +375,28 @@ function shiftIsoMonths(dateText, deltaMonths) {
   return date.toISOString().slice(0, 10);
 }
 
-function resolvePrActivitySinceDate(todayIso) {
+function startOfIsoMonth(dateText) {
+  const safeDate = String(dateText || "").trim();
+  if (!safeDate) return "";
+  const date = new Date(`${safeDate}T00:00:00Z`);
+  if (!Number.isFinite(date.getTime())) return "";
+  date.setUTCDate(1);
+  return date.toISOString().slice(0, 10);
+}
+
+function resolvePrActivitySinceDate(
+  todayIso,
+  maxWindowKey = PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY
+) {
   const safeToday = String(todayIso || "").trim();
   if (!safeToday) return "";
-  switch (PR_ACTIVITY_MAX_WINDOW_KEY) {
+  switch (
+    String(maxWindowKey || PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY)
+      .trim()
+      .toLowerCase()
+  ) {
+    case "30d":
+      return shiftIsoDate(safeToday, -29);
     case "90d":
       return shiftIsoDate(safeToday, -89);
     case "6m":
@@ -338,6 +405,15 @@ function resolvePrActivitySinceDate(todayIso) {
     default:
       return shiftIsoMonths(safeToday, -12);
   }
+}
+
+function resolvePrActivityFetchSinceDate(
+  todayIso,
+  maxWindowKey = PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY
+) {
+  const resolvedDate = startOfIsoMonth(resolvePrActivitySinceDate(todayIso, maxWindowKey));
+  if (!resolvedDate) return PR_ACTIVITY_HISTORY_FLOOR;
+  return resolvedDate < PR_ACTIVITY_HISTORY_FLOOR ? PR_ACTIVITY_HISTORY_FLOOR : resolvedDate;
 }
 
 function numberOrZero(value) {
@@ -356,6 +432,13 @@ function emptyPrAccumulator() {
     reviewToMergeDaysTotal: 0,
     avgReviewToMergeSampleCount: 0
   };
+}
+
+function createEmptyPrActivityBuckets() {
+  return TEAM_KEYS.reduce((acc, team) => {
+    acc[team] = emptyPrAccumulator();
+    return acc;
+  }, {});
 }
 
 function buildPrPointForTeam(byDate, date, team) {
@@ -544,6 +627,14 @@ function toMondayAnchor(isoDate) {
   return toUtcIsoDate(year, monthIndex, day + delta);
 }
 
+function capIsoDateAt(isoDate, ceilingIsoDate) {
+  const safeDate = isoDateOnly(isoDate);
+  const safeCeiling = isoDateOnly(ceilingIsoDate);
+  if (!safeDate) return "";
+  if (!safeCeiling) return safeDate;
+  return safeDate > safeCeiling ? safeCeiling : safeDate;
+}
+
 async function fetchScrumBoards(site, email, token, projectKey) {
   const boards = [];
   let startAt = 0;
@@ -592,7 +683,7 @@ async function fetchSprintsForBoard(site, email, token, boardId) {
 
 function buildTrendDatesFromSprints(
   sprints,
-  { lookbackCount, pointMode, includeActive, mondayAnchor, sinceDate = "" }
+  { lookbackCount, pointMode, includeActive, mondayAnchor, sinceDate = "", todayIso = "" }
 ) {
   const dates = [];
 
@@ -608,9 +699,10 @@ function buildTrendDatesFromSprints(
         : isoDateOnly(sprint?.endDate || sprint?.completeDate || sprint?.startDate);
     if (!pickedDate) continue;
     const normalizedDate = mondayAnchor ? toMondayAnchor(pickedDate) : pickedDate;
-    if (!normalizedDate) continue;
-    if (sinceDate && normalizedDate < sinceDate) continue;
-    dates.push(normalizedDate);
+    const clampedDate = capIsoDateAt(normalizedDate, todayIso);
+    if (!clampedDate) continue;
+    if (sinceDate && clampedDate < sinceDate) continue;
+    dates.push(clampedDate);
   }
 
   const uniqueSorted = Array.from(new Set(dates)).sort();
@@ -628,6 +720,7 @@ async function resolveTrendDates(site, email, token, options) {
     pointMode,
     includeActive,
     mondayAnchor,
+    todayIso = "",
     sinceDate = ""
   } = options;
 
@@ -662,6 +755,7 @@ async function resolveTrendDates(site, email, token, options) {
       pointMode,
       includeActive,
       mondayAnchor,
+      todayIso,
       sinceDate
     });
 
@@ -686,28 +780,47 @@ async function resolveTrendDates(site, email, token, options) {
 }
 
 async function fetchIssueChangelog(site, email, token, issueKey) {
-  const histories = [];
-  let startAt = 0;
-
-  for (;;) {
-    const payload = await jiraRequest(
-      site,
-      email,
-      token,
-      `https://${site}/rest/api/3/issue/${encodeURIComponent(issueKey)}/changelog?startAt=${startAt}&maxResults=${PAGE_SIZE}`
-    );
-
-    const page = payload?.values ?? payload?.histories ?? [];
-    histories.push(...page);
-    if (page.length === 0) break;
-
-    const total = Number(payload?.total || 0);
-    startAt += page.length;
-    if (total > 0 && startAt >= total) break;
-    if (page.length < PAGE_SIZE) break;
+  const cacheKey = `${site}:${String(issueKey || "").trim()}`;
+  if (ISSUE_CHANGELOG_CACHE.has(cacheKey)) {
+    return ISSUE_CHANGELOG_CACHE.get(cacheKey);
   }
 
-  return { histories };
+  const promise = (async () => {
+    const histories = [];
+    let startAt = 0;
+
+    for (;;) {
+      const payload = await jiraRequest(
+        site,
+        email,
+        token,
+        `https://${site}/rest/api/3/issue/${encodeURIComponent(issueKey)}/changelog?startAt=${startAt}&maxResults=${PAGE_SIZE}`
+      );
+
+      const page = payload?.values ?? payload?.histories ?? [];
+      histories.push(...page);
+      if (page.length === 0) break;
+
+      const total = Number(payload?.total || 0);
+      startAt += page.length;
+      if (total > 0 && startAt >= total) break;
+      if (page.length < PAGE_SIZE) break;
+    }
+
+    return { histories };
+  })();
+
+  ISSUE_CHANGELOG_CACHE.set(cacheKey, promise);
+  try {
+    return await promise;
+  } catch (error) {
+    ISSUE_CHANGELOG_CACHE.delete(cacheKey);
+    throw error;
+  }
+}
+
+function clearIssueChangelogCache() {
+  ISSUE_CHANGELOG_CACHE.clear();
 }
 
 async function searchJiraIssues(site, email, token, jql, fields) {
@@ -736,12 +849,20 @@ async function searchJiraIssues(site, email, token, jql, fields) {
 function normalizeStatusName(statusName) {
   return String(statusName || "")
     .trim()
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
 
 function buildPrCycleWindowConfigs(todayIso) {
   const safeToday = String(todayIso || "").trim();
   return [
+    {
+      key: "30d",
+      windowDays: 30,
+      windowLabel: "Last 30 days",
+      windowStartDate: shiftIsoDate(safeToday, -29)
+    },
     {
       key: "90d",
       windowDays: 90,
@@ -891,6 +1012,49 @@ function summarizePrCycleIssueBase(issue, changelog, config) {
   };
 }
 
+function buildPrCycleTrackedStatusSet(config) {
+  return new Set(getPrCycleTrackedStatuses(config).map((status) => normalizeStatusName(status)));
+}
+
+function buildPrCycleStatusHistoryClauses(statuses, windowStartDate) {
+  const safeStatuses = normalizeStringList(statuses);
+  const safeWindowStartDate = String(windowStartDate || "").trim();
+  if (safeStatuses.length === 0 || !safeWindowStartDate) return [];
+
+  return safeStatuses.flatMap((status) => {
+    const safeStatus = quoteJqlValue(status);
+    const safeDate = quoteJqlValue(safeWindowStartDate);
+    return [
+      `status CHANGED TO ${safeStatus} AFTER ${safeDate}`,
+      `status CHANGED FROM ${safeStatus} AFTER ${safeDate}`
+    ];
+  });
+}
+
+function isIsoDateOnOrAfter(value, threshold) {
+  const safeValue = isoDateOnly(value);
+  const safeThreshold = isoDateOnly(threshold);
+  if (!safeValue || !safeThreshold) return false;
+  return safeValue >= safeThreshold;
+}
+
+function shouldFetchPrCycleIssueBase(issue, config, trackedStatusSet) {
+  const currentStatusTracked = trackedStatusSet.has(
+    normalizeStatusName(issue?.fields?.status?.name || "")
+  );
+  if (currentStatusTracked) return true;
+
+  const currentStatusCategory = normalizeStatusName(issue?.fields?.status?.statusCategory?.name);
+  if (currentStatusCategory !== "done") return true;
+
+  const terminalDate = latestIsoDate([
+    issue?.fields?.resolutiondate,
+    issue?.fields?.statuscategorychangedate
+  ]);
+  if (!terminalDate) return true;
+  return terminalDate >= String(config?.windowStartDate || "").trim();
+}
+
 async function fetchPrCycleIssueBreakdown(site, email, token, config) {
   const projectClause = config.projectKeys
     .map((projectKey) => quoteJqlValue(projectKey))
@@ -898,18 +1062,53 @@ async function fetchPrCycleIssueBreakdown(site, email, token, config) {
   const labelClause = Object.keys(PR_TEAM_LABELS)
     .map((label) => quoteJqlValue(label))
     .join(", ");
-  const trackedStatuses = getPrCycleTrackedStatuses(config)
-    .map((status) => quoteJqlValue(status))
-    .join(", ");
+  const trackedStatusList = getPrCycleTrackedStatuses(config);
+  const trackedStatuses = trackedStatusList.map((status) => quoteJqlValue(status)).join(", ");
+  const historyClauses = buildPrCycleStatusHistoryClauses(
+    trackedStatusList,
+    config.windowStartDate
+  );
   const jql = [
     `project in (${projectClause})`,
     `AND labels in (${labelClause})`,
-    `AND (updated >= ${quoteJqlValue(config.windowStartDate)} OR status in (${trackedStatuses}))`
+    `AND (${[
+      `status in (${trackedStatuses})`,
+      ...historyClauses
+    ].join(" OR ")})`
   ].join(" ");
 
-  const issues = await searchJiraIssues(site, email, token, jql, ["labels", "status", "created"]);
+  const issues = await searchJiraIssues(site, email, token, jql, [
+    "labels",
+    "status",
+    "created",
+    "updated",
+    "resolutiondate",
+    "statuscategorychangedate"
+  ]);
   console.log(`Fetched ${issues.length} PR cycle candidate issues for ${config.windowLabel}.`);
-  const rows = await mapWithConcurrency(issues, PR_CYCLE_CHANGELOG_CONCURRENCY, async (issue) => {
+  const trackedStatusSet = buildPrCycleTrackedStatusSet(config);
+  const candidateCounts = issues.reduce(
+    (counts, issue) => {
+      const currentStatusTracked = trackedStatusSet.has(
+        normalizeStatusName(issue?.fields?.status?.name || "")
+      );
+      const recentlyUpdated = isIsoDateOnOrAfter(issue?.fields?.updated, config.windowStartDate);
+      if (currentStatusTracked && recentlyUpdated) counts.both += 1;
+      else if (currentStatusTracked) counts.trackedOnly += 1;
+      else if (recentlyUpdated) counts.updatedOnly += 1;
+      else counts.other += 1;
+      return counts;
+    },
+    { trackedOnly: 0, updatedOnly: 0, both: 0, other: 0 }
+  );
+  const issuesToAnalyze = issues.filter((issue) =>
+    shouldFetchPrCycleIssueBase(issue, config, trackedStatusSet)
+  );
+  const prunedCount = issues.length - issuesToAnalyze.length;
+  console.log(
+    `PR cycle candidate composition for ${config.windowLabel}: updated-only ${candidateCounts.updatedOnly}, tracked-only ${candidateCounts.trackedOnly}, both ${candidateCounts.both}${prunedCount > 0 ? `; pruned ${prunedCount} stale done issues before changelog fetch` : ""}.`
+  );
+  const rows = await mapWithConcurrency(issuesToAnalyze, PR_CYCLE_CHANGELOG_CONCURRENCY, async (issue) => {
     const issueKey = String(issue?.key || "").trim();
     if (!issueKey) return null;
     const changelog = await fetchIssueChangelog(site, email, token, issueKey);
@@ -1007,9 +1206,16 @@ function buildPrCycleSnapshot(rows, config) {
     ]
   );
   const windowSnapshots = Object.fromEntries(windowEntries);
+  return finalizePrCycleSnapshot(windowSnapshots, config);
+}
+
+function finalizePrCycleSnapshot(windowSnapshots, config = {}) {
   const defaultWindow = String(config.defaultWindow || PR_CYCLE_WINDOW_DEFAULT_KEY)
     .trim()
     .toLowerCase();
+  const windowEntries = Object.entries(
+    windowSnapshots && typeof windowSnapshots === "object" ? windowSnapshots : {}
+  );
   const fallbackEntry = windowEntries.find(([key]) => key === defaultWindow) ||
     windowEntries.find(([key]) => key === PR_CYCLE_WINDOW_DEFAULT_KEY) ||
     windowEntries[0] || ["", { windowLabel: "", teams: [] }];
@@ -1026,6 +1232,12 @@ function buildPrCycleSnapshot(rows, config) {
   };
 }
 
+function snapshotAgeInDays(updatedAt) {
+  const timestamp = new Date(String(updatedAt || "")).getTime();
+  if (!Number.isFinite(timestamp)) return Number.POSITIVE_INFINITY;
+  return (Date.now() - timestamp) / 86400000;
+}
+
 function teamKeyFromLabels(labels) {
   for (const label of labels ?? []) {
     const normalized = String(label || "")
@@ -1039,6 +1251,17 @@ function teamKeyFromLabels(labels) {
 function hasPullRequestSummary(rawValue) {
   const raw = String(rawValue || "").trim();
   return raw.includes("pullrequest={");
+}
+
+function readPullRequestSummaryLastUpdatedAt(rawValue) {
+  const raw = String(rawValue || "").trim();
+  if (!raw.includes("pullrequest={")) return "";
+  const match = raw.match(/"lastUpdated":"([^"]+)"/);
+  return isoDateTime(match?.[1] || "");
+}
+
+function readPullRequestSummaryLastUpdated(rawValue) {
+  return isoDateOnly(readPullRequestSummaryLastUpdatedAt(rawValue));
 }
 
 async function fetchIssuePullRequestDetails(site, email, token, issueId) {
@@ -1146,6 +1369,57 @@ function normalizeTicketReviewToMergeRecord(issue, details, changelog) {
   };
 }
 
+function pullRequestRecordTouchesSinceDate(record, safeSinceDate) {
+  const offeredProxyDate = isoDateOnly(record?.offeredProxyDate);
+  const mergedProxyDate = isoDateOnly(record?.mergedProxyDate);
+  return (
+    (offeredProxyDate && offeredProxyDate >= safeSinceDate) ||
+    (mergedProxyDate && mergedProxyDate >= safeSinceDate)
+  );
+}
+
+function pullRequestRecordMergedSinceDate(record, safeSinceDate) {
+  return (
+    String(record?.status || "").trim().toUpperCase() === "MERGED" &&
+    isoDateOnly(record?.mergedProxyDate) >= safeSinceDate
+  );
+}
+
+function readPrActivityIssueCacheEntry(cacheByIssueKey, issueKey, summaryLastUpdatedAt) {
+  const safeIssueKey = String(issueKey || "").trim();
+  const safeSummaryLastUpdatedAt = String(summaryLastUpdatedAt || "").trim();
+  if (!safeIssueKey || !safeSummaryLastUpdatedAt) return null;
+
+  const entry = cacheByIssueKey?.[safeIssueKey];
+  if (!entry || typeof entry !== "object") return null;
+  if (String(entry.summaryLastUpdatedAt || "").trim() !== safeSummaryLastUpdatedAt) return null;
+
+  return {
+    pullRequestRecords: Array.isArray(entry.pullRequestRecords) ? entry.pullRequestRecords : [],
+    ticketReviewToMergeRecord:
+      entry.ticketReviewToMergeRecord && typeof entry.ticketReviewToMergeRecord === "object"
+        ? entry.ticketReviewToMergeRecord
+        : null
+  };
+}
+
+function createPrActivityIssueCacheEntry(summaryLastUpdatedAt, issueResult) {
+  const safeSummaryLastUpdatedAt = String(summaryLastUpdatedAt || "").trim();
+  if (!safeSummaryLastUpdatedAt) return null;
+
+  return {
+    summaryLastUpdatedAt: safeSummaryLastUpdatedAt,
+    pullRequestRecords: Array.isArray(issueResult?.pullRequestRecords)
+      ? issueResult.pullRequestRecords
+      : [],
+    ticketReviewToMergeRecord:
+      issueResult?.ticketReviewToMergeRecord &&
+      typeof issueResult.ticketReviewToMergeRecord === "object"
+        ? issueResult.ticketReviewToMergeRecord
+        : null
+  };
+}
+
 async function fetchPrActivity(site, email, token, sinceDate) {
   const labelClause = Object.keys(PR_TEAM_LABELS)
     .map((label) => quoteJqlValue(label))
@@ -1153,11 +1427,7 @@ async function fetchPrActivity(site, email, token, sinceDate) {
   const projectClause = PR_ACTIVITY_PROJECT_KEYS.map((projectKey) =>
     quoteJqlValue(projectKey)
   ).join(", ");
-  const jql = [
-    `project in (${projectClause})`,
-    `AND updated >= ${quoteJqlValue(sinceDate)}`,
-    `AND labels in (${labelClause})`
-  ].join(" ");
+  const jql = [`project in (${projectClause})`, `AND labels in (${labelClause})`].join(" ");
 
   const issues = await searchJiraIssues(site, email, token, jql, [
     "labels",
@@ -1171,21 +1441,85 @@ async function fetchPrActivity(site, email, token, sinceDate) {
       teamKeyFromLabels(issue?.fields?.labels ?? []) &&
       hasPullRequestSummary(issue?.fields?.[PR_SUMMARY_FIELD])
   );
+  const safeSinceDate = isoDateOnly(sinceDate);
+  const prActivityIssueCache = await readJsonFile(PR_ACTIVITY_ISSUE_CACHE_PATH);
+  const prActivityIssueCacheByIssueKey =
+    prActivityIssueCache?.issues && typeof prActivityIssueCache.issues === "object"
+      ? { ...prActivityIssueCache.issues }
+      : {};
+  const activeCandidateIssues = candidateIssues.filter((issue) => {
+    const summaryLastUpdated = readPullRequestSummaryLastUpdated(issue?.fields?.[PR_SUMMARY_FIELD]);
+    return !summaryLastUpdated || summaryLastUpdated >= safeSinceDate;
+  });
 
   const issueResults = await mapWithConcurrency(
-    candidateIssues,
+    activeCandidateIssues,
     PR_DETAIL_CONCURRENCY,
     async (issue) => {
-      const [details, changelog] = await Promise.all([
-        fetchIssuePullRequestDetails(site, email, token, issue.id),
-        fetchIssueChangelog(site, email, token, issue.key)
-      ]);
+      const issueKey = String(issue?.key || "").trim();
+      const summaryLastUpdatedAt = readPullRequestSummaryLastUpdatedAt(
+        issue?.fields?.[PR_SUMMARY_FIELD]
+      );
+      const cachedIssueResult = readPrActivityIssueCacheEntry(
+        prActivityIssueCacheByIssueKey,
+        issueKey,
+        summaryLastUpdatedAt
+      );
+      if (cachedIssueResult) {
+        return {
+          pullRequestRecords: cachedIssueResult.pullRequestRecords.filter((record) =>
+            pullRequestRecordTouchesSinceDate(record, safeSinceDate)
+          ),
+          ticketReviewToMergeRecord: cachedIssueResult.ticketReviewToMergeRecord,
+          reviewChangelogFetched: false,
+          cacheHit: true,
+          cacheEntry: null,
+          issueKey
+        };
+      }
+
+      const details = await fetchIssuePullRequestDetails(site, email, token, issue.id);
+      const allPullRequestRecords = normalizePullRequestRecords(issue, details);
+      const pullRequestRecords = allPullRequestRecords.filter((record) =>
+        pullRequestRecordTouchesSinceDate(record, safeSinceDate)
+      );
+      const shouldFetchReviewChangelog = allPullRequestRecords.some((record) =>
+        String(record?.status || "").trim().toUpperCase() === "MERGED"
+      );
+      const changelog = shouldFetchReviewChangelog
+        ? await fetchIssueChangelog(site, email, token, issue.key)
+        : null;
+      const ticketReviewToMergeRecord =
+        shouldFetchReviewChangelog && changelog
+          ? normalizeTicketReviewToMergeRecord(issue, details, changelog)
+          : null;
       return {
-        pullRequestRecords: normalizePullRequestRecords(issue, details),
-        ticketReviewToMergeRecord: normalizeTicketReviewToMergeRecord(issue, details, changelog)
+        pullRequestRecords,
+        ticketReviewToMergeRecord,
+        reviewChangelogFetched: shouldFetchReviewChangelog,
+        cacheHit: false,
+        cacheEntry: createPrActivityIssueCacheEntry(summaryLastUpdatedAt, {
+          pullRequestRecords: allPullRequestRecords,
+          ticketReviewToMergeRecord
+        }),
+        issueKey
       };
     }
   );
+
+  let cacheWriteCount = 0;
+  for (const issueResult of issueResults) {
+    const safeIssueKey = String(issueResult?.issueKey || "").trim();
+    if (!safeIssueKey || !issueResult?.cacheEntry) continue;
+    prActivityIssueCacheByIssueKey[safeIssueKey] = issueResult.cacheEntry;
+    cacheWriteCount += 1;
+  }
+  if (cacheWriteCount > 0) {
+    await writeJsonAtomic(PR_ACTIVITY_ISSUE_CACHE_TMP_PATH, PR_ACTIVITY_ISSUE_CACHE_PATH, {
+      updatedAt: new Date().toISOString(),
+      issues: prActivityIssueCacheByIssueKey
+    });
+  }
 
   const uniquePullRequests = new Map();
   let conflictCount = 0;
@@ -1207,14 +1541,37 @@ async function fetchPrActivity(site, email, token, sinceDate) {
     if (existing.status !== "MERGED" && record.status === "MERGED") existing.status = "MERGED";
   }
 
+  const filteredRecords = Array.from(uniquePullRequests.values()).filter((record) => {
+    const offeredProxyDate = isoDateOnly(record.offeredProxyDate);
+    const mergedProxyDate = isoDateOnly(record.mergedProxyDate);
+    return (
+      (offeredProxyDate && offeredProxyDate >= safeSinceDate) ||
+      (mergedProxyDate && mergedProxyDate >= safeSinceDate)
+    );
+  });
+  const filteredReviewToMergeRecords = issueResults
+    .map((result) => result.ticketReviewToMergeRecord)
+    .filter(Boolean)
+    .filter((record) => {
+      const mergedProxyDate = isoDateOnly(record?.mergedProxyDate);
+      return mergedProxyDate && mergedProxyDate >= safeSinceDate;
+    });
+  const reviewChangelogIssueCount = issueResults.reduce(
+    (sum, result) => sum + (result?.reviewChangelogFetched ? 1 : 0),
+    0
+  );
+  const cacheHitCount = issueResults.reduce((sum, result) => sum + (result?.cacheHit ? 1 : 0), 0);
+
   return {
     candidateIssueCount: candidateIssues.length,
-    uniquePrCount: uniquePullRequests.size,
+    detailIssueCount: activeCandidateIssues.length,
+    uniquePrCount: filteredRecords.length,
     conflictCount,
-    records: Array.from(uniquePullRequests.values()),
-    ticketReviewToMergeRecords: issueResults
-      .map((result) => result.ticketReviewToMergeRecord)
-      .filter(Boolean)
+    reviewChangelogIssueCount,
+    cacheHitCount,
+    cacheWriteCount,
+    records: filteredRecords,
+    ticketReviewToMergeRecords: filteredReviewToMergeRecords
   };
 }
 
@@ -1230,19 +1587,23 @@ function resolveSprintBucketDate(isoDate, sprintDates) {
   return dates[dates.length - 1] || "";
 }
 
+function buildPrActivityPoints(byDate, dates) {
+  return (Array.isArray(dates) ? dates : []).map((date) =>
+    TEAM_KEYS.reduce(
+      (point, team) => {
+        point[team] = buildPrPointForTeam(byDate, date, team);
+        return point;
+      },
+      { date }
+    )
+  );
+}
+
 function buildPrActivitySprintSnapshot(result, sinceDate, sprintDates) {
   const dates = Array.from(
     new Set((Array.isArray(sprintDates) ? sprintDates : []).filter(Boolean))
   ).sort();
-  const byDate = new Map(
-    dates.map((date) => [
-      date,
-      TEAM_KEYS.reduce((acc, team) => {
-        acc[team] = emptyPrAccumulator();
-        return acc;
-      }, {})
-    ])
-  );
+  const byDate = new Map(dates.map((date) => [date, createEmptyPrActivityBuckets()]));
 
   for (const row of result.records ?? []) {
     const offeredBucketDate = resolveSprintBucketDate(row.offeredProxyDate, dates);
@@ -1268,21 +1629,73 @@ function buildPrActivitySprintSnapshot(result, sinceDate, sprintDates) {
   return {
     since: sinceDate,
     interval: "sprint",
+    monthlyInterval: "month",
     source: "jira_dev_status_detail",
     candidateIssueCount: numberOrZero(result.candidateIssueCount),
     uniquePrCount: numberOrZero(result.uniquePrCount),
     conflictCount: numberOrZero(result.conflictCount),
     caveat:
       "Counts are deduped from Jira dev-status pull request records and attributed by Jira team label. Inflow dates use the earliest available PR lastUpdate and source-branch last commit timestamp, then are bucketed to Jira sprint points. Merged dates use Jira PR lastUpdate as a merge proxy and are bucketed to the corresponding sprint point. Review-to-merge time is a ticket proxy: first Jira In Review status to linked merged PR proxy date. Multiple done Jira tickets can still map to the same underlying PR.",
-    points: dates.map((date) => ({
-      date,
-      api: buildPrPointForTeam(byDate, date, "api"),
-      legacy: buildPrPointForTeam(byDate, date, "legacy"),
-      react: buildPrPointForTeam(byDate, date, "react"),
-      bc: buildPrPointForTeam(byDate, date, "bc"),
-      workers: buildPrPointForTeam(byDate, date, "workers"),
-      titanium: buildPrPointForTeam(byDate, date, "titanium")
-    }))
+    points: buildPrActivityPoints(byDate, dates)
+  };
+}
+
+function monthBucketDate(isoDate) {
+  const safeDate = isoDateOnly(isoDate);
+  if (!safeDate) return "";
+  return `${safeDate.slice(0, 7)}-01`;
+}
+
+function buildPrActivityMonthlySnapshot(result, sinceDate) {
+  const minimumBucketDate = monthBucketDate(sinceDate);
+  const dates = new Set();
+  const byDate = new Map();
+
+  function ensureMonthBucket(date) {
+    const safeDate = String(date || "").trim();
+    if (!safeDate) return null;
+    if (!byDate.has(safeDate)) {
+      byDate.set(safeDate, createEmptyPrActivityBuckets());
+    }
+    dates.add(safeDate);
+    return byDate.get(safeDate);
+  }
+
+  for (const row of result.records ?? []) {
+    const offeredBucketDate = monthBucketDate(row.offeredProxyDate);
+    if (minimumBucketDate && offeredBucketDate && offeredBucketDate < minimumBucketDate) {
+      continue;
+    }
+    const offeredPoint = ensureMonthBucket(offeredBucketDate);
+    if (offeredPoint) offeredPoint[row.team].offered += 1;
+
+    if (row.status === "MERGED") {
+      const mergedBucketDate = monthBucketDate(row.mergedProxyDate);
+      if (minimumBucketDate && mergedBucketDate && mergedBucketDate < minimumBucketDate) {
+        continue;
+      }
+      const mergedPoint = ensureMonthBucket(mergedBucketDate);
+      if (mergedPoint) mergedPoint[row.team].merged += 1;
+    }
+  }
+
+  for (const row of result.ticketReviewToMergeRecords ?? []) {
+    const mergedBucketDate = monthBucketDate(row.mergedProxyDate);
+    if (minimumBucketDate && mergedBucketDate && mergedBucketDate < minimumBucketDate) {
+      continue;
+    }
+    const mergedPoint = ensureMonthBucket(mergedBucketDate);
+    if (mergedPoint) {
+      mergedPoint[row.team].reviewToMergeDaysTotal += row.reviewToMergeDays;
+      mergedPoint[row.team].avgReviewToMergeSampleCount += 1;
+    }
+  }
+
+  const sortedDates = Array.from(dates).sort();
+  return {
+    since: sortedDates[0] || minimumBucketDate || sinceDate,
+    interval: "month",
+    points: buildPrActivityPoints(byDate, sortedDates)
   };
 }
 
@@ -1451,9 +1864,8 @@ async function countIssuesForJql(site, email, token, jql) {
   return total;
 }
 
-async function buildBoardTrend(board, dates, site, email, token) {
-  const points = [];
-  for (const date of dates) {
+async function buildBoardTrend(board, dates, site, email, token, concurrency = 1) {
+  return mapWithConcurrency(dates, concurrency, async (date) => {
     const counts = await countFor(board, date, site, email, token);
     console.log(
       `[${board.constName}] ${date}: Hst ${counts.highest}, H ${counts.high}, M ${counts.medium}, L ${counts.low}, Lst ${counts.lowest}${
@@ -1464,16 +1876,15 @@ async function buildBoardTrend(board, dates, site, email, token) {
           : ""
       }`
     );
-    points.push({ date, ...counts });
-  }
-  return points;
+    return { date, ...counts };
+  });
 }
 
 function emptyPoint(date) {
   return { date, highest: 0, high: 0, medium: 0, low: 0, lowest: 0 };
 }
 
-function buildCombinedSnapshot(computed, syncedAt, uatAging, prActivity) {
+function buildCombinedSnapshot(computed, syncedAt, uatAging, prActivity, chartData = null) {
   const updatedAt = new Date().toISOString();
   const api = computed.BOARD_38_TREND ?? [];
   const legacy = computed.BOARD_39_TREND ?? [];
@@ -1506,10 +1917,11 @@ function buildCombinedSnapshot(computed, syncedAt, uatAging, prActivity) {
     source: {
       mode: "mcp_snapshot",
       syncedAt,
-      note: "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). UAT aging is generated from current UAT issues and changelog-derived status entry timestamps. PR activity is derived from Jira dev-status pull request details."
+      note: "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. PR activity is derived from Jira dev-status pull request details."
     },
-    uatAging,
+    ...(uatAging && typeof uatAging === "object" ? { uatAging } : {}),
     prActivity,
+    ...(chartData && typeof chartData === "object" ? { chartData } : {}),
     combinedPoints: allDates.map((date) => ({
       date,
       api: apiByDate.get(date) ?? emptyPoint(date),
@@ -1576,6 +1988,17 @@ async function readJsonFile(filePath) {
   }
 }
 
+async function writeJsonAtomic(tmpPath, outputPath, value) {
+  const serialized = `${JSON.stringify(value, null, 2)}\n`;
+  try {
+    await fs.writeFile(tmpPath, serialized, "utf8");
+    await fs.rename(tmpPath, outputPath);
+  } catch (error) {
+    await fs.unlink(tmpPath).catch(() => undefined);
+    throw error;
+  }
+}
+
 function updateExistingSnapshotPrActivity(existingSnapshot, prActivity, syncedAt) {
   if (!existingSnapshot || typeof existingSnapshot !== "object") {
     throw new Error("Cannot run PR_ACTIVITY_ONLY without an existing snapshot.json to update.");
@@ -1594,15 +2017,152 @@ function updateExistingSnapshotPrActivity(existingSnapshot, prActivity, syncedAt
   };
 }
 
-async function writePrCycleSnapshotAtomic(snapshot) {
-  const serialized = `${JSON.stringify(sanitizePrCycleSnapshot(snapshot), null, 2)}\n`;
+function updateExistingSnapshotUat(existingSnapshot, { uatAging, chartData, syncedAt }) {
+  if (!existingSnapshot || typeof existingSnapshot !== "object") {
+    throw new Error("Cannot run UAT_ONLY without an existing snapshot.json to update.");
+  }
+
+  const { uatAging: existingUatAging, ...snapshotWithoutUatAging } = existingSnapshot;
+  void existingUatAging;
+
+  return {
+    ...snapshotWithoutUatAging,
+    updatedAt: new Date().toISOString(),
+    source: {
+      ...(existingSnapshot.source && typeof existingSnapshot.source === "object"
+        ? existingSnapshot.source
+        : {}),
+      syncedAt
+    },
+    ...(uatAging && typeof uatAging === "object" ? { uatAging } : {}),
+    ...(chartData && typeof chartData === "object" ? { chartData } : {})
+  };
+}
+
+function mergePrActivitySnapshots(existingPrActivity, refreshedPrActivity, options = {}) {
+  const truncateAfterRefreshedLatest = options.truncateAfterRefreshedLatest !== false;
+  const ceilingDate = isoDateOnly(options.ceilingDate);
+  const refreshedPoints = Array.isArray(refreshedPrActivity?.points)
+    ? refreshedPrActivity.points.filter(Boolean)
+    : [];
+  if (refreshedPoints.length === 0) {
+    if (!existingPrActivity || typeof existingPrActivity !== "object") {
+      return refreshedPrActivity;
+    }
+    return {
+      ...existingPrActivity,
+      ...refreshedPrActivity,
+      since: String(existingPrActivity?.points?.[0]?.date || refreshedPrActivity?.since || ""),
+      points: Array.isArray(existingPrActivity?.points) ? existingPrActivity.points : [],
+      monthlySince: String(
+        refreshedPrActivity?.monthlyPoints?.[0]?.date ||
+          existingPrActivity?.monthlyPoints?.[0]?.date ||
+          refreshedPrActivity?.monthlySince ||
+          existingPrActivity?.monthlySince ||
+          ""
+      ),
+      monthlyPoints: Array.isArray(refreshedPrActivity?.monthlyPoints)
+        ? refreshedPrActivity.monthlyPoints
+        : Array.isArray(existingPrActivity?.monthlyPoints)
+          ? existingPrActivity.monthlyPoints
+          : []
+    };
+  }
+  const refreshedMonthlyPoints = Array.isArray(refreshedPrActivity?.monthlyPoints)
+    ? refreshedPrActivity.monthlyPoints.filter(Boolean)
+    : [];
+  const mergedPoints = mergeDatedPointSeries(existingPrActivity?.points, refreshedPoints, {
+    ceilingDate,
+    truncateAfterRefreshedLatest
+  });
+  const mergedMonthlyPoints = mergeDatedPointSeries(
+    existingPrActivity?.monthlyPoints,
+    refreshedMonthlyPoints,
+    {
+      ceilingDate,
+      truncateAfterRefreshedLatest
+    }
+  );
+
+  return {
+    ...(existingPrActivity && typeof existingPrActivity === "object" ? existingPrActivity : {}),
+    ...refreshedPrActivity,
+    since: String(mergedPoints[0]?.date || refreshedPrActivity?.since || ""),
+    points: mergedPoints,
+    monthlySince: String(
+      mergedMonthlyPoints[0]?.date ||
+        refreshedPrActivity?.monthlySince ||
+        refreshedPrActivity?.monthlyPoints?.[0]?.date ||
+        ""
+    ),
+    monthlyPoints: mergedMonthlyPoints
+  };
+}
+
+function mergeDatedPointSeries(existingPoints, refreshedPoints, options = {}) {
+  const truncateAfterRefreshedLatest = options.truncateAfterRefreshedLatest !== false;
+  const ceilingDate = isoDateOnly(options.ceilingDate);
+  const safeExistingPoints = Array.isArray(existingPoints) ? existingPoints.filter(Boolean) : [];
+  const safeRefreshedPoints = Array.isArray(refreshedPoints) ? refreshedPoints.filter(Boolean) : [];
+  const refreshedLatestPointDate = String(
+    safeRefreshedPoints[safeRefreshedPoints.length - 1]?.date || ""
+  ).trim();
+  const mergedByDate = new Map();
+
+  for (const point of [...safeExistingPoints, ...safeRefreshedPoints]) {
+    const date = String(point?.date || "").trim();
+    if (!date) continue;
+    mergedByDate.set(date, point);
+  }
+
+  return Array.from(mergedByDate.entries())
+    .sort((left, right) => left[0].localeCompare(right[0]))
+    .map(([, point]) => point)
+    .filter((point) => {
+      const date = String(point?.date || "").trim();
+      if (!date) return false;
+      if (ceilingDate && date > ceilingDate) return false;
+      if (!truncateAfterRefreshedLatest || !refreshedLatestPointDate) return true;
+      return date <= refreshedLatestPointDate;
+    });
+}
+
+async function writeSanitizedSnapshotAtomic(snapshot, sanitizer, tmpPath, outputPath) {
+  const serialized = `${JSON.stringify(sanitizer(snapshot), null, 2)}\n`;
   try {
-    await fs.writeFile(PR_CYCLE_SNAPSHOT_TMP_PATH, serialized, "utf8");
-    await fs.rename(PR_CYCLE_SNAPSHOT_TMP_PATH, PR_CYCLE_SNAPSHOT_PATH);
+    await fs.writeFile(tmpPath, serialized, "utf8");
+    await fs.rename(tmpPath, outputPath);
   } catch (error) {
-    await fs.unlink(PR_CYCLE_SNAPSHOT_TMP_PATH).catch(() => undefined);
+    await fs.unlink(tmpPath).catch(() => undefined);
     throw error;
   }
+}
+
+async function writePrCycleSnapshotAtomic(snapshot) {
+  return writeSanitizedSnapshotAtomic(
+    snapshot,
+    sanitizePrCycleSnapshot,
+    PR_CYCLE_SNAPSHOT_TMP_PATH,
+    PR_CYCLE_SNAPSHOT_PATH
+  );
+}
+
+async function writeProductCycleSnapshotAtomic(snapshot) {
+  return writeSanitizedSnapshotAtomic(
+    snapshot,
+    sanitizeProductCycleSnapshot,
+    PRODUCT_CYCLE_SNAPSHOT_TMP_PATH,
+    PRODUCT_CYCLE_SNAPSHOT_PATH
+  );
+}
+
+async function writeContributorsSnapshotAtomic(snapshot) {
+  return writeSanitizedSnapshotAtomic(
+    snapshot,
+    sanitizeContributorsSnapshot,
+    CONTRIBUTORS_SNAPSHOT_TMP_PATH,
+    CONTRIBUTORS_SNAPSHOT_PATH
+  );
 }
 
 function snapshotArchiveFileName(syncedAt) {
@@ -1648,205 +2208,485 @@ async function pruneArchivedSnapshots(maxSnapshots) {
   return removed;
 }
 
-async function main() {
-  await loadLocalEnv();
-  const snapshotRetentionCount = envPositiveInt(
-    "SNAPSHOT_RETENTION_COUNT",
-    DEFAULT_SNAPSHOT_RETENTION_COUNT
-  );
+async function commitSnapshotRefresh({
+  snapshot,
+  syncedAt,
+  snapshotRetentionCount,
+  summaryMessage,
+  extraWrites = [],
+  extraLogs = []
+}) {
+  await writeSnapshotAtomic(snapshot);
+  for (const writeExtra of extraWrites) {
+    await writeExtra();
+  }
+  const archivedPath = await archiveSnapshot(snapshot, syncedAt);
+  const prunedSnapshots = await pruneArchivedSnapshots(snapshotRetentionCount);
+  console.log(summaryMessage);
+  for (const line of extraLogs) {
+    if (line) console.log(line);
+  }
+  console.log(`Archived snapshot history copy: ${archivedPath}`);
+  if (prunedSnapshots.length > 0) {
+    console.log(
+      `Pruned ${prunedSnapshots.length} archived snapshot(s) to keep the latest ${snapshotRetentionCount}.`
+    );
+  }
+}
 
-  const site = env("ATLASSIAN_SITE", "nepgroup.atlassian.net");
-  const email = env("ATLASSIAN_EMAIL");
-  const token = env("ATLASSIAN_API_TOKEN");
-  const uatProject = env("UAT_PROJECT", "TFC");
-  const uatIssueType = env("UAT_ISSUE_TYPE", "");
-  const uatStatus = env("UAT_STATUS", "UAT");
-  const uatLabel = env("UAT_LABEL", "Broadcast");
-  const prCycleOnly = envBool("PR_CYCLE_ONLY", false);
-  const prActivityOnly = envBool("PR_ACTIVITY_ONLY", false);
-  const skipPrCycle = envBool("SKIP_PR_CYCLE", false);
-  const prCycleProjectKeys = env("PR_CYCLE_PROJECT_KEYS", PR_ACTIVITY_PROJECT_KEYS.join(","))
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
-  const prCycleCodingStatuses = normalizeStringList(
-    env("PR_CYCLE_CODING_STATUS", "In Progress").split(",")
-  );
-  const prCycleReviewStatuses = normalizeStringList(
-    env("PR_CYCLE_REVIEW_STATUS", "In Review").split(",")
-  );
-  const prCycleMergeStatuses = normalizeStringList(env("PR_CYCLE_MERGE_STATUS", "QA").split(","));
-  const sprintProject = env("SPRINT_PROJECT", DEFAULT_SPRINT_PROJECT);
-  const sprintBoardId = env("SPRINT_BOARD_ID", "");
-  const sprintLookbackCount = envPositiveInt(
-    "SPRINT_LOOKBACK_COUNT",
-    DEFAULT_SPRINT_LOOKBACK_COUNT
-  );
-  const sprintPointRaw = env("SPRINT_POINT", DEFAULT_SPRINT_POINT).toLowerCase();
-  const sprintPoint = sprintPointRaw === "start" ? "start" : "end";
-  const sprintIncludeActive = envBool("SPRINT_INCLUDE_ACTIVE", true);
-  const sprintMondayAnchor = envBool("SPRINT_MONDAY_ANCHOR", DEFAULT_SPRINT_MONDAY_ANCHOR);
+function buildRefreshConfig() {
+  return {
+    snapshotRetentionCount: envPositiveInt(
+      "SNAPSHOT_RETENTION_COUNT",
+      DEFAULT_SNAPSHOT_RETENTION_COUNT
+    ),
+    site: env("ATLASSIAN_SITE", "nepgroup.atlassian.net"),
+    email: env("ATLASSIAN_EMAIL"),
+    token: env("ATLASSIAN_API_TOKEN"),
+    uatProject: env("UAT_PROJECT", "TFC"),
+    uatIssueType: env("UAT_ISSUE_TYPE", ""),
+    uatStatus: env("UAT_STATUS", "UAT"),
+    uatLabel: env("UAT_LABEL", "Broadcast"),
+    prCycleOnly: envBool("PR_CYCLE_ONLY", false),
+    productCycleOnly: envBool("PRODUCT_CYCLE_ONLY", false),
+    prActivityOnly: envBool("PR_ACTIVITY_ONLY", false),
+    uatOnly: envBool("UAT_ONLY", false),
+    noWrite: envBool("NO_WRITE", false),
+    skipPrCycle: envBool("SKIP_PR_CYCLE", false),
+    skipContributors: envBool("SKIP_CONTRIBUTORS", false),
+    skipProductCycle: envBool("SKIP_PRODUCT_CYCLE", false),
+    skipTrendRefresh: envBool("SKIP_TREND_REFRESH", false),
+    skipUatAging: envBool("SKIP_UAT_AGING", true),
+    prCycleProjectKeys: env("PR_CYCLE_PROJECT_KEYS", PR_ACTIVITY_PROJECT_KEYS.join(","))
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean),
+    prCycleCodingStatuses: normalizeStringList(
+      env("PR_CYCLE_CODING_STATUS", "In Progress,In Development,Development").split(",")
+    ),
+    prCycleReviewStatuses: normalizeStringList(
+      env(
+        "PR_CYCLE_REVIEW_STATUS",
+        "In Review,Review,Code Review,Peer Review,Ready for Review"
+      ).split(",")
+    ),
+    prCycleMergeStatuses: normalizeStringList(
+      env("PR_CYCLE_MERGE_STATUS", "QA,QA / Lab Testing,Lab Testing,Testing,Ready for QA").split(
+        ","
+      )
+    ),
+    sprintProject: env("SPRINT_PROJECT", DEFAULT_SPRINT_PROJECT),
+    sprintBoardId: env("SPRINT_BOARD_ID", ""),
+    sprintLookbackCount: envPositiveInt("SPRINT_LOOKBACK_COUNT", DEFAULT_SPRINT_LOOKBACK_COUNT),
+    sprintPoint: env("SPRINT_POINT", DEFAULT_SPRINT_POINT).toLowerCase() === "start" ? "start" : "end",
+    sprintIncludeActive: envBool("SPRINT_INCLUDE_ACTIVE", true),
+    sprintMondayAnchor: envBool("SPRINT_MONDAY_ANCHOR", DEFAULT_SPRINT_MONDAY_ANCHOR),
+    prCycleRebuildAll: envBool("PR_CYCLE_REBUILD_ALL", false),
+    prActivityRebuildAll: envBool("PR_ACTIVITY_REBUILD_ALL", false),
+    trendCountConcurrency: envPositiveInt(
+      "TREND_COUNT_CONCURRENCY",
+      DEFAULT_TREND_COUNT_CONCURRENCY
+    ),
+    trendBoardConcurrency: envPositiveInt(
+      "TREND_BOARD_CONCURRENCY",
+      DEFAULT_TREND_BOARD_CONCURRENCY
+    )
+  };
+}
 
-  if (!email) {
-    throw new Error(
+function validateRefreshConfig(config) {
+  for (const [failed, message] of [
+    [
+      !config.email,
       "Missing ATLASSIAN_EMAIL. Create .env.backlog with ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN, and optional ATLASSIAN_SITE."
-    );
-  }
-  if (!token) {
-    throw new Error(
+    ],
+    [
+      !config.token,
       "Missing ATLASSIAN_API_TOKEN. Create .env.backlog with ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN, and optional ATLASSIAN_SITE."
-    );
-  }
-  if (isPlaceholderSite(site)) {
-    throw new Error(
+    ],
+    [
+      isPlaceholderSite(config.site),
       "ATLASSIAN_SITE looks like a placeholder. Set your real Jira site host (for example: nepgroup.atlassian.net)."
-    );
-  }
-  if (isPlaceholderCredential(email)) {
-    throw new Error(
+    ],
+    [
+      isPlaceholderCredential(config.email),
       "ATLASSIAN_EMAIL looks like a placeholder. Set a real Jira account email in .env.backlog."
-    );
-  }
-  if (isPlaceholderCredential(token)) {
-    throw new Error(
+    ],
+    [
+      isPlaceholderCredential(config.token),
       "ATLASSIAN_API_TOKEN looks like a placeholder. Set a real Jira API token in .env.backlog."
+    ]
+  ]) {
+    if (failed) throw new Error(message);
+  }
+  if (
+    [config.prCycleOnly, config.productCycleOnly, config.prActivityOnly, config.uatOnly].filter(
+      Boolean
+    ).length > 1
+  ) {
+    throw new Error(
+      "PR_CYCLE_ONLY, PRODUCT_CYCLE_ONLY, PR_ACTIVITY_ONLY, and UAT_ONLY cannot be combined."
     );
   }
+}
 
-  console.log(`Refreshing backlog from Jira site: ${site}`);
-  if (prCycleOnly && prActivityOnly) {
-    throw new Error("PR_CYCLE_ONLY and PR_ACTIVITY_ONLY cannot both be true.");
+async function maybeRefreshSnapshot(skip, skippedMessage, refresh) {
+  if (skip) {
+    console.log(skippedMessage);
+    return null;
   }
+  return refresh();
+}
 
-  const todayIso = new Date().toISOString().slice(0, 10);
-  const prCycleWindows = buildPrCycleWindowConfigs(todayIso);
-  const prCycleRangeStartDate = String(
-    prCycleWindows[prCycleWindows.length - 1]?.windowStartDate || todayIso
-  );
-  let prCycleSnapshot = null;
-  if (skipPrCycle || prActivityOnly) {
-    if (prActivityOnly) {
-      console.log("Skipping PR cycle stage breakdown (PR_ACTIVITY_ONLY=true).");
-    } else {
-      console.log("Skipping PR cycle stage breakdown (SKIP_PR_CYCLE=true).");
-    }
+async function buildUatRefreshArtifacts(config) {
+  clearIssueChangelogCache();
+  const uatFilters = {
+    project: config.uatProject,
+    issueType: config.uatIssueType,
+    status: config.uatStatus,
+    label: config.uatLabel
+  };
+  let uatAging = null;
+  if (config.skipUatAging) {
+    console.log("Skipping UAT aging (SKIP_UAT_AGING=true).");
   } else {
-    console.log(
-      `Fetching PR cycle issue histories for ${prCycleWindows.map((windowConfig) => windowConfig.windowLabel).join(", ")}.`
+    const uatRows = await withTiming(
+      "UAT aging",
+      () => fetchUatIssueAges(config.site, config.email, config.token, uatFilters),
+      console
     );
-    const prCycleRows = await fetchPrCycleIssueBreakdown(site, email, token, {
-      projectKeys: prCycleProjectKeys,
-      windowDays: prCycleWindows[prCycleWindows.length - 1]?.windowDays || 365,
-      windowLabel: prCycleWindows[prCycleWindows.length - 1]?.windowLabel || "Last year",
-      windowStartDate: prCycleRangeStartDate,
-      windowStartIso: `${prCycleRangeStartDate}T00:00:00.000Z`,
-      windowEndIso: new Date().toISOString(),
-      codingStatuses: prCycleCodingStatuses,
-      reviewStatuses: prCycleReviewStatuses,
-      mergeStatuses: prCycleMergeStatuses
-    });
-    prCycleSnapshot = buildPrCycleSnapshot(prCycleRows, {
-      windows: prCycleWindows,
-      defaultWindow: PR_CYCLE_WINDOW_DEFAULT_KEY
-    });
+    uatAging = buildUatAging(uatRows, uatFilters);
     console.log(
-      `Computed PR cycle stage breakdown (${prCycleRows.length} issue histories across ${prCycleProjectKeys.join(", ")} for ${prCycleWindows.length} windows).`
+      `Computed UAT aging (${uatAging.totalIssues} issues, label=${config.uatLabel}, status=${config.uatStatus}).`
     );
-  }
-  if (prCycleOnly) {
-    if (!prCycleSnapshot) {
-      throw new Error("PR_CYCLE_ONLY cannot be used when SKIP_PR_CYCLE=true.");
-    }
-    await writePrCycleSnapshotAtomic(prCycleSnapshot);
-    console.log("Wrote pr-cycle-snapshot.json (PR_CYCLE_ONLY mode).");
-    return;
   }
 
-  const resolvedDates = await resolveTrendDates(site, email, token, {
-    fallbackDates: FALLBACK_DATES,
-    projectKey: sprintProject,
-    boardId: sprintBoardId,
-    lookbackCount: sprintLookbackCount,
-    pointMode: sprintPoint,
-    includeActive: sprintIncludeActive,
-    mondayAnchor: sprintMondayAnchor
+  const businessUnitChartData = await withTiming(
+    "Business Unit UAT chart data",
+    () =>
+      refreshBusinessUnitUatChartData({
+        site: config.site,
+        email: config.email,
+        token: config.token,
+        searchJiraIssues,
+        fetchIssueChangelog,
+        mapWithConcurrency,
+        envValue: env,
+        logger: console
+      }),
+    console
+  );
+  clearIssueChangelogCache();
+  return { uatAging, businessUnitChartData };
+}
+
+async function buildPrCycleRefreshSnapshot(config, todayIso) {
+  const prCycleWindows = buildPrCycleWindowConfigs(todayIso);
+  if (config.skipPrCycle || config.prActivityOnly) {
+    console.log(
+      `Skipping PR cycle stage breakdown (${config.prActivityOnly ? "PR_ACTIVITY_ONLY=true" : "SKIP_PR_CYCLE=true"}).`
+    );
+    return null;
+  }
+
+  const existingPrCycleSnapshot = !config.prCycleRebuildAll
+    ? await readJsonFile(PR_CYCLE_SNAPSHOT_PATH)
+    : null;
+  const historicalPrCycleSnapshotAgeDays = snapshotAgeInDays(existingPrCycleSnapshot?.updatedAt);
+  const historicalPrCycleSnapshotFreshEnough =
+    historicalPrCycleSnapshotAgeDays <= PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS;
+  const canReuseHistoricalPrCycleWindows = Boolean(
+    existingPrCycleSnapshot?.windows &&
+      typeof existingPrCycleSnapshot.windows === "object" &&
+      existingPrCycleSnapshot.windows["90d"] &&
+      existingPrCycleSnapshot.windows["6m"] &&
+      existingPrCycleSnapshot.windows["1y"] &&
+      historicalPrCycleSnapshotFreshEnough
+  );
+  const reuseHistoricalPrCycleWindows = !config.prCycleRebuildAll && canReuseHistoricalPrCycleWindows;
+  const prCycleWindowsToRefresh =
+    reuseHistoricalPrCycleWindows
+      ? prCycleWindows.filter((windowConfig) => PR_CYCLE_REFRESH_WINDOW_KEYS.includes(windowConfig.key))
+      : prCycleWindows;
+  const prCycleRangeStartDate = String(
+    prCycleWindowsToRefresh[prCycleWindowsToRefresh.length - 1]?.windowStartDate || todayIso
+  );
+  console.log(
+    `Fetching PR cycle issue histories for ${prCycleWindowsToRefresh.map((windowConfig) => windowConfig.windowLabel).join(", ")}.`
+  );
+  const prCycleRows = await fetchPrCycleIssueBreakdown(config.site, config.email, config.token, {
+    projectKeys: config.prCycleProjectKeys,
+    windowDays: prCycleWindowsToRefresh[prCycleWindowsToRefresh.length - 1]?.windowDays || 365,
+    windowLabel:
+      prCycleWindowsToRefresh[prCycleWindowsToRefresh.length - 1]?.windowLabel || "Last year",
+    windowStartDate: prCycleRangeStartDate,
+    windowStartIso: `${prCycleRangeStartDate}T00:00:00.000Z`,
+    windowEndIso: new Date().toISOString(),
+    codingStatuses: config.prCycleCodingStatuses,
+    reviewStatuses: config.prCycleReviewStatuses,
+    mergeStatuses: config.prCycleMergeStatuses
   });
-  const dates = resolvedDates.dates;
+  const refreshedPrCycleSnapshot = buildPrCycleSnapshot(prCycleRows, {
+    windows: prCycleWindowsToRefresh,
+    defaultWindow: PR_CYCLE_WINDOW_DEFAULT_KEY,
+    codingStatuses: config.prCycleCodingStatuses,
+    reviewStatuses: config.prCycleReviewStatuses,
+    mergeStatuses: config.prCycleMergeStatuses
+  });
+  const prCycleSnapshot =
+    reuseHistoricalPrCycleWindows
+      ? finalizePrCycleSnapshot(
+          {
+            ...(existingPrCycleSnapshot?.windows &&
+            typeof existingPrCycleSnapshot.windows === "object"
+              ? existingPrCycleSnapshot.windows
+              : {}),
+            ...refreshedPrCycleSnapshot.windows
+          },
+          {
+            defaultWindow: existingPrCycleSnapshot?.defaultWindow || PR_CYCLE_WINDOW_DEFAULT_KEY
+          }
+        )
+      : refreshedPrCycleSnapshot;
+  console.log(
+    `Computed PR cycle stage breakdown (${prCycleRows.length} issue histories across ${config.prCycleProjectKeys.join(", ")} for ${prCycleWindowsToRefresh.length} window${prCycleWindowsToRefresh.length === 1 ? "" : "s"}${reuseHistoricalPrCycleWindows ? "; refreshed 30d and 90d, reused cached 6m and 1y windows" : historicalPrCycleSnapshotFreshEnough ? "" : `; refreshed all windows because cached 6m and 1y data was older than ${PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS} days`}).`
+  );
+  return prCycleSnapshot;
+}
+
+async function buildTrendAndPrActivityState(config, todayIso) {
+  const prCycleSnapshot = await buildPrCycleRefreshSnapshot(config, todayIso);
+  const resolvedDates = await withTiming(
+    "Resolve sprint dates",
+    () =>
+      resolveTrendDates(config.site, config.email, config.token, {
+        fallbackDates: FALLBACK_DATES,
+        projectKey: config.sprintProject,
+        boardId: config.sprintBoardId,
+        lookbackCount: 0,
+        pointMode: config.sprintPoint,
+        includeActive: config.sprintIncludeActive,
+        mondayAnchor: config.sprintMondayAnchor,
+        todayIso
+      }),
+    console
+  );
+  const allResolvedDates = resolvedDates.dates;
+  const dates =
+    Number.isFinite(config.sprintLookbackCount) && config.sprintLookbackCount > 0
+      ? allResolvedDates.slice(-config.sprintLookbackCount)
+      : allResolvedDates;
   if (resolvedDates.usedFallback) {
     console.warn(
-      `Using fallback trend dates (${dates.length} points). Reason: ${resolvedDates.fallbackReason}`
+      `Using fallback trend dates (${allResolvedDates.length} points, latest ${dates.length} used for backlog trend). Reason: ${resolvedDates.fallbackReason}`
     );
   } else {
     console.log(
-      `Resolved ${dates.length} trend dates from Jira sprints (point=${sprintPoint}, includeActive=${sprintIncludeActive}, mondayAnchor=${sprintMondayAnchor}).`
+      `Resolved ${allResolvedDates.length} trend dates from Jira sprints (point=${config.sprintPoint}, includeActive=${config.sprintIncludeActive}, mondayAnchor=${config.sprintMondayAnchor}); using latest ${dates.length} for backlog trend.`
     );
   }
 
-  const computed = {};
-  for (const board of BOARDS) {
-    computed[board.constName] = await buildBoardTrend(board, dates, site, email, token);
-    console.log(`Computed ${board.constName} (${dates.length} points).`);
+  let computed = {};
+  if (config.skipTrendRefresh) {
+    console.log("Skipping bug trend refresh (SKIP_TREND_REFRESH=true).");
+  } else {
+    const computedEntries = await withTiming(
+      "Bug trend refresh",
+      () =>
+        mapWithConcurrency(BOARDS, config.trendBoardConcurrency, async (board) => {
+          const trendRows = await buildBoardTrend(
+            board,
+            dates,
+            config.site,
+            config.email,
+            config.token,
+            config.trendCountConcurrency
+          );
+          console.log(`Computed ${board.constName} (${dates.length} points).`);
+          return [board.constName, trendRows];
+        }),
+      console
+    );
+    computed = Object.fromEntries(computedEntries);
   }
 
-  const uatRows = await fetchUatIssueAges(site, email, token, {
-    project: uatProject,
-    issueType: uatIssueType,
-    status: uatStatus,
-    label: uatLabel
-  });
-  const uatAging = buildUatAging(uatRows, {
-    project: uatProject,
-    issueType: uatIssueType,
-    status: uatStatus,
-    label: uatLabel
-  });
-  console.log(
-    `Computed UAT aging (${uatAging.totalIssues} issues, label=${uatLabel}, status=${uatStatus}).`
+  const existingSnapshotForPrActivity = !config.prActivityRebuildAll
+    ? await readJsonFile(SNAPSHOT_PATH)
+    : null;
+  const canReuseHistoricalPrActivity = Boolean(
+    existingSnapshotForPrActivity?.prActivity &&
+      Array.isArray(existingSnapshotForPrActivity.prActivity.points) &&
+      existingSnapshotForPrActivity.prActivity.points.length > 0
   );
-
-  const prActivitySinceDate = resolvePrActivitySinceDate(todayIso);
-  const prRows = await fetchPrActivity(site, email, token, prActivitySinceDate);
-  const prActivitySprintDatesResult = await resolveTrendDates(site, email, token, {
-    fallbackDates: FALLBACK_DATES,
-    projectKey: sprintProject,
-    boardId: sprintBoardId,
-    lookbackCount: 0,
-    pointMode: sprintPoint,
-    includeActive: sprintIncludeActive,
-    mondayAnchor: sprintMondayAnchor,
-    sinceDate: prActivitySinceDate
-  });
-  const prActivitySprintDates = prActivitySprintDatesResult.dates;
+  const reuseHistoricalPrActivity = !config.prActivityRebuildAll && canReuseHistoricalPrActivity;
+  const prActivityWindowKey =
+    reuseHistoricalPrActivity ? PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY : "1y";
+  const prActivityFetchSinceDate = resolvePrActivityFetchSinceDate(todayIso, prActivityWindowKey);
+  const prRows = await withTiming(
+    "PR activity fetch",
+    () => fetchPrActivity(config.site, config.email, config.token, prActivityFetchSinceDate),
+    console
+  );
+  const prActivitySprintDates = allResolvedDates.filter(
+    (date) => String(date || "") >= prActivityFetchSinceDate
+  );
   const prActivity = buildPrActivitySprintSnapshot(
     prRows,
-    prActivitySinceDate,
+    prActivityFetchSinceDate,
     prActivitySprintDates
   );
+  const prActivityMonthly = buildPrActivityMonthlySnapshot(prRows, prActivityFetchSinceDate);
+  prActivity.monthlySince = prActivityMonthly.since;
+  prActivity.monthlyPoints = prActivityMonthly.points;
+  const mergedPrActivity =
+    reuseHistoricalPrActivity
+      ? mergePrActivitySnapshots(existingSnapshotForPrActivity?.prActivity, prActivity, {
+          truncateAfterRefreshedLatest: !resolvedDates.usedFallback,
+          ceilingDate: todayIso
+        })
+      : prActivity;
   console.log(
-    `Computed Jira Development PR inflow proxy (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} candidate issues since ${prActivitySinceDate} across ${prActivitySprintDates.length} sprint buckets).`
+    `Computed Jira Development PR inflow proxy (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} candidate issues, ${prRows.detailIssueCount} with recent PR summary activity, since ${prActivityFetchSinceDate} across ${prActivitySprintDates.length} sprint buckets and ${prActivity.monthlyPoints.length} monthly buckets; fetched ${prRows.reviewChangelogIssueCount} review changelogs, cache hits ${prRows.cacheHitCount}, cache writes ${prRows.cacheWriteCount}${reuseHistoricalPrActivity ? "; reused cached older PR activity buckets" : ""}).`
   );
-  if (prActivityOnly) {
-    const existingSnapshot = await readJsonFile(SNAPSHOT_PATH);
-    const syncedAt = new Date().toISOString();
-    const updatedSnapshot = updateExistingSnapshotPrActivity(
-      existingSnapshot,
-      prActivity,
-      syncedAt
-    );
-    await writeSnapshotAtomic(updatedSnapshot);
-    const archivedPath = await archiveSnapshot(updatedSnapshot, syncedAt);
-    const prunedSnapshots = await pruneArchivedSnapshots(snapshotRetentionCount);
-    console.log("Wrote snapshot.json/backlog-snapshot.json (PR_ACTIVITY_ONLY mode).");
-    console.log(`Archived snapshot history copy: ${archivedPath}`);
-    if (prunedSnapshots.length > 0) {
-      console.log(
-        `Pruned ${prunedSnapshots.length} archived snapshot(s) to keep the latest ${snapshotRetentionCount}.`
-      );
-    }
+
+  return {
+    prCycleSnapshot,
+    computed,
+    existingSnapshotForPrActivity,
+    mergedPrActivity
+  };
+}
+
+async function runUatOnlyRefresh(config) {
+  const { uatAging, businessUnitChartData } = await buildUatRefreshArtifacts(config);
+  if (config.noWrite) {
+    console.log("NO_WRITE=true: skipped snapshot.json/backlog-snapshot.json write (UAT_ONLY mode).");
     return;
   }
+  const existingSnapshot = await readJsonFile(SNAPSHOT_PATH);
+  const syncedAt = new Date().toISOString();
+  await commitSnapshotRefresh({
+    snapshot: updateExistingSnapshotUat(existingSnapshot, {
+      uatAging,
+      chartData: businessUnitChartData,
+      syncedAt
+    }),
+    syncedAt,
+    snapshotRetentionCount: config.snapshotRetentionCount,
+    summaryMessage: "Wrote snapshot.json/backlog-snapshot.json (UAT_ONLY mode)."
+  });
+}
 
-  const grandTotal = Object.values(computed)
+async function runPrCycleOnlyRefresh(config, todayIso) {
+  const prCycleSnapshot = await buildPrCycleRefreshSnapshot(config, todayIso);
+  if (!prCycleSnapshot) {
+    throw new Error("PR_CYCLE_ONLY cannot be used when SKIP_PR_CYCLE=true.");
+  }
+  if (config.noWrite) {
+    console.log("NO_WRITE=true: skipped pr-cycle-snapshot.json write (PR_CYCLE_ONLY mode).");
+    return;
+  }
+  await writePrCycleSnapshotAtomic(prCycleSnapshot);
+  console.log("Wrote pr-cycle-snapshot.json (PR_CYCLE_ONLY mode).");
+}
+
+async function runProductCycleOnlyRefresh(config) {
+  const productCycleSnapshot = await withTiming(
+    "Product cycle refresh",
+    () =>
+      refreshProductCycleSnapshot({
+        site: config.site,
+        email: config.email,
+        token: config.token,
+        jiraRequest,
+        searchJiraIssues,
+        fetchIssueChangelog,
+        mapWithConcurrency,
+        envValue: env,
+        logger: console
+      }),
+    console
+  );
+  if (config.noWrite) {
+    console.log("NO_WRITE=true: skipped product-cycle-snapshot.json write (PRODUCT_CYCLE_ONLY mode).");
+    return;
+  }
+  await writeProductCycleSnapshotAtomic(productCycleSnapshot);
+  console.log("Wrote product-cycle-snapshot.json (PRODUCT_CYCLE_ONLY mode).");
+}
+
+async function runPrActivityOnlyRefresh(config, sharedState) {
+  if (config.noWrite) {
+    console.log("NO_WRITE=true: skipped snapshot.json/backlog-snapshot.json write (PR_ACTIVITY_ONLY mode).");
+    return;
+  }
+  const existingSnapshot =
+    sharedState.existingSnapshotForPrActivity || (await readJsonFile(SNAPSHOT_PATH));
+  const syncedAt = new Date().toISOString();
+  await commitSnapshotRefresh({
+    snapshot: updateExistingSnapshotPrActivity(
+      existingSnapshot,
+      sharedState.mergedPrActivity,
+      syncedAt
+    ),
+    syncedAt,
+    snapshotRetentionCount: config.snapshotRetentionCount,
+    summaryMessage: "Wrote snapshot.json/backlog-snapshot.json (PR_ACTIVITY_ONLY mode)."
+  });
+}
+
+async function runFullRefresh(config, sharedState) {
+  const { uatAging, businessUnitChartData } = await withTiming(
+    "UAT refresh artifacts",
+    () => buildUatRefreshArtifacts(config),
+    console
+  );
+
+  const [contributorsSnapshot, productCycleSnapshot] = await Promise.all([
+    maybeRefreshSnapshot(
+      config.skipContributors,
+      "Skipping contributors snapshot refresh (SKIP_CONTRIBUTORS=true).",
+      () =>
+        withTiming(
+          "Contributors snapshot",
+          () =>
+            refreshContributorsSnapshot({
+              site: config.site,
+              email: config.email,
+              token: config.token,
+              searchJiraIssues,
+              envValue: env,
+              logger: console
+            }),
+          console
+        )
+    ),
+    maybeRefreshSnapshot(
+      config.skipProductCycle,
+      "Skipping product-cycle snapshot refresh (SKIP_PRODUCT_CYCLE=true).",
+      () =>
+        withTiming(
+          "Product cycle snapshot",
+          () =>
+            refreshProductCycleSnapshot({
+              site: config.site,
+              email: config.email,
+              token: config.token,
+              jiraRequest,
+              searchJiraIssues,
+              fetchIssueChangelog,
+              mapWithConcurrency,
+              envValue: env,
+              logger: console
+            }),
+          console
+        )
+    )
+  ]);
+
+  clearIssueChangelogCache();
+
+  const grandTotal = Object.values(sharedState.computed)
     .flat()
     .reduce(
       (acc, point) =>
@@ -1870,26 +2710,77 @@ async function main() {
   }
 
   const syncedAt = new Date().toISOString();
-  const snapshot = buildCombinedSnapshot(computed, syncedAt, uatAging, prActivity);
-  await writeSnapshotAtomic(snapshot);
-  if (prCycleSnapshot) {
-    await writePrCycleSnapshotAtomic(prCycleSnapshot);
-  }
-  const archivedPath = await archiveSnapshot(snapshot, syncedAt);
-  const prunedSnapshots = await pruneArchivedSnapshots(snapshotRetentionCount);
-
-  console.log(
-    "Updated snapshot.json for BOARD_38_TREND, BOARD_39_TREND, BOARD_46_TREND, BOARD_40_TREND, BOARD_333_TREND, and BOARD_399_TREND."
+  const snapshot = buildCombinedSnapshot(
+    sharedState.computed,
+    syncedAt,
+    uatAging,
+    sharedState.mergedPrActivity,
+    businessUnitChartData
   );
-  console.log(`Archived snapshot history copy: ${archivedPath}`);
-  if (prunedSnapshots.length > 0) {
-    console.log(
-      `Pruned ${prunedSnapshots.length} archived snapshot(s) to keep the latest ${snapshotRetentionCount}.`
-    );
+  if (config.noWrite) {
+    console.log("NO_WRITE=true: skipped snapshot and derived snapshot writes (full refresh).");
+    return;
   }
+  const extraWrites = [];
+  const extraLogs = [];
+  for (const [snapshotToWrite, writeSnapshot, logMessage] of [
+    [contributorsSnapshot, writeContributorsSnapshotAtomic, "Wrote contributors-snapshot.json."],
+    [
+      productCycleSnapshot,
+      writeProductCycleSnapshotAtomic,
+      "Wrote product-cycle-snapshot.json."
+    ],
+    [sharedState.prCycleSnapshot, writePrCycleSnapshotAtomic, ""]
+  ]) {
+    if (!snapshotToWrite) continue;
+    extraWrites.push(() => writeSnapshot(snapshotToWrite));
+    if (logMessage) extraLogs.push(logMessage);
+  }
+
+  await commitSnapshotRefresh({
+    snapshot,
+    syncedAt,
+    snapshotRetentionCount: config.snapshotRetentionCount,
+    summaryMessage:
+      "Updated snapshot.json for BOARD_38_TREND, BOARD_39_TREND, BOARD_46_TREND, BOARD_40_TREND, BOARD_333_TREND, and BOARD_399_TREND.",
+    extraWrites,
+    extraLogs
+  });
 }
 
-main().catch((error) => {
-  console.error(error.message);
+async function runRefresh() {
+  await loadLocalEnv();
+  const config = buildRefreshConfig();
+  validateRefreshConfig(config);
+
+  console.log(`Refreshing backlog from Jira site: ${config.site}`);
+
+  if (config.uatOnly) {
+    await runUatOnlyRefresh(config);
+    return;
+  }
+
+  if (config.productCycleOnly) {
+    await runProductCycleOnlyRefresh(config);
+    return;
+  }
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  if (config.prCycleOnly) {
+    await runPrCycleOnlyRefresh(config, todayIso);
+    return;
+  }
+
+  const sharedState = await buildTrendAndPrActivityState(config, todayIso);
+  if (config.prActivityOnly) {
+    await runPrActivityOnlyRefresh(config, sharedState);
+    return;
+  }
+
+  await runFullRefresh(config, sharedState);
+}
+
+runRefresh().catch((error) => {
+  console.error(error?.stack || error?.message || String(error));
   process.exit(1);
 });

@@ -479,7 +479,11 @@ function renderDashboardRefreshStrip() {
 }
 
 function getBroadcastScopeLabel() {
-  return String(state.snapshot?.uatAging?.scope?.label || "Broadcast");
+  return String(
+    state.snapshot?.chartData?.managementBusinessUnit?.scopeLabel ||
+      state.snapshot?.uatAging?.scope?.label ||
+      "Broadcast"
+  );
 }
 
 function getChartNodes(configKey) {

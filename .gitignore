@@ -17,3 +17,5 @@ dashboard-data-utils.js
 dashboard-preload.js
 pr-cycle-snapshot.json
 product-cycle-snapshot.json
+business-unit-uat-done-cache.json
+pr-activity-issue-cache.json
