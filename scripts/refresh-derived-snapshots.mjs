@@ -45,7 +45,7 @@ const PRODUCT_CYCLE_STAGE_ALIASES = {
   design: ["design", "design phase"],
   ready_for_development: ["ready for development", "ready for delivery"],
   in_development: ["in development", "delivery", "in delivery"],
-  feedback: ["feedback"],
+  feedback: ["feedback", "uat", "user acceptance testing"],
   done: ["done"]
 };
 const PRODUCT_CYCLE_PHASE_KEYS = [
