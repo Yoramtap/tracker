@@ -17,17 +17,12 @@
     <link rel="stylesheet" href="./node_modules/@fontsource/ibm-plex-serif/latin-600.css" />
     <link rel="stylesheet" href="./node_modules/@fontsource/ibm-plex-serif/latin-700.css" />
     <link rel="stylesheet" href="./dashboard-styles.css" />
-    <script src="./dashboard-preload.js"></script>
+    <script src="./dashboard-view-utils.js"></script>
     <script defer src="./vendor/react.production.min.js"></script>
     <script defer src="./vendor/react-dom.production.min.js"></script>
     <script defer src="./vendor/prop-types.min.js"></script>
     <script defer src="./vendor/recharts.umd.js"></script>
-    <script defer src="./dashboard-view-utils.js"></script>
-    <script defer src="./dashboard-data-utils.js"></script>
     <script defer src="./dashboard-chart-core.js"></script>
-    <script defer src="./dashboard-svg-core.js"></script>
-    <script defer src="./dashboard-charts-backlog.js"></script>
-    <script defer src="./dashboard-charts-delivery.js"></script>
     <script defer src="./dashboard-charts-product.js"></script>
     <script defer src="./dashboard-app.js?v=local2"></script>
     <script defer src="./agentation-local-loader.js?v=local2"></script>
@@ -38,36 +33,67 @@
       <h1 class="sr-only">Backlog Trends dashboard</h1>
 
       <section
-        id="management-facility-panel"
-        class="panel panel--frame-fill"
-        aria-label="How long ideas stay in UAT by Business Unit"
+        id="actions-required-panel"
+        class="panel actions-required-panel"
+        aria-label="How to read this report"
       >
         <div class="panel-title-row">
-          <h2 id="management-facility-title">How long ideas stay in UAT by Business Unit</h2>
+          <h2>How to read this report</h2>
+        </div>
+        <div id="actions-required-list" class="actions-required-grid"></div>
+        <p id="actions-required-context" class="panel-summary panel-summary--meta" hidden></p>
+        <p
+          id="actions-required-status"
+          class="panel-status"
+          aria-live="polite"
+          role="status"
+          hidden
+        ></p>
+      </section>
+
+      <section
+        id="uat-acceptance-time-panel"
+        class="panel panel--frame-fill"
+        aria-label="Product acceptance time by business unit"
+      >
+        <div class="panel-title-row">
+          <h2 id="management-facility-title">Product acceptance time by business unit</h2>
           <details class="help-wrap">
-            <summary class="help-tip" aria-label="UAT time by Business Unit explainer">i</summary>
+            <summary
+              class="help-tip"
+              aria-label="Product acceptance time by business unit explainer"
+            >
+              i
+            </summary>
             <div class="help-popover" role="tooltip">
               <p>
-                <strong>UAT time by Business Unit</strong> compares average UAT time across Business
-                Units.
+                <strong>Product acceptance time by business unit</strong>
+                compares average UAT time across Business Units.
               </p>
               <ul>
-                <li>Use the toggle to compare ongoing vs done scope.</li>
+                <li>
+                  Use the toggle to compare open in-UAT work vs done work that passed through UAT.
+                </li>
                 <li>Measured in months with a 1-month target.</li>
                 <li>Color shifts from green to yellow to red as UAT time increases.</li>
+                <li>
+                  This chart refreshes from current medium+ priority UAT issues plus done items that
+                  passed through UAT, grouped by Business Unit.
+                </li>
               </ul>
             </div>
           </details>
         </div>
         <div class="radio-control-groups" aria-label="Development vs UAT controls">
-          <fieldset class="radio-group-card radio-group-card--primary">
+          <fieldset class="radio-group-card radio-group-card--primary radio-group-card--segmented">
             <legend>Scope</legend>
             <label
               ><input type="radio" name="management-facility-flow-scope" value="ongoing" checked />
-              Ongoing</label
+              <span>In UAT</span></label
             >
             <label
-              ><input type="radio" name="management-facility-flow-scope" value="done" /> Done</label
+              ><input type="radio" name="management-facility-flow-scope" value="done" />
+              <span>Passed UAT</span></label
             >
           </fieldset>
         </div>
@@ -87,15 +113,19 @@
         ></p>
       </section>
 
-      <section id="pr-cycle-experiment-panel" class="panel" aria-label="Sprint workflow breakdown">
+      <section
+        id="development-workflow-breakdown-panel"
+        class="panel"
+        aria-label="Development workflow breakdown"
+      >
         <div class="panel-title-row">
-          <h2>Sprint workflow breakdown</h2>
+          <h2>Development workflow breakdown</h2>
           <details class="help-wrap">
-            <summary class="help-tip" aria-label="Sprint workflow breakdown explainer">i</summary>
+            <summary class="help-tip" aria-label="Development workflow breakdown explainer">i</summary>
             <div class="help-popover" role="tooltip">
               <p>
-                <strong>Sprint workflow breakdown</strong> shows average time spent in the tracked
-                board workflow stages for each team.
+                <strong>Development workflow breakdown</strong> shows average time spent in the tracked
+                Jira workflow stages for each team across the selected rolling window.
               </p>
               <ul>
                 <li>This shows average days spent in each tracked Jira workflow stage.</li>
@@ -111,21 +141,28 @@
             </div>
           </details>
         </div>
-        <div class="radio-control-groups" aria-label="Sprint workflow breakdown time range">
-          <fieldset class="radio-group-card radio-group-card--primary">
+        <div class="radio-control-groups" aria-label="Workflow breakdown time range">
+          <fieldset class="radio-group-card radio-group-card--primary radio-group-card--segmented">
             <legend>Time range</legend>
             <label
-              ><input type="radio" name="pr-cycle-window" value="90d" checked /> Last 90 days</label
+              ><input type="radio" name="pr-cycle-window" value="30d" checked />
+              <span aria-hidden="true">30d</span><span class="sr-only">Last 30 days</span></label
             >
-            <label><input type="radio" name="pr-cycle-window" value="6m" /> Last 6 months</label>
-            <label><input type="radio" name="pr-cycle-window" value="1y" /> Last year</label>
+            <label
+              ><input type="radio" name="pr-cycle-window" value="90d" />
+              <span aria-hidden="true">90d</span><span class="sr-only">Last 90 days</span></label
+            >
+            <label
+              ><input type="radio" name="pr-cycle-window" value="6m" />
+              <span aria-hidden="true">6m</span><span class="sr-only">Last 6 months</span></label
+            >
+            <label
+              ><input type="radio" name="pr-cycle-window" value="1y" />
+              <span aria-hidden="true">1y</span><span class="sr-only">Last year</span></label
+            >
           </fieldset>
         </div>
-        <div
-          class="pr-cycle-team-switch"
-          role="radiogroup"
-          aria-label="Sprint workflow breakdown team"
-        >
+        <div class="pr-cycle-team-switch" role="radiogroup" aria-label="Workflow breakdown team">
           <label class="pr-cycle-team-pill">
             <input type="radio" name="pr-cycle-team" value="api" />
             <span>API</span>
@@ -168,14 +205,85 @@
       </section>
 
       <section
-        id="product-cycle-panel"
-        class="panel panel--frame-fill"
-        aria-label="How long ready product ideas take to ship"
+        id="development-workflow-trends-panel"
+        class="panel"
+        aria-label="Development workflow trends"
       >
         <div class="panel-title-row">
-          <h2 id="product-cycle-title">How long ready product ideas take to ship</h2>
+          <h2>Development workflow trends</h2>
           <details class="help-wrap">
-            <summary class="help-tip" aria-label="How long ready product ideas take to ship explainer">
+            <summary class="help-tip" aria-label="Development workflow trends explainer">
+              i
+            </summary>
+            <div class="help-popover" role="tooltip">
+              <p>
+                <strong>Development workflow trends</strong> restores the older team-by-team
+                timeline view so we can review whether it is still useful.
+              </p>
+              <ul>
+                <li>Each line is one team.</li>
+                <li>The first chart toggles between PR inflow and merged PR counts.</li>
+                <li>The second chart shows the old review-to-merge Jira proxy metric.</li>
+                <li>Vertical event lines mark NAB, IBC, and Codex.</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+        <div class="radio-control-groups" aria-label="PR activity over time controls">
+          <fieldset class="radio-group-card radio-group-card--segmented">
+            <legend>Metric</legend>
+            <label
+              ><input type="radio" name="pr-activity-legacy-metric" value="offered" checked />
+              <span>PR inflow</span></label
+            >
+            <label
+              ><input type="radio" name="pr-activity-legacy-metric" value="merged" />
+              <span>Merged PRs</span></label
+            >
+          </fieldset>
+        </div>
+        <div class="chart-stack">
+          <div class="chart-block">
+            <p class="chart-section-title">PR inflow / merged PRs</p>
+            <div class="chart">
+              <div
+                id="pr-activity-legacy-count-chart"
+                class="chart-canvas chart-canvas--standard"
+              ></div>
+            </div>
+          </div>
+          <div class="chart-block">
+            <p class="chart-section-title">Review start to merged PR (proxy)</p>
+            <div class="chart">
+              <div
+                id="pr-activity-legacy-merge-time-chart"
+                class="chart-canvas chart-canvas--standard"
+              ></div>
+            </div>
+          </div>
+        </div>
+        <p id="pr-activity-legacy-context" class="panel-summary panel-summary--meta" hidden></p>
+        <p
+          id="pr-activity-legacy-status"
+          class="panel-status"
+          aria-live="polite"
+          role="status"
+          hidden
+        ></p>
+      </section>
+
+      <section
+        id="cycle-time-to-ship-panel"
+        class="panel panel--frame-fill"
+        aria-label="Product delivery time by team"
+      >
+        <div class="panel-title-row">
+          <h2 id="product-cycle-title">Product delivery time by team</h2>
+          <details class="help-wrap">
+            <summary
+              class="help-tip"
+              aria-label="Product delivery time by team explainer"
+            >
               i
             </summary>
             <div class="help-popover" role="tooltip">
@@ -186,7 +294,10 @@
                   Shipped counts include only ideas that reached Done through recorded
                   Development/UAT time and not adminned to Done.
                 </li>
-                <li>Use the team toggles for detail, or switch to All for a fast compare view.</li>
+                <li>
+                  Use the team toggles for detail, or stay on All teams for the fastest compare
+                  view.
+                </li>
               </ul>
             </div>
           </details>
@@ -214,7 +325,56 @@
       </section>
 
       <section
-        id="contributors-panel"
+        id="time-per-stage-panel"
+        class="panel panel--frame-fill"
+        aria-label="Product workflow breakdown"
+      >
+        <div class="panel-title-row">
+          <h2>Product workflow breakdown</h2>
+          <details class="help-wrap">
+            <summary
+              class="help-tip"
+              aria-label="Product workflow breakdown explainer"
+            >
+              i
+            </summary>
+            <div class="help-popover" role="tooltip">
+              <p>
+                <strong>Current lifecycle stage time</strong> shows how long open ideas have spent
+                in the stage they are currently sitting in.
+              </p>
+              <ul>
+                <li>Use the team toggles to switch between one team and the all-team average.</li>
+                <li>Each stage label includes the current sample count for that stage.</li>
+                <li>This is a current-state view, not a shipped-cycle trend.</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+        <div
+          id="lifecycle-team-switch"
+          class="pr-cycle-team-switch"
+          role="radiogroup"
+          aria-label="Current lifecycle team"
+        ></div>
+        <div class="chart">
+          <div
+            id="lifecycle-time-spent-per-phase-chart"
+            class="chart-canvas chart-canvas--dense"
+          ></div>
+        </div>
+        <p id="lifecycle-days-context" class="panel-summary panel-summary--meta" hidden></p>
+        <p
+          id="lifecycle-days-status"
+          class="panel-status"
+          aria-live="polite"
+          role="status"
+          hidden
+        ></p>
+      </section>
+
+      <section
+        id="community-contributors-panel"
         class="panel"
         aria-label="Top community contributors by ticket status"
       >
@@ -251,20 +411,41 @@
         ></p>
       </section>
 
-      <section id="composition-panel" class="panel" aria-label="Bugs across teams">
+      <section id="bug-trends-plot-panel" class="panel" aria-label="Bug trends plot">
         <div class="panel-title-row">
-          <h2>Bugs across teams</h2>
+          <h2>Bug trends plot</h2>
           <details class="help-wrap">
-            <summary class="help-tip" aria-label="Bugs across teams explainer">i</summary>
+            <summary class="help-tip" aria-label="Bug trends plot explainer">i</summary>
+            <div class="help-popover" role="tooltip">
+              <p><strong>Bug backlog trend</strong> tracks open backlog over time by team.</p>
+              <ul>
+                <li>Each line is one team.</li>
+                <li>Dashed BC lines show long-standing backlog overlays.</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+        <div class="chart">
+          <div id="bug-trend-chart" class="chart-canvas chart-canvas--standard"></div>
+        </div>
+        <p id="trend-context" class="panel-summary panel-summary--meta" hidden></p>
+        <p id="trend-status" class="panel-status" aria-live="polite" role="status" hidden></p>
+      </section>
+
+      <section id="bug-trends-table-panel" class="panel" aria-label="Bug trends table">
+        <div class="panel-title-row">
+          <h2>Bug trends table</h2>
+          <details class="help-wrap">
+            <summary class="help-tip" aria-label="Bug trends table explainer">i</summary>
             <div class="help-popover" role="tooltip">
               <p>
-                <strong>Current bug backlog and priority mix</strong> shows the latest open-bug
-                total, recent bug-backlog change, and current priority split for each tracked team.
+                <strong>Current bug backlog summary</strong> shows the latest open-bug total,
+                highest/high pressure, and recent backlog change for each tracked team.
               </p>
               <ul>
                 <li>Percentages are calculated within each team row.</li>
                 <li>Change stacks 30d, 90d, and 6m movement in one place.</li>
-                <li>Use it as the main bug-health summary across teams.</li>
+                <li>Use it as the main bug-pressure summary across teams.</li>
               </ul>
             </div>
           </details>
@@ -276,26 +457,30 @@
         <p id="composition-status" class="panel-status" aria-live="polite" role="status" hidden></p>
       </section>
 
-      <section id="pr-activity-panel" class="panel" aria-label="PR review &amp; QA time by team">
+      <section
+        id="development-workflow-overview-panel"
+        class="panel"
+        aria-label="Development workflow: PR volume vs review and QA"
+      >
         <div class="panel-title-row">
-          <h2>PR review &amp; QA time by team</h2>
+          <h2>Development workflow: PR volume vs Review & QA</h2>
           <details class="help-wrap">
-            <summary class="help-tip" aria-label="PR review &amp; QA time by team chart explainer">
+            <summary class="help-tip" aria-label="Development workflow: PR volume vs review and QA chart explainer">
               i
             </summary>
             <div class="help-popover" role="tooltip">
               <p>
                 <strong>PR quality checks</strong> maps PR inflow against
-                <strong>avg review + QA time (days)</strong> so it is easier to compare teams at a
-                glance.
+                <strong>avg review + QA stage time (days)</strong> so it is easier to compare teams
+                at a glance.
               </p>
               <ul>
                 <li>Each color is one team.</li>
                 <li>Each point shows the team average within the selected lookback window.</li>
-                <li>`PR inflow` reflects linked PR work volume in each sprint bucket.</li>
+                <li>`PR inflow` reflects linked PR work volume in each sprint.</li>
                 <li>
-                  `Avg review + QA time (days)` uses the linked Jira review-to-merge proxy, so it
-                  includes both review and QA checks before ship.
+                  `Avg review + QA stage time (days)` uses the workflow breakdown snapshot for the
+                  same window, while PR inflow comes from Jira-linked PR activity over time.
                 </li>
                 <li>UAT work is tracked separately elsewhere on the dashboard.</li>
               </ul>
@@ -304,13 +489,24 @@
             </div>
           </details>
         </div>
-        <div class="radio-control-groups" aria-label="PR quality checks time range">
-          <fieldset class="radio-group-card radio-group-card--primary">
+        <div class="radio-control-groups" aria-label="Development workflow overview range">
+          <fieldset class="radio-group-card radio-group-card--primary radio-group-card--segmented">
             <legend>Time range</legend>
-            <label><input type="radio" name="pr-activity-window" value="90d" /> Last 90 days</label>
-            <label><input type="radio" name="pr-activity-window" value="6m" /> Last 6 months</label>
             <label
-              ><input type="radio" name="pr-activity-window" value="1y" checked /> Last year</label
+              ><input type="radio" name="pr-activity-window" value="30d" checked />
+              <span aria-hidden="true">30d</span><span class="sr-only">Last 30 days</span></label
+            >
+            <label
+              ><input type="radio" name="pr-activity-window" value="90d" />
+              <span aria-hidden="true">90d</span><span class="sr-only">Last 90 days</span></label
+            >
+            <label
+              ><input type="radio" name="pr-activity-window" value="6m" />
+              <span aria-hidden="true">6m</span><span class="sr-only">Last 6 months</span></label
+            >
+            <label
+              ><input type="radio" name="pr-activity-window" value="1y" />
+              <span aria-hidden="true">1y</span><span class="sr-only">Last year</span></label
             >
           </fieldset>
         </div>
