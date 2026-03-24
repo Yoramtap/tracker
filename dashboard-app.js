@@ -466,53 +466,6 @@ function formatPrActivityScopeLabel(startDateText, endDateText, windowKey) {
   return `${prefix} • ${chartMonthRangeShortFormatter.format(new Date(startValue))} to ${chartMonthRangeShortFormatter.format(new Date(endValue))}`;
 }
 
-function buildLifecycleMobileTick(colors, secondaryLabels) {
-  const stageLabelMap = {
-    Parking: "Parking",
-    Design: "Design",
-    Ready: "Ready",
-    "In Development": "In Dev",
-    UAT: "UAT"
-  };
-  return function lifecycleMobileTick(props) {
-    const { x, y, payload } = props || {};
-    const raw = String(payload?.value || "");
-    const line1 = stageLabelMap[raw] || raw;
-    const line2 =
-      secondaryLabels && typeof secondaryLabels === "object"
-        ? String(secondaryLabels[raw] || "")
-        : "";
-    return h(
-      "g",
-      { transform: `translate(${x},${y})` },
-      h(
-        "text",
-        {
-          x: 0,
-          y: 9,
-          textAnchor: "middle",
-          fill: colors.text,
-          fontSize: 10
-        },
-        line1
-      ),
-      line2
-        ? h(
-            "text",
-            {
-              x: 0,
-              y: 20,
-              textAnchor: "middle",
-              fill: "rgba(31,51,71,0.78)",
-              fontSize: 9
-            },
-            line2
-          )
-        : null
-    );
-  };
-}
-
 function normalizeOption(value, options, fallback) {
   return options.includes(value) ? value : fallback;
 }
@@ -1916,24 +1869,6 @@ function buildRadioChartStateResult({
   };
 }
 
-function computeLifecycleChartYUpper(chartData) {
-  const currentStageSnapshot = chartData?.currentStageSnapshot;
-  const rows = Array.isArray(currentStageSnapshot?.rows) ? currentStageSnapshot.rows : [];
-  const teamDefs = Array.isArray(currentStageSnapshot?.teamDefs)
-    ? currentStageSnapshot.teamDefs
-    : [];
-  const plottedValues = teamDefs
-    .flatMap((teamDef, index) => {
-      const key = String(teamDef?.slot || `slot_${index}`);
-      return rows.map((row) => row?.[key]);
-    })
-    .filter((value) => Number.isFinite(value) && value > 0);
-
-  const storedUpper = toNumber(currentStageSnapshot?.yUpper);
-  const fallbackUpper = Math.max(1, plottedValues.length > 0 ? Math.max(...plottedValues) : 0);
-  return Math.max(storedUpper, fallbackUpper);
-}
-
 function normalizeCurrentStageChartData(chartSnapshotData) {
   if (!chartSnapshotData || typeof chartSnapshotData !== "object") return null;
   const rows = (Array.isArray(chartSnapshotData.rows) ? chartSnapshotData.rows : []).map((row) => {
@@ -2132,7 +2067,6 @@ function renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData) {
     }
 
     const themeColors = getThemeColors();
-    const compactViewport = isCompactViewport();
     const lifecycleTeamColorMap =
       selectedTeamKey === LIFECYCLE_TEAM_SCOPE_DEFAULT
         ? { "All teams avg": themeColors.teams.all }
@@ -2157,7 +2091,6 @@ function renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData) {
         ? filteredView.categorySecondaryLabels
         : Object.fromEntries(rows.map((row) => [String(row.phaseLabel || ""), ""]));
     const sampleSize = toCount(filteredView.sampleSize);
-    const yUpper = computeLifecycleChartYUpper(state.productCycle?.chartData);
 
     if (plottedValues.length === 0) {
       return { error: "No current lifecycle stage counts found.", clearContainer: true };
@@ -2181,39 +2114,16 @@ function renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData) {
         "generated"
       ),
       render: () => {
-        renderNamedChart(
-          config,
-          {
-            containerId: config.containerId,
-            rows,
-            seriesDefs: teamDefs,
-            colors: themeColors,
-            chartHeight: compactViewport
-              ? singleChartHeightForMode("lifecycle-days", 360)
-              : singleChartHeightForMode("lifecycle-days", 490),
-            yUpperOverride: yUpper,
-            categoryKey: "phaseLabel",
-            categoryAxisHeight: compactViewport ? 52 : 72,
-            chartMargin: compactViewport
-              ? { top: 12, right: 4, bottom: 34, left: 4 }
-              : { top: 18, right: 14, bottom: 46, left: 8 },
-            xAxisProps: {
-              tick: compactViewport
-                ? buildLifecycleMobileTick(themeColors, categorySecondaryLabels)
-                : undefined
-            },
-            yAxisProps: {
-              label: compactViewport ? null : buildAxisLabel("Average time (months)", { axis: "y", offset: 6 })
-            },
-            categoryTickTwoLine: !compactViewport,
-            categorySecondaryLabels,
-            timeWindowLabel: "",
-            orientation: "columns",
-            showLegend: false,
-            tooltipLayout: "stage_team_breakdown"
-          },
-          { missingMessage: "Lifecycle chart unavailable: Recharts renderer missing." }
-        );
+        window.DashboardCharts?.renderLifecycleTimeSpentPerStageChart?.({
+          containerId: config.containerId,
+          rows,
+          seriesDefs: teamDefs,
+          colors: themeColors,
+          categorySecondaryLabels
+        });
+        return {
+          clearError: true
+        };
       }
     });
   });

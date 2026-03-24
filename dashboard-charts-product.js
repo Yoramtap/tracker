@@ -34,18 +34,7 @@
   } = core;
   const { buildTeamColorMap, toCount } = dataUtils;
   const { escapeHtml } = dashboardUiUtils;
-  const {
-    axisLabel,
-    buildLifecycleTicks,
-    formatLifecycleTick,
-    SvgChartShell,
-    createBandLayout,
-    formatTooltipDuration,
-    linearScale,
-    renderSvgChart,
-    teamColorForLabel,
-    withAlpha
-  } = svgCore;
+  const { SvgChartShell, linearScale, renderSvgChart, withAlpha } = svgCore;
 
   function formatStackedCycleMonthsValueMarkup(valueInDays) {
     const months = Math.max(0, toNumber(valueInDays) / 30.4375);
@@ -923,125 +912,6 @@
     `;
   }
 
-  function LifecycleSvgChart({ rows, seriesDefs, colors, categorySecondaryLabels, yUpperOverride }) {
-    const compactViewport = isCompactViewport();
-    const [tooltipContent, setTooltipContent] = React.useState(null);
-    const width = 960;
-    const height = compactViewport ? 440 : 490;
-    const margin = compactViewport
-      ? { top: 26, right: 18, bottom: 72, left: 58 }
-      : { top: 28, right: 18, bottom: 78, left: 64 };
-    const plotLeft = margin.left;
-    const plotRight = width - margin.right;
-    const plotTop = margin.top;
-    const plotBottom = height - margin.bottom;
-    const filteredSeries = (Array.isArray(seriesDefs) ? seriesDefs : []).filter(Boolean);
-    const yUpperMonths = Math.max(1, Math.ceil(toNumber(yUpperOverride) / 30.4375));
-    const yTicks = buildLifecycleTicks(yUpperMonths);
-    const groupLayout = createBandLayout(
-      rows.map((row) => String(row?.phaseLabel || "")),
-      { start: plotLeft, end: plotRight, gap: compactViewport ? 0.32 : 0.24, paddingOuter: 0.05 }
-    );
-    const innerGap = compactViewport ? 2 : 3;
-    const barWidth = Math.max(
-      6,
-      (groupLayout.bandwidth - innerGap * Math.max(0, filteredSeries.length - 1)) /
-        Math.max(1, filteredSeries.length)
-    );
-
-    const showTooltip = (row, seriesDef) => {
-      const meta = row?.[`meta_${seriesDef.key}`] || {};
-      setTooltipContent(
-        h(
-          "div",
-          null,
-          h("p", null, h("strong", null, `${row?.phaseLabel || ""} • ${seriesDef.name || ""}`)),
-          h(
-            "p",
-            null,
-            `Average time: ${formatTooltipDuration(toNumber(meta?.average), "months")}`
-          ),
-          h("p", null, `n=${toWhole(meta?.n)}`)
-        )
-      );
-    };
-
-    return h(
-      SvgChartShell,
-      { width, height, colors, tooltipContent },
-      h(
-        "g",
-        null,
-        ...yTicks.map((tick) => {
-          const y = linearScale(tick, 0, yUpperMonths, plotBottom, plotTop);
-          return h(
-            "g",
-            { key: `tick-${tick}` },
-            h("line", {
-              x1: plotLeft,
-              x2: plotRight,
-              y1: y,
-              y2: y,
-              stroke: colors.grid,
-              strokeWidth: tick === 0 ? 1.25 : 1
-            }),
-            axisLabel(formatLifecycleTick(tick), plotLeft - 8, y + 4, {
-              textAnchor: "end",
-              fontSize: compactViewport ? 10 : 11,
-              fontWeight: 600
-            })
-          );
-        }),
-        ...groupLayout.positions.flatMap((position, rowIndex) => {
-          const row = rows[rowIndex];
-          const secondaryLabel = categorySecondaryLabels?.[row?.phaseLabel] || "";
-          const bars = filteredSeries.map((seriesDef, seriesIndex) => {
-            const valueMonths = toNumber(row?.[seriesDef.key]) / 30.4375;
-            const barHeight = Math.max(
-              0,
-              plotBottom - linearScale(valueMonths, 0, yUpperMonths, plotBottom, plotTop)
-            );
-            const x = position.x + seriesIndex * (barWidth + innerGap);
-            const y = plotBottom - barHeight;
-            const color =
-              String(seriesDef?.color || "").trim() ||
-              teamColorForLabel(colors, seriesDef?.name || seriesDef?.team);
-            return h("rect", {
-              key: `bar-${position.label}-${seriesDef.key}`,
-              x,
-              y,
-              width: barWidth,
-              height: barHeight,
-              rx: 5,
-              fill: color,
-              stroke: withAlpha(color, 0.5),
-              strokeWidth: 1,
-              opacity: valueMonths > 0 ? 0.96 : 0.12,
-              onMouseEnter: () => showTooltip(row, seriesDef),
-              onMouseLeave: () => setTooltipContent(null)
-            });
-          });
-          return [
-            ...bars,
-            axisLabel(String(row?.phaseLabel || ""), position.center, plotBottom + 18, {
-              fontSize: compactViewport ? 10 : 11,
-              fontWeight: 600
-            }),
-            axisLabel(String(secondaryLabel), position.center, plotBottom + 33, {
-              fontSize: compactViewport ? 9 : 10,
-              fontWeight: 600,
-              fill: "rgba(31, 51, 71, 0.58)"
-            })
-          ];
-        }),
-        axisLabel("Average time (months)", plotLeft - 48, plotTop + (plotBottom - plotTop) / 2, {
-          fontSize: compactViewport ? 10 : 11,
-          transform: `rotate(-90 ${plotLeft - 48} ${plotTop + (plotBottom - plotTop) / 2})`
-        })
-      )
-    );
-  }
-
   function FacilityUatListCard({ rows, groupingLabel, jiraBrowseBase }) {
     const displayRows = (Array.isArray(rows) ? rows : []).map((row) => ({
       ...row,
@@ -1192,19 +1062,52 @@
     rows,
     seriesDefs,
     colors,
-    categorySecondaryLabels,
-    yUpperOverride
+    categorySecondaryLabels
   }) {
     const chartRows = Array.isArray(rows) ? rows : [];
-    return renderSvgChart(containerId, chartRows.length > 0, () =>
-      h(LifecycleSvgChart, {
-        rows: chartRows,
-        seriesDefs,
-        colors,
-        categorySecondaryLabels,
-        yUpperOverride
-      })
+    const primarySeries = Array.isArray(seriesDefs) ? seriesDefs.find(Boolean) : null;
+    if (!primarySeries || chartRows.length === 0) return false;
+
+    const compactViewport = isCompactViewport();
+    const maxValue = Math.max(
+      1,
+      ...chartRows.map((row) => toNumber(row?.[primarySeries.key || primarySeries.dataKey]))
     );
+    const teamLabel = normalizeDisplayTeamName(primarySeries.team || primarySeries.name || "All teams avg");
+    const rowsMarkup = chartRows
+      .map((row) => {
+        const value = toNumber(row?.[primarySeries.key || primarySeries.dataKey]);
+        const sampleCount = toCount(row?.meta_slot_0?.n);
+        const width = value > 0 ? getCycleFillWidth(value, maxValue) : 0;
+        const months = value / 30.4375;
+        const alertLevel = months >= 2 ? "critical" : months > 1 ? "warning" : "";
+        return buildRowMarkup({
+          rowClassName: "lifecycle-stage-row",
+          trackClassName: "lifecycle-stage-row__track",
+          fillClassName: "lifecycle-stage-row__fill",
+          stage: String(row?.phaseKey || row?.phaseLabel || "").trim().toLowerCase(),
+          label: String(row?.phaseLabel || "").trim(),
+          sampleMarkup:
+            categorySecondaryLabels?.[String(row?.phaseLabel || "")] ||
+            (sampleCount > 0 ? `n=${sampleCount}` : "n=0"),
+          width,
+          fillStyle: "background:rgba(121, 136, 156, 0.68);",
+          valueMarkup: formatStackedCycleMonthsValueMarkup(value),
+          valueFrameClassName: alertLevel ? `pr-cycle-stage-row__value-frame--${alertLevel}` : ""
+        });
+      })
+      .join("");
+
+    return renderProductCycleCard(containerId, {
+      className: "lifecycle-stage-card",
+      teamKey: String(primarySeries.team || primarySeries.name || ""),
+      teamColor: colors?.teams?.all || "#9aa8ba",
+      headerMarkup: `
+        <div class="pr-cycle-stage-card__team">${escapeHtml(teamLabel)}</div>
+        <div class="pr-cycle-stage-card__submeta">${compactViewport ? "Target: 1 mo" : "Target: 1 month"}</div>
+      `,
+      rowsMarkup
+    });
   }
 
   function renderDevelopmentVsUatByFacilityChart({
