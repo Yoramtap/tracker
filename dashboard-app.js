@@ -1748,7 +1748,7 @@ function renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData) {
   const titleNode = document.getElementById("product-cycle-title");
   if (!chartScopeData || typeof chartScopeData !== "object") return;
   renderDashboardChartState("product-cycle", getConfig, ({ config }) => {
-    if (titleNode) titleNode.textContent = "Product idea cycle time by team";
+    if (titleNode) titleNode.textContent = "How long product ideas take to ship once in development";
 
     const rows = (Array.isArray(chartScopeData.rows) ? chartScopeData.rows.slice() : [])
       .map((row) => ({
