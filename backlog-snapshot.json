@@ -1,7 +1,8 @@
 {
-  "updatedAt": "2026-03-24T19:57:55.857Z",
+  "updatedAt": "2026-03-24T22:35:42.711Z",
   "chartData": {
     "managementBusinessUnit": {
+      "scopeLabel": "Broadcast",
       "byScope": {
         "ongoing": {
           "rows": [
@@ -11,7 +12,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 5.71,
+              "uatAvg": 5.82,
               "issueItems": [
                 {
                   "issueId": "TFC-16159",
@@ -22,7 +23,7 @@
                 {
                   "label": "AU AHS",
                   "devAvg": 3.04,
-                  "uatAvg": 5.71,
+                  "uatAvg": 5.82,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -38,7 +39,7 @@
               "sampleCount": 2,
               "devCount": 2,
               "uatCount": 2,
-              "uatAvg": 46.85,
+              "uatAvg": 46.96,
               "issueItems": [
                 {
                   "issueId": "TFC-16084",
@@ -53,7 +54,7 @@
                 {
                   "label": "NO OBC",
                   "devAvg": 0,
-                  "uatAvg": 24.9,
+                  "uatAvg": 25.01,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -64,7 +65,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.04,
-                  "uatAvg": 68.8,
+                  "uatAvg": 68.91,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -80,7 +81,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 47.47,
+              "uatAvg": 47.58,
               "issueItems": [
                 {
                   "issueId": "TFC-15925",
@@ -91,7 +92,7 @@
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 47.47,
+                  "uatAvg": 47.58,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -107,7 +108,7 @@
               "sampleCount": 3,
               "devCount": 3,
               "uatCount": 3,
-              "uatAvg": 52.11,
+              "uatAvg": 52.22,
               "issueItems": [
                 {
                   "issueId": "TFC-14425",
@@ -126,7 +127,7 @@
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 97.71,
+                  "uatAvg": 97.82,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -137,7 +138,7 @@
                 {
                   "label": "US ND2",
                   "devAvg": 7.93,
-                  "uatAvg": 9.74,
+                  "uatAvg": 9.85,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -148,7 +149,7 @@
                 {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 48.89,
+                  "uatAvg": 49,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -164,7 +165,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 102.64,
+              "uatAvg": 102.75,
               "issueItems": [
                 {
                   "issueId": "TFC-14540",
@@ -175,7 +176,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 102.64,
+                  "uatAvg": 102.75,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -674,13 +675,8 @@
       }
     }
   },
-  "uatAging": {
-    "scope": {
-      "label": "Broadcast"
-    }
-  },
   "prActivity": {
-    "since": "2025-03-01",
+    "since": "2025-03-03",
     "interval": "sprint",
     "monthlySince": "2025-03-01",
     "monthlyInterval": "month",
@@ -1664,40 +1660,40 @@
       {
         "date": "2026-02-02",
         "api": {
-          "offered": 15,
-          "merged": 12,
-          "avgReviewToMergeDays": 4,
-          "avgReviewToMergeSampleCount": 10
+          "offered": 3,
+          "merged": 0,
+          "avgReviewToMergeDays": 0,
+          "avgReviewToMergeSampleCount": 0
         },
         "legacy": {
-          "offered": 6,
-          "merged": 5,
-          "avgReviewToMergeDays": 12,
-          "avgReviewToMergeSampleCount": 5
+          "offered": 1,
+          "merged": 0,
+          "avgReviewToMergeDays": 0,
+          "avgReviewToMergeSampleCount": 0
         },
         "react": {
-          "offered": 32,
-          "merged": 29,
-          "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 25
+          "offered": 1,
+          "merged": 0,
+          "avgReviewToMergeDays": 0,
+          "avgReviewToMergeSampleCount": 0
         },
         "bc": {
-          "offered": 18,
-          "merged": 16,
-          "avgReviewToMergeDays": 40,
-          "avgReviewToMergeSampleCount": 12
-        },
-        "workers": {
-          "offered": 7,
-          "merged": 3,
-          "avgReviewToMergeDays": 5,
-          "avgReviewToMergeSampleCount": 3
-        },
-        "titanium": {
-          "offered": 6,
+          "offered": 4,
           "merged": 4,
           "avgReviewToMergeDays": 4,
-          "avgReviewToMergeSampleCount": 7
+          "avgReviewToMergeSampleCount": 1
+        },
+        "workers": {
+          "offered": 3,
+          "merged": 0,
+          "avgReviewToMergeDays": 0,
+          "avgReviewToMergeSampleCount": 0
+        },
+        "titanium": {
+          "offered": 1,
+          "merged": 1,
+          "avgReviewToMergeDays": 0,
+          "avgReviewToMergeSampleCount": 0
         }
       },
       {
@@ -1781,7 +1777,7 @@
       {
         "date": "2026-03-16",
         "api": {
-          "offered": 22,
+          "offered": 19,
           "merged": 14,
           "avgReviewToMergeDays": 7,
           "avgReviewToMergeSampleCount": 8
@@ -1820,7 +1816,7 @@
       {
         "date": "2026-03-24",
         "api": {
-          "offered": 63,
+          "offered": 65,
           "merged": 20,
           "avgReviewToMergeDays": 7,
           "avgReviewToMergeSampleCount": 16
@@ -1839,15 +1835,15 @@
         },
         "bc": {
           "offered": 18,
-          "merged": 8,
-          "avgReviewToMergeDays": 13,
-          "avgReviewToMergeSampleCount": 6
+          "merged": 9,
+          "avgReviewToMergeDays": 11,
+          "avgReviewToMergeSampleCount": 7
         },
         "workers": {
-          "offered": 16,
-          "merged": 10,
+          "offered": 17,
+          "merged": 12,
           "avgReviewToMergeDays": 5,
-          "avgReviewToMergeSampleCount": 7
+          "avgReviewToMergeSampleCount": 8
         },
         "titanium": {
           "offered": 9,
@@ -2291,7 +2287,7 @@
         "date": "2026-02-01",
         "api": {
           "offered": 62,
-          "merged": 59,
+          "merged": 56,
           "avgReviewToMergeDays": 10,
           "avgReviewToMergeSampleCount": 37
         },
@@ -2315,13 +2311,13 @@
         },
         "workers": {
           "offered": 31,
-          "merged": 20,
+          "merged": 19,
           "avgReviewToMergeDays": 25,
           "avgReviewToMergeSampleCount": 12
         },
         "titanium": {
           "offered": 24,
-          "merged": 19,
+          "merged": 18,
           "avgReviewToMergeDays": 2,
           "avgReviewToMergeSampleCount": 16
         }
@@ -2329,7 +2325,7 @@
       {
         "date": "2026-03-01",
         "api": {
-          "offered": 85,
+          "offered": 84,
           "merged": 34,
           "avgReviewToMergeDays": 7,
           "avgReviewToMergeSampleCount": 24
@@ -2348,15 +2344,15 @@
         },
         "bc": {
           "offered": 61,
-          "merged": 46,
-          "avgReviewToMergeDays": 42,
-          "avgReviewToMergeSampleCount": 33
+          "merged": 47,
+          "avgReviewToMergeDays": 41,
+          "avgReviewToMergeSampleCount": 34
         },
         "workers": {
-          "offered": 30,
+          "offered": 31,
           "merged": 23,
           "avgReviewToMergeDays": 8,
-          "avgReviewToMergeSampleCount": 17
+          "avgReviewToMergeSampleCount": 18
         },
         "titanium": {
           "offered": 18,
@@ -3004,7 +3000,7 @@
       },
       "bc": {
         "highest": 7,
-        "high": 80,
+        "high": 82,
         "medium": 125,
         "low": 8,
         "lowest": 0,

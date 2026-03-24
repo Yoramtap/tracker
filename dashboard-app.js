@@ -107,8 +107,8 @@ const PANEL_DISPLAY_ORDER = [
   "cycle-time-to-ship-panel",
   "time-per-stage-panel",
   "development-workflow-breakdown-panel",
-  "development-workflow-trends-panel",
   "development-workflow-overview-panel",
+  "development-workflow-trends-panel",
   "bug-trends-plot-panel",
   "bug-trends-table-panel"
 ];
@@ -577,7 +577,11 @@ function renderActionsRequiredFrame() {
 }
 
 function getBroadcastScopeLabel() {
-  return String(state.snapshot?.uatAging?.scope?.label || "Broadcast");
+  return String(
+    state.snapshot?.chartData?.managementBusinessUnit?.scopeLabel ||
+      state.snapshot?.uatAging?.scope?.label ||
+      "Broadcast"
+  );
 }
 
 function renderBugCompositionByPriorityChart() {
