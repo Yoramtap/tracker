@@ -2222,6 +2222,10 @@ a.shipped-team-list__idea-key:focus-visible {
   color: rgba(31, 51, 71, 0.94);
 }
 
+.radio-group-card label.is-selected {
+  color: rgba(31, 51, 71, 0.94);
+}
+
 .radio-group-card label:has(input:focus-visible) {
   text-decoration: underline;
   text-decoration-color: rgba(72, 114, 167, 0.34);
@@ -2301,12 +2305,20 @@ a.shipped-team-list__idea-key:focus-visible {
   background: var(--segmented-active);
 }
 
+.radio-group-card--segmented label.is-selected {
+  background: var(--segmented-active);
+}
+
 .radio-group-card--segmented label:has(input:focus-visible) {
   text-decoration: none;
   background: var(--segmented-hover);
 }
 
 .radio-group-card--segmented label:has(input:checked):has(input:focus-visible) {
+  background: var(--segmented-active);
+}
+
+.radio-group-card--segmented label.is-selected:has(input:focus-visible) {
   background: var(--segmented-active);
 }
 
@@ -2442,6 +2454,12 @@ a.shipped-team-list__idea-key:focus-visible {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
+  .shipped-month-picker__button {
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 0.75rem;
+  }
+
   .shipped-timeline__detail {
     gap: 14px;
     padding: 18px 14px 14px;
@@ -2462,21 +2480,36 @@ a.shipped-team-list__idea-key:focus-visible {
     gap: 4px;
   }
 
+  .shipped-team-list__team-meta {
+    width: auto;
+    text-align: left;
+  }
+
   .shipped-team-list__ideas {
-    margin-left: 40px;
-    padding-left: 16px;
+    margin-left: 32px;
+    padding-left: 12px;
     width: auto;
     max-width: none;
   }
 
   .shipped-team-list__idea {
-    grid-template-columns: 120px minmax(0, 1fr);
-    row-gap: 2px;
+    grid-template-columns: 96px minmax(0, 1fr);
+    align-items: start;
+    column-gap: 8px;
+    row-gap: 3px;
+  }
+
+  .shipped-team-list__idea-title {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
   }
 
   .shipped-team-list__idea-area {
     grid-column: 2;
+    width: auto;
     text-align: left;
+    justify-self: start;
   }
 
   .pr-cycle-stage-card {
@@ -2896,6 +2929,93 @@ a.shipped-team-list__idea-key:focus-visible {
 
   body.embed-mode .chart-canvas--dense {
     min-height: 400px;
+  }
+}
+
+@media (max-width: 560px) {
+  .product-cycle-shipments {
+    width: 100%;
+  }
+
+  .shipped-timeline {
+    gap: 14px;
+  }
+
+  .shipped-timeline__controls {
+    gap: 8px;
+  }
+
+  .shipped-timeline__year-switch {
+    gap: 8px;
+  }
+
+  .shipped-timeline__year-label {
+    min-width: 60px;
+    font-size: 0.74rem;
+  }
+
+  .shipped-month-picker {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .shipped-month-picker__button {
+    min-height: 34px;
+    font-size: 0.72rem;
+    letter-spacing: 0.01em;
+  }
+
+  .shipped-timeline__detail {
+    padding: 16px 12px 14px;
+    border-radius: 16px;
+  }
+
+  .shipped-timeline__detail-title {
+    margin-top: 4px;
+    font-size: 1.55rem;
+  }
+
+  .shipped-timeline__detail-callout {
+    font-size: 0.72rem;
+  }
+
+  .shipped-team-list {
+    --shipped-team-list-padding: 2px;
+    --shipped-team-spine-center: 13px;
+    gap: 12px;
+  }
+
+  .shipped-team-list::before {
+    top: 8px;
+  }
+
+  .shipped-team-list__team-row {
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .shipped-team-list__team-name {
+    font-size: 0.94rem;
+  }
+
+  .shipped-team-list__ideas {
+    margin-left: 26px;
+    padding-left: 10px;
+  }
+
+  .shipped-team-list__idea {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0;
+  }
+
+  .shipped-team-list__idea-meta,
+  .shipped-team-list__idea-area {
+    display: none;
+  }
+
+  .shipped-team-list__idea-title {
+    font-size: 0.86rem;
+    line-height: 1.22;
+    grid-column: 1;
   }
 }
 

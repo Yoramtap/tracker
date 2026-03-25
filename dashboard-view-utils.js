@@ -153,16 +153,27 @@
     return Array.from(globalObject.document.querySelectorAll(`input[name="${name}"]`));
   }
 
+  function syncControlSelectionClasses(name, controlType = "radio") {
+    const controls = getDashboardControlElements(name, controlType);
+    controls.forEach((control) => {
+      const label = control.closest("label");
+      if (!label) return;
+      label.classList.toggle("is-selected", Boolean(control.checked));
+    });
+  }
+
   function syncControlValue(name, value, controlType = "radio") {
     const controls = getDashboardControlElements(name, controlType);
     if (controls.length === 0) return;
     if (controlType === "checkbox") {
       controls[0].checked = Boolean(value);
+      syncControlSelectionClasses(name, controlType);
       return;
     }
     controls.forEach((control) => {
       control.checked = control.value === value;
     });
+    syncControlSelectionClasses(name, controlType);
   }
 
   function syncRadioAvailability(name, allowedValues) {
@@ -175,6 +186,7 @@
       if (label) {
         label.setAttribute("aria-disabled", isAllowed ? "false" : "true");
         label.classList.toggle("is-disabled", !isAllowed);
+        label.classList.toggle("is-selected", Boolean(radio.checked));
       }
     });
   }
@@ -224,6 +236,7 @@
               controlType === "checkbox"
                 ? (normalizeChecked ? normalizeChecked(control.checked) : Boolean(control.checked))
                 : normalizeValue(control.value);
+            syncControlSelectionClasses(name, controlType);
             const nextUrl = new URL(globalObject.location.href);
             (Array.isArray(bindings) ? bindings : []).forEach(({ name: bindingName, stateKey: bindingStateKey, controlType: bindingControlType }) => {
               if (bindingControlType === "checkbox") {
