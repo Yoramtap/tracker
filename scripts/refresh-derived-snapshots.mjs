@@ -9,6 +9,7 @@ const DEFAULT_CONTRIBUTOR_TEAMS_FIELD = "customfield_10201";
 const DEFAULT_CONTRIBUTOR_TOP_LIMIT = 12;
 const DEFAULT_PRODUCT_CYCLE_PROJECT_KEY = "TPS";
 const DEFAULT_PRODUCT_CYCLE_CHANGELOG_CONCURRENCY = 5;
+const DEFAULT_PRODUCT_CYCLE_PRODUCT_AREA_FIELD = "customfield_10214";
 const PRODUCT_CYCLE_SCOPE_KEY = "inception";
 const PRODUCT_CYCLE_SCOPE_LABEL = "All ideas";
 const PRODUCT_CYCLE_MULTI_TEAM_LABEL = "Multi team";
@@ -62,6 +63,7 @@ const PRODUCT_CYCLE_STAGE_DEFS = [
   { key: "in_development", label: "In Development" },
   { key: "feedback", label: "UAT" }
 ];
+const PRODUCT_CYCLE_SHIPPED_TIMELINE_START_MONTH = 0;
 const DEFAULT_FLOW_DEV_STATUSES = ["In Progress", "Review", "In Review"];
 const DEFAULT_FLOW_UAT_STATUSES = ["UAT"];
 const DEFAULT_FLOW_DONE_STATUSES = ["Done", "Won't Fix", "Duplicate"];
@@ -299,7 +301,9 @@ function parseEnvList(rawValue, fallbackValues) {
 }
 
 function parseBooleanLike(value, fallback = false) {
-  const raw = String(value ?? "").trim().toLowerCase();
+  const raw = String(value ?? "")
+    .trim()
+    .toLowerCase();
   if (!raw) return fallback;
   return !["0", "false", "no", "off"].includes(raw);
 }
@@ -329,7 +333,9 @@ function normalizeStatusName(value) {
 }
 
 function buildLifecycleEventData(histories) {
-  const enteredAt = Object.fromEntries([...PRODUCT_CYCLE_PHASE_KEYS, "done"].map((key) => [key, ""]));
+  const enteredAt = Object.fromEntries(
+    [...PRODUCT_CYCLE_PHASE_KEYS, "done"].map((key) => [key, ""])
+  );
   const lifecycleEvents = [];
 
   for (const history of sortHistoriesByCreated(histories)) {
@@ -1151,7 +1157,11 @@ export async function refreshBusinessUnitUatChartData(options = {}) {
     watermarkUpdatedSince: runStartedAt,
     source: doneCacheSource
   });
-  await writeJsonAtomic(BUSINESS_UNIT_DONE_CACHE_PATH, BUSINESS_UNIT_DONE_CACHE_TMP_PATH, doneCache);
+  await writeJsonAtomic(
+    BUSINESS_UNIT_DONE_CACHE_PATH,
+    BUSINESS_UNIT_DONE_CACHE_TMP_PATH,
+    doneCache
+  );
 
   const doneRows = doneCacheRows;
   const ongoingByBusinessUnit = buildBusinessUnitRows(buildFlowByBusinessUnit(ongoingRows));
@@ -1364,8 +1374,15 @@ function buildProductCycleIdeaRow(issue, teamsFieldId, changelogHistories) {
     }
   }
 
+  const productAreaField = fields?.[DEFAULT_PRODUCT_CYCLE_PRODUCT_AREA_FIELD];
+  const productAreaLabel = Array.isArray(productAreaField)
+    ? String(productAreaField[0]?.value || productAreaField[0]?.name || "").trim()
+    : String(productAreaField?.value || productAreaField?.name || "").trim();
+
   return {
     issueKey,
+    summary: String(fields?.summary || "").trim(),
+    productAreaLabel,
     excludedFromTracking: teamOverride.exclude,
     teams: teamOverride.teams,
     primaryTeam:
@@ -1597,6 +1614,156 @@ function buildProductCycleScopeSnapshot(ideas, teams, nowIso) {
   };
 }
 
+function startOfIsoMonth(value) {
+  const safeValue = String(value || "").trim();
+  if (!safeValue) return "";
+  const parsedAt = new Date(safeValue).getTime();
+  if (!Number.isFinite(parsedAt)) return "";
+  const parsed = new Date(parsedAt);
+  return new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth(), 1))
+    .toISOString()
+    .slice(0, 10);
+}
+
+function startOfCalendarYearIso(value) {
+  const safeValue = String(value || "").trim();
+  if (!safeValue) return "";
+  const parsedAt = new Date(safeValue).getTime();
+  if (!Number.isFinite(parsedAt)) return "";
+  const parsed = new Date(parsedAt);
+  return new Date(Date.UTC(parsed.getUTCFullYear(), PRODUCT_CYCLE_SHIPPED_TIMELINE_START_MONTH, 1))
+    .toISOString()
+    .slice(0, 10);
+}
+
+function addUtcMonths(isoDate, deltaMonths) {
+  const safeValue = String(isoDate || "").trim();
+  if (!safeValue) return "";
+  const parsedAt = new Date(`${safeValue}T00:00:00Z`).getTime();
+  if (!Number.isFinite(parsedAt)) return "";
+  const parsed = new Date(parsedAt);
+  return new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth() + deltaMonths, 1))
+    .toISOString()
+    .slice(0, 10);
+}
+
+function buildMonthRange(startIso, endIso) {
+  const safeStart = String(startIso || "").trim();
+  const safeEnd = String(endIso || "").trim();
+  if (!safeStart || !safeEnd || safeStart > safeEnd) return [];
+  const months = [];
+  let cursor = safeStart;
+  while (cursor && cursor <= safeEnd) {
+    months.push(cursor);
+    const next = addUtcMonths(cursor, 1);
+    if (!next || next === cursor) break;
+    cursor = next;
+  }
+  return months;
+}
+
+function buildProductCycleShippedTimelineSnapshot(ideas, teams, nowIso) {
+  const doneMonthStarts = (Array.isArray(ideas) ? ideas : [])
+    .filter((idea) => String(idea?.currentStage || "").trim() === "done")
+    .map((idea) => startOfIsoMonth(String(idea?.entered_done || "").trim()))
+    .filter(Boolean)
+    .sort((left, right) => left.localeCompare(right));
+  const timelineStart = doneMonthStarts.length > 0 ? doneMonthStarts[0] : startOfCalendarYearIso(nowIso);
+  const timelineEnd = doneMonthStarts.length > 0 ? doneMonthStarts[doneMonthStarts.length - 1] : startOfIsoMonth(nowIso);
+  const monthStarts = buildMonthRange(timelineStart, timelineEnd);
+  const buckets = new Map(
+    monthStarts.map((monthStart) => [
+      monthStart,
+      {
+        monthStart,
+        monthKey: monthStart.slice(0, 7),
+        totalShipped: 0,
+        teams: []
+      }
+    ])
+  );
+
+  for (const idea of Array.isArray(ideas) ? ideas : []) {
+    if (String(idea?.currentStage || "").trim() !== "done") continue;
+    const enteredDoneAt = String(idea?.entered_done || "").trim();
+    const monthStart = startOfIsoMonth(enteredDoneAt);
+    if (!monthStart || !buckets.has(monthStart)) continue;
+    const bucket = buckets.get(monthStart);
+    const team = getIdeaPrimaryMappedTeam(idea, teams) || "UNMAPPED";
+    let teamBucket = bucket.teams.find((row) => String(row?.team || "").trim() === team);
+    if (!teamBucket) {
+      teamBucket = {
+        team,
+        shippedCount: 0,
+        ideas: []
+      };
+      bucket.teams.push(teamBucket);
+    }
+    teamBucket.shippedCount += 1;
+    teamBucket.ideas.push({
+      issueKey: String(idea?.issueKey || "").trim(),
+      productAreaLabel: String(idea?.productAreaLabel || "").trim(),
+      summary: String(idea?.summary || "").trim(),
+      shippedAt: enteredDoneAt
+    });
+    bucket.totalShipped += 1;
+  }
+
+  const months = monthStarts.map((monthStart) => {
+    const bucket = buckets.get(monthStart) || {
+      monthStart,
+      monthKey: monthStart.slice(0, 7),
+      totalShipped: 0,
+      teams: []
+    };
+    const includedTeams = [
+      ...teams.filter((team) =>
+        bucket.teams.some((teamRow) => String(teamRow?.team || "").trim() === team)
+      ),
+      ...bucket.teams
+        .map((teamRow) => String(teamRow?.team || "").trim())
+        .filter(Boolean)
+        .filter((team) => !teams.includes(team))
+    ];
+    const orderedTeamRows = includedTeams
+      .map((team) => {
+        const teamBucket = bucket.teams.find((row) => String(row?.team || "").trim() === team) || {
+          team,
+          shippedCount: 0,
+          ideas: []
+        };
+        return {
+          team,
+          shippedCount: toCount(teamBucket.shippedCount),
+          ideas: (Array.isArray(teamBucket.ideas) ? teamBucket.ideas : [])
+            .slice()
+            .sort((left, right) => {
+              const leftAt = String(left?.shippedAt || "").trim();
+              const rightAt = String(right?.shippedAt || "").trim();
+              if (leftAt !== rightAt) return leftAt.localeCompare(rightAt);
+              return String(left?.summary || "").localeCompare(String(right?.summary || ""));
+            })
+        };
+      })
+      .filter((teamRow) => teamRow.shippedCount > 0);
+
+    return {
+      monthStart,
+      monthKey: bucket.monthKey,
+      totalShipped: toCount(bucket.totalShipped),
+      teamCount: toCount(orderedTeamRows.length),
+      teams: orderedTeamRows
+    };
+  });
+
+  return {
+    timelineStart,
+    timelineEnd,
+    totalShipped: months.reduce((sum, month) => sum + toCount(month?.totalShipped), 0),
+    months
+  };
+}
+
 function resolveCurrentStageTiming(idea) {
   const events = Array.isArray(idea?.lifecycleEvents) ? idea.lifecycleEvents : [];
   const findLatestEntryAt = (stageKey) => {
@@ -1604,10 +1771,7 @@ function resolveCurrentStageTiming(idea) {
     if (!targetStage) return "";
     for (let index = events.length - 1; index >= 0; index -= 1) {
       const event = events[index];
-      if (
-        String(event?.toStage || "").trim() === targetStage &&
-        String(event?.at || "").trim()
-      ) {
+      if (String(event?.toStage || "").trim() === targetStage && String(event?.at || "").trim()) {
         return String(event.at || "").trim();
       }
     }
@@ -1729,11 +1893,13 @@ export async function refreshProductCycleSnapshot(options = {}) {
     ...(configuredTeamsField ? [configuredTeamsFieldId] : [])
   ]);
   const searchFields = [
+    "summary",
     "status",
     "labels",
     "created",
     "updated",
     "resolutiondate",
+    DEFAULT_PRODUCT_CYCLE_PRODUCT_AREA_FIELD,
     ...searchTeamFieldIds
   ];
 
@@ -1768,6 +1934,7 @@ export async function refreshProductCycleSnapshot(options = {}) {
   const nowIso = new Date().toISOString();
   const leadCycleScope = buildProductCycleScopeSnapshot(trackedIdeaRows, teams, nowIso);
   const currentStageSnapshot = buildCurrentStageSnapshot(trackedIdeaRows, teams, nowIso);
+  const shippedTimeline = buildProductCycleShippedTimelineSnapshot(trackedIdeaRows, teams, nowIso);
 
   logger.log(
     `Computed product-cycle snapshot (${leadCycleScope.cycleSampleCount} ideas with cycle data from ${issues.length} fetched ideas).`
@@ -1794,6 +1961,9 @@ export async function refreshProductCycleSnapshot(options = {}) {
         [PRODUCT_CYCLE_SCOPE_KEY]: leadCycleScope
       },
       currentStageSnapshot
+    },
+    detailData: {
+      shippedTimeline
     }
   };
 }

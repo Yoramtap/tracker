@@ -296,6 +296,46 @@ export function sanitizeProductCycleSnapshot(snapshot) {
   };
 }
 
+export function sanitizeProductCycleShipmentsSnapshot(snapshot) {
+  const shippedTimeline =
+    snapshot?.chartData?.shippedTimeline && typeof snapshot.chartData.shippedTimeline === "object"
+      ? snapshot.chartData.shippedTimeline
+      : {};
+
+  return {
+    generatedAt: sanitizeText(snapshot?.generatedAt),
+    chartData: {
+      shippedTimeline: {
+        timelineStart: sanitizeText(shippedTimeline?.timelineStart),
+        timelineEnd: sanitizeText(shippedTimeline?.timelineEnd),
+        totalShipped: sanitizeNumber(shippedTimeline?.totalShipped),
+        months: Array.isArray(shippedTimeline?.months)
+          ? shippedTimeline.months.map((month) => ({
+              monthStart: sanitizeText(month?.monthStart),
+              monthKey: sanitizeText(month?.monthKey),
+              totalShipped: sanitizeNumber(month?.totalShipped),
+              teamCount: sanitizeNumber(month?.teamCount),
+              teams: Array.isArray(month?.teams)
+                ? month.teams.map((team) => ({
+                    team: sanitizeText(team?.team),
+                    shippedCount: sanitizeNumber(team?.shippedCount),
+                    ideas: Array.isArray(team?.ideas)
+                      ? team.ideas.map((idea) => ({
+                          issueKey: sanitizeText(idea?.issueKey),
+                          productAreaLabel: sanitizeText(idea?.productAreaLabel),
+                          summary: sanitizeText(idea?.summary),
+                          shippedAt: sanitizeText(idea?.shippedAt)
+                        }))
+                      : []
+                  }))
+                : []
+            }))
+          : []
+      }
+    }
+  };
+}
+
 export function sanitizeContributorsSnapshot(snapshot) {
   const summary = snapshot?.summary && typeof snapshot.summary === "object" ? snapshot.summary : {};
   return {
@@ -318,6 +358,7 @@ export function sanitizeContributorsSnapshot(snapshot) {
 export const SNAPSHOT_SANITIZERS = {
   "backlog-snapshot.json": sanitizeBacklogSnapshot,
   "product-cycle-snapshot.json": sanitizeProductCycleSnapshot,
+  "product-cycle-shipments-snapshot.json": sanitizeProductCycleShipmentsSnapshot,
   "contributors-snapshot.json": sanitizeContributorsSnapshot,
   "pr-cycle-snapshot.json": sanitizePrCycleSnapshot
 };
