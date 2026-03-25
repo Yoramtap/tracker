@@ -29,7 +29,7 @@ jobs:
       - name: Build static site artifact
         run: |
           mkdir -p dist
-          cp index.html backlog-snapshot.json contributors-snapshot.json product-cycle-snapshot.json dist/
+          cp index.html backlog-snapshot.json contributors-snapshot.json product-cycle-snapshot.json product-cycle-shipments-snapshot.json dist/
           cp dashboard-styles.css dashboard-preload.js dashboard-view-utils.js dashboard-data-utils.js dist/
           cp dashboard-chart-core.js dashboard-charts-backlog.js dashboard-charts-delivery.js dashboard-charts-product.js dist/
           cp dashboard-app.js agentation-local-loader.js dist/

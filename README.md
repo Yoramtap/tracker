@@ -89,6 +89,7 @@ The export command only copies:
 - `backlog-snapshot.json`
 - `contributors-snapshot.json`
 - `product-cycle-snapshot.json`
+- `product-cycle-shipments-snapshot.json`
 - `pr-cycle-snapshot.json`
 - `index.html`
 - `dashboard-styles.css`
