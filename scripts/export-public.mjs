@@ -6,27 +6,14 @@ import path from "node:path";
 import { SNAPSHOT_SANITIZERS } from "./snapshot-sanitizers.mjs";
 
 const DEFAULT_TARGET = "/Users/yoramtap/Documents/AI/tracker";
-const SAFE_FILES = [
+const BASE_SAFE_FILES = [
   "backlog-snapshot.json",
   "contributors-snapshot.json",
   "product-cycle-snapshot.json",
+  "product-cycle-shipments-snapshot.json",
   "pr-cycle-snapshot.json",
   "index.html",
-  "dashboard-styles.css",
-  "dashboard-preload.js",
-  "dashboard-view-utils.js",
-  "dashboard-data-utils.js",
-  "dashboard-chart-core.js",
-  "dashboard-svg-core.js",
-  "dashboard-charts-backlog.js",
-  "dashboard-charts-delivery.js",
-  "dashboard-charts-product.js",
-  "dashboard-app.js",
-  "agentation-local-loader.js",
-  "vendor/react.production.min.js",
-  "vendor/react-dom.production.min.js",
-  "vendor/prop-types.min.js",
-  "vendor/recharts.umd.js"
+  "agentation-local-loader.js"
 ];
 
 function getArg(flag) {
@@ -42,8 +29,24 @@ async function ensureDir(dirPath) {
   }
 }
 
-async function copySafeFiles(sourceDir, targetDir) {
-  for (const fileName of SAFE_FILES) {
+function extractLocalAssetPaths(html) {
+  const assetPaths = new Set();
+  const pattern = /\b(?:src|href)=["']\.\/([^"'?#]+)(?:\?[^"']*)?["']/g;
+  for (const match of html.matchAll(pattern)) {
+    const fileName = String(match[1] || "").trim();
+    if (!fileName || fileName.startsWith("node_modules/")) continue;
+    assetPaths.add(fileName);
+  }
+  return Array.from(assetPaths);
+}
+
+async function resolveSafeFiles(sourceDir) {
+  const indexHtml = await fs.readFile(path.join(sourceDir, "index.html"), "utf8");
+  return [...new Set([...BASE_SAFE_FILES, ...extractLocalAssetPaths(indexHtml)])];
+}
+
+async function copySafeFiles(sourceDir, targetDir, fileNames) {
+  for (const fileName of fileNames) {
     const sourcePath = path.join(sourceDir, fileName);
     const targetPath = path.join(targetDir, fileName);
     const sanitize = SNAPSHOT_SANITIZERS[fileName];
@@ -80,7 +83,8 @@ async function main() {
     }
   }
 
-  await copySafeFiles(sourceDir, targetDir);
+  const fileNames = await resolveSafeFiles(sourceDir);
+  await copySafeFiles(sourceDir, targetDir, fileNames);
   console.log(`Export complete. Tracker repo updated at: ${targetDir}`);
 }
 
