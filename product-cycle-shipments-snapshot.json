@@ -1,0 +1,1512 @@
+{
+  "generatedAt": "2026-03-25T19:54:33.367Z",
+  "chartData": {
+    "shippedTimeline": {
+      "timelineStart": "2025-01-01",
+      "timelineEnd": "2026-03-01",
+      "totalShipped": 162,
+      "months": [
+        {
+          "monthStart": "2025-01-01",
+          "monthKey": "2025-01",
+          "totalShipped": 7,
+          "teamCount": 5,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-39",
+                  "productAreaLabel": "Illuminate",
+                  "summary": "Illuminate probe timeout",
+                  "shippedAt": "2025-01-21T10:26:22.399Z"
+                }
+              ]
+            },
+            {
+              "team": "API",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-61",
+                  "productAreaLabel": "TFC",
+                  "summary": "Add healthz to Go APIs",
+                  "shippedAt": "2025-01-14T15:55:18.035Z"
+                },
+                {
+                  "issueKey": "TPS-67",
+                  "productAreaLabel": "TFC",
+                  "summary": "Clear soft deleted entities",
+                  "shippedAt": "2025-01-15T23:02:16.899Z"
+                }
+              ]
+            },
+            {
+              "team": "Frontend",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-77",
+                  "productAreaLabel": "TFC",
+                  "summary": "Advanced layout builder",
+                  "shippedAt": "2025-01-23T13:52:47.879Z"
+                },
+                {
+                  "issueKey": "TPS-78",
+                  "productAreaLabel": "TFC",
+                  "summary": "Support devices and flow management",
+                  "shippedAt": "2025-01-23T13:54:12.090Z"
+                }
+              ]
+            },
+            {
+              "team": "Orchestration",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-56",
+                  "productAreaLabel": "",
+                  "summary": "GCR Migration",
+                  "shippedAt": "2025-01-21T10:28:16.075Z"
+                }
+              ]
+            },
+            {
+              "team": "UNMAPPED",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-71",
+                  "productAreaLabel": "TFC",
+                  "summary": "New FE deploy @ MEIP1",
+                  "shippedAt": "2025-01-20T09:33:37.555Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2025-02-01",
+          "monthKey": "2025-02",
+          "totalShipped": 8,
+          "teamCount": 5,
+          "teams": [
+            {
+              "team": "API",
+              "shippedCount": 3,
+              "ideas": [
+                {
+                  "issueKey": "TPS-48",
+                  "productAreaLabel": "Illuminate",
+                  "summary": "Illuminate Cloud - Dependency Tracking Phase 1",
+                  "shippedAt": "2025-02-18T07:17:06.086Z"
+                },
+                {
+                  "issueKey": "TPS-98",
+                  "productAreaLabel": "Illuminate",
+                  "summary": "Add \"namespace\" to cluster",
+                  "shippedAt": "2025-02-19T15:05:03.909Z"
+                },
+                {
+                  "issueKey": "TPS-99",
+                  "productAreaLabel": "TFC",
+                  "summary": "Utilization API: add history + make fast",
+                  "shippedAt": "2025-02-20T11:45:47.909Z"
+                }
+              ]
+            },
+            {
+              "team": "Frontend",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-10",
+                  "productAreaLabel": "TFC",
+                  "summary": "Setup page in devices",
+                  "shippedAt": "2025-02-10T09:47:49.114Z"
+                }
+              ]
+            },
+            {
+              "team": "Broadcast",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-37",
+                  "productAreaLabel": "TFC",
+                  "summary": "Cerebrum Panel",
+                  "shippedAt": "2025-02-18T10:17:31.444Z"
+                }
+              ]
+            },
+            {
+              "team": "Orchestration",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-26",
+                  "productAreaLabel": "",
+                  "summary": "GCP Image repo migration",
+                  "shippedAt": "2025-02-13T14:50:52.554Z"
+                }
+              ]
+            },
+            {
+              "team": "UNMAPPED",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-101",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "Squid Games NEP UK",
+                  "shippedAt": "2025-02-26T11:20:05.693Z"
+                },
+                {
+                  "issueKey": "TPS-103",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "Winter Olympics 2026 test event - TFC DIVA NEP UK",
+                  "shippedAt": "2025-02-26T12:16:55.432Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2025-03-01",
+          "monthKey": "2025-03",
+          "totalShipped": 6,
+          "teamCount": 3,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-87",
+                  "productAreaLabel": "",
+                  "summary": "Source preview (probe) on Panel",
+                  "shippedAt": "2025-03-21T06:27:23.151Z"
+                }
+              ]
+            },
+            {
+              "team": "API",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-51",
+                  "productAreaLabel": "TFC",
+                  "summary": "Async SaveState Processor: Phase 1",
+                  "shippedAt": "2025-03-12T13:20:30.002Z"
+                }
+              ]
+            },
+            {
+              "team": "Broadcast",
+              "shippedCount": 4,
+              "ideas": [
+                {
+                  "issueKey": "TPS-102",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "Love Island - PTZ + Black Magic cameras",
+                  "shippedAt": "2025-03-20T05:23:50.279Z"
+                },
+                {
+                  "issueKey": "TPS-80",
+                  "productAreaLabel": "TFC",
+                  "summary": "AT300 Features for USCP",
+                  "shippedAt": "2025-03-21T07:43:50.210Z"
+                },
+                {
+                  "issueKey": "TPS-137",
+                  "productAreaLabel": "Feature Request",
+                  "summary": "Vmatrix: Manual Internal Routing",
+                  "shippedAt": "2025-03-26T07:51:18.725Z"
+                },
+                {
+                  "issueKey": "TPS-142",
+                  "productAreaLabel": "",
+                  "summary": "GPI Action: Redundancy Takeover",
+                  "shippedAt": "2025-03-26T08:40:08.492Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2025-04-01",
+          "monthKey": "2025-04",
+          "totalShipped": 9,
+          "teamCount": 5,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-33",
+                  "productAreaLabel": "TFC",
+                  "summary": "Channel 7 Melbourne (MQT)",
+                  "shippedAt": "2025-04-23T11:51:37.489Z"
+                },
+                {
+                  "issueKey": "TPS-113",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "The Fat Orchestrator (Cloud) - MVP",
+                  "shippedAt": "2025-04-30T09:47:20.335Z"
+                }
+              ]
+            },
+            {
+              "team": "API",
+              "shippedCount": 3,
+              "ideas": [
+                {
+                  "issueKey": "TPS-114",
+                  "productAreaLabel": "TFC",
+                  "summary": "API March updates",
+                  "shippedAt": "2025-04-09T12:13:34.276Z"
+                },
+                {
+                  "issueKey": "TPS-162",
+                  "productAreaLabel": "TFC",
+                  "summary": "API entity references out of sync (pubsub) - investigation",
+                  "shippedAt": "2025-04-14T09:58:01.850Z"
+                },
+                {
+                  "issueKey": "TPS-164",
+                  "productAreaLabel": "TFC",
+                  "summary": "API pubsub resilience",
+                  "shippedAt": "2025-04-17T12:23:42.003Z"
+                }
+              ]
+            },
+            {
+              "team": "Frontend",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-11",
+                  "productAreaLabel": "TFC",
+                  "summary": "Editing tags in devices",
+                  "shippedAt": "2025-04-11T08:57:53.883Z"
+                },
+                {
+                  "issueKey": "TPS-165",
+                  "productAreaLabel": "TFC",
+                  "summary": "MVP Route state graph in UI v2.8.0",
+                  "shippedAt": "2025-04-28T08:28:04.043Z"
+                }
+              ]
+            },
+            {
+              "team": "Broadcast",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-122",
+                  "productAreaLabel": "TFC",
+                  "summary": "Parameter Control: AT300 Enhancements",
+                  "shippedAt": "2025-04-16T01:44:40.693Z"
+                }
+              ]
+            },
+            {
+              "team": "UNMAPPED",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-109",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "The Masters Golf - USMU",
+                  "shippedAt": "2025-04-22T11:02:57.466Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2025-05-01",
+          "monthKey": "2025-05",
+          "totalShipped": 13,
+          "teamCount": 5,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 3,
+              "ideas": [
+                {
+                  "issueKey": "TPS-167",
+                  "productAreaLabel": "Illuminate",
+                  "summary": "Illuminate: taint timeouts (tolerations)",
+                  "shippedAt": "2025-05-09T08:30:27.065Z"
+                },
+                {
+                  "issueKey": "TPS-190",
+                  "productAreaLabel": "TFC",
+                  "summary": "PIP tally (re)size on layouts",
+                  "shippedAt": "2025-05-14T07:27:27.381Z"
+                },
+                {
+                  "issueKey": "TPS-198",
+                  "productAreaLabel": "TFC",
+                  "summary": "Evertz EV670-X30",
+                  "shippedAt": "2025-05-16T06:39:56.851Z"
+                }
+              ]
+            },
+            {
+              "team": "API",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-74",
+                  "productAreaLabel": "TFC",
+                  "summary": "TFC SSO support (Channel 7)",
+                  "shippedAt": "2025-05-19T21:21:54.284Z"
+                },
+                {
+                  "issueKey": "TPS-172",
+                  "productAreaLabel": "TFC",
+                  "summary": "100% API sync command coverage",
+                  "shippedAt": "2025-05-20T09:27:33.322Z"
+                }
+              ]
+            },
+            {
+              "team": "Frontend",
+              "shippedCount": 3,
+              "ideas": [
+                {
+                  "issueKey": "TPS-186",
+                  "productAreaLabel": "TFC",
+                  "summary": "Bulk edit in layouts",
+                  "shippedAt": "2025-05-13T11:21:23.393Z"
+                },
+                {
+                  "issueKey": "TPS-189",
+                  "productAreaLabel": "TFC",
+                  "summary": "Bulk flow creation (PGA)",
+                  "shippedAt": "2025-05-23T12:17:02.846Z"
+                },
+                {
+                  "issueKey": "TPS-188",
+                  "productAreaLabel": "TFC",
+                  "summary": "Tags data grid",
+                  "shippedAt": "2025-05-27T12:15:58.521Z"
+                }
+              ]
+            },
+            {
+              "team": "Broadcast",
+              "shippedCount": 4,
+              "ideas": [
+                {
+                  "issueKey": "TPS-45",
+                  "productAreaLabel": "TFC",
+                  "summary": "Blackmagic Videohub",
+                  "shippedAt": "2025-05-07T02:11:01.214Z"
+                },
+                {
+                  "issueKey": "TPS-118",
+                  "productAreaLabel": "TFC",
+                  "summary": "Junger flexAI Server",
+                  "shippedAt": "2025-05-09T08:26:39.881Z"
+                },
+                {
+                  "issueKey": "TPS-168",
+                  "productAreaLabel": "TFC",
+                  "summary": "Force GPIO button support on hardware panels",
+                  "shippedAt": "2025-05-14T00:53:50.158Z"
+                },
+                {
+                  "issueKey": "TPS-44",
+                  "productAreaLabel": "TFC",
+                  "summary": "GV Panels",
+                  "shippedAt": "2025-05-28T08:44:13.610Z"
+                }
+              ]
+            },
+            {
+              "team": "Orchestration",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-59",
+                  "productAreaLabel": "TFC",
+                  "summary": "Channel 7 AU L3 Airgapped Proxmox (MQT)",
+                  "shippedAt": "2025-05-14T08:24:46.911Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2025-06-01",
+          "monthKey": "2025-06",
+          "totalShipped": 8,
+          "teamCount": 4,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-193",
+                  "productAreaLabel": "TFC",
+                  "summary": "Profanity Delay System (GPIO Delay)",
+                  "shippedAt": "2025-06-17T06:20:26.950Z"
+                },
+                {
+                  "issueKey": "TPS-209",
+                  "productAreaLabel": "TFC",
+                  "summary": "Comprimato Twenty-One Encoder",
+                  "shippedAt": "2025-06-18T07:40:50.723Z"
+                }
+              ]
+            },
+            {
+              "team": "API",
+              "shippedCount": 3,
+              "ideas": [
+                {
+                  "issueKey": "TPS-203",
+                  "productAreaLabel": "TFC",
+                  "summary": "Prevent savestate recalls during production onair",
+                  "shippedAt": "2025-06-11T07:50:32.441Z"
+                },
+                {
+                  "issueKey": "TPS-204",
+                  "productAreaLabel": "TFC",
+                  "summary": "Add 2-Key principle to production on/off air panel buttons",
+                  "shippedAt": "2025-06-24T13:53:46.595Z"
+                },
+                {
+                  "issueKey": "TPS-196",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "API groundwork to start deployments",
+                  "shippedAt": "2025-06-30T10:00:46.962Z"
+                }
+              ]
+            },
+            {
+              "team": "Frontend",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-174",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Frontend base UI",
+                  "shippedAt": "2025-06-10T13:02:52.673Z"
+                },
+                {
+                  "issueKey": "TPS-211",
+                  "productAreaLabel": "TFC",
+                  "summary": "Add \"rebuild graph\" feature to route state graph",
+                  "shippedAt": "2025-06-17T12:48:15.249Z"
+                }
+              ]
+            },
+            {
+              "team": "Broadcast",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-46",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ross Acuity Routing",
+                  "shippedAt": "2025-06-18T08:17:10.526Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2025-07-01",
+          "monthKey": "2025-07",
+          "totalShipped": 13,
+          "teamCount": 5,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-199",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Live view of backend events",
+                  "shippedAt": "2025-07-10T15:14:59.114Z"
+                },
+                {
+                  "issueKey": "TPS-159",
+                  "productAreaLabel": "TFC",
+                  "summary": "Support Home enabled Lawo devices",
+                  "shippedAt": "2025-07-15T05:46:34.755Z"
+                }
+              ]
+            },
+            {
+              "team": "Frontend",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-206",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Frontend workflows",
+                  "shippedAt": "2025-07-07T15:39:57.781Z"
+                }
+              ]
+            },
+            {
+              "team": "Broadcast",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-227",
+                  "productAreaLabel": "TFC",
+                  "summary": "Grass Valley LDX: Support fourth return channel",
+                  "shippedAt": "2025-07-15T00:34:46.216Z"
+                },
+                {
+                  "issueKey": "TPS-49",
+                  "productAreaLabel": "TFC",
+                  "summary": "Manifold",
+                  "shippedAt": "2025-07-23T08:47:44.786Z"
+                }
+              ]
+            },
+            {
+              "team": "Orchestration",
+              "shippedCount": 4,
+              "ideas": [
+                {
+                  "issueKey": "TPS-15",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "SS10 - NEP USMU",
+                  "shippedAt": "2025-07-11T06:47:10.071Z"
+                },
+                {
+                  "issueKey": "TPS-57",
+                  "productAreaLabel": "",
+                  "summary": "MaxScale integration",
+                  "shippedAt": "2025-07-11T06:47:32.470Z"
+                },
+                {
+                  "issueKey": "TPS-58",
+                  "productAreaLabel": "",
+                  "summary": "LIV  Golf - L3",
+                  "shippedAt": "2025-07-22T17:14:16.738Z"
+                },
+                {
+                  "issueKey": "TPS-60",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "MEIP2 - NEP ME",
+                  "shippedAt": "2025-07-22T17:14:58.024Z"
+                }
+              ]
+            },
+            {
+              "team": "UNMAPPED",
+              "shippedCount": 4,
+              "ideas": [
+                {
+                  "issueKey": "TPS-180",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "DAZN Club World Cup - NEP US + NEP NL",
+                  "shippedAt": "2025-07-22T17:15:27.483Z"
+                },
+                {
+                  "issueKey": "TPS-181",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "FIFA Club World CUP - NEP USMU",
+                  "shippedAt": "2025-07-22T17:15:34.993Z"
+                },
+                {
+                  "issueKey": "TPS-106",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "Wimbledon - NEP UK",
+                  "shippedAt": "2025-07-22T17:15:47.427Z"
+                },
+                {
+                  "issueKey": "TPS-108",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "NEO Truck (2&3) - NEP UK",
+                  "shippedAt": "2025-07-22T17:16:52.077Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2025-08-01",
+          "monthKey": "2025-08",
+          "totalShipped": 19,
+          "teamCount": 6,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 7,
+              "ideas": [
+                {
+                  "issueKey": "TPS-248",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Extendeded validation for App config",
+                  "shippedAt": "2025-08-12T12:08:33.889Z"
+                },
+                {
+                  "issueKey": "TPS-214",
+                  "productAreaLabel": "Illuminate",
+                  "summary": "Illuminate: add collector support",
+                  "shippedAt": "2025-08-13T10:03:07.364Z"
+                },
+                {
+                  "issueKey": "TPS-224",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Resource nomination and availability zones",
+                  "shippedAt": "2025-08-15T10:13:21.415Z"
+                },
+                {
+                  "issueKey": "TPS-228",
+                  "productAreaLabel": "TFC",
+                  "summary": "Support Telestream Lightspeed (Amazon)",
+                  "shippedAt": "2025-08-19T02:15:16.626Z"
+                },
+                {
+                  "issueKey": "TPS-229",
+                  "productAreaLabel": "TFC",
+                  "summary": "Support Helios LED Processing Platform (Amazon)",
+                  "shippedAt": "2025-08-19T02:15:28.357Z"
+                },
+                {
+                  "issueKey": "TPS-249",
+                  "productAreaLabel": "TFC",
+                  "summary": "Support TASCAM Sonicview",
+                  "shippedAt": "2025-08-19T02:15:34.744Z"
+                },
+                {
+                  "issueKey": "TPS-200",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Customers API",
+                  "shippedAt": "2025-08-27T08:27:01.606Z"
+                }
+              ]
+            },
+            {
+              "team": "API",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-256",
+                  "productAreaLabel": "TFC",
+                  "summary": "Use and reuse healthz connection for Go APIs healthz",
+                  "shippedAt": "2025-08-14T13:10:19.743Z"
+                },
+                {
+                  "issueKey": "TPS-261",
+                  "productAreaLabel": "TFC",
+                  "summary": "Entra SSO fix",
+                  "shippedAt": "2025-08-22T13:04:13.202Z"
+                }
+              ]
+            },
+            {
+              "team": "Frontend",
+              "shippedCount": 4,
+              "ideas": [
+                {
+                  "issueKey": "TPS-225",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Frontend application config options and workflows",
+                  "shippedAt": "2025-08-05T08:26:31.085Z"
+                },
+                {
+                  "issueKey": "TPS-220",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "User management",
+                  "shippedAt": "2025-08-15T10:16:49.326Z"
+                },
+                {
+                  "issueKey": "TPS-212",
+                  "productAreaLabel": "Illuminate",
+                  "summary": "Max replica count in Illuminate Cloud",
+                  "shippedAt": "2025-08-19T06:30:09.518Z"
+                },
+                {
+                  "issueKey": "TPS-265",
+                  "productAreaLabel": "TFC",
+                  "summary": "Route state graph redraw",
+                  "shippedAt": "2025-08-28T19:30:13.839Z"
+                }
+              ]
+            },
+            {
+              "team": "Broadcast",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-105",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "Eurovision Songfestival - NEP BE + NEP SE",
+                  "shippedAt": "2025-08-15T11:25:42.455Z"
+                },
+                {
+                  "issueKey": "TPS-221",
+                  "productAreaLabel": "TFC",
+                  "summary": "NMOS Support: Cobalt Sapphire (Amazon)",
+                  "shippedAt": "2025-08-19T02:14:57.788Z"
+                }
+              ]
+            },
+            {
+              "team": "Orchestration",
+              "shippedCount": 3,
+              "ideas": [
+                {
+                  "issueKey": "TPS-195",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Deploy Manifold Cloud",
+                  "shippedAt": "2025-08-15T03:39:18.433Z"
+                },
+                {
+                  "issueKey": "TPS-70",
+                  "productAreaLabel": "Illuminate",
+                  "summary": "Simplify new FE deploy",
+                  "shippedAt": "2025-08-15T10:27:48.312Z"
+                },
+                {
+                  "issueKey": "TPS-83",
+                  "productAreaLabel": "Illuminate",
+                  "summary": "TFC Monitoring - Collectors (Platform)",
+                  "shippedAt": "2025-08-15T11:23:07.144Z"
+                }
+              ]
+            },
+            {
+              "team": "UNMAPPED",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-182",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "NEO Trucks - NEP UK",
+                  "shippedAt": "2025-08-15T10:26:21.457Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2025-09-01",
+          "monthKey": "2025-09",
+          "totalShipped": 7,
+          "teamCount": 4,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 4,
+              "ideas": [
+                {
+                  "issueKey": "TPS-260",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Workflow retries",
+                  "shippedAt": "2025-09-10T12:01:20.161Z"
+                },
+                {
+                  "issueKey": "TPS-259",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Wrapup before presenting MVP at IBC",
+                  "shippedAt": "2025-09-10T12:01:24.593Z"
+                },
+                {
+                  "issueKey": "TPS-268",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Link customers to deployments",
+                  "shippedAt": "2025-09-10T12:03:06.620Z"
+                },
+                {
+                  "issueKey": "TPS-131",
+                  "productAreaLabel": "TFC",
+                  "summary": "Embrionix Config Push Service",
+                  "shippedAt": "2025-09-29T06:09:42.124Z"
+                }
+              ]
+            },
+            {
+              "team": "API",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-272",
+                  "productAreaLabel": "TFC",
+                  "summary": "Panel performance investigation",
+                  "shippedAt": "2025-09-14T07:15:19.174Z"
+                }
+              ]
+            },
+            {
+              "team": "Broadcast",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-244",
+                  "productAreaLabel": "TFC",
+                  "summary": "AT300 v3",
+                  "shippedAt": "2025-09-02T05:34:05.847Z"
+                }
+              ]
+            },
+            {
+              "team": "Orchestration",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-276",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Deployment destruction (FE/API)",
+                  "shippedAt": "2025-09-10T12:08:55.946Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2025-10-01",
+          "monthKey": "2025-10",
+          "totalShipped": 10,
+          "teamCount": 4,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 5,
+              "ideas": [
+                {
+                  "issueKey": "TPS-284",
+                  "productAreaLabel": "TFC",
+                  "summary": "Sony P50A",
+                  "shippedAt": "2025-10-08T01:19:09.379Z"
+                },
+                {
+                  "issueKey": "TPS-280",
+                  "productAreaLabel": "TFC",
+                  "summary": "Improve panel performance",
+                  "shippedAt": "2025-10-08T08:08:06.224Z"
+                },
+                {
+                  "issueKey": "TPS-269",
+                  "productAreaLabel": "TFC",
+                  "summary": "Websocket JWT: block messages based on production",
+                  "shippedAt": "2025-10-21T12:13:42.839Z"
+                },
+                {
+                  "issueKey": "TPS-277",
+                  "productAreaLabel": "Illuminate",
+                  "summary": "Illuminate Cloud: add kube readiness support",
+                  "shippedAt": "2025-10-27T21:58:25.410Z"
+                },
+                {
+                  "issueKey": "TPS-151",
+                  "productAreaLabel": "TFC",
+                  "summary": "Improve Tally v3 (see related ideas & sans optimizing response times)",
+                  "shippedAt": "2025-10-31T09:46:48.029Z"
+                }
+              ]
+            },
+            {
+              "team": "API",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-278",
+                  "productAreaLabel": "TFC",
+                  "summary": "API: pod readiness healthz",
+                  "shippedAt": "2025-10-21T12:15:15.521Z"
+                }
+              ]
+            },
+            {
+              "team": "Frontend",
+              "shippedCount": 3,
+              "ideas": [
+                {
+                  "issueKey": "TPS-281",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Backporting TFO learnings into new TFC UI",
+                  "shippedAt": "2025-10-08T07:56:39.521Z"
+                },
+                {
+                  "issueKey": "TPS-96",
+                  "productAreaLabel": "TFC",
+                  "summary": "Add SDP dialog with basic functionality to new FE",
+                  "shippedAt": "2025-10-16T11:16:58.344Z"
+                },
+                {
+                  "issueKey": "TPS-292",
+                  "productAreaLabel": "TFC",
+                  "summary": "Bulk importing tags in device setup page",
+                  "shippedAt": "2025-10-27T13:23:49.334Z"
+                }
+              ]
+            },
+            {
+              "team": "UNMAPPED",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-243",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "Amazon POC",
+                  "shippedAt": "2025-10-04T12:15:09.769Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2025-11-01",
+          "monthKey": "2025-11",
+          "totalShipped": 16,
+          "teamCount": 5,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 6,
+              "ideas": [
+                {
+                  "issueKey": "TPS-300",
+                  "productAreaLabel": "TFC",
+                  "summary": "Switch Support: Arista 710P",
+                  "shippedAt": "2025-11-11T02:21:31.914Z"
+                },
+                {
+                  "issueKey": "TPS-304",
+                  "productAreaLabel": "TFC",
+                  "summary": "NMOS Support: Bluebell BN880 & BC880",
+                  "shippedAt": "2025-11-11T10:12:20.621Z"
+                },
+                {
+                  "issueKey": "TPS-303",
+                  "productAreaLabel": "TFC",
+                  "summary": "NMOS Support: Orban Optimod",
+                  "shippedAt": "2025-11-13T00:17:28.795Z"
+                },
+                {
+                  "issueKey": "TPS-285",
+                  "productAreaLabel": "TFC",
+                  "summary": "NMOS Support: Open Broadcast Systems OBE C200",
+                  "shippedAt": "2025-11-14T06:13:57.315Z"
+                },
+                {
+                  "issueKey": "TPS-307",
+                  "productAreaLabel": "TFC",
+                  "summary": "NMOS Support: Leader LT4670",
+                  "shippedAt": "2025-11-14T06:14:28.925Z"
+                },
+                {
+                  "issueKey": "TPS-314",
+                  "productAreaLabel": "TFC",
+                  "summary": "NMOS Support: Cobalt ARIA",
+                  "shippedAt": "2025-11-14T06:14:43.007Z"
+                }
+              ]
+            },
+            {
+              "team": "API",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-293",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ephemeral: improve maintainability of Functionality API",
+                  "shippedAt": "2025-11-07T09:23:11.051Z"
+                },
+                {
+                  "issueKey": "TPS-322",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ephemeral: technical ground work to enable resource cloning",
+                  "shippedAt": "2025-11-25T12:31:23.827Z"
+                }
+              ]
+            },
+            {
+              "team": "Frontend",
+              "shippedCount": 5,
+              "ideas": [
+                {
+                  "issueKey": "TPS-309",
+                  "productAreaLabel": "TFC",
+                  "summary": "Next UI: Production management",
+                  "shippedAt": "2025-11-07T09:20:10.624Z"
+                },
+                {
+                  "issueKey": "TPS-297",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ephemeral: functionality management (1/2)",
+                  "shippedAt": "2025-11-07T17:49:15.668Z"
+                },
+                {
+                  "issueKey": "TPS-294",
+                  "productAreaLabel": "TFC",
+                  "summary": "Next UI: add access control (ACL)",
+                  "shippedAt": "2025-11-13T13:19:14.532Z"
+                },
+                {
+                  "issueKey": "TPS-310",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ephemeral: device model mapping",
+                  "shippedAt": "2025-11-24T13:10:42.449Z"
+                },
+                {
+                  "issueKey": "TPS-308",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ephemeral: add warning to functionality management",
+                  "shippedAt": "2025-11-25T12:32:32.470Z"
+                }
+              ]
+            },
+            {
+              "team": "Broadcast",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-282",
+                  "productAreaLabel": "TFC",
+                  "summary": "Parameter Control: Audio Technica MiCo IP Microphone",
+                  "shippedAt": "2025-11-09T05:52:21.615Z"
+                }
+              ]
+            },
+            {
+              "team": "Orchestration",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-245",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Lawo HOME Apps",
+                  "shippedAt": "2025-11-10T02:55:42.911Z"
+                },
+                {
+                  "issueKey": "TPS-91",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Manifold Cloud",
+                  "shippedAt": "2025-11-10T03:28:24.940Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2025-12-01",
+          "monthKey": "2025-12",
+          "totalShipped": 14,
+          "teamCount": 4,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 3,
+              "ideas": [
+                {
+                  "issueKey": "TPS-302",
+                  "productAreaLabel": "TFC",
+                  "summary": "Support Lawo Virtual Sound Card",
+                  "shippedAt": "2025-12-02T23:42:07.020Z"
+                },
+                {
+                  "issueKey": "TPS-298",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ephemeral: instance grid 1st iteration",
+                  "shippedAt": "2025-12-09T12:53:27.838Z"
+                },
+                {
+                  "issueKey": "TPS-66",
+                  "productAreaLabel": "TFC",
+                  "summary": "Device Status on FE Dashboard",
+                  "shippedAt": "2025-12-11T14:20:47.185Z"
+                }
+              ]
+            },
+            {
+              "team": "API",
+              "shippedCount": 4,
+              "ideas": [
+                {
+                  "issueKey": "TPS-299",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ephemeral: resource cloning",
+                  "shippedAt": "2025-12-09T13:04:42.191Z"
+                },
+                {
+                  "issueKey": "TPS-247",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "MTV Finland cluster update",
+                  "shippedAt": "2025-12-11T13:37:32.747Z"
+                },
+                {
+                  "issueKey": "TPS-215",
+                  "productAreaLabel": "TFC",
+                  "summary": "Allow external (panel) connections to TFC (Netflix)",
+                  "shippedAt": "2025-12-11T14:09:15.037Z"
+                },
+                {
+                  "issueKey": "TPS-242",
+                  "productAreaLabel": "TFC",
+                  "summary": "Display lock reason in \"Target locked\" error toast",
+                  "shippedAt": "2025-12-11T14:56:22.642Z"
+                }
+              ]
+            },
+            {
+              "team": "Broadcast",
+              "shippedCount": 4,
+              "ideas": [
+                {
+                  "issueKey": "TPS-257",
+                  "productAreaLabel": "TFC",
+                  "summary": "Update Ultrix driver to Tally v3",
+                  "shippedAt": "2025-12-11T13:18:54.668Z"
+                },
+                {
+                  "issueKey": "TPS-148",
+                  "productAreaLabel": "",
+                  "summary": "Support Merging Technologies VAD",
+                  "shippedAt": "2025-12-11T13:57:54.523Z"
+                },
+                {
+                  "issueKey": "TPS-132",
+                  "productAreaLabel": "",
+                  "summary": "Refactor Ember+ Northbound",
+                  "shippedAt": "2025-12-11T13:58:10.641Z"
+                },
+                {
+                  "issueKey": "TPS-111",
+                  "productAreaLabel": "TFC",
+                  "summary": "PPM Channel Configuration MV (C100/Tag)",
+                  "shippedAt": "2025-12-14T06:48:48.247Z"
+                }
+              ]
+            },
+            {
+              "team": "UNMAPPED",
+              "shippedCount": 3,
+              "ideas": [
+                {
+                  "issueKey": "TPS-290",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "HG31 - NEP AUNZJ",
+                  "shippedAt": "2025-12-11T13:37:37.668Z"
+                },
+                {
+                  "issueKey": "TPS-145",
+                  "productAreaLabel": "",
+                  "summary": "SDN Purple Network Enhancements",
+                  "shippedAt": "2025-12-11T13:48:42.555Z"
+                },
+                {
+                  "issueKey": "TPS-133",
+                  "productAreaLabel": "",
+                  "summary": "Demarc Multicast to Unicast Translation",
+                  "shippedAt": "2025-12-11T14:00:58.437Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2026-01-01",
+          "monthKey": "2026-01",
+          "totalShipped": 10,
+          "teamCount": 2,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 7,
+              "ideas": [
+                {
+                  "issueKey": "TPS-328",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ephemeral: making templates view-only",
+                  "shippedAt": "2026-01-05T12:57:26.641Z"
+                },
+                {
+                  "issueKey": "TPS-323",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ephemeral: workflow to create templates",
+                  "shippedAt": "2026-01-05T12:59:30.329Z"
+                },
+                {
+                  "issueKey": "TPS-329",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ephemeral: support bulk signal management",
+                  "shippedAt": "2026-01-05T13:00:15.301Z"
+                },
+                {
+                  "issueKey": "TPS-287",
+                  "productAreaLabel": "TFC",
+                  "summary": "Wohler iAM-MIX",
+                  "shippedAt": "2026-01-11T22:21:01.519Z"
+                },
+                {
+                  "issueKey": "TPS-312",
+                  "productAreaLabel": "TFC",
+                  "summary": "Switch Support: TFC Shift",
+                  "shippedAt": "2026-01-15T23:40:29.738Z"
+                },
+                {
+                  "issueKey": "TPS-324",
+                  "productAreaLabel": "TFC",
+                  "summary": "NMOS Support: Blackmagic IP devices",
+                  "shippedAt": "2026-01-26T06:19:44.767Z"
+                },
+                {
+                  "issueKey": "TPS-330",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ephemeral Productions: get to templates",
+                  "shippedAt": "2026-01-26T10:11:03.840Z"
+                }
+              ]
+            },
+            {
+              "team": "Broadcast",
+              "shippedCount": 3,
+              "ideas": [
+                {
+                  "issueKey": "TPS-246",
+                  "productAreaLabel": "TFC",
+                  "summary": "USCP Switch Driver Improvements",
+                  "shippedAt": "2026-01-15T23:35:51.339Z"
+                },
+                {
+                  "issueKey": "TPS-23",
+                  "productAreaLabel": "TFC",
+                  "summary": "RRCS Support intercom panel assignment",
+                  "shippedAt": "2026-01-15T23:40:57.663Z"
+                },
+                {
+                  "issueKey": "TPS-264",
+                  "productAreaLabel": "TFC",
+                  "summary": "Multiviewer Supervisor",
+                  "shippedAt": "2026-01-16T10:38:25.970Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2026-02-01",
+          "monthKey": "2026-02",
+          "totalShipped": 8,
+          "teamCount": 6,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 3,
+              "ideas": [
+                {
+                  "issueKey": "TPS-352",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ephemeral: status insights",
+                  "shippedAt": "2026-02-03T12:31:24.172Z"
+                },
+                {
+                  "issueKey": "TPS-359",
+                  "productAreaLabel": "TFC",
+                  "summary": "NMOS Support: EVS Xeebra",
+                  "shippedAt": "2026-02-10T05:03:31.392Z"
+                },
+                {
+                  "issueKey": "TPS-326",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ephemeral: ephemeral production creation",
+                  "shippedAt": "2026-02-17T19:07:14.630Z"
+                }
+              ]
+            },
+            {
+              "team": "API",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-349",
+                  "productAreaLabel": "TFC",
+                  "summary": "TFC Mothership: API",
+                  "shippedAt": "2026-02-21T19:21:09.875Z"
+                }
+              ]
+            },
+            {
+              "team": "Frontend",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-353",
+                  "productAreaLabel": "Titanium",
+                  "summary": "Titanium one-off admin UI",
+                  "shippedAt": "2026-02-02T07:36:47.349Z"
+                }
+              ]
+            },
+            {
+              "team": "Orchestration",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-347",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Bridgetech",
+                  "shippedAt": "2026-02-25T10:50:11.345Z"
+                }
+              ]
+            },
+            {
+              "team": "Titanium",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-263",
+                  "productAreaLabel": "Titanium",
+                  "summary": "Titanium Project PRD",
+                  "shippedAt": "2026-02-25T11:30:41.677Z"
+                }
+              ]
+            },
+            {
+              "team": "UNMAPPED",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-289",
+                  "productAreaLabel": "Commissioning & Support",
+                  "summary": "2026 FIFA World Cup - Paris POC",
+                  "shippedAt": "2026-02-11T01:50:00.741Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2026-03-01",
+          "monthKey": "2026-03",
+          "totalShipped": 14,
+          "teamCount": 5,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 6,
+              "ideas": [
+                {
+                  "issueKey": "TPS-348",
+                  "productAreaLabel": "TFC",
+                  "summary": "TFC Mothership: Ephemeral MVP",
+                  "shippedAt": "2026-03-03T12:09:38.656Z"
+                },
+                {
+                  "issueKey": "TPS-318",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Platform locking",
+                  "shippedAt": "2026-03-10T21:16:19.045Z"
+                },
+                {
+                  "issueKey": "TPS-367",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Installing Rivermax licenses as a part of installation of vendor software",
+                  "shippedAt": "2026-03-10T21:16:33.538Z"
+                },
+                {
+                  "issueKey": "TPS-356",
+                  "productAreaLabel": "TFC",
+                  "summary": "NMOS Support: Sony BVM",
+                  "shippedAt": "2026-03-12T03:25:02.726Z"
+                },
+                {
+                  "issueKey": "TPS-381",
+                  "productAreaLabel": "TFC",
+                  "summary": "Ephemeral/Mothership: pre-MVP feedback",
+                  "shippedAt": "2026-03-19T13:18:19.228Z"
+                },
+                {
+                  "issueKey": "TPS-370",
+                  "productAreaLabel": "TFC",
+                  "summary": "Titanium driver",
+                  "shippedAt": "2026-03-20T07:23:36.067Z"
+                }
+              ]
+            },
+            {
+              "team": "API",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-351",
+                  "productAreaLabel": "TFC",
+                  "summary": "TFC Mothership: Versioning",
+                  "shippedAt": "2026-03-19T13:19:43.626Z"
+                }
+              ]
+            },
+            {
+              "team": "Broadcast",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-185",
+                  "productAreaLabel": "TFC",
+                  "summary": "Virtual ReTX v2",
+                  "shippedAt": "2026-03-03T05:26:54.402Z"
+                },
+                {
+                  "issueKey": "TPS-218",
+                  "productAreaLabel": "TFC",
+                  "summary": "Refactor NMOS Driver to enable outsourcing",
+                  "shippedAt": "2026-03-03T06:17:21.667Z"
+                }
+              ]
+            },
+            {
+              "team": "Orchestration",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-377",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Bridgetech VB440 (Bare Metal Version)",
+                  "shippedAt": "2026-03-09T13:20:40.442Z"
+                }
+              ]
+            },
+            {
+              "team": "Titanium",
+              "shippedCount": 4,
+              "ideas": [
+                {
+                  "issueKey": "TPS-273",
+                  "productAreaLabel": "Titanium",
+                  "summary": "Media Ingest Solution MVP PRD",
+                  "shippedAt": "2026-03-23T04:41:40.322Z"
+                },
+                {
+                  "issueKey": "TPS-274",
+                  "productAreaLabel": "Titanium",
+                  "summary": "Media Rx 2110 Rivermax Module PRD",
+                  "shippedAt": "2026-03-23T04:41:52.730Z"
+                },
+                {
+                  "issueKey": "TPS-275",
+                  "productAreaLabel": "Titanium",
+                  "summary": "Media Writer Module PRD",
+                  "shippedAt": "2026-03-23T04:41:58.237Z"
+                },
+                {
+                  "issueKey": "TPS-286",
+                  "productAreaLabel": "Titanium",
+                  "summary": "Media Shared Memory Ringbuffer PRD",
+                  "shippedAt": "2026-03-23T04:42:07.355Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

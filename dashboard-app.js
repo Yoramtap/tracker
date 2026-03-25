@@ -76,6 +76,13 @@ const CHART_CONFIG = {
     containerId: "top-contributors-chart",
     missingMessage: "Contributors chart unavailable: Recharts renderer missing."
   },
+  "product-cycle-shipments": {
+    panelId: "product-cycle-shipments-panel",
+    statusId: "product-cycle-shipments-status",
+    contextId: "product-cycle-shipments-context",
+    containerId: "product-cycle-shipments-chart",
+    missingMessage: "No product cycle shipments found in product-cycle-shipments-snapshot.json."
+  },
   "product-cycle": {
     panelId: "cycle-time-to-ship-panel",
     statusId: "product-cycle-status",
@@ -102,6 +109,7 @@ const CHART_CONFIG = {
 const CHART_STATUS_IDS = [...new Set(Object.values(CHART_CONFIG).map((config) => config.statusId))];
 const PANEL_DISPLAY_ORDER = [
   "actions-required-panel",
+  "product-cycle-shipments-panel",
   "community-contributors-panel",
   "uat-acceptance-time-panel",
   "cycle-time-to-ship-panel",
@@ -131,6 +139,13 @@ const DATA_SOURCE_CONFIG = {
     errorMessage: "Failed to load product-cycle-snapshot.json",
     statusIds: ["product-cycle-status", "lifecycle-days-status"]
   },
+  productCycleShipments: {
+    stateKey: "productCycleShipments",
+    url: "./product-cycle-shipments-snapshot.json",
+    errorMessage: "Failed to load product-cycle-shipments-snapshot.json",
+    statusIds: ["product-cycle-shipments-status"],
+    clearContainers: ["product-cycle-shipments-chart"]
+  },
   contributors: {
     stateKey: "contributors",
     url: "./contributors-snapshot.json",
@@ -155,6 +170,7 @@ const CHART_DATA_SOURCES = {
   "pr-activity": ["snapshot", "prCycle"],
   "pr-activity-legacy": ["snapshot"],
   contributors: ["contributors"],
+  "product-cycle-shipments": ["productCycleShipments"],
   "product-cycle": ["productCycle"],
   "pr-cycle-experiment": ["prCycle"],
   "lifecycle-days": ["productCycle"]
@@ -166,6 +182,7 @@ const CHART_RENDERERS = {
   "pr-activity": renderPrActivityCharts,
   "pr-activity-legacy": renderLegacyPrActivityCharts,
   contributors: renderTopContributorsChart,
+  "product-cycle-shipments": renderProductCycleShipmentsTimeline,
   "product-cycle": renderLeadAndCycleTimeByTeamChart,
   "pr-cycle-experiment": renderPrCycleExperiment,
   "lifecycle-days": renderLifecycleTimeSpentPerStageChart
@@ -247,6 +264,7 @@ const state = {
   snapshot: null,
   contributors: null,
   productCycle: null,
+  productCycleShipments: null,
   prCycle: null,
   loadedSources: {},
   loadErrors: {},
@@ -258,6 +276,8 @@ const state = {
   prActivityWindow: THIRTY_DAY_WINDOW_KEY,
   prActivityLegacyMetric: "offered",
   productCycleTeam: PRODUCT_CYCLE_TEAM_DEFAULT,
+  productCycleShipmentsYear: "",
+  productCycleShipmentsMonthKey: "",
   managementFlowScope: "ongoing",
   prCycleTeam: "bc",
   prCycleWindow: THIRTY_DAY_WINDOW_KEY,
@@ -1988,6 +2008,96 @@ function renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData) {
   });
 }
 
+function getShipmentMonthsByYear(timelineSnapshot) {
+  const safeMonths = Array.isArray(timelineSnapshot?.months) ? timelineSnapshot.months : [];
+  const monthsByYear = new Map();
+  for (const month of safeMonths) {
+    const monthKey = String(month?.monthKey || "").trim();
+    const yearKey = monthKey.slice(0, 4);
+    if (!/^\d{4}$/.test(yearKey)) continue;
+    if (!monthsByYear.has(yearKey)) monthsByYear.set(yearKey, []);
+    monthsByYear.get(yearKey).push(month);
+  }
+  for (const months of monthsByYear.values()) {
+    months.sort((left, right) =>
+      String(left?.monthKey || "").localeCompare(String(right?.monthKey || ""))
+    );
+  }
+  return monthsByYear;
+}
+
+function renderProductCycleShipmentsTimeline() {
+  renderDashboardChartState("product-cycle-shipments", getConfig, ({ config }) => {
+    const timelineSnapshot = state.productCycleShipments?.chartData?.shippedTimeline;
+    const monthsByYear = getShipmentMonthsByYear(timelineSnapshot);
+    const availableYears = Array.from(monthsByYear.keys()).sort((left, right) =>
+      left.localeCompare(right)
+    );
+    if (availableYears.length === 0) {
+      return {
+        error: config.missingMessage,
+        clearContainer: true
+      };
+    }
+
+    const selectedYear = availableYears.includes(state.productCycleShipmentsYear)
+      ? state.productCycleShipmentsYear
+      : availableYears[availableYears.length - 1];
+    const monthsInYear = monthsByYear.get(selectedYear) || [];
+    const availableMonthKeys = new Set(
+      monthsInYear.map((month) => String(month?.monthKey || "").trim()).filter(Boolean)
+    );
+    const selectedMonthKey = availableMonthKeys.has(state.productCycleShipmentsMonthKey)
+      ? state.productCycleShipmentsMonthKey
+      : String(monthsInYear[monthsInYear.length - 1]?.monthKey || "").trim();
+
+    state.productCycleShipmentsYear = selectedYear;
+    state.productCycleShipmentsMonthKey = selectedMonthKey;
+
+    return {
+      contextText: formatContextWithFreshness(
+        `Shipment history • ${toCount(timelineSnapshot?.totalShipped)} shipped total • ${availableYears.join(", ")}`,
+        state.productCycleShipments?.generatedAt,
+        "generated"
+      ),
+      render: () => {
+        window.DashboardCharts?.renderProductCycleShipmentsTimeline?.({
+          containerId: config.containerId,
+          timelineSnapshot,
+          selectedYear,
+          selectedMonthKey
+        });
+        const container = document.getElementById(config.containerId);
+        if (container) {
+          container.onclick = (event) => {
+            const target = event.target instanceof Element ? event.target : null;
+            if (!target) return;
+            const yearButton = target.closest("[data-shipped-year-target]");
+            if (yearButton instanceof HTMLButtonElement && !yearButton.disabled) {
+              state.productCycleShipmentsYear =
+                String(yearButton.dataset.shippedYearTarget || "").trim() ||
+                state.productCycleShipmentsYear;
+              state.productCycleShipmentsMonthKey = "";
+              renderProductCycleShipmentsTimeline();
+              return;
+            }
+            const monthButton = target.closest("[data-shipped-month-key]");
+            if (monthButton instanceof HTMLButtonElement && !monthButton.disabled) {
+              state.productCycleShipmentsMonthKey =
+                String(monthButton.dataset.shippedMonthKey || "").trim() ||
+                state.productCycleShipmentsMonthKey;
+              renderProductCycleShipmentsTimeline();
+            }
+          };
+        }
+        return {
+          clearError: true
+        };
+      }
+    };
+  });
+}
+
 function renderLeadAndCycleTimeByTeamChart() {
   renderDashboardChartState("product-cycle", getConfig, ({ config }) => {
     const chartDataValue = state.productCycle?.chartData;
@@ -2352,6 +2462,7 @@ async function loadSnapshot() {
   setStatusMessageForIds(CHART_STATUS_IDS);
   state.snapshot = null;
   state.productCycle = null;
+  state.productCycleShipments = null;
   state.contributors = null;
   state.prCycle = null;
   state.loadedSources = {};
