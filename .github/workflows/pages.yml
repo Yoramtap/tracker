@@ -29,10 +29,8 @@ jobs:
       - name: Build static site artifact
         run: |
           mkdir -p dist
-          cp index.html backlog-snapshot.json contributors-snapshot.json product-cycle-snapshot.json product-cycle-shipments-snapshot.json dist/
-          cp dashboard-styles.css dashboard-preload.js dashboard-view-utils.js dashboard-data-utils.js dist/
-          cp dashboard-chart-core.js dashboard-charts-backlog.js dashboard-charts-delivery.js dashboard-charts-product.js dist/
-          cp dashboard-app.js agentation-local-loader.js dist/
+          cp index.html backlog-snapshot.json contributors-snapshot.json pr-cycle-snapshot.json product-cycle-snapshot.json product-cycle-shipments-snapshot.json dist/
+          cp dashboard-styles.css dashboard-view-utils.js dashboard-chart-core.js dashboard-chart-layout.js dashboard-chart-primitives.js dashboard-charts-product.js dashboard-charts-recharts.js dashboard-app.js agentation-local-loader.js dist/
           mkdir -p dist/vendor
           cp vendor/react.production.min.js vendor/react-dom.production.min.js vendor/prop-types.min.js vendor/recharts.umd.js dist/vendor/
           touch dist/.nojekyll
