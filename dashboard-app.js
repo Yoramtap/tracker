@@ -35,6 +35,23 @@ const MANAGEMENT_FLOW_SCOPES = ["ongoing", "done"];
 const LIFECYCLE_TEAM_SCOPE_DEFAULT = "all";
 const PRODUCT_CYCLE_TEAM_DEFAULT = "all";
 const DEVELOPMENT_WORKFLOW_WINDOWS = [THIRTY_DAY_WINDOW_KEY, "90d", "6m", "1y"];
+const SECTION_FILTER_DEFAULT = "all";
+const SECTION_FILTER_OPTIONS = [SECTION_FILTER_DEFAULT, "community", "product", "development", "bug"];
+const SECTION_FILTER_PANEL_IDS = {
+  [SECTION_FILTER_DEFAULT]: [],
+  product: [
+    "product-cycle-shipments-panel",
+    "uat-acceptance-time-panel",
+    "cycle-time-to-ship-panel"
+  ],
+  community: ["community-contributors-panel"],
+  development: [
+    "development-workflow-breakdown-panel",
+    "development-workflow-overview-panel",
+    "development-workflow-trends-panel"
+  ],
+  bug: ["bug-trends-panel"]
+};
 const CHART_CONFIG = {
   trend: {
     panelId: "bug-trends-panel",
@@ -194,7 +211,35 @@ function defaultBugTrendsViewForMode(mode) {
   return mode === "composition" ? "table" : BUG_TRENDS_VIEW_DEFAULT;
 }
 
+function sectionFilterKey(value) {
+  return normalizeOption(
+    String(value || "")
+      .trim()
+      .toLowerCase(),
+    SECTION_FILTER_OPTIONS,
+    SECTION_FILTER_DEFAULT
+  );
+}
+
+function isPanelVisibleForSection(panelId, sectionKey = state.sectionFilter) {
+  const activeSection = sectionFilterKey(sectionKey);
+  if (activeSection === SECTION_FILTER_DEFAULT) return true;
+  return (SECTION_FILTER_PANEL_IDS[activeSection] || []).includes(String(panelId || "").trim());
+}
+
+function renderSectionFilteredPanels() {
+  applyModeVisibility();
+  renderVisibleCharts();
+}
+
 const CONTROL_BINDINGS = [
+  {
+    name: "report-section",
+    stateKey: "sectionFilter",
+    defaultValue: SECTION_FILTER_DEFAULT,
+    normalizeValue: sectionFilterKey,
+    onChangeRender: renderSectionFilteredPanels
+  },
   {
     name: "bug-trends-view",
     stateKey: "bugTrendsView",
@@ -267,6 +312,7 @@ const state = {
   loadedSources: {},
   loadErrors: {},
   mode: "all",
+  sectionFilter: SECTION_FILTER_DEFAULT,
   bugTrendsView: BUG_TRENDS_VIEW_DEFAULT,
   prActivityHiddenKeys: [],
   prActivityLegacyHiddenKeys: [],
@@ -530,6 +576,7 @@ function applyModeVisibility() {
   const validModes = new Set(Object.keys(CHART_CONFIG));
   const selectedMode = validModes.has(state.mode) ? state.mode : "all";
   const showAll = selectedMode === "all";
+  const selectedSection = sectionFilterKey(state.sectionFilter);
   const embedMode = isEmbedMode();
   const actionsPanel = document.getElementById("actions-required-panel");
   document.body.classList.toggle("embed-mode", embedMode);
@@ -539,7 +586,7 @@ function applyModeVisibility() {
   for (const [mode, config] of Object.entries(CHART_CONFIG)) {
     const panel = document.getElementById(config.panelId);
     if (!panel) continue;
-    panel.hidden = showAll ? false : mode !== selectedMode;
+    panel.hidden = showAll ? !isPanelVisibleForSection(config.panelId, selectedSection) : mode !== selectedMode;
   }
 }
 
@@ -564,22 +611,34 @@ function renderActionsRequiredFrame() {
   statusNode.hidden = true;
   listNode.innerHTML = `
     <div class="report-intro">
-        <div class="report-intro__grid">
-          <div class="report-intro__card report-intro__card--product">
-            <span class="report-intro__eyebrow">Product</span>
-            <p class="report-intro__text">Contributors, acceptance, delivery, and workflow.</p>
-          </div>
-        <div class="report-intro__card report-intro__card--development">
-          <span class="report-intro__eyebrow">Development</span>
-          <p class="report-intro__text">Breakdown, trends, and overview.</p>
-        </div>
-        <div class="report-intro__card report-intro__card--bug">
-          <span class="report-intro__eyebrow">Bug</span>
-          <p class="report-intro__text">Trends and current pressure by team.</p>
-        </div>
-      </div>
+        <p class="report-intro__helper">Choose a section to focus the dashboard.</p>
+        <fieldset class="report-intro__grid" aria-label="Report section filter">
+          <legend class="sr-only">Report section filter</legend>
+          <label class="report-intro__card report-intro__card--all">
+            <input type="radio" name="report-section" value="all" checked />
+            <span class="report-intro__title">All</span>
+          </label>
+          <label class="report-intro__card report-intro__card--community">
+            <input type="radio" name="report-section" value="community" />
+            <span class="report-intro__title">Community</span>
+          </label>
+          <label class="report-intro__card report-intro__card--product">
+            <input type="radio" name="report-section" value="product" />
+            <span class="report-intro__title">Product</span>
+          </label>
+          <label class="report-intro__card report-intro__card--development">
+            <input type="radio" name="report-section" value="development" />
+            <span class="report-intro__title">Development</span>
+          </label>
+          <label class="report-intro__card report-intro__card--bug">
+            <input type="radio" name="report-section" value="bug" />
+            <span class="report-intro__title">Bugs</span>
+          </label>
+      </fieldset>
     </div>
   `;
+  syncDashboardControlsFromState(CONTROL_BINDINGS, state);
+  bindDashboardControlState(CONTROL_BINDINGS, state);
 }
 
 function getBroadcastScopeLabel() {
@@ -2435,7 +2494,9 @@ function queueReadyChartsForSource(sourceKey) {
 }
 
 function isChartActive(mode) {
-  return state.mode === "all" || state.mode === mode;
+  if (state.mode !== "all") return state.mode === mode;
+  const config = CHART_CONFIG[mode];
+  return isPanelVisibleForSection(config?.panelId, state.sectionFilter);
 }
 
 function isChartReady(mode) {
