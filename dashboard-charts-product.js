@@ -1315,6 +1315,54 @@
   function renderPrCycleExperimentCard(containerId, team, snapshot) {
     if (!team) return;
     const compactViewport = isCompactViewport();
+    const isAllTeamsView =
+      String(team?.key || "").trim().toLowerCase() === "all" && Array.isArray(team?.teamRows);
+    if (isAllTeamsView) {
+      const teamRows = Array.isArray(team?.teamRows) ? team.teamRows : [];
+      const maxDays =
+        teamRows.reduce((highest, row) => Math.max(highest, toNumber(row?.totalCycleDays)), 0) || 1;
+      const rowsMarkup = teamRows
+        .map((row) => {
+          const width = Math.max(12, Math.round((toNumber(row?.totalCycleDays) / maxDays) * 100));
+          const sampleCount = toCount(row?.issueCount);
+          return buildRowMarkup({
+            stage: String(row?.key || ""),
+            label: normalizeDisplayTeamName(row?.label || ""),
+            sampleMarkup: sampleCount > 0 ? `n=${sampleCount}` : "n=0",
+            width,
+            valueMarkup: formatStackedCycleDaysValueMarkup(row?.totalCycleDays),
+            fillStyle: `background:${escapeHtml(getPrCycleTeamColor(row?.key))}`
+          });
+        })
+        .join("");
+      const issueCount = toNumber(team?.issueCount);
+      const footerPrimary =
+        issueCount > 0
+          ? compactViewport
+            ? `${issueCount} sampled`
+            : `${issueCount} issues sampled`
+          : compactViewport
+            ? "No samples"
+            : "No sampled issues";
+      const footerSecondary = String(snapshot?.windowLabel || "").trim();
+      renderProductCycleCard(containerId, {
+        className: "workflow-breakdown-card",
+        teamKey: "all",
+        teamColor: getPrCycleTeamColor("all"),
+        headerMarkup: `
+          <div class="pr-cycle-stage-card__team">All teams</div>
+          <div class="pr-cycle-stage-card__submeta">Progress + Review + QA totals</div>
+        `,
+        rowsMarkup,
+        footerMarkup: `
+          <div class="pr-cycle-stage-card__footer">
+            <span><strong>${escapeHtml(footerPrimary)}</strong>${footerSecondary ? ` • ${escapeHtml(footerSecondary)}` : ""}</span>
+            <span>Sorted: <strong>Fastest to slowest</strong></span>
+          </div>
+        `
+      });
+      return;
+    }
     const stages = Array.isArray(team?.stages) ? team.stages : [];
     const teamColor = getPrCycleTeamColor(team?.key);
     const maxDays =

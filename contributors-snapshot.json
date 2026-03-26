@@ -1,9 +1,9 @@
 {
-  "updatedAt": "2026-03-24T22:35:02.697Z",
+  "updatedAt": "2026-03-25T17:43:24.509Z",
   "summary": {
     "total_issues": 25,
-    "active_issues": 5,
-    "done_issues": 20,
+    "active_issues": 3,
+    "done_issues": 22,
     "total_contributors": 6,
     "linked_issues": 19
   },
@@ -18,8 +18,8 @@
       {
         "contributor": "Tesoro Fedel",
         "totalIssues": 6,
-        "doneIssues": 4,
-        "activeIssues": 2
+        "doneIssues": 6,
+        "activeIssues": 0
       },
       {
         "contributor": "Mitchell Kalika",

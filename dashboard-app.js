@@ -23,6 +23,7 @@ const PR_ACTIVITY_REVIEW_SPLIT = 7;
 const PR_ACTIVITY_REVIEW_AXIS_UPPER = 30;
 const PR_ACTIVITY_REVIEW_AXIS_STEP = 5;
 const THIRTY_DAY_WINDOW_KEY = "30d";
+const ALL_TEAM_SCOPE_KEY = "all";
 const PR_CYCLE_WINDOWS = [THIRTY_DAY_WINDOW_KEY, "90d", "6m", "1y"];
 const PR_ACTIVITY_WINDOWS = [THIRTY_DAY_WINDOW_KEY, "90d", "6m", "1y"];
 const MANAGEMENT_FLOW_SCOPES = ["ongoing", "done"];
@@ -211,11 +212,11 @@ const CONTROL_BINDINGS = [
   {
     name: "pr-cycle-team",
     stateKey: "prCycleTeam",
-    defaultValue: "bc",
+    defaultValue: ALL_TEAM_SCOPE_KEY,
     normalizeValue: (value) =>
       String(value || "")
         .trim()
-        .toLowerCase() || "bc",
+        .toLowerCase() || ALL_TEAM_SCOPE_KEY,
     onChangeRender: renderPrCycleExperiment
   },
   {
@@ -279,7 +280,7 @@ const state = {
   productCycleShipmentsYear: "",
   productCycleShipmentsMonthKey: "",
   managementFlowScope: "ongoing",
-  prCycleTeam: "bc",
+  prCycleTeam: ALL_TEAM_SCOPE_KEY,
   prCycleWindow: THIRTY_DAY_WINDOW_KEY,
   lifecycleTeamScope: LIFECYCLE_TEAM_SCOPE_DEFAULT
 };
@@ -779,6 +780,42 @@ function getPrCycleStageMetric(teamSnapshot, stageKey) {
           .toLowerCase() === String(stageKey || "").trim().toLowerCase()
     ) || null
   );
+}
+
+function buildPrCycleAllTeamsMetric(windowSnapshot) {
+  const teams = Array.isArray(windowSnapshot?.teams) ? windowSnapshot.teams : [];
+  const teamRows = teams
+    .map((team) => {
+      const key = String(team?.key || "")
+        .trim()
+        .toLowerCase();
+      const label = String(team?.label || "").trim();
+      const stageDays = Array.isArray(team?.stages)
+        ? team.stages.reduce((sum, stage) => sum + toNumber(stage?.days), 0)
+        : 0;
+      const totalCycleDays = Number(
+        (Number.isFinite(toNumber(team?.totalCycleDays)) ? toNumber(team?.totalCycleDays) : stageDays).toFixed(1)
+      );
+      return {
+        key,
+        label,
+        issueCount: toCount(team?.issueCount || team?.pullRequestCount),
+        totalCycleDays
+      };
+    })
+    .filter((team) => team.key && team.label)
+    .sort((left, right) => {
+      if (left.totalCycleDays !== right.totalCycleDays) {
+        return left.totalCycleDays - right.totalCycleDays;
+      }
+      return left.label.localeCompare(right.label);
+    });
+  return {
+    key: ALL_TEAM_SCOPE_KEY,
+    label: "All teams",
+    issueCount: teamRows.reduce((sum, team) => sum + toCount(team?.issueCount), 0),
+    teamRows
+  };
 }
 
 function buildPrActivityScatterSeries(points, selectedWindowKey, prCycleWindowSnapshot) {
@@ -2185,27 +2222,29 @@ function renderPrCycleExperiment() {
       return;
     }
 
-    const availableKeys = teams.map((team) =>
-      String(team?.key || "")
-        .trim()
-        .toLowerCase()
-    );
+    const availableKeys = [
+      ALL_TEAM_SCOPE_KEY,
+      ...teams.map((team) =>
+        String(team?.key || "")
+          .trim()
+          .toLowerCase()
+      )
+    ];
     syncRadioAvailability("pr-cycle-window", effectiveWindowKeys);
     syncRadioAvailability("pr-cycle-team", availableKeys);
-    const fallbackTeamKey =
-      String(state.prCycle?.defaultTeam || "")
-        .trim()
-        .toLowerCase() || availableKeys[0];
+    const fallbackTeamKey = ALL_TEAM_SCOPE_KEY;
     const selectedKey = availableKeys.includes(state.prCycleTeam)
       ? state.prCycleTeam
       : fallbackTeamKey;
     const selectedTeam =
-      teams.find(
-        (team) =>
-          String(team?.key || "")
-            .trim()
-            .toLowerCase() === selectedKey
-      ) || teams[0];
+      selectedKey === ALL_TEAM_SCOPE_KEY
+        ? buildPrCycleAllTeamsMetric(selectedWindowSnapshot)
+        : teams.find(
+            (team) =>
+              String(team?.key || "")
+                .trim()
+                .toLowerCase() === selectedKey
+          ) || teams[0];
 
     state.prCycleTeam = selectedKey;
     state.developmentWorkflowWindow = selectedWindowKey;
