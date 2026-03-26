@@ -35,10 +35,18 @@ const MANAGEMENT_FLOW_SCOPES = ["ongoing", "done"];
 const LIFECYCLE_TEAM_SCOPE_DEFAULT = "all";
 const PRODUCT_CYCLE_TEAM_DEFAULT = "all";
 const DEVELOPMENT_WORKFLOW_WINDOWS = [THIRTY_DAY_WINDOW_KEY, "90d", "6m", "1y"];
-const SECTION_FILTER_DEFAULT = "all";
-const SECTION_FILTER_OPTIONS = [SECTION_FILTER_DEFAULT, "community", "product", "development", "bug"];
+const SECTION_FILTER_ALL = "all";
+const SECTION_FILTER_DEFAULT = "community";
+const SECTION_FILTER_ITEMS = [
+  { value: "community", label: "Community" },
+  { value: "product", label: "Product" },
+  { value: "development", label: "Development" },
+  { value: "bug", label: "Bugs" },
+  { value: SECTION_FILTER_ALL, label: "All" }
+];
+const SECTION_FILTER_OPTIONS = SECTION_FILTER_ITEMS.map(({ value }) => value);
 const SECTION_FILTER_PANEL_IDS = {
-  [SECTION_FILTER_DEFAULT]: [],
+  [SECTION_FILTER_ALL]: [],
   product: [
     "product-cycle-shipments-panel",
     "uat-acceptance-time-panel",
@@ -223,13 +231,26 @@ function sectionFilterKey(value) {
 
 function isPanelVisibleForSection(panelId, sectionKey = state.sectionFilter) {
   const activeSection = sectionFilterKey(sectionKey);
-  if (activeSection === SECTION_FILTER_DEFAULT) return true;
+  if (activeSection === SECTION_FILTER_ALL) return true;
   return (SECTION_FILTER_PANEL_IDS[activeSection] || []).includes(String(panelId || "").trim());
 }
 
 function renderSectionFilteredPanels() {
   applyModeVisibility();
   renderVisibleCharts();
+}
+
+function renderSectionFilterRadios(name = "report-section", selectedValue = state.sectionFilter) {
+  return SECTION_FILTER_ITEMS.map(
+    ({ value, label }) => `
+          <label class="report-intro__card report-intro__card--${escapeHtml(value)}">
+            <input type="radio" name="${escapeHtml(name)}" value="${escapeHtml(value)}"${
+              value === selectedValue ? " checked" : ""
+            } />
+            <span class="report-intro__title">${escapeHtml(label)}</span>
+          </label>
+        `
+  ).join("");
 }
 
 const CONTROL_BINDINGS = [
@@ -614,26 +635,7 @@ function renderActionsRequiredFrame() {
         <p class="report-intro__helper">Choose a section to focus the dashboard.</p>
         <fieldset class="report-intro__grid" aria-label="Report section filter">
           <legend class="sr-only">Report section filter</legend>
-          <label class="report-intro__card report-intro__card--all">
-            <input type="radio" name="report-section" value="all" checked />
-            <span class="report-intro__title">All</span>
-          </label>
-          <label class="report-intro__card report-intro__card--community">
-            <input type="radio" name="report-section" value="community" />
-            <span class="report-intro__title">Community</span>
-          </label>
-          <label class="report-intro__card report-intro__card--product">
-            <input type="radio" name="report-section" value="product" />
-            <span class="report-intro__title">Product</span>
-          </label>
-          <label class="report-intro__card report-intro__card--development">
-            <input type="radio" name="report-section" value="development" />
-            <span class="report-intro__title">Development</span>
-          </label>
-          <label class="report-intro__card report-intro__card--bug">
-            <input type="radio" name="report-section" value="bug" />
-            <span class="report-intro__title">Bugs</span>
-          </label>
+          ${renderSectionFilterRadios("report-section", state.sectionFilter)}
       </fieldset>
     </div>
   `;
