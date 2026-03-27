@@ -48,7 +48,7 @@
     if (!Number.isFinite(timestamp) || timestamp <= 0) return "";
     return new Date(timestamp).toLocaleDateString("en-US", {
       month: "short",
-      year: "2-digit",
+      day: "numeric",
       timeZone: "UTC"
     });
   }
@@ -598,7 +598,7 @@
               fontWeight: 700,
               textAnchor: "middle"
             },
-            "Sprint"
+            "Sprint start date"
           )
         )
       )
