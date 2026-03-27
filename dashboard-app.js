@@ -39,6 +39,7 @@ const SECTION_FILTER_ALL = "all";
 const SECTION_FILTER_DEFAULT = "community";
 const SECTION_FILTER_ITEMS = [
   { value: "community", label: "Community" },
+  { value: "shipped", label: "Shipped" },
   { value: "product", label: "Product" },
   { value: "development", label: "Development" },
   { value: "bug", label: "Bugs" },
@@ -47,11 +48,8 @@ const SECTION_FILTER_ITEMS = [
 const SECTION_FILTER_OPTIONS = SECTION_FILTER_ITEMS.map(({ value }) => value);
 const SECTION_FILTER_PANEL_IDS = {
   [SECTION_FILTER_ALL]: [],
-  product: [
-    "product-cycle-shipments-panel",
-    "uat-acceptance-time-panel",
-    "cycle-time-to-ship-panel"
-  ],
+  shipped: ["product-cycle-shipments-panel"],
+  product: ["uat-acceptance-time-panel", "cycle-time-to-ship-panel"],
   community: ["community-contributors-panel"],
   development: [
     "development-workflow-breakdown-panel",
@@ -240,6 +238,19 @@ function renderSectionFilteredPanels() {
   renderVisibleCharts();
 }
 
+function renderSectionFilterIcon(value) {
+  const icons = {
+    community: "./assets/icons/community-2190176.png",
+    shipped: "./assets/icons/done-1397588.png",
+    product: "./assets/icons/insight-7776748.png",
+    development: "./assets/icons/insight-7776748.png",
+    bug: "./assets/icons/bug-8291257.png"
+  };
+  const src = icons[String(value || "").trim()];
+  if (!src) return "";
+  return `<span class="report-intro__icon" aria-hidden="true"><img class="report-intro__icon-image" src="${escapeHtml(src)}" alt="" /></span>`;
+}
+
 function renderSectionFilterRadios(name = "report-section", selectedValue = state.sectionFilter) {
   return SECTION_FILTER_ITEMS.map(
     ({ value, label }) => `
@@ -247,7 +258,10 @@ function renderSectionFilterRadios(name = "report-section", selectedValue = stat
             <input type="radio" name="${escapeHtml(name)}" value="${escapeHtml(value)}"${
               value === selectedValue ? " checked" : ""
             } />
-            <span class="report-intro__title">${escapeHtml(label)}</span>
+            <span class="report-intro__label">
+              ${renderSectionFilterIcon(value)}
+              <span class="report-intro__title">${escapeHtml(label)}</span>
+            </span>
           </label>
         `
   ).join("");
@@ -632,7 +646,6 @@ function renderActionsRequiredFrame() {
   statusNode.hidden = true;
   listNode.innerHTML = `
     <div class="report-intro">
-        <p class="report-intro__helper">Choose a section to focus the dashboard.</p>
         <fieldset class="report-intro__grid" aria-label="Report section filter">
           <legend class="sr-only">Report section filter</legend>
           ${renderSectionFilterRadios("report-section", state.sectionFilter)}
