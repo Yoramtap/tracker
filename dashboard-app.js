@@ -242,8 +242,8 @@ function renderSectionFilterIcon(value) {
   const icons = {
     community: "./assets/icons/community-2190176.png",
     shipped: "./assets/icons/done-1397588.png",
-    product: "./assets/icons/insight-7776748.png",
-    development: "./assets/icons/insight-7776748.png",
+    product: "./assets/icons/chart-3735080.png",
+    development: "./assets/icons/chart-3735080.png",
     bug: "./assets/icons/bug-8291257.png"
   };
   const src = icons[String(value || "").trim()];
