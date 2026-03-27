@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-03-25T19:54:33.367Z",
+  "generatedAt": "2026-03-27T09:55:02.492Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-03-01",
-      "totalShipped": 162,
+      "totalShipped": 163,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -1387,8 +1387,8 @@
         {
           "monthStart": "2026-03-01",
           "monthKey": "2026-03",
-          "totalShipped": 14,
-          "teamCount": 5,
+          "totalShipped": 15,
+          "teamCount": 6,
           "teams": [
             {
               "team": "Multi team",
@@ -1441,6 +1441,18 @@
                   "productAreaLabel": "TFC",
                   "summary": "TFC Mothership: Versioning",
                   "shippedAt": "2026-03-19T13:19:43.626Z"
+                }
+              ]
+            },
+            {
+              "team": "Frontend",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-384",
+                  "productAreaLabel": "TFC",
+                  "summary": "UI Porting: Multiviewer",
+                  "shippedAt": "2026-03-26T09:13:30.171Z"
                 }
               ]
             },

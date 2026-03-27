@@ -117,6 +117,14 @@
     return `https://nepgroup.atlassian.net/browse/${encodeURIComponent(safeIssueKey)}`;
   }
 
+  function buildJiraSearchUrl(jiraBase, jql) {
+    const safeJql = String(jql || "").trim();
+    if (!safeJql) return "";
+    const url = new URL("/issues/", String(jiraBase || "https://nepgroup.atlassian.net").trim());
+    url.searchParams.set("jql", safeJql);
+    return url.toString();
+  }
+
   function getPrCycleStageDisplayLabel(stage) {
     const key = String(stage?.key || "").trim();
     if (key === "coding") return "Progress";
@@ -611,7 +619,10 @@
   function buildBugTeamSearchUrl(teamKey) {
     const jql = TEAM_BUG_JQL[String(teamKey || "").trim().toLowerCase()];
     if (!jql) return "";
-    return `https://nepgroup.atlassian.net/issues/?jql=${encodeURIComponent(`${jql} ORDER BY priority DESC, updated DESC`)}`;
+    return buildJiraSearchUrl(
+      "https://nepgroup.atlassian.net",
+      `${jql} ORDER BY priority DESC, updated DESC`
+    );
   }
 
   function getPriorityShare(row, priorityKey) {
@@ -1103,9 +1114,10 @@
                         href:
                           issueKeys.length === 0
                             ? ""
-                            : `${jiraRoot}/issues/?jql=${encodeURIComponent(
-                                `issueKey in (${issueKeys.join(", ")}) ORDER BY updated DESC`
-                              )}`,
+                            : buildJiraSearchUrl(
+                                jiraRoot,
+                                `issueKey in (${issueKeys.join(",")}) ORDER BY updated DESC`
+                              ),
                         target: "_blank",
                         rel: "noopener noreferrer",
                         "aria-label": `Open ${String(row?.label || "")} Jira issues in new tab`,
