@@ -16,12 +16,6 @@ const PRODUCT_CYCLE_TEAM_ORDER = [
   "shift",
   "unmapped"
 ];
-const PR_ACTIVITY_INFLOW_SPLIT = 15;
-const PR_ACTIVITY_INFLOW_AXIS_MIN_UPPER = 30;
-const PR_ACTIVITY_INFLOW_AXIS_STEP = 5;
-const PR_ACTIVITY_REVIEW_SPLIT = 7;
-const PR_ACTIVITY_REVIEW_AXIS_UPPER = 30;
-const PR_ACTIVITY_REVIEW_AXIS_STEP = 5;
 const THIRTY_DAY_WINDOW_KEY = "30d";
 const ALL_TEAM_SCOPE_KEY = "all";
 const ALL_TEAMS_LABEL = "All teams";
@@ -29,7 +23,6 @@ const BUG_TRENDS_VIEW_DEFAULT = "graph";
 const BUG_TRENDS_VIEW_MODES = [BUG_TRENDS_VIEW_DEFAULT, "table"];
 const PRODUCT_DELIVERY_WORKFLOW_VIEW_DEFAULT = "delivery";
 const PRODUCT_DELIVERY_WORKFLOW_VIEW_MODES = [PRODUCT_DELIVERY_WORKFLOW_VIEW_DEFAULT, "workflow"];
-const PR_ACTIVITY_WINDOWS = [THIRTY_DAY_WINDOW_KEY, "90d", "6m", "1y"];
 const MANAGEMENT_FLOW_SCOPES = ["ongoing", "done"];
 const LIFECYCLE_TEAM_SCOPE_DEFAULT = "all";
 const PRODUCT_CYCLE_TEAM_DEFAULT = "all";
@@ -456,11 +449,6 @@ const PR_ACTIVITY_REFERENCE_MARKERS = [
   { date: "2025-09-01", label: "IBC" },
   { date: "2026-01-01", label: "Codex" }
 ];
-const chartMonthRangeShortFormatter = new Intl.DateTimeFormat(undefined, {
-  month: "short",
-  year: "numeric",
-  timeZone: "UTC"
-});
 function toChartDateValue(dateText) {
   const timestamp = new Date(`${String(dateText || "")}T00:00:00Z`).getTime();
   return Number.isFinite(timestamp) ? timestamp : 0;
@@ -473,16 +461,6 @@ function formatCompactChartDateTick(value) {
     year: "2-digit",
     timeZone: "UTC"
   });
-}
-
-function normalizePrActivityInterval(interval) {
-  const safeInterval = String(interval || "").trim().toLowerCase();
-  return safeInterval === "sprint" ? "sprint" : "month";
-}
-
-function prActivityInflowLabel(interval, { short = false } = {}) {
-  const unit = normalizePrActivityInterval(interval) === "sprint" ? "sprint" : "month";
-  return short ? `Avg. PR inflow per ${unit}` : `Avg PR inflow per ${unit}`;
 }
 
 function shiftChartIsoDate(dateText, deltaDays) {
@@ -589,14 +567,6 @@ function getPrActivityWindowedPoints(points, selectedWindowKey) {
     windowKey: selectedWindowKey,
     windowLabel: getPrActivityWindowLabel(selectedWindowKey)
   };
-}
-
-function formatPrActivityScopeLabel(startDateText, endDateText, windowKey) {
-  const startValue = toChartDateValue(startDateText);
-  const endValue = toChartDateValue(endDateText);
-  const prefix = `${getPrActivityWindowLabel(windowKey)} avg`;
-  if (!startValue || !endValue) return prefix;
-  return `${prefix} • ${chartMonthRangeShortFormatter.format(new Date(startValue))} to ${chartMonthRangeShortFormatter.format(new Date(endValue))}`;
 }
 
 function normalizeOption(value, options, fallback) {
@@ -749,31 +719,6 @@ function renderBugTrendsPanel() {
       );
     }
   }));
-}
-
-function setPrActivityHelpDetails({ since = "", until = "", caveat = "", interval = "" } = {}) {
-  const metaNode = document.getElementById("pr-activity-help-meta");
-  const noteNode = document.getElementById("pr-activity-help-note");
-  const safeSince = String(since || "").trim();
-  const safeUntil = String(until || "").trim();
-  const safeCaveat = String(caveat || "").trim();
-  const unitLabel = normalizePrActivityInterval(interval) === "sprint" ? "sprints" : "months";
-
-  if (metaNode) {
-    const rangeText =
-      safeSince && safeUntil
-        ? `Current view averages ${unitLabel} from ${safeSince} to ${safeUntil}.`
-        : safeSince
-          ? `Current view averages ${unitLabel} starting on ${safeSince}.`
-          : "";
-    metaNode.hidden = rangeText.length === 0;
-    metaNode.textContent = rangeText;
-  }
-
-  if (noteNode) {
-    noteNode.hidden = safeCaveat.length === 0;
-    noteNode.textContent = safeCaveat;
-  }
 }
 
 function monthBucketDate(isoDate) {
@@ -935,380 +880,6 @@ function buildPrActivityAverageInflowByTeam(points, prCycleWindowSnapshot) {
         )
       ];
     }).filter(Boolean)
-  );
-}
-
-function buildPrActivityScatterSeries(points, selectedWindowKey, prCycleWindowSnapshot) {
-  const safePoints = Array.isArray(points) ? points : [];
-  const periodStart =
-    safePoints.length > 0 ? getPrActivityDisplayDate(safePoints[0]?.date || "") : "";
-  const periodEnd =
-    safePoints.length > 0
-      ? getPrActivityDisplayDate(safePoints[safePoints.length - 1]?.date || "")
-      : "";
-  return PR_ACTIVITY_LINE_DEFS.map((lineDef) => {
-    const values = safePoints
-      .map((point) => {
-        const teamMetrics =
-          point && typeof point === "object" && point[lineDef.dataKey] && typeof point[lineDef.dataKey] === "object"
-            ? point[lineDef.dataKey]
-            : null;
-        return teamMetrics ? { ...teamMetrics } : null;
-      })
-      .filter(Boolean);
-    if (values.length === 0) return null;
-    const averageInflow =
-      values.reduce((sum, value) => sum + toNumber(value?.offered), 0) / Math.max(1, values.length);
-    const teamSnapshot = getPrCycleTeamMetric(prCycleWindowSnapshot, lineDef.dataKey);
-    if (!teamSnapshot) return null;
-    const reviewStage = getPrCycleStageMetric(teamSnapshot, "review");
-    const qaStage = getPrCycleStageMetric(teamSnapshot, "merge");
-    const reviewDays = toNumber(reviewStage?.days);
-    const qaDays = toNumber(qaStage?.days);
-    const reviewSampleCount = toCount(reviewStage?.sampleCount);
-    const qaSampleCount = toCount(qaStage?.sampleCount);
-    const workflowSampleCount = toCount(teamSnapshot?.issueCount);
-    if (reviewSampleCount <= 0 && qaSampleCount <= 0) return null;
-    const averageRow = {
-      teamKey: lineDef.dataKey,
-      teamLabel: lineDef.name,
-      teamColorKey: lineDef.colorKey,
-      x: Number(averageInflow.toFixed(1)),
-      y: Number((reviewDays + qaDays).toFixed(1)),
-      workflowSampleCount,
-      reviewSampleCount,
-      qaSampleCount,
-      reviewDays: Number(reviewDays.toFixed(1)),
-      qaDays: Number(qaDays.toFixed(1)),
-      tooltipScopeLabel: formatPrActivityScopeLabel(periodStart, periodEnd, selectedWindowKey)
-    };
-    return {
-      ...lineDef,
-      rows: [averageRow],
-      latest: averageRow
-    };
-  }).filter(Boolean);
-}
-
-function formatWholeCountLabel(value) {
-  return String(Math.max(0, Math.round(toNumber(value))));
-}
-
-function formatMergeTimeLabel(value) {
-  const roundedDays = Math.max(0, Math.round(toNumber(value)));
-  return roundedDays === 1 ? "1 day" : `${roundedDays} days`;
-}
-
-function buildPrActivityReviewAxis() {
-  const ticks = [];
-  for (let value = 0; value <= PR_ACTIVITY_REVIEW_AXIS_UPPER; value += PR_ACTIVITY_REVIEW_AXIS_STEP) {
-    ticks.push(value);
-  }
-  return { upper: PR_ACTIVITY_REVIEW_AXIS_UPPER, ticks };
-}
-
-function buildPrActivityInflowAxis(rows) {
-  const maxInflow = (Array.isArray(rows) ? rows : []).reduce(
-    (highest, row) => Math.max(highest, toNumber(row?.x)),
-    0
-  );
-  const upper = Math.max(
-    PR_ACTIVITY_INFLOW_AXIS_MIN_UPPER,
-    Math.ceil(maxInflow / PR_ACTIVITY_INFLOW_AXIS_STEP) * PR_ACTIVITY_INFLOW_AXIS_STEP
-  );
-  const ticks = [];
-  for (let value = 0; value <= upper; value += PR_ACTIVITY_INFLOW_AXIS_STEP) ticks.push(value);
-  return { upper, ticks };
-}
-
-function buildPrActivityAxisRowsForAllWindows(allPoints, prCycleWindows) {
-  const safePoints = Array.isArray(allPoints) ? allPoints : [];
-  const safeWindows = prCycleWindows && typeof prCycleWindows === "object" ? prCycleWindows : {};
-  return PR_ACTIVITY_WINDOWS.flatMap((windowKey) => {
-    const windowSnapshot = safeWindows[windowKey];
-    if (!windowSnapshot) return [];
-    const { points } = getPrActivityWindowedPoints(safePoints, windowKey);
-    return buildPrActivityScatterSeries(points, windowKey, windowSnapshot).flatMap((item) => item.rows);
-  });
-}
-
-function getSharedPrActivityHiddenKeys() {
-  return new Set(Array.isArray(state.prActivityHiddenKeys) ? state.prActivityHiddenKeys : []);
-}
-
-function setSharedPrActivityHiddenKeys(updater) {
-  const previous = getSharedPrActivityHiddenKeys();
-  const nextValue = typeof updater === "function" ? updater(previous) : updater;
-  const nextSet = nextValue instanceof Set ? nextValue : new Set(nextValue || []);
-  state.prActivityHiddenKeys = Array.from(nextSet);
-  renderPrActivityCharts();
-}
-
-function PrActivityScatterView({ series, colors, hiddenKeys, setHiddenKeys, interval, axisRows }) {
-  const compactViewport = isCompactViewport();
-  const visibleSeries = series.filter((item) => !hiddenKeys.has(item.dataKey));
-  const fixedAxisRows =
-    Array.isArray(axisRows) && axisRows.length > 0
-      ? axisRows
-      : visibleSeries.flatMap((item) => item.rows);
-  const inflowAxisLabel = prActivityInflowLabel(interval);
-  const inflowTooltipLabel = prActivityInflowLabel(interval, { short: true });
-  const xAxis = buildPrActivityInflowAxis(fixedAxisRows);
-  const yAxis = buildPrActivityReviewAxis();
-  const width = 960;
-  const height = compactViewport ? 340 : 460;
-  const margin = compactViewport
-    ? { top: 18, right: 18, bottom: 54, left: 48 }
-    : { top: 28, right: 88, bottom: 68, left: 62 };
-  const plotLeft = margin.left;
-  const plotRight = width - margin.right;
-  const plotTop = margin.top;
-  const plotBottom = height - margin.bottom;
-  const splitX = PR_ACTIVITY_INFLOW_SPLIT;
-  const splitY = PR_ACTIVITY_REVIEW_SPLIT;
-  const [tooltipContent, setTooltipContent] = React.useState(null);
-
-  const pointRows = visibleSeries.flatMap((item) =>
-    item.rows.map((row) => ({
-      ...row,
-      dataKey: item.dataKey,
-      stroke: item.stroke,
-      xPos: linearScale(toNumber(row?.x), 0, xAxis.upper, plotLeft, plotRight),
-      yPos: linearScale(toNumber(row?.y), 0, yAxis.upper, plotBottom, plotTop)
-    }))
-  );
-
-  const showTooltip = (point) => {
-    setTooltipContent(
-      h(
-        "div",
-        null,
-        h("p", null, h("strong", null, point?.teamLabel || "")),
-        h("p", null, h("strong", null, point?.tooltipScopeLabel || "All-time avg")),
-        h("p", null, `${inflowTooltipLabel}: ${formatWholeCountLabel(point?.x)}`),
-        h("p", null, `Avg. review + QA stage time: ${formatMergeTimeLabel(point?.y)}`),
-        h("p", null, `Review sample: ${formatWholeCountLabel(point?.reviewSampleCount)} tickets`),
-        h("p", null, `QA sample: ${formatWholeCountLabel(point?.qaSampleCount)} tickets`),
-        h("p", null, `Workflow sample: ${formatWholeCountLabel(point?.workflowSampleCount)} issues`)
-      )
-    );
-  };
-
-  const quadrantRects = [
-    { key: "few-long", x1: 0, x2: splitX, y1: splitY, y2: yAxis.upper, fill: "rgba(128, 148, 175, 0.12)" },
-    { key: "many-long", x1: splitX, x2: xAxis.upper, y1: splitY, y2: yAxis.upper, fill: "rgba(207, 170, 120, 0.12)" },
-    { key: "few-short", x1: 0, x2: splitX, y1: 0, y2: splitY, fill: "rgba(111, 160, 153, 0.12)" },
-    { key: "many-short", x1: splitX, x2: xAxis.upper, y1: 0, y2: splitY, fill: "rgba(104, 171, 121, 0.14)" }
-  ];
-
-  return h(
-    "div",
-    { className: "chart-series-shell chart-series-shell--feature" },
-    h(
-      "div",
-      { className: "svg-chart-legend", role: "group", "aria-label": `${inflowTooltipLabel} line toggles` },
-      ...getPrActivityLineDefs(colors).map((lineDef) => {
-        const hidden = hiddenKeys.has(lineDef.dataKey);
-        return h(
-          "button",
-          {
-            key: `pr-activity-legend-${lineDef.dataKey}`,
-            type: "button",
-            className: `svg-chart-legend__button${hidden ? " svg-chart-legend__button--off" : ""}`,
-            style: compactViewport ? { minHeight: "34px", padding: "6px 8px" } : undefined,
-            onClick: () =>
-              setHiddenKeys((previous) => {
-                const next = new Set(previous);
-                if (next.has(lineDef.dataKey)) next.delete(lineDef.dataKey);
-                else next.add(lineDef.dataKey);
-                return next;
-              }),
-            "aria-pressed": hidden ? "false" : "true"
-          },
-          h("span", {
-            className: "svg-chart-legend__swatch",
-            style: { background: hidden ? withAlpha(lineDef.stroke, 0.28) : lineDef.stroke }
-          }),
-          h("span", { className: "svg-chart-legend__label" }, lineDef.name)
-        );
-      })
-    ),
-    h(
-      SvgChartShell,
-      { width, height, colors, tooltipContent, legendItems: [] },
-      h(
-        "g",
-        null,
-        ...quadrantRects.map((rect) =>
-          h("rect", {
-            key: rect.key,
-            x: linearScale(rect.x1, 0, xAxis.upper, plotLeft, plotRight),
-            y: linearScale(rect.y2, 0, yAxis.upper, plotBottom, plotTop),
-            width:
-              linearScale(rect.x2, 0, xAxis.upper, plotLeft, plotRight) -
-              linearScale(rect.x1, 0, xAxis.upper, plotLeft, plotRight),
-            height:
-              linearScale(rect.y1, 0, yAxis.upper, plotBottom, plotTop) -
-              linearScale(rect.y2, 0, yAxis.upper, plotBottom, plotTop),
-            fill: rect.fill
-          })
-        ),
-        ...yAxis.ticks.map((tick) => {
-          const y = linearScale(tick, 0, yAxis.upper, plotBottom, plotTop);
-          return h(
-            "g",
-            { key: `pr-scatter-y-${tick}` },
-            h("line", {
-              x1: plotLeft,
-              x2: plotRight,
-              y1: y,
-              y2: y,
-              stroke: colors.grid,
-              strokeWidth: tick === 0 ? 1.2 : 1
-            }),
-            h(
-              "text",
-              {
-                x: plotLeft - 8,
-                y: y + 4,
-                fill: colors.text,
-                fontSize: compactViewport ? 10 : 11,
-                fontWeight: 600,
-                textAnchor: "end"
-              },
-              String(tick)
-            )
-          );
-        }),
-        ...xAxis.ticks.map((tick) => {
-          const x = linearScale(tick, 0, xAxis.upper, plotLeft, plotRight);
-          return h(
-            "g",
-            { key: `pr-scatter-x-${tick}` },
-            h("line", {
-              x1: x,
-              x2: x,
-              y1: plotTop,
-              y2: plotBottom,
-              stroke: tick === 0 ? "transparent" : "rgba(31, 51, 71, 0.06)",
-              strokeWidth: 1
-            }),
-            h(
-              "text",
-              {
-                x,
-                y: plotBottom + 18,
-                fill: colors.text,
-                fontSize: compactViewport ? 10 : 11,
-                fontWeight: 600,
-                textAnchor: "middle"
-              },
-              formatWholeCountLabel(tick)
-            )
-          );
-        }),
-        h("line", {
-          x1: linearScale(splitX, 0, xAxis.upper, plotLeft, plotRight),
-          x2: linearScale(splitX, 0, xAxis.upper, plotLeft, plotRight),
-          y1: plotTop,
-          y2: plotBottom,
-          stroke: "rgba(31, 51, 71, 0.42)",
-          strokeWidth: 1.25,
-          strokeDasharray: "5 5"
-        }),
-        h("line", {
-          x1: plotLeft,
-          x2: plotRight,
-          y1: linearScale(splitY, 0, yAxis.upper, plotBottom, plotTop),
-          y2: linearScale(splitY, 0, yAxis.upper, plotBottom, plotTop),
-          stroke: "rgba(31, 51, 71, 0.42)",
-          strokeWidth: 1.25,
-          strokeDasharray: "5 5"
-        }),
-        h("line", {
-          x1: plotLeft,
-          x2: plotRight,
-          y1: plotBottom,
-          y2: plotBottom,
-          stroke: "rgba(31, 51, 71, 0.58)",
-          strokeWidth: 1.2
-        }),
-        h("line", {
-          x1: plotLeft,
-          x2: plotLeft,
-          y1: plotTop,
-          y2: plotBottom,
-          stroke: "rgba(31, 51, 71, 0.58)",
-          strokeWidth: 1.2
-        }),
-        ...pointRows.map((point) =>
-          h(
-            "g",
-            { key: `pr-scatter-point-${point.dataKey}` },
-            h("circle", {
-              cx: point.xPos,
-              cy: point.yPos,
-              r: compactViewport ? 5 : 6.5,
-              fill: point.stroke,
-              fillOpacity: 0.96,
-              stroke: "#ffffff",
-              strokeWidth: 1.6
-            }),
-            h(
-              "text",
-              {
-                x: point.xPos + (compactViewport ? 8 : 12),
-                y: point.yPos - (compactViewport ? 8 : 12),
-                fill: "rgba(31, 51, 71, 0.96)",
-                fontFamily: "var(--font-ui)",
-                fontSize: compactViewport ? 9 : 11,
-                fontWeight: 700,
-                textAnchor: "start",
-                dominantBaseline: "auto",
-                stroke: "rgba(255,255,255,0.96)",
-                strokeWidth: 4,
-                paintOrder: "stroke"
-              },
-              point.teamLabel || ""
-            ),
-            h("circle", {
-              cx: point.xPos,
-              cy: point.yPos,
-              r: compactViewport ? 12 : 14,
-              fill: "transparent",
-              onMouseEnter: () => showTooltip(point),
-              onMouseLeave: () => setTooltipContent(null),
-              "aria-label": `${point.teamLabel || ""}: ${inflowTooltipLabel} ${formatWholeCountLabel(point.x)}, ${formatMergeTimeLabel(point.y)}`
-            })
-          )
-        ),
-        h(
-          "text",
-          {
-            x: plotLeft + (plotRight - plotLeft) / 2,
-            y: plotBottom + (compactViewport ? 40 : 48),
-            fill: "rgba(31, 51, 71, 0.92)",
-            fontSize: compactViewport ? 10 : 11,
-            fontWeight: 700,
-            textAnchor: "middle"
-          },
-          compactViewport ? "PR inflow" : inflowAxisLabel
-        ),
-        h(
-          "text",
-          {
-            x: plotLeft - (compactViewport ? 36 : 44),
-            y: plotTop + (plotBottom - plotTop) / 2,
-            fill: "rgba(31, 51, 71, 0.92)",
-            fontSize: compactViewport ? 10 : 11,
-            fontWeight: 700,
-            textAnchor: "middle",
-            transform: `rotate(-90 ${plotLeft - (compactViewport ? 36 : 44)} ${plotTop + (plotBottom - plotTop) / 2})`
-          },
-          compactViewport ? "Review + QA days" : "Avg review + QA time (days)"
-        )
-      )
-    )
   );
 }
 
@@ -1627,17 +1198,28 @@ function LegacyPrActivitySvgChart({
             strokeLinejoin: "round"
           }),
           ...series.points.map((point) =>
-            h("circle", {
-              key: point.key,
-              cx: point.x,
-              cy: point.y,
-              r: compactViewport ? 3 : 3.5,
-              fill: series.stroke,
-              stroke: "#ffffff",
-              strokeWidth: 1.25,
-              onMouseEnter: () => showTooltip(point),
-              onMouseLeave: () => setTooltipContent(null)
-            })
+            h(
+              "g",
+              { key: point.key },
+              h("circle", {
+                cx: point.x,
+                cy: point.y,
+                r: compactViewport ? 3 : 3.5,
+                fill: series.stroke,
+                stroke: "#ffffff",
+                strokeWidth: 1.25
+              }),
+              h("circle", {
+                cx: point.x,
+                cy: point.y,
+                r: compactViewport ? 11 : 13,
+                fill: "transparent",
+                onMouseEnter: () => showTooltip(point),
+                onMouseMove: () => showTooltip(point),
+                onMouseLeave: () => setTooltipContent(null),
+                "aria-label": `${point.lineDef.name}: ${point.date || ""} ${tooltipValueFormatter(point.value)}`
+              })
+            )
           )
         ]),
         h(
@@ -2327,11 +1909,10 @@ function formatStackedCycleDaysValueMarkup(valueInDays) {
   return `<span class="stacked-duration"><span class="stacked-duration__value">${rounded}</span><span class="stacked-duration__unit">${unit}</span></span>`;
 }
 
-function formatWorkflowBreakdownMetricMarkup(value, unit, modifierClass = "") {
+function formatWorkflowBreakdownMetricMarkup(value, modifierClass = "") {
   return `
     <span class="workflow-breakdown-metric${modifierClass ? ` ${modifierClass}` : ""}">
       <span class="workflow-breakdown-metric__value">${escapeHtml(value)}</span>
-      <span class="workflow-breakdown-metric__unit">${escapeHtml(unit)}</span>
     </span>
   `;
 }
@@ -2339,19 +1920,14 @@ function formatWorkflowBreakdownMetricMarkup(value, unit, modifierClass = "") {
 function formatWorkflowBreakdownDurationMetricMarkup(valueInDays) {
   const days = Math.max(0, toNumber(valueInDays));
   const rounded = days.toFixed(1);
-  const unit = Math.abs(days - 1) < 0.05 ? "day" : "days";
-  return formatWorkflowBreakdownMetricMarkup(rounded, unit, "workflow-breakdown-metric--days");
+  return formatWorkflowBreakdownMetricMarkup(rounded, "workflow-breakdown-metric--days");
 }
 
 function formatWorkflowBreakdownInflowMetricMarkup(value) {
   const inflow = toNumber(value);
   if (!Number.isFinite(inflow) || inflow <= 0) return "";
   const rounded = String(Math.max(0, Math.round(inflow)));
-  return formatWorkflowBreakdownMetricMarkup(
-    rounded,
-    "PR/sprint",
-    "workflow-breakdown-metric--inflow"
-  );
+  return formatWorkflowBreakdownMetricMarkup(rounded, "workflow-breakdown-metric--inflow");
 }
 
 function formatWorkflowBreakdownValueMarkup(totalCycleDays, avgPrInflow) {
@@ -2360,6 +1936,29 @@ function formatWorkflowBreakdownValueMarkup(totalCycleDays, avgPrInflow) {
       ${formatWorkflowBreakdownDurationMetricMarkup(totalCycleDays)}
       ${formatWorkflowBreakdownInflowMetricMarkup(avgPrInflow)}
     </span>
+  `;
+}
+
+function formatWorkflowBreakdownHeaderMarkup() {
+  return `
+    <div class="workflow-breakdown-card__header-main">
+      <div class="pr-cycle-stage-card__team">All teams</div>
+    </div>
+  `;
+}
+
+function formatWorkflowBreakdownColumnHeaderRowMarkup() {
+  return `
+    <div class="pr-cycle-stage-row workflow-breakdown-column-header" aria-hidden="true">
+      <div class="pr-cycle-stage-row__label workflow-breakdown-column-header__placeholder"></div>
+      <div class="workflow-breakdown-column-header__spacer"></div>
+      <div class="pr-cycle-stage-row__value workflow-breakdown-column-header__value">
+        <span class="workflow-breakdown-metrics workflow-breakdown-metrics--headings">
+          <span class="workflow-breakdown-metric-heading">Days</span>
+          <span class="workflow-breakdown-metric-heading">PR/sprint</span>
+        </span>
+      </div>
+    </div>
   `;
 }
 
@@ -2373,7 +1972,7 @@ function renderPrCycleExperimentCard(containerId, team, snapshot) {
     const teamRows = Array.isArray(team?.teamRows) ? team.teamRows : [];
     const maxDays =
       teamRows.reduce((highest, row) => Math.max(highest, toNumber(row?.totalCycleDays)), 0) || 1;
-    const rowsMarkup = teamRows
+    const rowsMarkup = `${formatWorkflowBreakdownColumnHeaderRowMarkup()}${teamRows
       .map((row) => {
         const width = Math.max(12, Math.round((toNumber(row?.totalCycleDays) / maxDays) * 100));
         const sampleCount = toCount(row?.issueCount);
@@ -2387,7 +1986,7 @@ function renderPrCycleExperimentCard(containerId, team, snapshot) {
           fillStyle: `background:${escapeHtml(getPrCycleTeamColor(row?.key))}`
         });
       })
-      .join("");
+      .join("")}`;
     const issueCount = toNumber(team?.issueCount);
     const footerPrimary =
       issueCount > 0
@@ -2402,10 +2001,7 @@ function renderPrCycleExperimentCard(containerId, team, snapshot) {
       className: "workflow-breakdown-card",
       teamKey: ALL_TEAM_SCOPE_KEY,
       teamColor: getPrCycleTeamColor(ALL_TEAM_SCOPE_KEY),
-      headerMarkup: `
-        <div class="pr-cycle-stage-card__team">All teams</div>
-        <div class="pr-cycle-stage-card__submeta">Progress + Review + QA totals</div>
-      `,
+      headerMarkup: formatWorkflowBreakdownHeaderMarkup(),
       rowsMarkup,
       footerMarkup: `
         <div class="pr-cycle-stage-card__footer">

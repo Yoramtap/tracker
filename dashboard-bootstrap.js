@@ -19,7 +19,7 @@
     "./vendor/react.production.min.js",
     "./vendor/react-dom.production.min.js",
     "./dashboard-chart-core.js",
-    "./dashboard-app.js?v=local14"
+    "./dashboard-app.js?v=local18"
   ];
   const SHIPPED_CHART_SCRIPT_SOURCE = "./dashboard-charts-shipped.js?v=local1";
   const PRODUCT_CHART_SCRIPT_SOURCE = "./dashboard-charts-product.js?v=local10";
@@ -60,6 +60,9 @@
     contributorsSnapshot: null,
     loadedHeavyPanelSources: new Set(),
     prefetchedDeferredSourceKeys: new Set(),
+    cachedHeavyPanelMarkupBySrc: new Map(),
+    heavyPanelMarkupPromisesBySrc: new Map(),
+    communityWarmupScheduled: false,
     sectionFilter: dashboardRuntimeContract.getSectionFilterFromUrl(window.location.search)
   };
 
@@ -616,9 +619,66 @@
   }
 
   async function loadPanelShellFragment(src) {
-    const response = await fetch(src, { cache: "no-cache" });
-    if (!response.ok) throw new Error(`Failed to load ${src}: HTTP ${response.status}`);
-    return response.text();
+    const cachedMarkup = bootstrapState.cachedHeavyPanelMarkupBySrc.get(src);
+    if (typeof cachedMarkup === "string") return cachedMarkup;
+
+    const pendingMarkup = bootstrapState.heavyPanelMarkupPromisesBySrc.get(src);
+    if (pendingMarkup) return pendingMarkup;
+
+    const pending = fetch(src, { cache: "no-cache" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`Failed to load ${src}: HTTP ${response.status}`);
+        return response.text();
+      })
+      .then((markup) => {
+        bootstrapState.cachedHeavyPanelMarkupBySrc.set(src, markup);
+        bootstrapState.heavyPanelMarkupPromisesBySrc.delete(src);
+        return markup;
+      })
+      .catch((error) => {
+        bootstrapState.heavyPanelMarkupPromisesBySrc.delete(src);
+        throw error;
+      });
+
+    bootstrapState.heavyPanelMarkupPromisesBySrc.set(src, pending);
+    return pending;
+  }
+
+  function warmCommunityDeferredDashboard() {
+    if (!isDefaultCommunityPath()) return;
+
+    const heavyPanelSources = [FULL_HEAVY_PANEL_SHELL_SRC, ...ALL_SECTION_HEAVY_PANEL_SOURCES];
+    getHeavyScriptSources("all", "all").forEach((src) => prefetchAsset(src, "script"));
+    prefetchDeferredDataSources("all");
+    void Promise.allSettled(heavyPanelSources.map((src) => loadPanelShellFragment(src)));
+  }
+
+  function scheduleDefaultCommunityWarmup() {
+    if (bootstrapState.communityWarmupScheduled) return;
+    bootstrapState.communityWarmupScheduled = true;
+
+    const runWarmup = () => {
+      if (!isDefaultCommunityPath()) return;
+      warmCommunityDeferredDashboard();
+    };
+
+    const scheduleWarmup = () => {
+      const delayMs = document.visibilityState === "hidden" ? 3200 : 2200;
+      window.setTimeout(() => {
+        if (typeof window.requestIdleCallback === "function") {
+          window.requestIdleCallback(runWarmup, { timeout: 1200 });
+          return;
+        }
+        runWarmup();
+      }, delayMs);
+    };
+
+    if (document.readyState === "complete") {
+      scheduleWarmup();
+      return;
+    }
+
+    window.addEventListener("load", scheduleWarmup, { once: true });
   }
 
   async function ensureHeavyPanelShell(
@@ -763,6 +823,7 @@
     renderActionsPanel();
     bindSectionFilter();
     bindDeferredPrefetchIntent();
+    scheduleDefaultCommunityWarmup();
 
     try {
       bootstrapState.contributorsSnapshot = await loadContributorsSnapshot();

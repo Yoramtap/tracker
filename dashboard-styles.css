@@ -1902,16 +1902,67 @@ a.shipped-team-list__idea-key:focus-visible {
   justify-content: flex-end;
 }
 
+.workflow-breakdown-card .pr-cycle-stage-card__header {
+  margin-bottom: 8px;
+}
+
+.workflow-breakdown-card .pr-cycle-stage-card__meta {
+  width: 100%;
+  gap: 0;
+}
+
+.workflow-breakdown-card__header-main {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.workflow-breakdown-card[data-team="all"] .workflow-breakdown-card__header-main {
+  width: 100%;
+  justify-self: start;
+  justify-items: start;
+}
+
+.workflow-breakdown-column-header {
+  margin-bottom: -6px;
+}
+
+.workflow-breakdown-column-header__placeholder,
+.workflow-breakdown-column-header__spacer {
+  min-height: 0;
+}
+
+.workflow-breakdown-column-header__value {
+  padding-left: 10px;
+}
+
+.workflow-breakdown-metrics--headings {
+  align-items: end;
+}
+
+.workflow-breakdown-metric-heading {
+  color: rgba(31, 51, 71, 0.7);
+  font-size: 0.74rem;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  width: 100%;
+  text-align: right;
+  white-space: nowrap;
+}
+
 .workflow-breakdown-metrics {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  width: 100%;
+  grid-template-columns: 48px 58px;
+  justify-content: end;
+  gap: 12px;
+  width: auto;
+  margin-left: auto;
 }
 
 .workflow-breakdown-metric {
   display: grid;
-  justify-items: center;
+  justify-items: end;
   gap: 2px;
   min-width: 0;
   color: rgba(31, 51, 71, 0.94);
@@ -1922,14 +1973,8 @@ a.shipped-team-list__idea-key:focus-visible {
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.01em;
-}
-
-.workflow-breakdown-metric__unit {
-  color: rgba(31, 51, 71, 0.58);
-  font-size: 0.68rem;
-  font-weight: 650;
-  line-height: 1.1;
-  text-align: center;
+  width: 100%;
+  text-align: right;
 }
 
 .workflow-breakdown-metric--days .workflow-breakdown-metric__value {
@@ -2487,6 +2532,7 @@ a.shipped-team-list__idea-key:focus-visible {
   }
 
   .workflow-breakdown-metrics {
+    grid-template-columns: 44px 52px;
     gap: 8px;
   }
 
@@ -2494,8 +2540,8 @@ a.shipped-team-list__idea-key:focus-visible {
     font-size: 0.86rem;
   }
 
-  .workflow-breakdown-metric__unit {
-    font-size: 0.62rem;
+  .workflow-breakdown-metric-heading {
+    font-size: 0.64rem;
   }
 
   .pr-cycle-stage-row__track {
