@@ -2783,11 +2783,13 @@
       footerBits: [footerSecondary].filter(Boolean),
       rows: orderedRows.map((row) => {
         const bottleneck = normalizeWorkflowBottleneckLabel(row?.bottleneckLabel);
+        const inflow = toNumber(row?.avgPrInflow);
         return {
           label: normalizeDisplayTeamName(row?.label || ""),
           metaBits: [
             `${toCount(row?.issueCount)} ${toCount(row?.issueCount) === 1 ? "issue" : "issues"}`,
-            bottleneck ? `${bottleneck} blocker` : ""
+            bottleneck ? `${bottleneck} blocker` : "",
+            Number.isFinite(inflow) && inflow > 0 ? `≈ ${Math.round(inflow)} PRs / sprint` : ""
           ].filter(Boolean),
           valueText: formatWorkflowDaysText(row?.totalCycleDays),
           width: Math.max(12, Math.round((toNumber(row?.totalCycleDays) / maxDays) * 100)),

@@ -1263,10 +1263,10 @@ main {
 .dashboard-overview__title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(2.1rem, 5vw, 3.35rem);
+  font-size: clamp(1.95rem, 4.2vw, 2.9rem);
   font-weight: 700;
-  line-height: 0.97;
-  letter-spacing: -0.04em;
+  line-height: 0.94;
+  letter-spacing: -0.045em;
   text-align: left;
   color: rgba(22, 41, 61, 0.96);
 }
@@ -2340,11 +2340,11 @@ a.shipped-team-list__idea-key:focus-visible {
 .dashboard-utility-layout__stat dd {
   margin: 0;
   font-family: var(--font-display);
-  color: rgba(22, 41, 61, 0.94);
-  font-size: clamp(0.98rem, 1.2vw, 1.22rem);
-  font-weight: 700;
-  line-height: 1.08;
-  letter-spacing: -0.02em;
+  color: rgba(22, 41, 61, 0.88);
+  font-size: clamp(0.94rem, 1.05vw, 1.12rem);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
   font-variant-numeric: tabular-nums;
 }
 
