@@ -19,7 +19,7 @@
     "./vendor/react.production.min.js",
     "./vendor/react-dom.production.min.js",
     "./dashboard-chart-core.js",
-    "./dashboard-app.js?v=local18"
+    "./dashboard-app.js?v=local20"
   ];
   const SHIPPED_CHART_SCRIPT_SOURCE = "./dashboard-charts-shipped.js?v=local1";
   const PRODUCT_CHART_SCRIPT_SOURCE = "./dashboard-charts-product.js?v=local10";
@@ -34,15 +34,6 @@
     Object.values(SECTION_HEAVY_PANEL_SOURCES)
   );
   const LOCAL_AGENTATION_LOADER_SRC = "./agentation-local-loader.js?v=local2";
-  const DEFERRED_STYLESHEET_SOURCES = ["./dashboard-fonts.css?v=local1"];
-  const IDLE_PREFETCH_SOURCE_URLS = {
-    snapshot: "./backlog-snapshot.json",
-    prActivity: "./pr-activity-snapshot.json",
-    managementFacility: "./management-facility-snapshot.json",
-    productCycle: "./product-cycle-snapshot.json",
-    productCycleShipments: "./product-cycle-shipments-snapshot.json",
-    prCycle: "./pr-cycle-snapshot.json"
-  };
   const dashboardRuntimeContract =
     window.DashboardRuntimeContract ||
     Object.freeze({
@@ -59,10 +50,8 @@
     heavyShellPromise: null,
     contributorsSnapshot: null,
     loadedHeavyPanelSources: new Set(),
-    prefetchedDeferredSourceKeys: new Set(),
     cachedHeavyPanelMarkupBySrc: new Map(),
     heavyPanelMarkupPromisesBySrc: new Map(),
-    communityWarmupScheduled: false,
     sectionFilter: dashboardRuntimeContract.getSectionFilterFromUrl(window.location.search)
   };
 
@@ -382,8 +371,6 @@
         syncControlValue("report-section", nextSection);
         updateUrlSection(nextSection);
         if (nextSection === DEFAULT_SECTION) return;
-        prefetchDeferredDashboardResources(nextSection, "all");
-        setStatusMessage("actions-required-status", "Loading full dashboard…");
         void loadHeavyDashboard("all", nextSection);
       });
     });
@@ -553,71 +540,6 @@
     });
   }
 
-  function loadStylesheet(href) {
-    if (document.querySelector(`link[data-dashboard-style="${href}"]`)) return;
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = href;
-    link.dataset.dashboardStyle = href;
-    document.head.appendChild(link);
-  }
-
-  function prefetchAsset(src, as = "") {
-    if (document.querySelector(`link[data-prefetch-src="${src}"]`)) return;
-    const link = document.createElement("link");
-    link.rel = "prefetch";
-    link.href = src;
-    if (as) link.as = as;
-    link.dataset.prefetchSrc = src;
-    document.head.appendChild(link);
-  }
-
-  function prefetchDeferredCoreScripts(
-    mode = getModeFromUrl(window.location.search),
-    sectionKey = bootstrapState.sectionFilter
-  ) {
-    getHeavyScriptSources(mode, sectionKey).forEach((src) => prefetchAsset(src, "script"));
-  }
-
-  function prefetchDeferredPanelShell(
-    sectionKey = bootstrapState.sectionFilter,
-    mode = getModeFromUrl(window.location.search)
-  ) {
-    resolveHeavyPanelSources(mode, sectionKey).forEach((src) => prefetchAsset(src, "fetch"));
-  }
-
-  function getDeferredSourceKeysForSection(sectionKey = bootstrapState.sectionFilter) {
-    return dashboardRuntimeContract.getRequiredSourceKeys(
-      "all",
-      Object.keys(IDLE_PREFETCH_SOURCE_URLS),
-      sectionKey
-    );
-  }
-
-  function prefetchDeferredDataSources(sectionKey = bootstrapState.sectionFilter) {
-    const cache = window.__dashboardDataSourcePromiseCache || (window.__dashboardDataSourcePromiseCache = {});
-    getDeferredSourceKeysForSection(sectionKey).forEach((sourceKey) => {
-      const url = IDLE_PREFETCH_SOURCE_URLS[sourceKey];
-      if (!url || cache[sourceKey] || bootstrapState.prefetchedDeferredSourceKeys.has(sourceKey)) {
-        return;
-      }
-      bootstrapState.prefetchedDeferredSourceKeys.add(sourceKey);
-      cache[sourceKey] = fetch(url, { cache: "no-cache" }).then(async (response) => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.json();
-      });
-    });
-  }
-
-  function prefetchDeferredDashboardResources(
-    sectionKey = bootstrapState.sectionFilter,
-    mode = getModeFromUrl(window.location.search)
-  ) {
-    prefetchDeferredPanelShell(sectionKey, mode);
-    prefetchDeferredCoreScripts(mode, sectionKey);
-    prefetchDeferredDataSources(sectionKey);
-  }
-
   async function loadPanelShellFragment(src) {
     const cachedMarkup = bootstrapState.cachedHeavyPanelMarkupBySrc.get(src);
     if (typeof cachedMarkup === "string") return cachedMarkup;
@@ -644,43 +566,6 @@
     return pending;
   }
 
-  function warmCommunityDeferredDashboard() {
-    if (!isDefaultCommunityPath()) return;
-
-    const heavyPanelSources = [FULL_HEAVY_PANEL_SHELL_SRC, ...ALL_SECTION_HEAVY_PANEL_SOURCES];
-    getHeavyScriptSources("all", "all").forEach((src) => prefetchAsset(src, "script"));
-    prefetchDeferredDataSources("all");
-    void Promise.allSettled(heavyPanelSources.map((src) => loadPanelShellFragment(src)));
-  }
-
-  function scheduleDefaultCommunityWarmup() {
-    if (bootstrapState.communityWarmupScheduled) return;
-    bootstrapState.communityWarmupScheduled = true;
-
-    const runWarmup = () => {
-      if (!isDefaultCommunityPath()) return;
-      warmCommunityDeferredDashboard();
-    };
-
-    const scheduleWarmup = () => {
-      const delayMs = document.visibilityState === "hidden" ? 3200 : 2200;
-      window.setTimeout(() => {
-        if (typeof window.requestIdleCallback === "function") {
-          window.requestIdleCallback(runWarmup, { timeout: 1200 });
-          return;
-        }
-        runWarmup();
-      }, delayMs);
-    };
-
-    if (document.readyState === "complete") {
-      scheduleWarmup();
-      return;
-    }
-
-    window.addEventListener("load", scheduleWarmup, { once: true });
-  }
-
   async function ensureHeavyPanelShell(
     mode = getModeFromUrl(window.location.search),
     sectionKey = bootstrapState.sectionFilter
@@ -704,63 +589,6 @@
       throw error;
     });
     return bootstrapState.heavyShellPromise;
-  }
-
-  function bindDeferredPrefetchIntent() {
-    const controls = Array.from(document.querySelectorAll('input[name="report-section"]')).filter(
-      (control) => String(control.value || "").trim().toLowerCase() !== DEFAULT_SECTION
-    );
-    controls.forEach((control) => {
-      const targetSection = normalizeSectionFilter(control.value);
-      if (control.dataset.prefetchBound !== "1") {
-        control.dataset.prefetchBound = "1";
-        control.addEventListener("focus", () => prefetchDeferredDashboardResources(targetSection, "all"), {
-          once: true
-        });
-        control.addEventListener("change", () => prefetchDeferredDashboardResources(targetSection, "all"), {
-          once: true
-        });
-      }
-
-      const label = control.closest("label");
-      if (!label || label.dataset.prefetchBound === "1") return;
-      label.dataset.prefetchBound = "1";
-      label.addEventListener("pointerenter", () => prefetchDeferredDashboardResources(targetSection, "all"), {
-        once: true
-      });
-      label.addEventListener("touchstart", () => prefetchDeferredDashboardResources(targetSection, "all"), {
-        once: true,
-        passive: true
-      });
-    });
-  }
-
-  function scheduleDeferredStylesheets() {
-    const loadDeferredStyles = () => {
-      DEFERRED_STYLESHEET_SOURCES.forEach((href) => loadStylesheet(href));
-    };
-
-    const scheduleLoad = () => {
-      const delayMs = isDefaultCommunityPath()
-        ? document.visibilityState === "hidden"
-          ? 3200
-          : 2600
-        : document.visibilityState === "hidden"
-          ? 1800
-          : 1200;
-      if (typeof window.requestIdleCallback === "function") {
-        window.requestIdleCallback(loadDeferredStyles, { timeout: delayMs });
-        return;
-      }
-      window.setTimeout(loadDeferredStyles, delayMs);
-    };
-
-    if (document.readyState === "complete") {
-      scheduleLoad();
-      return;
-    }
-
-    window.addEventListener("load", scheduleLoad, { once: true });
   }
 
   function ensureHeavyScripts(
@@ -822,14 +650,12 @@
     applyDefaultCommunityVisibility();
     renderActionsPanel();
     bindSectionFilter();
-    bindDeferredPrefetchIntent();
-    scheduleDefaultCommunityWarmup();
+    void loadHeavyDashboard("all", "all").catch(() => {});
 
     try {
       bootstrapState.contributorsSnapshot = await loadContributorsSnapshot();
       renderActionsPanel();
       bindSectionFilter();
-      bindDeferredPrefetchIntent();
       renderContributorsState(bootstrapState.contributorsSnapshot);
     } catch (error) {
       setStatusMessage(
@@ -841,7 +667,6 @@
     }
   }
 
-  scheduleDeferredStylesheets();
   scheduleLocalAgentationSupport();
 
   if (isDefaultCommunityPath()) {

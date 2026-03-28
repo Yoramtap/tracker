@@ -230,7 +230,6 @@ async function renderSectionFilteredPanelsAfterShell() {
   const ensureHeavyPanelShell = dashboardRuntimeContract?.ensureHeavyPanelShell;
   const ensureHeavyScripts = dashboardRuntimeContract?.ensureHeavyScripts;
   if (typeof ensureHeavyPanelShell === "function") {
-    setStatusMessage("actions-required-status", "Loading dashboard section…");
     try {
       await ensureHeavyPanelShell(state.mode, state.sectionFilter);
       if (typeof ensureHeavyScripts === "function") {
@@ -249,7 +248,6 @@ async function renderSectionFilteredPanelsAfterShell() {
   }
 
   renderSectionFilteredPanels();
-  setStatusMessage("actions-required-status", "");
 }
 
 function renderSectionFilterIcon(value) {
@@ -1200,25 +1198,34 @@ function LegacyPrActivitySvgChart({
           ...series.points.map((point) =>
             h(
               "g",
-              { key: point.key },
+              {
+                key: point.key,
+                onPointerEnter: () => showTooltip(point),
+                onPointerMove: () => showTooltip(point),
+                onPointerLeave: () => setTooltipContent(null)
+              },
               h("circle", {
                 cx: point.x,
                 cy: point.y,
                 r: compactViewport ? 3 : 3.5,
                 fill: series.stroke,
                 stroke: "#ffffff",
-                strokeWidth: 1.25
+                strokeWidth: 1.25,
+                pointerEvents: "none"
               }),
               h("circle", {
                 cx: point.x,
                 cy: point.y,
                 r: compactViewport ? 11 : 13,
-                fill: "transparent",
-                onMouseEnter: () => showTooltip(point),
-                onMouseMove: () => showTooltip(point),
-                onMouseLeave: () => setTooltipContent(null),
+                fill: "rgba(255, 255, 255, 0.001)",
+                stroke: "transparent",
                 "aria-label": `${point.lineDef.name}: ${point.date || ""} ${tooltipValueFormatter(point.value)}`
-              })
+              },
+              h(
+                "title",
+                null,
+                `${point.lineDef.name} • ${point.date || ""} • ${tooltipValueFormatter(point.value)}`
+              ))
             )
           )
         ]),

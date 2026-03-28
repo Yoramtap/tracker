@@ -805,6 +805,7 @@ body.embed-mode.single-chart-mode .chart-canvas--dense {
   top: 8px;
   right: 6px;
   z-index: 6;
+  pointer-events: none;
   width: min(18rem, calc(100% - 12px));
   padding: 9px 10px;
   border: 1px solid rgba(31, 51, 71, 0.22);
