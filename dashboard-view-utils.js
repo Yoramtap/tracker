@@ -3,58 +3,18 @@
 (function initDashboardViewUtils(globalObject) {
   const DATA_SOURCE_URLS = {
     snapshot: "./backlog-snapshot.json",
+    prActivity: "./pr-activity-snapshot.json",
+    managementFacility: "./management-facility-snapshot.json",
     productCycle: "./product-cycle-snapshot.json",
+    productCycleShipments: "./product-cycle-shipments-snapshot.json",
     contributors: "./contributors-snapshot.json",
     prCycle: "./pr-cycle-snapshot.json"
   };
-
-  function createDashboardRuntimeContract() {
-    function getModeFromUrl(search = globalObject.location?.search || "") {
-      try {
-        const params = new URLSearchParams(search);
-        const chart = String(params.get("chart") || "")
-          .trim()
-          .toLowerCase();
-        if (chart === "trend") return "trend";
-        if (chart === "composition") return "composition";
-        if (chart === "uat") return "uat";
-        if (
-          chart === "dev-uat-ratio" ||
-          chart === "management" ||
-          chart === "dev-uat-facility" ||
-          chart === "management-facility"
-        ) {
-          return "management-facility";
-        }
-        if (chart === "pr" || chart === "prs" || chart === "pr-activity") return "pr-activity";
-        if (chart === "pr-cycle" || chart === "pr-cycle-experiment") return "pr-cycle-experiment";
-        if (chart === "contributors") return "contributors";
-        if (chart === "product-cycle" || chart === "cycle-time") return "product-cycle";
-        if (chart === "lifecycle-days") return "lifecycle-days";
-        return "all";
-      } catch {
-        return "all";
-      }
-    }
-
-    function getRequiredSourceKeys(mode, availableSourceKeys = []) {
-      if (mode === "all") return availableSourceKeys.slice();
-      if (mode === "contributors") return ["contributors"];
-      if (mode === "pr-activity") return ["snapshot", "prCycle"];
-      if (mode === "pr-cycle-experiment") return ["prCycle"];
-      if (mode === "product-cycle" || mode === "lifecycle-days") return ["productCycle"];
-      return ["snapshot"];
-    }
-
-    return Object.freeze({
-      getModeFromUrl,
-      getRequiredSourceKeys
-    });
-  }
-
   const dashboardRuntimeContract =
-    globalObject.DashboardRuntimeContract || createDashboardRuntimeContract();
-  globalObject.DashboardRuntimeContract = dashboardRuntimeContract;
+    globalObject.DashboardRuntimeContract ||
+    (() => {
+      throw new Error("Dashboard runtime contract not loaded.");
+    })();
 
   function getRequestedMode() {
     return dashboardRuntimeContract.getModeFromUrl();
@@ -62,17 +22,20 @@
 
   function getNeededSourceKeys() {
     try {
+      const search = globalObject.location?.search || "";
       return dashboardRuntimeContract.getRequiredSourceKeys(
         getRequestedMode(),
-        Object.keys(DATA_SOURCE_URLS)
+        Object.keys(DATA_SOURCE_URLS),
+        dashboardRuntimeContract.getSectionFilterFromUrl(search)
       );
     } catch {
       return ["snapshot"];
     }
   }
 
-  const cache = {};
+  const cache = globalObject.__dashboardDataSourcePromiseCache || {};
   for (const sourceKey of getNeededSourceKeys()) {
+    if (cache[sourceKey]) continue;
     const url = DATA_SOURCE_URLS[sourceKey];
     if (!url) continue;
     cache[sourceKey] = fetch(url, { cache: "no-cache" }).then(async (response) => {
@@ -392,9 +355,25 @@
 
   function getSnapshotContextTimestamp(state, { preferChartData = false } = {}) {
     if (preferChartData) {
-      return String(state?.snapshot?.chartDataUpdatedAt || state?.snapshot?.updatedAt || "").trim();
+      return String(
+        state?.managementFacilitySnapshot?.chartDataUpdatedAt ||
+          state?.managementFacilitySnapshot?.updatedAt ||
+          state?.snapshot?.chartDataUpdatedAt ||
+          state?.snapshot?.updatedAt ||
+          state?.prActivitySnapshot?.updatedAt ||
+          state?.productCycle?.generatedAt ||
+          ""
+      ).trim();
     }
-    return String(state?.snapshot?.updatedAt || "").trim();
+    return String(
+      state?.snapshot?.updatedAt ||
+        state?.prActivitySnapshot?.updatedAt ||
+        state?.managementFacilitySnapshot?.updatedAt ||
+        state?.productCycle?.generatedAt ||
+        state?.contributors?.updatedAt ||
+        state?.prCycle?.updatedAt ||
+        ""
+    ).trim();
   }
 
   function renderDashboardRefreshStrip(state) {
@@ -404,6 +383,11 @@
     const refreshUpdatedAt = getOldestTimestamp([
       state?.snapshot?.updatedAt,
       state?.snapshot?.chartData ? state?.snapshot?.chartDataUpdatedAt : "",
+      state?.prActivitySnapshot?.updatedAt,
+      state?.managementFacilitySnapshot?.updatedAt,
+      state?.managementFacilitySnapshot?.chartData
+        ? state?.managementFacilitySnapshot?.chartDataUpdatedAt
+        : "",
       state?.productCycle?.generatedAt,
       state?.contributors?.updatedAt,
       state?.prCycle?.updatedAt
@@ -419,8 +403,12 @@
     return dashboardRuntimeContract.getModeFromUrl(window.location.search);
   }
 
-  function getRequiredSourceKeys(mode, availableSourceKeys = []) {
-    return dashboardRuntimeContract.getRequiredSourceKeys(mode, availableSourceKeys);
+  function getRequiredSourceKeys(mode, availableSourceKeys = [], sectionKey = "community") {
+    return dashboardRuntimeContract.getRequiredSourceKeys(
+      mode,
+      availableSourceKeys,
+      sectionKey
+    );
   }
 
   function isEmbedMode() {

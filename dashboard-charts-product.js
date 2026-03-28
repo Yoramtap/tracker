@@ -23,16 +23,19 @@
     TEAM_CONFIG,
     TREND_LONG_LINES,
     TREND_TEAM_LINES,
+    buildRowMarkup,
     computeYUpper,
     formatDateShort,
+    getPrCycleTeamColor,
     h,
     isCompactViewport,
+    renderProductCycleCard,
     renderWithRoot,
     toNumber,
     toWhole,
     viewportWidthPx
   } = core;
-  const { buildTeamColorMap, toCount } = dataUtils;
+  const { toCount } = dataUtils;
   const { escapeHtml } = dashboardUiUtils;
   const { SvgChartShell, linearScale, renderSvgChart, withAlpha } = svgCore;
 
@@ -53,13 +56,6 @@
     });
   }
 
-  function formatStackedCycleDaysValueMarkup(valueInDays) {
-    const days = Math.max(0, toNumber(valueInDays));
-    const rounded = days === 0 ? "0" : days.toFixed(1);
-    const unit = Math.abs(days - 1) < 0.05 ? "day" : "days";
-    return `<span class="stacked-duration"><span class="stacked-duration__value">${rounded}</span><span class="stacked-duration__unit">${unit}</span></span>`;
-  }
-
   function getCycleFillWidth(value, upperBound) {
     const safeUpper = Math.max(1, toNumber(upperBound));
     const safeValue = Math.max(0, toNumber(value));
@@ -77,46 +73,6 @@
     return raw;
   }
 
-  function getPrCycleTeamColor(teamKey) {
-    const normalizedKey = normalizeProductCycleTeamKey(teamKey);
-    const baseMap = buildTeamColorMap([normalizedKey]);
-    return baseMap[normalizedKey] || "#4f8fcb";
-  }
-
-  const shipmentMonthShortFormatter = new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    timeZone: "UTC"
-  });
-  const shipmentMonthLongFormatter = new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC"
-  });
-
-  function formatShipmentMonthButton(dateText) {
-    const parsed = new Date(`${String(dateText || "").trim()}T00:00:00Z`);
-    if (!Number.isFinite(parsed.getTime())) return String(dateText || "").trim();
-    return shipmentMonthShortFormatter.format(parsed);
-  }
-
-  function formatShipmentMonthLabel(dateText) {
-    const parsed = new Date(`${String(dateText || "").trim()}T00:00:00Z`);
-    if (!Number.isFinite(parsed.getTime())) return String(dateText || "").trim();
-    return shipmentMonthLongFormatter.format(parsed);
-  }
-
-  function formatShipmentAreaLabel(areaLabel) {
-    const raw = String(areaLabel || "").trim();
-    if (raw === "Commissioning & Support") return "Commissioning";
-    return raw;
-  }
-
-  function buildJiraIssueBrowseUrl(issueKey) {
-    const safeIssueKey = String(issueKey || "").trim();
-    if (!safeIssueKey) return "";
-    return `https://nepgroup.atlassian.net/browse/${encodeURIComponent(safeIssueKey)}`;
-  }
-
   function buildJiraSearchUrl(jiraBase, jql) {
     const safeJql = String(jql || "").trim();
     if (!safeJql) return "";
@@ -125,43 +81,12 @@
     return url.toString();
   }
 
-  function getPrCycleStageDisplayLabel(stage) {
-    const key = String(stage?.key || "").trim();
-    if (key === "coding") return "Progress";
-    if (key === "review") return "Review";
-    if (key === "merge") return "QA";
-    return String(stage?.label || "").trim();
-  }
-
   function normalizeDisplayTeamName(name) {
     const raw = String(name || "").trim();
     const key = normalizeProductCycleTeamKey(raw);
     if (key === "workers") return "Workers";
     if (key === "multiteam") return "Multi team";
     return raw;
-  }
-
-  function renderProductCycleCard(containerId, { className = "", teamKey = "", teamColor = "", headerMarkup = "", rowsMarkup = "", footerMarkup = "" }) {
-    const container = document.getElementById(containerId);
-    if (!container) return false;
-    const classNames = ["pr-cycle-stage-card", className].filter(Boolean).join(" ");
-    const attrs = [];
-    if (teamKey) attrs.push(`data-team="${escapeHtml(teamKey)}"`);
-    if (teamColor) attrs.push(`style="--pr-cycle-accent:${escapeHtml(teamColor)};"`);
-    container.innerHTML = `
-      <div class="product-cycle-team-card-wrap">
-        <article class="${classNames}"${attrs.length > 0 ? ` ${attrs.join(" ")}` : ""}>
-          <div class="pr-cycle-stage-card__header">
-            <div class="pr-cycle-stage-card__meta">
-              ${headerMarkup}
-            </div>
-          </div>
-          <div class="pr-cycle-stage-list">${rowsMarkup}</div>
-          ${footerMarkup}
-        </article>
-      </div>
-    `;
-    return true;
   }
 
   const RECENT_TREND_POINTS = 10;
@@ -983,41 +908,6 @@
     });
   }
 
-  function buildRowMarkup({
-    rowClassName = "",
-    trackClassName = "",
-    fillClassName = "",
-    valueClassName = "",
-    valueFrameClassName = "",
-    stage = "",
-    label = "",
-    sampleMarkup = "",
-    width = 0,
-    valueMarkup = "",
-    fillStyle = ""
-  }) {
-    const rowClasses = ["pr-cycle-stage-row", rowClassName].filter(Boolean).join(" ");
-    const trackClasses = ["pr-cycle-stage-row__track", trackClassName].filter(Boolean).join(" ");
-    const fillClasses = ["pr-cycle-stage-row__fill", fillClassName].filter(Boolean).join(" ");
-    const valueClasses = ["pr-cycle-stage-row__value", valueClassName].filter(Boolean).join(" ");
-    const valueFrameClasses = ["pr-cycle-stage-row__value-frame", valueFrameClassName]
-      .filter(Boolean)
-      .join(" ");
-    const fillStyleText = fillStyle ? `;${fillStyle}` : "";
-    return `
-      <div class="${rowClasses}" data-stage="${escapeHtml(stage)}">
-        <div class="pr-cycle-stage-row__label">
-          <span class="pr-cycle-stage-row__label-text">${escapeHtml(label)}</span>
-          <span class="pr-cycle-stage-row__sample">${sampleMarkup}</span>
-        </div>
-        <div class="${trackClasses}" aria-hidden="true">
-          <div class="${fillClasses}" style="width:${width}%${fillStyleText}"></div>
-        </div>
-        <div class="${valueClasses}"><span class="${valueFrameClasses}">${valueMarkup}</span></div>
-      </div>
-    `;
-  }
-
   function formatDoneTotalSampleMarkup(doneCount, totalCount) {
     const done = toCount(doneCount);
     const total = toCount(totalCount);
@@ -1330,107 +1220,6 @@
     });
   }
 
-  function renderPrCycleExperimentCard(containerId, team, snapshot) {
-    if (!team) return;
-    const compactViewport = isCompactViewport();
-    const isAllTeamsView =
-      String(team?.key || "").trim().toLowerCase() === "all" && Array.isArray(team?.teamRows);
-    if (isAllTeamsView) {
-      const teamRows = Array.isArray(team?.teamRows) ? team.teamRows : [];
-      const maxDays =
-        teamRows.reduce((highest, row) => Math.max(highest, toNumber(row?.totalCycleDays)), 0) || 1;
-      const rowsMarkup = teamRows
-        .map((row) => {
-          const width = Math.max(12, Math.round((toNumber(row?.totalCycleDays) / maxDays) * 100));
-          const sampleCount = toCount(row?.issueCount);
-          return buildRowMarkup({
-            stage: String(row?.key || ""),
-            label: normalizeDisplayTeamName(row?.label || ""),
-            sampleMarkup: sampleCount > 0 ? `n=${sampleCount}` : "n=0",
-            width,
-            valueMarkup: formatStackedCycleDaysValueMarkup(row?.totalCycleDays),
-            fillStyle: `background:${escapeHtml(getPrCycleTeamColor(row?.key))}`
-          });
-        })
-        .join("");
-      const issueCount = toNumber(team?.issueCount);
-      const footerPrimary =
-        issueCount > 0
-          ? compactViewport
-            ? `${issueCount} sampled`
-            : `${issueCount} issues sampled`
-          : compactViewport
-            ? "No samples"
-            : "No sampled issues";
-      const footerSecondary = String(snapshot?.windowLabel || "").trim();
-      renderProductCycleCard(containerId, {
-        className: "workflow-breakdown-card",
-        teamKey: "all",
-        teamColor: getPrCycleTeamColor("all"),
-        headerMarkup: `
-          <div class="pr-cycle-stage-card__team">All teams</div>
-          <div class="pr-cycle-stage-card__submeta">Progress + Review + QA totals</div>
-        `,
-        rowsMarkup,
-        footerMarkup: `
-          <div class="pr-cycle-stage-card__footer">
-            <span><strong>${escapeHtml(footerPrimary)}</strong>${footerSecondary ? ` • ${escapeHtml(footerSecondary)}` : ""}</span>
-            <span>Sorted: <strong>Fastest to slowest</strong></span>
-          </div>
-        `
-      });
-      return;
-    }
-    const stages = Array.isArray(team?.stages) ? team.stages : [];
-    const teamColor = getPrCycleTeamColor(team?.key);
-    const maxDays =
-      stages.reduce((highest, stage) => Math.max(highest, toNumber(stage?.days)), 0) || 1;
-    const rowsMarkup = stages
-      .map((stage) => {
-        const width = Math.max(12, Math.round((toNumber(stage?.days) / maxDays) * 100));
-        const sampleCount = toCount(stage?.sampleCount);
-        return buildRowMarkup({
-          stage: String(stage?.key || ""),
-          label: getPrCycleStageDisplayLabel(stage),
-          sampleMarkup: sampleCount > 0 ? `n=${sampleCount}` : "n=0",
-          width,
-          valueMarkup: formatStackedCycleDaysValueMarkup(stage?.days)
-        });
-      })
-      .join("");
-    const issueCount = toNumber(team?.issueCount || team?.pullRequestCount);
-    const footerPrimary =
-      issueCount > 0
-        ? compactViewport
-          ? `${issueCount} sampled`
-          : `${issueCount} issues sampled`
-        : compactViewport
-          ? "No samples"
-          : "No sampled issues";
-    const footerSecondary = String(snapshot?.windowLabel || "").trim();
-    const footerLabel = compactViewport ? "Blocker" : "Bottleneck";
-    renderProductCycleCard(containerId, {
-      className: "workflow-breakdown-card",
-      teamKey: String(team?.key || ""),
-      teamColor,
-      headerMarkup: `
-        <div class="pr-cycle-stage-card__team">${escapeHtml(String(team?.label || ""))}</div>
-        <div class="pr-cycle-stage-card__total metric-duration"><span class="metric-duration__value">${toNumber(
-          team?.totalCycleDays
-        ).toFixed(1)}</span><span class="metric-duration__unit">${
-          Math.abs(toNumber(team?.totalCycleDays) - 1) < 0.05 ? "day" : "days"
-        }</span></div>
-      `,
-      rowsMarkup,
-      footerMarkup: `
-        <div class="pr-cycle-stage-card__footer">
-          <span><strong>${escapeHtml(footerPrimary)}</strong>${footerSecondary ? ` • ${escapeHtml(footerSecondary)}` : ""}</span>
-          <span>${footerLabel}: <strong>${escapeHtml(String(team?.bottleneckLabel || ""))}</strong></span>
-        </div>
-      `
-    });
-  }
-
   function summarizeContributorRows(rows) {
     const safeRows = Array.isArray(rows) ? rows : [];
     return safeRows.reduce(
@@ -1488,190 +1277,13 @@
     });
   }
 
-  function renderProductCycleShipmentsTimeline({
-    containerId,
-    timelineSnapshot,
-    selectedYear,
-    selectedMonthKey
-  }) {
-    const container = document.getElementById(containerId);
-    if (!container) return false;
-    const months = Array.isArray(timelineSnapshot?.months) ? timelineSnapshot.months : [];
-    if (months.length === 0) {
-      container.innerHTML = "";
-      return false;
-    }
-
-    const years = Array.from(
-      new Set(
-        months
-          .map((month) => String(month?.monthKey || "").trim().slice(0, 4))
-          .filter((year) => /^\d{4}$/.test(year))
-      )
-    ).sort((left, right) => left.localeCompare(right));
-    const activeYear = years.includes(String(selectedYear || "").trim())
-      ? String(selectedYear || "").trim()
-      : years[years.length - 1];
-    const monthsInYear = months
-      .filter((month) => String(month?.monthKey || "").trim().startsWith(`${activeYear}-`))
-      .sort((left, right) => String(left?.monthKey || "").localeCompare(String(right?.monthKey || "")));
-    const selectedMonth =
-      monthsInYear.find(
-        (month) => String(month?.monthKey || "").trim() === String(selectedMonthKey || "").trim()
-      ) || monthsInYear[monthsInYear.length - 1];
-    const monthMap = new Map(
-      monthsInYear.map((month) => [String(month?.monthKey || "").trim(), month])
-    );
-    const activeYearIndex = Math.max(0, years.indexOf(activeYear));
-    const previousYear = activeYearIndex > 0 ? years[activeYearIndex - 1] : "";
-    const nextYear = activeYearIndex < years.length - 1 ? years[activeYearIndex + 1] : "";
-
-    const monthButtonsMarkup = Array.from({ length: 12 }, (_, monthIndex) => {
-      const monthNumber = String(monthIndex + 1).padStart(2, "0");
-      const monthKey = `${activeYear}-${monthNumber}`;
-      const monthSnapshot = monthMap.get(monthKey) || null;
-      const monthStart = monthSnapshot?.monthStart || `${monthKey}-01`;
-      const isActive = monthKey === String(selectedMonth?.monthKey || "").trim();
-      const isDisabled = !monthSnapshot;
-      return `
-        <button
-          type="button"
-          class="shipped-month-picker__button${isActive ? " is-active" : ""}"
-          data-shipped-month-key="${escapeHtml(monthKey)}"
-          ${isDisabled ? "disabled" : ""}
-          aria-pressed="${isActive ? "true" : "false"}"
-        >
-          <span class="shipped-month-picker__label">${escapeHtml(
-            formatShipmentMonthButton(monthStart)
-          )}</span>
-        </button>
-      `;
-    }).join("");
-
-    const teamSectionsMarkup = (Array.isArray(selectedMonth?.teams) ? selectedMonth.teams : [])
-      .map((teamRow) => {
-        const normalizedTeamKey = String(teamRow?.team || "").trim();
-        const teamName = normalizeDisplayTeamName(normalizedTeamKey);
-        const shippedCount = toCount(teamRow?.shippedCount);
-        const teamColor = getPrCycleTeamColor(normalizedTeamKey);
-        const ideasMarkup = (Array.isArray(teamRow?.ideas) ? teamRow.ideas : [])
-          .map((idea) => {
-            const issueKey = String(idea?.issueKey || "").trim();
-            const productAreaLabel = formatShipmentAreaLabel(idea?.productAreaLabel);
-            const summary = String(idea?.summary || "").trim();
-            const issueUrl = buildJiraIssueBrowseUrl(issueKey);
-            return `
-              <li class="shipped-team-list__idea">
-                <span class="shipped-team-list__idea-meta">
-                  <a
-                    class="shipped-team-list__idea-key"
-                    href="${escapeHtml(issueUrl)}"
-                    target="_blank"
-                    rel="noreferrer"
-                    title="${escapeHtml(issueKey)}"
-                    aria-label="${escapeHtml(`${issueKey}: ${summary}`)}"
-                  >${escapeHtml(issueKey)}</a>
-                </span>
-                <span class="shipped-team-list__idea-title">${escapeHtml(summary)}</span>
-                <span class="shipped-team-list__idea-area">${escapeHtml(productAreaLabel)}</span>
-              </li>
-            `;
-          })
-          .join("");
-
-        return `
-          <section class="shipped-team-list__group" style="--shipment-accent:${escapeHtml(teamColor)};">
-            <div class="shipped-team-list__team-row">
-              <span class="shipped-team-list__team-node" aria-hidden="true"></span>
-              <div class="shipped-team-list__team-copy">
-                <div class="shipped-team-list__team-name">${escapeHtml(teamName)}</div>
-                <div class="shipped-team-list__team-meta">${shippedCount} shipped</div>
-              </div>
-            </div>
-            ${ideasMarkup ? `<ul class="shipped-team-list__ideas">${ideasMarkup}</ul>` : ""}
-          </section>
-        `;
-      })
-      .join("");
-
-    const emptyMonthMarkup = `
-      <div class="shipped-team-list__empty">
-        <strong>No shipped ideas recorded.</strong>
-        <span>This month is on the timeline, but nothing hit Done in the tracked product cycle.</span>
-      </div>
-    `;
-
-    container.innerHTML = `
-      <div class="product-cycle-shipments">
-        <div class="shipped-timeline">
-          <div class="shipped-timeline__controls">
-            <div class="shipped-timeline__year-switch" aria-label="Shipment year">
-              ${
-                previousYear
-                  ? `
-              <button
-                type="button"
-                class="shipped-timeline__nav"
-                data-shipped-year-target="${escapeHtml(previousYear)}"
-                aria-label="Show previous year"
-              >
-                <span aria-hidden="true">‹</span>
-              </button>
-              `
-                  : '<span class="shipped-timeline__nav-placeholder" aria-hidden="true"></span>'
-              }
-              <div class="shipped-timeline__year-label">${escapeHtml(activeYear)}</div>
-              ${
-                nextYear
-                  ? `
-              <button
-                type="button"
-                class="shipped-timeline__nav"
-                data-shipped-year-target="${escapeHtml(nextYear)}"
-                aria-label="Show next year"
-              >
-                <span aria-hidden="true">›</span>
-              </button>
-              `
-                  : '<span class="shipped-timeline__nav-placeholder" aria-hidden="true"></span>'
-              }
-            </div>
-            <div class="shipped-month-picker" role="group" aria-label="Months in ${escapeHtml(activeYear)}">
-              ${monthButtonsMarkup}
-            </div>
-          </div>
-          <section class="shipped-timeline__detail" aria-label="${escapeHtml(
-            formatShipmentMonthLabel(String(selectedMonth?.monthStart || "").trim())
-          )} shipped ideas">
-            <div class="shipped-timeline__detail-header">
-              <div class="shipped-timeline__detail-copy">
-                <h3 class="shipped-timeline__detail-title">${escapeHtml(
-                  formatShipmentMonthLabel(String(selectedMonth?.monthStart || "").trim())
-                )}</h3>
-              </div>
-              <div class="shipped-timeline__detail-callout">
-                <strong>${toCount(selectedMonth?.totalShipped)} shipped</strong> this month
-              </div>
-            </div>
-            <div class="shipped-team-list" aria-label="Teams with shipped ideas">
-              ${teamSectionsMarkup || emptyMonthMarkup}
-            </div>
-          </section>
-        </div>
-      </div>
-    `;
-    return true;
-  }
-
   Object.assign(window.DashboardCharts || (window.DashboardCharts = {}), {
     renderBugBacklogTrendByTeamChart,
     renderBugCompositionByPriorityChart,
     renderDevelopmentVsUatByFacilityChart,
     renderLifecycleTimeSpentPerStageChart,
-    renderProductCycleShipmentsTimeline,
     renderProductCycleSingleTeamCard,
     renderProductCycleComparisonCard,
-    renderPrCycleExperimentCard,
     renderTopContributorsCard,
     summarizeContributorRows
   });

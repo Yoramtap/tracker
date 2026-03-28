@@ -1,0 +1,35 @@
+<section
+  id="product-cycle-shipments-panel"
+  class="panel panel--frame-fill"
+  aria-label="What we shipped"
+  hidden
+>
+  <div class="panel-title-row">
+    <h2>What we shipped</h2>
+    <details class="help-wrap">
+      <summary class="help-tip" aria-label="What we shipped explainer">i</summary>
+      <div class="help-popover" role="tooltip">
+        <p>
+          <strong>What we shipped</strong> lets you browse shipped product work by
+          month and year, grouped by mapped team.
+        </p>
+        <ul>
+          <li>Use the year switch and month buttons to move through available shipment history.</li>
+          <li>Only months with shipment data are selectable.</li>
+          <li>The detail card lists shipped ideas for the selected month, grouped by team.</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+  <div class="chart">
+    <div id="product-cycle-shipments-chart" class="chart-canvas chart-canvas--dense"></div>
+  </div>
+  <p id="product-cycle-shipments-context" class="panel-summary panel-summary--meta" hidden></p>
+  <p
+    id="product-cycle-shipments-status"
+    class="panel-status"
+    aria-live="polite"
+    role="status"
+    hidden
+  ></p>
+</section>

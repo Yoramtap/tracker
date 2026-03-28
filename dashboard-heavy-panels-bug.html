@@ -1,0 +1,39 @@
+<section id="bug-trends-panel" class="panel" aria-label="Bug trends" hidden>
+  <div class="panel-title-row">
+    <h2>Bug trends</h2>
+    <details class="help-wrap">
+      <summary class="help-tip" aria-label="Bug trends explainer">i</summary>
+      <div class="help-popover" role="tooltip">
+        <p>
+          <strong>Bug trends</strong> combines the sprint trend graph with the current
+          backlog pressure table in one shared panel.
+        </p>
+        <ul>
+          <li>Use the toggle to switch between Graph and Table.</li>
+          <li>Graph tracks open backlog over time by team.</li>
+          <li>X-axis labels are sprint start dates, with one point per sprint.</li>
+          <li>Table summarizes the latest total, pressure mix, and recent change by team.</li>
+          <li>Dashed BC lines in the graph show long-standing backlog overlays.</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+  <div class="radio-control-groups" aria-label="Bug trends view">
+    <fieldset class="radio-group-card radio-group-card--primary radio-group-card--segmented">
+      <legend>View</legend>
+      <label
+        ><input type="radio" name="bug-trends-view" value="graph" checked />
+        <span>Graph</span></label
+      >
+      <label
+        ><input type="radio" name="bug-trends-view" value="table" />
+        <span>Table</span></label
+      >
+    </fieldset>
+  </div>
+  <div class="chart">
+    <div id="bug-trends-chart" class="chart-canvas chart-canvas--standard"></div>
+  </div>
+  <p id="bug-trends-context" class="panel-summary panel-summary--meta" hidden></p>
+  <p id="bug-trends-status" class="panel-status" aria-live="polite" role="status" hidden></p>
+</section>

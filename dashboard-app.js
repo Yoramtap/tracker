@@ -29,7 +29,6 @@ const BUG_TRENDS_VIEW_DEFAULT = "graph";
 const BUG_TRENDS_VIEW_MODES = [BUG_TRENDS_VIEW_DEFAULT, "table"];
 const PRODUCT_DELIVERY_WORKFLOW_VIEW_DEFAULT = "delivery";
 const PRODUCT_DELIVERY_WORKFLOW_VIEW_MODES = [PRODUCT_DELIVERY_WORKFLOW_VIEW_DEFAULT, "workflow"];
-const PR_CYCLE_WINDOWS = [THIRTY_DAY_WINDOW_KEY, "90d", "6m", "1y"];
 const PR_ACTIVITY_WINDOWS = [THIRTY_DAY_WINDOW_KEY, "90d", "6m", "1y"];
 const MANAGEMENT_FLOW_SCOPES = ["ongoing", "done"];
 const LIFECYCLE_TEAM_SCOPE_DEFAULT = "all";
@@ -51,11 +50,7 @@ const SECTION_FILTER_PANEL_IDS = {
   shipped: ["product-cycle-shipments-panel"],
   product: ["uat-acceptance-time-panel", "cycle-time-to-ship-panel"],
   community: ["community-contributors-panel"],
-  development: [
-    "development-workflow-breakdown-panel",
-    "development-workflow-overview-panel",
-    "development-workflow-trends-panel"
-  ],
+  development: ["development-workflow-breakdown-panel", "development-workflow-trends-panel"],
   bug: ["bug-trends-panel"]
 };
 const CHART_CONFIG = {
@@ -64,7 +59,7 @@ const CHART_CONFIG = {
     statusId: "bug-trends-status",
     contextId: "bug-trends-context",
     containerId: "bug-trends-chart",
-    missingMessage: "Bug trends view unavailable: Recharts did not load. Check local script paths."
+    missingMessage: "Bug trends view unavailable: chart renderer missing."
   },
   "management-facility": {
     panelId: "uat-acceptance-time-panel",
@@ -72,28 +67,21 @@ const CHART_CONFIG = {
     contextId: "management-facility-context",
     containerId: "development-vs-uat-by-facility-chart",
     rendererName: "renderDevelopmentVsUatByFacilityChart",
-    missingMessage: "Development vs UAT chart unavailable: Recharts renderer missing."
-  },
-  "pr-activity": {
-    panelId: "development-workflow-overview-panel",
-    statusId: "pr-activity-status",
-    contextId: "pr-activity-context",
-    containerId: "pr-position-chart",
-    missingMessage: "No Jira-linked PR activity found in backlog-snapshot.json."
+    missingMessage: "Development vs UAT chart unavailable: renderer missing."
   },
   "pr-activity-legacy": {
     panelId: "development-workflow-trends-panel",
     statusId: "pr-activity-legacy-status",
     contextId: "pr-activity-legacy-context",
     containerId: "pr-activity-legacy-count-chart",
-    missingMessage: "No Jira-linked PR activity found in backlog-snapshot.json."
+    missingMessage: "No Jira-linked PR activity found in pr-activity-snapshot.json."
   },
   contributors: {
     panelId: "community-contributors-panel",
     statusId: "contributors-status",
     contextId: "contributors-context",
     containerId: "top-contributors-chart",
-    missingMessage: "Contributors chart unavailable: Recharts renderer missing."
+    missingMessage: "Contributors chart unavailable: renderer missing."
   },
   "product-cycle-shipments": {
     panelId: "product-cycle-shipments-panel",
@@ -125,7 +113,6 @@ const PANEL_DISPLAY_ORDER = [
   "uat-acceptance-time-panel",
   "cycle-time-to-ship-panel",
   "development-workflow-breakdown-panel",
-  "development-workflow-overview-panel",
   "development-workflow-trends-panel",
   "bug-trends-panel"
 ];
@@ -134,12 +121,21 @@ const DATA_SOURCE_CONFIG = {
     stateKey: "snapshot",
     url: "./backlog-snapshot.json",
     errorMessage: "Failed to load backlog-snapshot.json",
-    statusIds: [
-      "bug-trends-status",
-      "management-facility-status",
-      "pr-activity-status",
-      "pr-activity-legacy-status"
-    ]
+    statusIds: ["bug-trends-status"]
+  },
+  prActivity: {
+    stateKey: "prActivitySnapshot",
+    url: "./pr-activity-snapshot.json",
+    errorMessage: "Failed to load pr-activity-snapshot.json",
+    statusIds: ["pr-activity-legacy-status", "pr-cycle-experiment-status"],
+    clearContainers: ["pr-activity-legacy-count-chart", "pr-activity-legacy-merge-time-chart", "pr-cycle-experiment-card"]
+  },
+  managementFacility: {
+    stateKey: "managementFacilitySnapshot",
+    url: "./management-facility-snapshot.json",
+    errorMessage: "Failed to load management-facility-snapshot.json",
+    statusIds: ["management-facility-status"],
+    clearContainers: ["development-vs-uat-by-facility-chart"]
   },
   productCycle: {
     stateKey: "productCycle",
@@ -165,17 +161,16 @@ const DATA_SOURCE_CONFIG = {
     stateKey: "prCycle",
     url: "./pr-cycle-snapshot.json",
     errorMessage: "Failed to load pr-cycle-snapshot.json",
-    statusIds: ["pr-cycle-experiment-status", "pr-activity-status"],
-    clearContainers: ["pr-cycle-experiment-card", "pr-position-chart"]
+    statusIds: ["pr-cycle-experiment-status"],
+    clearContainers: ["pr-cycle-experiment-card"]
   }
 };
 const PRELOADED_DATA_SOURCE_PROMISES =
   window.__dashboardDataSourcePromiseCache || Object.create(null);
 const CHART_DATA_SOURCES = {
   trend: ["snapshot"],
-  "management-facility": ["snapshot"],
-  "pr-activity": ["snapshot", "prCycle"],
-  "pr-activity-legacy": ["snapshot"],
+  "management-facility": ["managementFacility"],
+  "pr-activity-legacy": ["prActivity"],
   contributors: ["contributors"],
   "product-cycle-shipments": ["productCycleShipments"],
   "product-cycle": ["productCycle"],
@@ -184,18 +179,12 @@ const CHART_DATA_SOURCES = {
 const CHART_RENDERERS = {
   trend: renderBugTrendsPanel,
   "management-facility": renderDevelopmentVsUatByFacilityChart,
-  "pr-activity": renderPrActivityCharts,
   "pr-activity-legacy": renderLegacyPrActivityCharts,
   contributors: renderTopContributorsChart,
   "product-cycle-shipments": renderProductCycleShipmentsTimeline,
   "product-cycle": renderLeadAndCycleTimeByTeamChart,
   "pr-cycle-experiment": renderPrCycleExperiment
 };
-
-function renderDevelopmentWorkflowPanels() {
-  renderPrCycleExperiment();
-  renderPrActivityCharts();
-}
 
 function productDeliveryWorkflowViewKey(value) {
   return normalizeOption(
@@ -235,7 +224,39 @@ function isPanelVisibleForSection(panelId, sectionKey = state.sectionFilter) {
 
 function renderSectionFilteredPanels() {
   applyModeVisibility();
+  ensureActiveSourcesLoaded();
   renderVisibleCharts();
+}
+
+async function renderSectionFilteredPanelsAfterShell() {
+  if (state.mode !== "all") {
+    renderSectionFilteredPanels();
+    return;
+  }
+
+  const ensureHeavyPanelShell = dashboardRuntimeContract?.ensureHeavyPanelShell;
+  const ensureHeavyScripts = dashboardRuntimeContract?.ensureHeavyScripts;
+  if (typeof ensureHeavyPanelShell === "function") {
+    setStatusMessage("actions-required-status", "Loading dashboard section…");
+    try {
+      await ensureHeavyPanelShell(state.mode, state.sectionFilter);
+      if (typeof ensureHeavyScripts === "function") {
+        await ensureHeavyScripts(state.mode, state.sectionFilter);
+      }
+      applyDashboardPanelOrder();
+      syncDashboardControlsFromState(CONTROL_BINDINGS, state);
+      bindDashboardControlState(CONTROL_BINDINGS, state);
+    } catch (error) {
+      setStatusMessage(
+        "actions-required-status",
+        `Failed to load dashboard section: ${error instanceof Error ? error.message : String(error)}`
+      );
+      return;
+    }
+  }
+
+  renderSectionFilteredPanels();
+  setStatusMessage("actions-required-status", "");
 }
 
 function renderSectionFilterIcon(value) {
@@ -275,7 +296,7 @@ const CONTROL_BINDINGS = [
     stateKey: "sectionFilter",
     defaultValue: SECTION_FILTER_DEFAULT,
     normalizeValue: sectionFilterKey,
-    onChangeRender: renderSectionFilteredPanels
+    onChangeRender: renderSectionFilteredPanelsAfterShell
   },
   {
     name: "bug-trends-view",
@@ -307,15 +328,7 @@ const CONTROL_BINDINGS = [
     defaultValue: THIRTY_DAY_WINDOW_KEY,
     normalizeValue: (value) =>
       normalizeOption(value, DEVELOPMENT_WORKFLOW_WINDOWS, THIRTY_DAY_WINDOW_KEY),
-    onChangeRender: renderDevelopmentWorkflowPanels
-  },
-  {
-    name: "pr-activity-window",
-    stateKey: "developmentWorkflowWindow",
-    defaultValue: THIRTY_DAY_WINDOW_KEY,
-    normalizeValue: (value) =>
-      normalizeOption(value, DEVELOPMENT_WORKFLOW_WINDOWS, THIRTY_DAY_WINDOW_KEY),
-    onChangeRender: renderDevelopmentWorkflowPanels
+    onChangeRender: renderPrCycleExperiment
   },
   {
     name: "pr-activity-legacy-metric",
@@ -342,6 +355,8 @@ const CONTROL_BINDINGS = [
 
 const state = {
   snapshot: null,
+  prActivitySnapshot: null,
+  managementFacilitySnapshot: null,
   contributors: null,
   productCycle: null,
   productCycleShipments: null,
@@ -351,10 +366,8 @@ const state = {
   mode: "all",
   sectionFilter: SECTION_FILTER_DEFAULT,
   bugTrendsView: BUG_TRENDS_VIEW_DEFAULT,
-  prActivityHiddenKeys: [],
   prActivityLegacyHiddenKeys: [],
   developmentWorkflowWindow: THIRTY_DAY_WINDOW_KEY,
-  prActivityWindow: THIRTY_DAY_WINDOW_KEY,
   prActivityLegacyMetric: "offered",
   productDeliveryWorkflowView: PRODUCT_DELIVERY_WORKFLOW_VIEW_DEFAULT,
   productCycleTeam: PRODUCT_CYCLE_TEAM_DEFAULT,
@@ -377,6 +390,10 @@ const legacyPrActivityMonthlyCache = {
 const dashboardUiUtils = window.DashboardViewUtils;
 if (!dashboardUiUtils) {
   throw new Error("Dashboard UI helpers not loaded.");
+}
+const dashboardRuntimeContract = window.DashboardRuntimeContract;
+if (!dashboardRuntimeContract) {
+  throw new Error("Dashboard runtime contract not loaded.");
 }
 const dashboardDataUtils = window.DashboardDataUtils;
 if (!dashboardDataUtils) {
@@ -417,23 +434,12 @@ if (!dashboardSvgCore) {
 const { buildTeamColorMap, buildTintMap, toCount } = dashboardDataUtils;
 const {
   React,
-  ResponsiveContainer,
-  ScatterChart,
-  Scatter,
-  ReferenceArea,
-  ReferenceLine,
-  XAxis,
-  YAxis,
-  Tooltip,
-  buildAxisLabel,
-  createTooltipContent,
+  buildRowMarkup,
+  getPrCycleTeamColor,
   h,
   isCompactViewport,
-  makeTooltipLine,
-  renderLegendNode,
-  renderWithRoot,
-  singleChartHeightForMode,
-  tooltipTitleLine
+  renderProductCycleCard,
+  renderWithRoot
 } = dashboardChartCore;
 const { SvgChartShell, linearScale, withAlpha } = dashboardSvgCore;
 
@@ -455,7 +461,6 @@ const chartMonthRangeShortFormatter = new Intl.DateTimeFormat(undefined, {
   year: "numeric",
   timeZone: "UTC"
 });
-
 function toChartDateValue(dateText) {
   const timestamp = new Date(`${String(dateText || "")}T00:00:00Z`).getTime();
   return Number.isFinite(timestamp) ? timestamp : 0;
@@ -512,10 +517,37 @@ function getSnapshotDisplayDate(dateText, { preferChartData = false } = {}) {
   return capChartDateToTimestamp(dateText, getSnapshotContextTimestamp(state, { preferChartData }));
 }
 
+function getPrActivitySnapshot() {
+  if (state.prActivitySnapshot && typeof state.prActivitySnapshot === "object") {
+    return state.prActivitySnapshot;
+  }
+  if (state.snapshot?.prActivity && typeof state.snapshot.prActivity === "object") {
+    return {
+      updatedAt: String(state.snapshot?.updatedAt || "").trim(),
+      prActivity: state.snapshot.prActivity
+    };
+  }
+  return null;
+}
+
+function getManagementFacilitySnapshot() {
+  if (state.managementFacilitySnapshot && typeof state.managementFacilitySnapshot === "object") {
+    return state.managementFacilitySnapshot;
+  }
+  if (state.snapshot?.chartData?.managementBusinessUnit) {
+    return {
+      updatedAt: String(state.snapshot?.updatedAt || "").trim(),
+      chartDataUpdatedAt: String(state.snapshot?.chartDataUpdatedAt || "").trim(),
+      chartData: state.snapshot.chartData
+    };
+  }
+  return null;
+}
+
 function getPrActivityDisplayDate(dateText) {
   return capChartDateToTimestamp(
     dateText,
-    getOldestTimestamp([state.snapshot?.updatedAt, state.prCycle?.updatedAt])
+    getOldestTimestamp([getPrActivitySnapshot()?.updatedAt, state.prCycle?.updatedAt])
   );
 }
 
@@ -659,9 +691,9 @@ function renderActionsRequiredFrame() {
 }
 
 function getBroadcastScopeLabel() {
+  const managementFacilitySnapshot = getManagementFacilitySnapshot();
   return String(
-    state.snapshot?.chartData?.managementBusinessUnit?.scopeLabel ||
-      state.snapshot?.uatAging?.scope?.label ||
+    managementFacilitySnapshot?.chartData?.managementBusinessUnit?.scopeLabel ||
       "Broadcast"
   );
 }
@@ -753,17 +785,20 @@ function monthBucketDate(isoDate) {
 }
 
 function buildLegacyPrActivityMonthlyPoints() {
-  const monthlyPoints = Array.isArray(state.snapshot?.prActivity?.monthlyPoints)
-    ? state.snapshot.prActivity.monthlyPoints
+  const prActivitySnapshot = getPrActivitySnapshot();
+  const monthlyPoints = Array.isArray(prActivitySnapshot?.prActivity?.monthlyPoints)
+    ? prActivitySnapshot.prActivity.monthlyPoints
     : [];
   if (monthlyPoints.length > 0) return monthlyPoints;
 
-  const prActivitySource = state.snapshot?.prActivity || null;
+  const prActivitySource = prActivitySnapshot?.prActivity || null;
   if (legacyPrActivityMonthlyCache.source === prActivitySource) {
     return legacyPrActivityMonthlyCache.points;
   }
 
-  const points = Array.isArray(state.snapshot?.prActivity?.points) ? state.snapshot.prActivity.points : [];
+  const points = Array.isArray(prActivitySnapshot?.prActivity?.points)
+    ? prActivitySnapshot.prActivity.points
+    : [];
   const teamKeys = PR_ACTIVITY_LINE_DEFS.map((lineDef) => lineDef.dataKey);
   const byMonth = new Map();
 
@@ -838,31 +873,7 @@ function normalizeProductCycleTeamKey(value) {
   return raw;
 }
 
-function getPrCycleTeamMetric(windowSnapshot, teamKey) {
-  const teams = Array.isArray(windowSnapshot?.teams) ? windowSnapshot.teams : [];
-  return (
-    teams.find(
-      (team) =>
-        String(team?.key || "")
-          .trim()
-          .toLowerCase() === String(teamKey || "").trim().toLowerCase()
-    ) || null
-  );
-}
-
-function getPrCycleStageMetric(teamSnapshot, stageKey) {
-  const stages = Array.isArray(teamSnapshot?.stages) ? teamSnapshot.stages : [];
-  return (
-    stages.find(
-      (stage) =>
-        String(stage?.key || "")
-          .trim()
-          .toLowerCase() === String(stageKey || "").trim().toLowerCase()
-    ) || null
-  );
-}
-
-function buildPrCycleAllTeamsMetric(windowSnapshot) {
+function buildPrCycleAllTeamsMetric(windowSnapshot, inflowByTeamKey = {}) {
   const teams = Array.isArray(windowSnapshot?.teams) ? windowSnapshot.teams : [];
   const teamRows = teams
     .map((team) => {
@@ -880,6 +891,7 @@ function buildPrCycleAllTeamsMetric(windowSnapshot) {
         key,
         label,
         issueCount: toCount(team?.issueCount || team?.pullRequestCount),
+        avgPrInflow: toNumber(inflowByTeamKey[key]),
         totalCycleDays
       };
     })
@@ -896,6 +908,34 @@ function buildPrCycleAllTeamsMetric(windowSnapshot) {
     issueCount: teamRows.reduce((sum, team) => sum + toCount(team?.issueCount), 0),
     teamRows
   };
+}
+
+function buildPrActivityAverageInflowByTeam(points, prCycleWindowSnapshot) {
+  const safePoints = Array.isArray(points) ? points : [];
+  const availableTeamKeys = new Set(
+    (Array.isArray(prCycleWindowSnapshot?.teams) ? prCycleWindowSnapshot.teams : [])
+      .map((team) =>
+        String(team?.key || "")
+          .trim()
+          .toLowerCase()
+      )
+      .filter(Boolean)
+  );
+  return Object.fromEntries(
+    PR_ACTIVITY_LINE_DEFS.map((lineDef) => {
+      if (!availableTeamKeys.has(lineDef.dataKey)) return null;
+      const inflowValues = safePoints
+        .map((point) => toNumber(point?.[lineDef.dataKey]?.offered))
+        .filter((value) => Number.isFinite(value));
+      if (inflowValues.length === 0) return null;
+      return [
+        lineDef.dataKey,
+        Number(
+          (inflowValues.reduce((sum, value) => sum + value, 0) / Math.max(1, inflowValues.length)).toFixed(1)
+        )
+      ];
+    }).filter(Boolean)
+  );
 }
 
 function buildPrActivityScatterSeries(points, selectedWindowKey, prCycleWindowSnapshot) {
@@ -950,23 +990,6 @@ function buildPrActivityScatterSeries(points, selectedWindowKey, prCycleWindowSn
   }).filter(Boolean);
 }
 
-function getPrActivityLineDefs(colors) {
-  return PR_ACTIVITY_LINE_DEFS.map((line) => ({
-    ...line,
-    stroke: colors.teams[line.colorKey]
-  }));
-}
-
-function getLegacyPrActivityYUpper(rows, lineDefs) {
-  return (Array.isArray(rows) ? rows : []).reduce((highest, row) => {
-    const rowMax = lineDefs.reduce(
-      (lineHighest, lineDef) => Math.max(lineHighest, toNumber(row?.[lineDef.dataKey])),
-      0
-    );
-    return Math.max(highest, rowMax);
-  }, 0);
-}
-
 function formatWholeCountLabel(value) {
   return String(Math.max(0, Math.round(toNumber(value))));
 }
@@ -1009,95 +1032,6 @@ function buildPrActivityAxisRowsForAllWindows(allPoints, prCycleWindows) {
   });
 }
 
-function createPrActivityScatterShape(compactViewport) {
-  return function prActivityScatterShape(props) {
-    const { cx, cy, fill, payload } = props || {};
-    if (!Number.isFinite(cx) || !Number.isFinite(cy) || !payload) return null;
-    const dotRadius = compactViewport ? 5 : 6.5;
-    const labelX = cx + (compactViewport ? 8 : 12);
-    const labelY = cy - (compactViewport ? 8 : 12);
-
-    return h(
-      "g",
-      null,
-      h("circle", {
-        cx,
-        cy,
-        r: dotRadius,
-        fill,
-        fillOpacity: 0.96,
-        stroke: "#ffffff",
-        strokeWidth: 1.6
-      }),
-      h(
-        "text",
-        {
-          x: labelX,
-          y: labelY,
-          fill: "rgba(31, 51, 71, 0.96)",
-          fontFamily: "var(--font-ui)",
-          fontSize: compactViewport ? 9 : 11,
-          fontWeight: 700,
-          textAnchor: "start",
-          dominantBaseline: "auto",
-          stroke: "rgba(255,255,255,0.96)",
-          strokeWidth: 4,
-          paintOrder: "stroke"
-        },
-        payload?.teamLabel || ""
-      )
-    );
-  };
-}
-
-const PR_ACTIVITY_QUADRANTS = [
-  {
-    key: "few-long",
-    x1: 0,
-    fill: "rgba(128, 148, 175, 0.12)",
-  },
-  {
-    key: "many-long",
-    x1: "median",
-    fill: "rgba(207, 170, 120, 0.12)",
-  },
-  {
-    key: "few-short",
-    x1: 0,
-    fill: "rgba(111, 160, 153, 0.12)",
-  },
-  {
-    key: "many-short",
-    x1: "median",
-    fill: "rgba(104, 171, 121, 0.14)",
-  }
-];
-
-function renderPrActivityQuadrantAreas({ medianX, medianY, xUpper, yUpper }) {
-  return PR_ACTIVITY_QUADRANTS.map((quadrant, index) => {
-    const area = {
-      ...quadrant,
-      x1: quadrant.x1 === "median" ? medianX : 0,
-      x2: index % 2 === 0 ? medianX : xUpper,
-      y1: index < 2 ? medianY : 0,
-      y2: index < 2 ? yUpper : medianY
-    };
-    return (
-    h(ReferenceArea, {
-      key: area.key,
-      x1: area.x1,
-      x2: area.x2,
-      y1: area.y1,
-      y2: area.y2,
-      ifOverflow: "extendDomain",
-      fill: area.fill,
-      strokeOpacity: 0,
-      label: null
-    })
-    );
-  });
-}
-
 function getSharedPrActivityHiddenKeys() {
   return new Set(Array.isArray(state.prActivityHiddenKeys) ? state.prActivityHiddenKeys : []);
 }
@@ -1108,6 +1042,291 @@ function setSharedPrActivityHiddenKeys(updater) {
   const nextSet = nextValue instanceof Set ? nextValue : new Set(nextValue || []);
   state.prActivityHiddenKeys = Array.from(nextSet);
   renderPrActivityCharts();
+}
+
+function PrActivityScatterView({ series, colors, hiddenKeys, setHiddenKeys, interval, axisRows }) {
+  const compactViewport = isCompactViewport();
+  const visibleSeries = series.filter((item) => !hiddenKeys.has(item.dataKey));
+  const fixedAxisRows =
+    Array.isArray(axisRows) && axisRows.length > 0
+      ? axisRows
+      : visibleSeries.flatMap((item) => item.rows);
+  const inflowAxisLabel = prActivityInflowLabel(interval);
+  const inflowTooltipLabel = prActivityInflowLabel(interval, { short: true });
+  const xAxis = buildPrActivityInflowAxis(fixedAxisRows);
+  const yAxis = buildPrActivityReviewAxis();
+  const width = 960;
+  const height = compactViewport ? 340 : 460;
+  const margin = compactViewport
+    ? { top: 18, right: 18, bottom: 54, left: 48 }
+    : { top: 28, right: 88, bottom: 68, left: 62 };
+  const plotLeft = margin.left;
+  const plotRight = width - margin.right;
+  const plotTop = margin.top;
+  const plotBottom = height - margin.bottom;
+  const splitX = PR_ACTIVITY_INFLOW_SPLIT;
+  const splitY = PR_ACTIVITY_REVIEW_SPLIT;
+  const [tooltipContent, setTooltipContent] = React.useState(null);
+
+  const pointRows = visibleSeries.flatMap((item) =>
+    item.rows.map((row) => ({
+      ...row,
+      dataKey: item.dataKey,
+      stroke: item.stroke,
+      xPos: linearScale(toNumber(row?.x), 0, xAxis.upper, plotLeft, plotRight),
+      yPos: linearScale(toNumber(row?.y), 0, yAxis.upper, plotBottom, plotTop)
+    }))
+  );
+
+  const showTooltip = (point) => {
+    setTooltipContent(
+      h(
+        "div",
+        null,
+        h("p", null, h("strong", null, point?.teamLabel || "")),
+        h("p", null, h("strong", null, point?.tooltipScopeLabel || "All-time avg")),
+        h("p", null, `${inflowTooltipLabel}: ${formatWholeCountLabel(point?.x)}`),
+        h("p", null, `Avg. review + QA stage time: ${formatMergeTimeLabel(point?.y)}`),
+        h("p", null, `Review sample: ${formatWholeCountLabel(point?.reviewSampleCount)} tickets`),
+        h("p", null, `QA sample: ${formatWholeCountLabel(point?.qaSampleCount)} tickets`),
+        h("p", null, `Workflow sample: ${formatWholeCountLabel(point?.workflowSampleCount)} issues`)
+      )
+    );
+  };
+
+  const quadrantRects = [
+    { key: "few-long", x1: 0, x2: splitX, y1: splitY, y2: yAxis.upper, fill: "rgba(128, 148, 175, 0.12)" },
+    { key: "many-long", x1: splitX, x2: xAxis.upper, y1: splitY, y2: yAxis.upper, fill: "rgba(207, 170, 120, 0.12)" },
+    { key: "few-short", x1: 0, x2: splitX, y1: 0, y2: splitY, fill: "rgba(111, 160, 153, 0.12)" },
+    { key: "many-short", x1: splitX, x2: xAxis.upper, y1: 0, y2: splitY, fill: "rgba(104, 171, 121, 0.14)" }
+  ];
+
+  return h(
+    "div",
+    { className: "chart-series-shell chart-series-shell--feature" },
+    h(
+      "div",
+      { className: "svg-chart-legend", role: "group", "aria-label": `${inflowTooltipLabel} line toggles` },
+      ...getPrActivityLineDefs(colors).map((lineDef) => {
+        const hidden = hiddenKeys.has(lineDef.dataKey);
+        return h(
+          "button",
+          {
+            key: `pr-activity-legend-${lineDef.dataKey}`,
+            type: "button",
+            className: `svg-chart-legend__button${hidden ? " svg-chart-legend__button--off" : ""}`,
+            style: compactViewport ? { minHeight: "34px", padding: "6px 8px" } : undefined,
+            onClick: () =>
+              setHiddenKeys((previous) => {
+                const next = new Set(previous);
+                if (next.has(lineDef.dataKey)) next.delete(lineDef.dataKey);
+                else next.add(lineDef.dataKey);
+                return next;
+              }),
+            "aria-pressed": hidden ? "false" : "true"
+          },
+          h("span", {
+            className: "svg-chart-legend__swatch",
+            style: { background: hidden ? withAlpha(lineDef.stroke, 0.28) : lineDef.stroke }
+          }),
+          h("span", { className: "svg-chart-legend__label" }, lineDef.name)
+        );
+      })
+    ),
+    h(
+      SvgChartShell,
+      { width, height, colors, tooltipContent, legendItems: [] },
+      h(
+        "g",
+        null,
+        ...quadrantRects.map((rect) =>
+          h("rect", {
+            key: rect.key,
+            x: linearScale(rect.x1, 0, xAxis.upper, plotLeft, plotRight),
+            y: linearScale(rect.y2, 0, yAxis.upper, plotBottom, plotTop),
+            width:
+              linearScale(rect.x2, 0, xAxis.upper, plotLeft, plotRight) -
+              linearScale(rect.x1, 0, xAxis.upper, plotLeft, plotRight),
+            height:
+              linearScale(rect.y1, 0, yAxis.upper, plotBottom, plotTop) -
+              linearScale(rect.y2, 0, yAxis.upper, plotBottom, plotTop),
+            fill: rect.fill
+          })
+        ),
+        ...yAxis.ticks.map((tick) => {
+          const y = linearScale(tick, 0, yAxis.upper, plotBottom, plotTop);
+          return h(
+            "g",
+            { key: `pr-scatter-y-${tick}` },
+            h("line", {
+              x1: plotLeft,
+              x2: plotRight,
+              y1: y,
+              y2: y,
+              stroke: colors.grid,
+              strokeWidth: tick === 0 ? 1.2 : 1
+            }),
+            h(
+              "text",
+              {
+                x: plotLeft - 8,
+                y: y + 4,
+                fill: colors.text,
+                fontSize: compactViewport ? 10 : 11,
+                fontWeight: 600,
+                textAnchor: "end"
+              },
+              String(tick)
+            )
+          );
+        }),
+        ...xAxis.ticks.map((tick) => {
+          const x = linearScale(tick, 0, xAxis.upper, plotLeft, plotRight);
+          return h(
+            "g",
+            { key: `pr-scatter-x-${tick}` },
+            h("line", {
+              x1: x,
+              x2: x,
+              y1: plotTop,
+              y2: plotBottom,
+              stroke: tick === 0 ? "transparent" : "rgba(31, 51, 71, 0.06)",
+              strokeWidth: 1
+            }),
+            h(
+              "text",
+              {
+                x,
+                y: plotBottom + 18,
+                fill: colors.text,
+                fontSize: compactViewport ? 10 : 11,
+                fontWeight: 600,
+                textAnchor: "middle"
+              },
+              formatWholeCountLabel(tick)
+            )
+          );
+        }),
+        h("line", {
+          x1: linearScale(splitX, 0, xAxis.upper, plotLeft, plotRight),
+          x2: linearScale(splitX, 0, xAxis.upper, plotLeft, plotRight),
+          y1: plotTop,
+          y2: plotBottom,
+          stroke: "rgba(31, 51, 71, 0.42)",
+          strokeWidth: 1.25,
+          strokeDasharray: "5 5"
+        }),
+        h("line", {
+          x1: plotLeft,
+          x2: plotRight,
+          y1: linearScale(splitY, 0, yAxis.upper, plotBottom, plotTop),
+          y2: linearScale(splitY, 0, yAxis.upper, plotBottom, plotTop),
+          stroke: "rgba(31, 51, 71, 0.42)",
+          strokeWidth: 1.25,
+          strokeDasharray: "5 5"
+        }),
+        h("line", {
+          x1: plotLeft,
+          x2: plotRight,
+          y1: plotBottom,
+          y2: plotBottom,
+          stroke: "rgba(31, 51, 71, 0.58)",
+          strokeWidth: 1.2
+        }),
+        h("line", {
+          x1: plotLeft,
+          x2: plotLeft,
+          y1: plotTop,
+          y2: plotBottom,
+          stroke: "rgba(31, 51, 71, 0.58)",
+          strokeWidth: 1.2
+        }),
+        ...pointRows.map((point) =>
+          h(
+            "g",
+            { key: `pr-scatter-point-${point.dataKey}` },
+            h("circle", {
+              cx: point.xPos,
+              cy: point.yPos,
+              r: compactViewport ? 5 : 6.5,
+              fill: point.stroke,
+              fillOpacity: 0.96,
+              stroke: "#ffffff",
+              strokeWidth: 1.6
+            }),
+            h(
+              "text",
+              {
+                x: point.xPos + (compactViewport ? 8 : 12),
+                y: point.yPos - (compactViewport ? 8 : 12),
+                fill: "rgba(31, 51, 71, 0.96)",
+                fontFamily: "var(--font-ui)",
+                fontSize: compactViewport ? 9 : 11,
+                fontWeight: 700,
+                textAnchor: "start",
+                dominantBaseline: "auto",
+                stroke: "rgba(255,255,255,0.96)",
+                strokeWidth: 4,
+                paintOrder: "stroke"
+              },
+              point.teamLabel || ""
+            ),
+            h("circle", {
+              cx: point.xPos,
+              cy: point.yPos,
+              r: compactViewport ? 12 : 14,
+              fill: "transparent",
+              onMouseEnter: () => showTooltip(point),
+              onMouseLeave: () => setTooltipContent(null),
+              "aria-label": `${point.teamLabel || ""}: ${inflowTooltipLabel} ${formatWholeCountLabel(point.x)}, ${formatMergeTimeLabel(point.y)}`
+            })
+          )
+        ),
+        h(
+          "text",
+          {
+            x: plotLeft + (plotRight - plotLeft) / 2,
+            y: plotBottom + (compactViewport ? 40 : 48),
+            fill: "rgba(31, 51, 71, 0.92)",
+            fontSize: compactViewport ? 10 : 11,
+            fontWeight: 700,
+            textAnchor: "middle"
+          },
+          compactViewport ? "PR inflow" : inflowAxisLabel
+        ),
+        h(
+          "text",
+          {
+            x: plotLeft - (compactViewport ? 36 : 44),
+            y: plotTop + (plotBottom - plotTop) / 2,
+            fill: "rgba(31, 51, 71, 0.92)",
+            fontSize: compactViewport ? 10 : 11,
+            fontWeight: 700,
+            textAnchor: "middle",
+            transform: `rotate(-90 ${plotLeft - (compactViewport ? 36 : 44)} ${plotTop + (plotBottom - plotTop) / 2})`
+          },
+          compactViewport ? "Review + QA days" : "Avg review + QA time (days)"
+        )
+      )
+    )
+  );
+}
+
+function getPrActivityLineDefs(colors) {
+  return PR_ACTIVITY_LINE_DEFS.map((line) => ({
+    ...line,
+    stroke: colors.teams[line.colorKey]
+  }));
+}
+
+function getLegacyPrActivityYUpper(rows, lineDefs) {
+  return (Array.isArray(rows) ? rows : []).reduce((highest, row) => {
+    const rowMax = lineDefs.reduce(
+      (lineHighest, lineDef) => Math.max(lineHighest, toNumber(row?.[lineDef.dataKey])),
+      0
+    );
+    return Math.max(highest, rowMax);
+  }, 0);
 }
 
 function getLegacyPrActivityHiddenKeys() {
@@ -1453,220 +1672,14 @@ function LegacyPrActivitySvgChart({
   );
 }
 
-function PrActivityScatterView({ series, colors, hiddenKeys, setHiddenKeys, interval, axisRows }) {
-  const visibleSeries = series.filter((item) => !hiddenKeys.has(item.dataKey));
-  const compactViewport = isCompactViewport();
-  const fixedAxisRows = Array.isArray(axisRows) && axisRows.length > 0 ? axisRows : visibleSeries.flatMap((item) => item.rows);
-  const inflowAxisLabel = prActivityInflowLabel(interval);
-  const inflowTooltipLabel = prActivityInflowLabel(interval, { short: true });
-  const xAxis = buildPrActivityInflowAxis(fixedAxisRows);
-  const yAxis = buildPrActivityReviewAxis(fixedAxisRows);
-  const splitX = PR_ACTIVITY_INFLOW_SPLIT;
-  const splitY = PR_ACTIVITY_REVIEW_SPLIT;
-  const chartHeight = compactViewport
-    ? singleChartHeightForMode("trend", 330)
-    : singleChartHeightForMode("trend", 500);
-  const chartMargin = compactViewport
-    ? { top: 12, right: 24, bottom: 10, left: 4 }
-    : { top: 28, right: 72, bottom: 36, left: 18 };
-
-  return h(
-    "div",
-    { className: "chart-series-shell chart-series-shell--feature" },
-    renderLegendNode({
-      colors,
-      defs: getPrActivityLineDefs(colors),
-      hiddenKeys,
-      setHiddenKeys,
-      compact: compactViewport
-    }),
-    h(
-      ResponsiveContainer,
-      { width: "100%", height: chartHeight },
-      h(
-        ScatterChart,
-        {
-          margin: chartMargin
-        },
-        ...renderPrActivityQuadrantAreas({
-          medianX: splitX,
-          medianY: splitY,
-          xUpper: xAxis.upper,
-          yUpper: yAxis.upper
-        }),
-        h(ReferenceLine, {
-          x: splitX,
-          ifOverflow: "extendDomain",
-          stroke: "rgba(31, 51, 71, 0.42)",
-          strokeWidth: 1.25,
-          strokeDasharray: "5 5"
-        }),
-        h(ReferenceLine, {
-          y: splitY,
-          ifOverflow: "extendDomain",
-          stroke: "rgba(31, 51, 71, 0.42)",
-          strokeWidth: 1.25,
-          strokeDasharray: "5 5"
-        }),
-        h(XAxis, {
-          type: "number",
-          dataKey: "x",
-          stroke: colors.text,
-          domain: [0, xAxis.upper],
-          ticks: xAxis.ticks,
-          allowDecimals: false,
-          tick: { fill: colors.text, fontSize: compactViewport ? 9 : 11, fontFamily: "var(--font-ui)" },
-          tickFormatter: formatWholeCountLabel,
-          label: buildAxisLabel(compactViewport ? "PR inflow" : inflowAxisLabel, {
-            offset: compactViewport ? 4 : undefined
-          })
-        }),
-        h(YAxis, {
-          type: "number",
-          dataKey: "y",
-          stroke: colors.text,
-          domain: [0, yAxis.upper],
-          ticks: yAxis.ticks,
-          allowDecimals: false,
-          tick: { fill: colors.text, fontSize: compactViewport ? 9 : 11, fontFamily: "var(--font-ui)" },
-          tickFormatter: formatWholeCountLabel,
-          label: buildAxisLabel(
-            compactViewport ? "Review + QA days" : "Avg review + QA time (days)",
-            { axis: "y", offset: compactViewport ? 2 : 6 }
-          )
-        }),
-        h(
-          Tooltip,
-          {
-            content: createTooltipContent(colors, (row) => [
-              tooltipTitleLine("team", row?.teamLabel || "", colors),
-              tooltipTitleLine("scope", row?.tooltipScopeLabel || "All-time avg", colors),
-              makeTooltipLine("count", `${inflowTooltipLabel}: ${formatWholeCountLabel(row?.x)}`, colors),
-              makeTooltipLine(
-                "duration",
-                `Avg. review + QA stage time: ${formatMergeTimeLabel(row?.y)}`,
-                colors
-              ),
-              makeTooltipLine(
-                "review",
-                `Review sample: ${formatWholeCountLabel(row?.reviewSampleCount)} tickets`,
-                colors
-              ),
-              makeTooltipLine(
-                "qa",
-                `QA sample: ${formatWholeCountLabel(row?.qaSampleCount)} tickets`,
-                colors
-              ),
-              makeTooltipLine(
-                "workflow",
-                `Workflow sample: ${formatWholeCountLabel(row?.workflowSampleCount)} issues`,
-                colors
-              )
-            ]),
-            cursor: { stroke: colors.active, strokeWidth: 1.5, strokeDasharray: "3 3" }
-          }
-        ),
-        visibleSeries.map((item) =>
-          h(Scatter, {
-            key: item.dataKey,
-            data: item.rows,
-            name: item.name,
-            fill: item.stroke,
-            shape: createPrActivityScatterShape(compactViewport),
-            isAnimationActive: false
-          })
-        )
-      )
-    )
-  );
-}
-
-function renderPrActivityCharts() {
-  renderDashboardChartState("pr-activity", getConfig, () => {
-    const prActivity = state.snapshot?.prActivity;
-    const allPoints = Array.isArray(prActivity?.points) ? prActivity.points : [];
-    const prCycleWindows =
-      state.prCycle?.windows && typeof state.prCycle.windows === "object" ? state.prCycle.windows : null;
-    if (allPoints.length === 0 || !prCycleWindows) {
-      clearChartContainer("pr-position-chart");
-      setPrActivityHelpDetails({});
-      return {
-        error: "No PR activity or workflow breakdown data found for this chart."
-      };
-    }
-
-    const since = String(prActivity?.since || "");
-    const interval = String(prActivity?.interval || "").trim();
-    const caveat = String(prActivity?.caveat || "").trim();
-    const compactViewport = isCompactViewport();
-    const selectedWindowKey = normalizeOption(
-      state.developmentWorkflowWindow || state.prActivityWindow,
-      DEVELOPMENT_WORKFLOW_WINDOWS,
-      THIRTY_DAY_WINDOW_KEY
-    );
-    const { points, windowLabel } = getPrActivityWindowedPoints(allPoints, selectedWindowKey);
-    const windowStart =
-      points.length > 0 ? getPrActivityDisplayDate(points[0]?.date || since) : since;
-    const latestPoint = points.length > 0 ? points[points.length - 1] : null;
-    const latestPointDate = getPrActivityDisplayDate(latestPoint?.date || "");
-    state.developmentWorkflowWindow = selectedWindowKey;
-    state.prActivityWindow = selectedWindowKey;
-    state.prCycleWindow = selectedWindowKey;
-    syncControlValue("pr-cycle-window", selectedWindowKey);
-    syncControlValue("pr-activity-window", selectedWindowKey);
-    return {
-      contextText: formatContextWithFreshness(
-        latestPointDate
-          ? compactViewport
-            ? `${windowLabel} • ${windowStart} to ${latestPointDate}`
-            : `${windowLabel} team averages • ${windowStart} to ${latestPointDate}`
-          : "",
-        getOldestTimestamp([state.snapshot?.updatedAt, state.prCycle?.updatedAt])
-      ),
-      render: () => {
-        setPrActivityHelpDetails({
-          since: windowStart || since,
-          until: latestPointDate,
-          caveat,
-          interval
-        });
-        const colors = getThemeColors();
-        const hiddenKeys = getSharedPrActivityHiddenKeys();
-        const allAxisRows = buildPrActivityAxisRowsForAllWindows(allPoints, state.prCycle?.windows);
-        const prCycleWindowSnapshot =
-          state.prCycle?.windows && typeof state.prCycle.windows === "object"
-            ? state.prCycle.windows[selectedWindowKey] || null
-            : null;
-        const baseSeries = buildPrActivityScatterSeries(points, selectedWindowKey, prCycleWindowSnapshot);
-        const series = baseSeries.map((item) => ({
-          ...item,
-          stroke: colors.teams[item.colorKey]
-        }));
-        renderWithRoot("pr-position-chart", series.length > 0, (root) => {
-          root.render(
-            h(PrActivityScatterView, {
-              series,
-              colors,
-              hiddenKeys,
-              setHiddenKeys: setSharedPrActivityHiddenKeys,
-              interval,
-              axisRows: allAxisRows
-            })
-          );
-        });
-      }
-    };
-  });
-}
-
 function renderLegacyPrActivityCharts() {
   withChart("pr-activity-legacy", getConfig, ({ status, context }) => {
-    const prActivity = state.snapshot?.prActivity;
+    const prActivity = getPrActivitySnapshot()?.prActivity;
     const points = buildLegacyPrActivityMonthlyPoints();
     if (points.length === 0) {
       clearChartContainer("pr-activity-legacy-count-chart");
       clearChartContainer("pr-activity-legacy-merge-time-chart");
-      showPanelStatus(status, "No Jira-linked PR activity found in backlog-snapshot.json.");
+      showPanelStatus(status, getConfig("pr-activity-legacy")?.missingMessage);
       return;
     }
 
@@ -2299,6 +2312,164 @@ function orderProductCycleTeamsForDisplay(teams) {
     });
 }
 
+function getPrCycleStageDisplayLabel(stage) {
+  const key = String(stage?.key || "").trim();
+  if (key === "coding") return "Progress";
+  if (key === "review") return "Review";
+  if (key === "merge") return "QA";
+  return String(stage?.label || "").trim();
+}
+
+function formatStackedCycleDaysValueMarkup(valueInDays) {
+  const days = Math.max(0, toNumber(valueInDays));
+  const rounded = days.toFixed(1);
+  const unit = Math.abs(days - 1) < 0.05 ? "day" : "days";
+  return `<span class="stacked-duration"><span class="stacked-duration__value">${rounded}</span><span class="stacked-duration__unit">${unit}</span></span>`;
+}
+
+function formatWorkflowBreakdownMetricMarkup(value, unit, modifierClass = "") {
+  return `
+    <span class="workflow-breakdown-metric${modifierClass ? ` ${modifierClass}` : ""}">
+      <span class="workflow-breakdown-metric__value">${escapeHtml(value)}</span>
+      <span class="workflow-breakdown-metric__unit">${escapeHtml(unit)}</span>
+    </span>
+  `;
+}
+
+function formatWorkflowBreakdownDurationMetricMarkup(valueInDays) {
+  const days = Math.max(0, toNumber(valueInDays));
+  const rounded = days.toFixed(1);
+  const unit = Math.abs(days - 1) < 0.05 ? "day" : "days";
+  return formatWorkflowBreakdownMetricMarkup(rounded, unit, "workflow-breakdown-metric--days");
+}
+
+function formatWorkflowBreakdownInflowMetricMarkup(value) {
+  const inflow = toNumber(value);
+  if (!Number.isFinite(inflow) || inflow <= 0) return "";
+  const rounded = String(Math.max(0, Math.round(inflow)));
+  return formatWorkflowBreakdownMetricMarkup(
+    rounded,
+    "PR/sprint",
+    "workflow-breakdown-metric--inflow"
+  );
+}
+
+function formatWorkflowBreakdownValueMarkup(totalCycleDays, avgPrInflow) {
+  return `
+    <span class="workflow-breakdown-metrics">
+      ${formatWorkflowBreakdownDurationMetricMarkup(totalCycleDays)}
+      ${formatWorkflowBreakdownInflowMetricMarkup(avgPrInflow)}
+    </span>
+  `;
+}
+
+function renderPrCycleExperimentCard(containerId, team, snapshot) {
+  if (!team) return;
+  const compactViewport = isCompactViewport();
+  const isAllTeamsView =
+    String(team?.key || "").trim().toLowerCase() === ALL_TEAM_SCOPE_KEY &&
+    Array.isArray(team?.teamRows);
+  if (isAllTeamsView) {
+    const teamRows = Array.isArray(team?.teamRows) ? team.teamRows : [];
+    const maxDays =
+      teamRows.reduce((highest, row) => Math.max(highest, toNumber(row?.totalCycleDays)), 0) || 1;
+    const rowsMarkup = teamRows
+      .map((row) => {
+        const width = Math.max(12, Math.round((toNumber(row?.totalCycleDays) / maxDays) * 100));
+        const sampleCount = toCount(row?.issueCount);
+        return buildRowMarkup({
+          stage: String(row?.key || ""),
+          label: normalizeDisplayTeamName(row?.label || ""),
+          sampleMarkup: sampleCount > 0 ? `n=${sampleCount}` : "n=0",
+          width,
+          wrapValueFrame: false,
+          valueMarkup: formatWorkflowBreakdownValueMarkup(row?.totalCycleDays, row?.avgPrInflow),
+          fillStyle: `background:${escapeHtml(getPrCycleTeamColor(row?.key))}`
+        });
+      })
+      .join("");
+    const issueCount = toNumber(team?.issueCount);
+    const footerPrimary =
+      issueCount > 0
+        ? compactViewport
+          ? `${issueCount} sampled`
+          : `${issueCount} issues sampled`
+        : compactViewport
+          ? "No samples"
+          : "No sampled issues";
+    const footerSecondary = String(snapshot?.windowLabel || "").trim();
+    renderProductCycleCard(containerId, {
+      className: "workflow-breakdown-card",
+      teamKey: ALL_TEAM_SCOPE_KEY,
+      teamColor: getPrCycleTeamColor(ALL_TEAM_SCOPE_KEY),
+      headerMarkup: `
+        <div class="pr-cycle-stage-card__team">All teams</div>
+        <div class="pr-cycle-stage-card__submeta">Progress + Review + QA totals</div>
+      `,
+      rowsMarkup,
+      footerMarkup: `
+        <div class="pr-cycle-stage-card__footer">
+          <span><strong>${escapeHtml(footerPrimary)}</strong>${footerSecondary ? ` • ${escapeHtml(footerSecondary)}` : ""}</span>
+          <span>Sorted: <strong>Fastest to slowest</strong></span>
+        </div>
+      `
+    });
+    return;
+  }
+
+  const stages = Array.isArray(team?.stages) ? team.stages : [];
+  const teamColor = getPrCycleTeamColor(team?.key);
+  const maxDays = stages.reduce((highest, stage) => Math.max(highest, toNumber(stage?.days)), 0) || 1;
+  const rowsMarkup = stages
+    .map((stage) => {
+      const width = Math.max(12, Math.round((toNumber(stage?.days) / maxDays) * 100));
+      const sampleCount = toCount(stage?.sampleCount);
+      return buildRowMarkup({
+        stage: String(stage?.key || ""),
+        label: getPrCycleStageDisplayLabel(stage),
+        sampleMarkup: sampleCount > 0 ? `n=${sampleCount}` : "n=0",
+        width,
+        valueMarkup: formatStackedCycleDaysValueMarkup(stage?.days)
+      });
+    })
+    .join("");
+  const issueCount = toNumber(team?.issueCount || team?.pullRequestCount);
+  const footerPrimary =
+    issueCount > 0
+      ? compactViewport
+        ? `${issueCount} sampled`
+        : `${issueCount} issues sampled`
+      : compactViewport
+        ? "No samples"
+        : "No sampled issues";
+  const footerSecondary = String(snapshot?.windowLabel || "").trim();
+  const inflow = toNumber(team?.avgPrInflow);
+  const inflowSummary = Number.isFinite(inflow) && inflow > 0 ? `PR/sprint ≈ ${Math.round(inflow)}` : "";
+  const footerLabel = compactViewport ? "Blocker" : "Bottleneck";
+  renderProductCycleCard(containerId, {
+    className: "workflow-breakdown-card",
+    teamKey: String(team?.key || ""),
+    teamColor,
+    headerMarkup: `
+      <div class="pr-cycle-stage-card__team">${escapeHtml(String(team?.label || ""))}</div>
+      <div class="pr-cycle-stage-card__total metric-duration"><span class="metric-duration__value">${toNumber(
+        team?.totalCycleDays
+      ).toFixed(1)}</span><span class="metric-duration__unit">${
+        Math.abs(toNumber(team?.totalCycleDays) - 1) < 0.05 ? "day" : "days"
+      }</span></div>
+    `,
+    rowsMarkup,
+    footerMarkup: `
+      <div class="pr-cycle-stage-card__footer">
+        <span><strong>${escapeHtml(footerPrimary)}</strong>${footerSecondary ? ` • ${escapeHtml(footerSecondary)}` : ""}${
+          inflowSummary ? ` • ${escapeHtml(inflowSummary)}` : ""
+        }</span>
+        <span>${footerLabel}: <strong>${escapeHtml(String(team?.bottleneckLabel || ""))}</strong></span>
+      </div>
+    `
+  });
+}
+
 function renderPrCycleExperiment() {
   withChart("pr-cycle-experiment", getConfig, ({ status, context, config }) => {
     const windows =
@@ -2350,23 +2521,64 @@ function renderPrCycleExperiment() {
     const selectedKey = availableKeys.includes(state.prCycleTeam)
       ? state.prCycleTeam
       : fallbackTeamKey;
+    const inflowByTeamKeyFromSnapshot = Object.fromEntries(
+      teams
+        .map((team) => {
+          const teamKey = String(team?.key || "")
+            .trim()
+            .toLowerCase();
+          if (!teamKey || team?.avgPrInflow === null || team?.avgPrInflow === undefined) return null;
+          return [teamKey, toNumber(team?.avgPrInflow)];
+        })
+        .filter(Boolean)
+    );
+    if (
+      Object.keys(inflowByTeamKeyFromSnapshot).length === 0 &&
+      state.loadedSources.prActivity !== true &&
+      !state.loadErrors.prActivity
+    ) {
+      void loadDataSource("prActivity");
+    }
+    const prActivitySourcePoints = Array.isArray(getPrActivitySnapshot()?.prActivity?.points)
+      ? getPrActivitySnapshot().prActivity.points
+      : [];
+    const { points: prActivityWindowPoints } = getPrActivityWindowedPoints(
+      prActivitySourcePoints,
+      selectedWindowKey
+    );
+    const inflowByTeamKey =
+      Object.keys(inflowByTeamKeyFromSnapshot).length > 0
+        ? inflowByTeamKeyFromSnapshot
+        : buildPrActivityAverageInflowByTeam(prActivityWindowPoints, selectedWindowSnapshot);
     const selectedTeam =
       selectedKey === ALL_TEAM_SCOPE_KEY
-        ? buildPrCycleAllTeamsMetric(selectedWindowSnapshot)
-        : teams.find(
-            (team) =>
-              String(team?.key || "")
-                .trim()
-                .toLowerCase() === selectedKey
-          ) || teams[0];
+        ? buildPrCycleAllTeamsMetric(selectedWindowSnapshot, inflowByTeamKey)
+        : (() => {
+            const matchedTeam =
+              teams.find(
+                (team) =>
+                  String(team?.key || "")
+                    .trim()
+                    .toLowerCase() === selectedKey
+              ) || teams[0];
+            if (!matchedTeam) return null;
+            return {
+              ...matchedTeam,
+              avgPrInflow: toNumber(
+                inflowByTeamKey[
+                  String(matchedTeam?.key || "")
+                    .trim()
+                    .toLowerCase()
+                ]
+              )
+            };
+          })();
 
     state.prCycleTeam = selectedKey;
     state.developmentWorkflowWindow = selectedWindowKey;
     state.prCycleWindow = selectedWindowKey;
-    state.prActivityWindow = selectedWindowKey;
     syncControlValue("pr-cycle-team", selectedKey);
     syncControlValue("pr-cycle-window", selectedWindowKey);
-    syncControlValue("pr-activity-window", selectedWindowKey);
     setPanelContext(
       context,
       formatContextWithFreshness(
@@ -2374,11 +2586,7 @@ function renderPrCycleExperiment() {
         state.prCycle?.updatedAt
       )
     );
-    window.DashboardCharts?.renderPrCycleExperimentCard?.(
-      config.containerId,
-      selectedTeam,
-      selectedWindowSnapshot
-    );
+    renderPrCycleExperimentCard(config.containerId, selectedTeam, selectedWindowSnapshot);
   });
 }
 
@@ -2407,7 +2615,7 @@ function buildEmptyBusinessUnitRow(label) {
 }
 
 function getAlignedBusinessUnitRows(scope) {
-  const byScope = state.snapshot?.chartData?.managementBusinessUnit?.byScope;
+  const byScope = getManagementFacilitySnapshot()?.chartData?.managementBusinessUnit?.byScope;
   const ongoingRows = Array.isArray(byScope?.ongoing?.rows) ? byScope.ongoing.rows : [];
   const doneRows = Array.isArray(byScope?.done?.rows) ? byScope.done.rows : [];
   const labels = Array.from(
@@ -2452,10 +2660,61 @@ function renderDevelopmentVsUatByFacilityChart() {
             scope,
             colors: getThemeColors()
           },
-          { missingMessage: "Development vs UAT chart unavailable: Recharts renderer missing." }
+          { missingMessage: "Development vs UAT chart unavailable: renderer missing." }
         );
       }
     };
+  });
+}
+
+function summarizeContributorRows(rows) {
+  return (Array.isArray(rows) ? rows : []).reduce(
+    (summary, row) => ({
+      totalIssues: summary.totalIssues + toCount(row?.totalIssues),
+      doneIssues: summary.doneIssues + toCount(row?.doneIssues),
+      activeIssues: summary.activeIssues + toCount(row?.activeIssues),
+      totalContributors: summary.totalContributors + 1
+    }),
+    { totalIssues: 0, doneIssues: 0, activeIssues: 0, totalContributors: 0 }
+  );
+}
+
+function renderTopContributorsCard(containerId, rows, summary) {
+  if (!containerId || !Array.isArray(rows)) return;
+  const safeRows = Array.isArray(rows) ? rows : [];
+  const totalIssues = toCount(summary?.totalIssues);
+  const totalContributors = Math.max(toCount(summary?.totalContributors), safeRows.length);
+  const maxTotal = Math.max(1, ...safeRows.map((row) => toCount(row?.totalIssues)));
+  const rowsMarkup = safeRows
+    .map((row) => {
+      const total = toCount(row?.totalIssues);
+      const done = toCount(row?.doneIssues);
+      const active = toCount(row?.activeIssues);
+      const width = total > 0 ? Math.max(10, Math.round((total / maxTotal) * 100)) : 0;
+      return buildRowMarkup({
+        rowClassName: "contributors-card__row",
+        trackClassName: "contributors-card__track",
+        fillClassName: "contributors-card__fill",
+        label: String(row?.contributor || "").trim(),
+        sampleMarkup: `done ${done}${active > 0 ? ` • active ${active}` : ""}`,
+        width,
+        valueMarkup: String(total)
+      });
+    })
+    .join("");
+
+  renderProductCycleCard(containerId, {
+    className: "contributors-card",
+    headerMarkup: `
+      <div class="pr-cycle-stage-card__team">Community contributors</div>
+      <div class="pr-cycle-stage-card__total">${totalIssues}</div>
+    `,
+    rowsMarkup,
+    footerMarkup: `
+      <div class="pr-cycle-stage-card__footer">
+        <span><strong>${totalContributors} contributors ranked</strong> • ${totalIssues} included issues</span>
+      </div>
+    `
   });
 }
 
@@ -2480,7 +2739,7 @@ function renderTopContributorsChart() {
       return;
     }
 
-    const displaySummary = window.DashboardCharts?.summarizeContributorRows?.(rows);
+    const displaySummary = summarizeContributorRows(rows);
     setPanelContext(
       context,
       formatContextWithFreshness(
@@ -2488,7 +2747,7 @@ function renderTopContributorsChart() {
         contributorsSnapshot?.updatedAt
       )
     );
-    window.DashboardCharts?.renderTopContributorsCard?.(config.containerId, rows, displaySummary);
+    renderTopContributorsCard(config.containerId, rows, displaySummary);
   });
 }
 
@@ -2507,6 +2766,17 @@ function queueReadyChartsForSource(sourceKey) {
   queueRenderableCharts(Object.entries(CHART_DATA_SOURCES), (mode, requiredSources) => {
     if (!requiredSources.includes(sourceKey)) return false;
     return isChartActive(mode) && isChartReady(mode);
+  });
+}
+
+function getActiveSourceKeys() {
+  return getRequiredSourceKeys(state.mode, Object.keys(DATA_SOURCE_CONFIG), state.sectionFilter);
+}
+
+function ensureActiveSourcesLoaded() {
+  getActiveSourceKeys().forEach((sourceKey) => {
+    if (state.loadedSources[sourceKey] === true) return;
+    void loadDataSource(sourceKey);
   });
 }
 
@@ -2598,6 +2868,8 @@ async function loadDataSource(sourceKey) {
 async function loadSnapshot() {
   setStatusMessageForIds(CHART_STATUS_IDS);
   state.snapshot = null;
+  state.prActivitySnapshot = null;
+  state.managementFacilitySnapshot = null;
   state.productCycle = null;
   state.productCycleShipments = null;
   state.contributors = null;
@@ -2619,7 +2891,7 @@ async function loadSnapshot() {
   bindWindowResizeRerender();
 
   try {
-    const requiredSourceKeys = getRequiredSourceKeys(state.mode, Object.keys(DATA_SOURCE_CONFIG));
+    const requiredSourceKeys = getActiveSourceKeys();
     await Promise.allSettled(requiredSourceKeys.map((sourceKey) => loadDataSource(sourceKey)));
     renderDashboardRefreshStrip(state);
     renderActionsRequiredFrame();
