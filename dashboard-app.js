@@ -41,8 +41,7 @@
     { value: "shipped", label: "Shipped" },
     { value: "product", label: "Product" },
     { value: "development", label: "Development" },
-    { value: "bug", label: "Bugs" },
-    { value: SECTION_FILTER_ALL, label: "All" }
+    { value: "bug", label: "Bugs" }
   ];
   const SECTION_FILTER_OPTIONS = SECTION_FILTER_ITEMS.map(({ value }) => value);
   const SECTION_FILTER_PANEL_IDS = {
@@ -234,6 +233,7 @@
 
   function renderSectionFilteredPanels() {
     applyModeVisibility();
+    ensurePanelBackToTopControls();
     ensureActiveSourcesLoaded();
     renderVisibleCharts();
   }
@@ -253,6 +253,7 @@
           await ensureHeavyScripts(state.mode, state.sectionFilter);
         }
         applyDashboardPanelOrder();
+        ensurePanelBackToTopControls();
         syncDashboardControlsFromState(CONTROL_BINDINGS, state);
         bindDashboardControlState(CONTROL_BINDINGS, state);
       } catch (error) {

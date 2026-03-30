@@ -310,7 +310,7 @@ body.embedded-frame-mode main {
 
 .report-intro__grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   width: 100%;
   margin: 0;
   padding: 0 14px;

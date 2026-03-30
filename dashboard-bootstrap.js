@@ -14,8 +14,7 @@
     { value: "shipped", label: "Shipped", icon: "./assets/icons/bookmark-3735089.png" },
     { value: "product", label: "Product", icon: "./assets/icons/chart-3735080.png" },
     { value: "development", label: "Development", icon: "./assets/icons/chart-3735080.png" },
-    { value: "bug", label: "Bugs", icon: "./assets/icons/search-3735055.png" },
-    { value: "all", label: "All", icon: "" }
+    { value: "bug", label: "Bugs", icon: "./assets/icons/search-3735055.png" }
   ];
   const DEFAULT_VISIBLE_PANEL_IDS = new Set([
     "actions-required-panel",
