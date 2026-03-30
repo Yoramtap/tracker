@@ -19,28 +19,28 @@
           compares average UAT time across Business Units.
         </p>
         <ul>
-          <li>Use the toggle to compare open in-UAT work vs done work that passed through UAT.</li>
+          <li>Use the toggle to compare work currently in user testing with work completed after testing.</li>
           <li>Measured in months with a 1-month target.</li>
           <li>Color shifts from green to yellow to red as UAT time increases.</li>
           <li>
-            This chart refreshes from current medium+ priority UAT issues plus done items that
-            passed through UAT, grouped by Business Unit.
+            This chart refreshes from current medium+ priority issues in user testing plus completed
+            items that moved through testing, grouped by Business Unit.
           </li>
         </ul>
       </div>
     </details>
   </div>
   <p id="management-facility-context" class="panel-summary panel-summary--meta" hidden></p>
-  <div class="radio-control-groups" aria-label="Development vs UAT controls">
+  <div class="radio-control-groups" aria-label="User testing controls">
     <fieldset class="radio-group-card radio-group-card--primary radio-group-card--segmented">
       <legend>Scope</legend>
       <label
         ><input type="radio" name="management-facility-flow-scope" value="ongoing" checked />
-        <span>In UAT</span></label
+        <span>In user testing</span></label
       >
       <label
         ><input type="radio" name="management-facility-flow-scope" value="done" />
-        <span>Passed UAT</span></label
+        <span>Completed after testing</span></label
       >
     </fieldset>
   </div>
@@ -78,10 +78,10 @@
           the current-state workflow view for the same team set.
         </p>
         <ul>
-          <li>Use the toggle to switch between Delivery cycle and Ideas workflow.</li>
-          <li>Delivery cycle = time spent in In Development + UAT, including ongoing work.</li>
+          <li>Use the toggle to switch between Delivery time and Current workflow.</li>
+          <li>Delivery time = time spent in In Development + UAT, including ongoing work.</li>
           <li>
-            Ideas workflow shows how long open ideas have spent in the stage they are
+            Current workflow shows how long open ideas have spent in the stage they are
             currently sitting in.
           </li>
           <li>Use the shared team toggles for detail, or stay on All teams for the compare view.</li>
@@ -90,25 +90,27 @@
     </details>
   </div>
   <p id="product-cycle-context" class="panel-summary panel-summary--meta" hidden></p>
-  <div class="radio-control-groups" aria-label="Product delivery and workflow view">
-    <fieldset class="radio-group-card radio-group-card--primary radio-group-card--segmented">
-      <legend>View</legend>
-      <label
-        ><input type="radio" name="product-delivery-workflow-view" value="delivery" checked />
-        <span>Delivery cycle</span></label
-      >
-      <label
-        ><input type="radio" name="product-delivery-workflow-view" value="workflow" />
-        <span>Ideas workflow</span></label
-      >
-    </fieldset>
+  <div class="panel-inline-controls">
+    <div class="radio-control-groups" aria-label="Product delivery and workflow view">
+      <fieldset class="radio-group-card radio-group-card--primary radio-group-card--segmented">
+        <legend>View</legend>
+        <label
+          ><input type="radio" name="product-delivery-workflow-view" value="delivery" checked />
+          <span>Delivery time</span></label
+        >
+        <label
+          ><input type="radio" name="product-delivery-workflow-view" value="workflow" />
+          <span>Current workflow</span></label
+        >
+      </fieldset>
+    </div>
+    <div
+      id="product-cycle-team-switch"
+      class="pr-cycle-team-switch"
+      role="radiogroup"
+      aria-label="Product delivery and workflow team"
+    ></div>
   </div>
-  <div
-    id="product-cycle-team-switch"
-    class="pr-cycle-team-switch"
-    role="radiogroup"
-    aria-label="Product delivery and workflow team"
-  ></div>
   <div class="chart">
     <div
       id="cycle-time-parking-lot-to-done-chart"

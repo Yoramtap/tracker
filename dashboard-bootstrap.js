@@ -363,20 +363,9 @@
 
     listNode.innerHTML = `
       <div class="dashboard-overview">
-        <div class="dashboard-overview__top">
-          <div class="dashboard-overview__main">
-            <p class="dashboard-overview__eyebrow">Local operations report</p>
-            <h2 class="dashboard-overview__title">Backlog Trends</h2>
-            <p class="dashboard-overview__summary">
-              Follow the queue from community demand to shipped work, product flow, development
-              bottlenecks, and bug pressure in one place.
-            </p>
-          </div>
-          <div class="dashboard-overview__aside">
-            <span class="dashboard-overview__aside-label">How to read this</span>
-            <strong>Pick a lane, then scan the live context line beneath each section title.</strong>
-            <span>Each panel is framed to answer one operational question before you drill into the chart.</span>
-          </div>
+        <div class="dashboard-overview__main">
+          <p class="dashboard-overview__eyebrow">Insights</p>
+          <h2 class="dashboard-overview__title">Trends for product and teams</h2>
         </div>
         <div class="report-intro">
           <fieldset class="report-intro__grid" aria-label="Report section filter">

@@ -31,56 +31,58 @@
     </details>
   </div>
   <p id="workflow-breakdown-context" class="panel-summary panel-summary--meta" hidden></p>
-  <div class="radio-control-groups" aria-label="Workflow breakdown time range">
-    <fieldset class="radio-group-card radio-group-card--primary radio-group-card--segmented">
-      <legend>Time range</legend>
-      <label
-        ><input type="radio" name="pr-cycle-window" value="30d" checked />
-        <span aria-hidden="true">30d</span><span class="sr-only">Last 30 days</span></label
-      >
-      <label
-        ><input type="radio" name="pr-cycle-window" value="90d" />
-        <span aria-hidden="true">90d</span><span class="sr-only">Last 90 days</span></label
-      >
-      <label
-        ><input type="radio" name="pr-cycle-window" value="6m" />
-        <span aria-hidden="true">6m</span><span class="sr-only">Last 6 months</span></label
-      >
-      <label
-        ><input type="radio" name="pr-cycle-window" value="1y" />
-        <span aria-hidden="true">1y</span><span class="sr-only">Last year</span></label
-      >
-    </fieldset>
-  </div>
-  <div class="pr-cycle-team-switch" role="radiogroup" aria-label="Workflow breakdown team">
-    <label class="pr-cycle-team-pill">
-      <input type="radio" name="pr-cycle-team" value="all" checked />
-      <span>All</span>
-    </label>
-    <label class="pr-cycle-team-pill">
-      <input type="radio" name="pr-cycle-team" value="api" />
-      <span>API</span>
-    </label>
-    <label class="pr-cycle-team-pill">
-      <input type="radio" name="pr-cycle-team" value="legacy" />
-      <span>Legacy FE</span>
-    </label>
-    <label class="pr-cycle-team-pill">
-      <input type="radio" name="pr-cycle-team" value="react" />
-      <span>React FE</span>
-    </label>
-    <label class="pr-cycle-team-pill">
-      <input type="radio" name="pr-cycle-team" value="bc" />
-      <span>BC</span>
-    </label>
-    <label class="pr-cycle-team-pill">
-      <input type="radio" name="pr-cycle-team" value="workers" />
-      <span>Workers</span>
-    </label>
-    <label class="pr-cycle-team-pill">
-      <input type="radio" name="pr-cycle-team" value="titanium" />
-      <span>Titanium</span>
-    </label>
+  <div class="panel-inline-controls">
+    <div class="radio-control-groups" aria-label="Workflow breakdown time range">
+      <fieldset class="radio-group-card radio-group-card--primary radio-group-card--segmented">
+        <legend>Time range</legend>
+        <label
+          ><input type="radio" name="pr-cycle-window" value="30d" checked />
+          <span aria-hidden="true">30d</span><span class="sr-only">Last 30 days</span></label
+        >
+        <label
+          ><input type="radio" name="pr-cycle-window" value="90d" />
+          <span aria-hidden="true">90d</span><span class="sr-only">Last 90 days</span></label
+        >
+        <label
+          ><input type="radio" name="pr-cycle-window" value="6m" />
+          <span aria-hidden="true">6m</span><span class="sr-only">Last 6 months</span></label
+        >
+        <label
+          ><input type="radio" name="pr-cycle-window" value="1y" />
+          <span aria-hidden="true">1y</span><span class="sr-only">Last year</span></label
+        >
+      </fieldset>
+    </div>
+    <div class="pr-cycle-team-switch" role="radiogroup" aria-label="Workflow breakdown team">
+      <label class="pr-cycle-team-pill">
+        <input type="radio" name="pr-cycle-team" value="all" checked />
+        <span>All</span>
+      </label>
+      <label class="pr-cycle-team-pill">
+        <input type="radio" name="pr-cycle-team" value="api" />
+        <span>API</span>
+      </label>
+      <label class="pr-cycle-team-pill">
+        <input type="radio" name="pr-cycle-team" value="legacy" />
+        <span>Legacy FE</span>
+      </label>
+      <label class="pr-cycle-team-pill">
+        <input type="radio" name="pr-cycle-team" value="react" />
+        <span>React FE</span>
+      </label>
+      <label class="pr-cycle-team-pill">
+        <input type="radio" name="pr-cycle-team" value="bc" />
+        <span>BC</span>
+      </label>
+      <label class="pr-cycle-team-pill">
+        <input type="radio" name="pr-cycle-team" value="workers" />
+        <span>Workers</span>
+      </label>
+      <label class="pr-cycle-team-pill">
+        <input type="radio" name="pr-cycle-team" value="titanium" />
+        <span>Titanium</span>
+      </label>
+    </div>
   </div>
   <div class="chart">
     <div

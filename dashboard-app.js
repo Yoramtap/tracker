@@ -595,7 +595,7 @@
   }
 
   function getManagementFlowScopeLabel(scope) {
-    return scope === "done" ? "Done after UAT" : "Open in UAT";
+    return scope === "done" ? "Completed after testing" : "In user testing";
   }
 
   function applyDashboardPanelOrder() {
@@ -1237,6 +1237,16 @@
     if (key === "shift") return "Shift";
     if (String(raw || "").trim().toUpperCase() === "UNMAPPED") return "Unmapped";
     return raw;
+  }
+
+  function formatCompactTeamTabLabel(name) {
+    const raw = String(name || "").trim();
+    const key = normalizeProductCycleTeamKey(raw);
+    if (key === "all") return "All";
+    if (key === PRODUCT_CYCLE_MULTI_TEAM_KEY) return "Multi";
+    if (key === "frontend") return "FE";
+    if (key === "broadcast" || key === "bc") return "BC";
+    return normalizeDisplayTeamName(raw);
   }
 
   function normalizeProductCycleTeamKey(value) {
@@ -1889,7 +1899,7 @@
         });
       const teams = orderProductCycleTeamsForDisplay(
         rows.map((row) => String(row?.team || "")).filter(Boolean)
-      );
+      ).filter((team) => productCycleTeamKey(team) !== "unmapped");
       if (teams.length === 0) {
         return {
           error: `No product-cycle items found for ${PRODUCT_CYCLE_SCOPE_LABEL.toLowerCase()}.`,
@@ -1932,8 +1942,8 @@
           value: key,
           label:
             key === "all"
-              ? ALL_TEAMS_LABEL
-              : normalizeDisplayTeamName(
+              ? formatCompactTeamTabLabel("all")
+              : formatCompactTeamTabLabel(
                   teams.find((team) => productCycleTeamKey(team) === key) || key
                 )
         })),
@@ -2114,14 +2124,14 @@
         if (!team || key === "unmapped") return null;
         return {
           key,
-          label: normalizeDisplayTeamName(team),
+          label: formatCompactTeamTabLabel(team),
           team,
           sampleCount
         };
       })
       .filter(Boolean);
     return [
-      { key: LIFECYCLE_TEAM_SCOPE_DEFAULT, label: ALL_TEAMS_LABEL, sampleCount: 0 },
+      { key: LIFECYCLE_TEAM_SCOPE_DEFAULT, label: formatCompactTeamTabLabel("all"), sampleCount: 0 },
       ...options
     ];
   }
@@ -2936,7 +2946,7 @@
       ],
       columnStartLabel: "Stage",
       columnEndLabel: "Avg time",
-      footerBits: ["Ideas workflow"].filter(Boolean),
+      footerBits: ["Current workflow"].filter(Boolean),
       rows: displayRows.map((row) => ({
         label: String(row?.phaseLabel || "").trim(),
         metaBits: [`${toCount(row?.meta_slot_0?.n)} open ideas`],
@@ -3000,7 +3010,7 @@
             metaBits: [
               `${toCount(row?.meta_cycle?.n)} ideas`,
               doneCount > 0 ? `${doneCount} shipped` : "",
-              ongoingCount > 0 ? `${ongoingCount} in development` : ""
+              ongoingCount > 0 ? `${ongoingCount} ongoing` : ""
             ].filter(Boolean),
             valueText: formatCycleMonthsText(row?.cycle, { short: true }),
             width: Math.max(12, Math.round((toNumber(row?.cycle) / maxCycleDays) * 100)),
@@ -3055,7 +3065,7 @@
         },
         {
           label: "Ongoing",
-          metaBits: ["in development"],
+          metaBits: ["ongoing ideas"],
           valueText: String(ongoingCount),
           width: getPretextFillWidth(ongoingCount, maxOngoing),
           color: teamColor

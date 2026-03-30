@@ -1496,11 +1496,176 @@ main {
   margin: 0;
 }
 
+.panel-inline-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px 18px;
+  width: min(100%, var(--dashboard-panel-max));
+}
+
+.panel-inline-controls .radio-control-groups,
+.panel-inline-controls .pr-cycle-team-switch {
+  width: auto;
+  flex: 0 1 auto;
+  margin-bottom: 0;
+}
+
+.panel-inline-controls .radio-group-card {
+  max-width: none;
+}
+
+.panel-inline-controls .pr-cycle-team-switch {
+  --segmented-border: rgba(17, 17, 17, 0.26);
+  --segmented-hover: color-mix(in srgb, var(--chart-active) 4%, white);
+  --segmented-active: color-mix(in srgb, var(--chart-active) 10%, white);
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 0;
+  border: 1px solid var(--segmented-border);
+  border-radius: 18px;
+  border-color: rgba(72, 114, 167, 0.14);
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  overflow: hidden;
+}
+
+.panel-inline-controls .pr-cycle-team-switch:focus-within {
+  box-shadow: 0 0 0 2px rgba(72, 114, 167, 0.12);
+}
+
+.panel-inline-controls .pr-cycle-team-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  min-height: 40px;
+  padding: 0 18px;
+  gap: 0;
+  border-radius: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color 140ms ease,
+    background 140ms ease;
+}
+
+.panel-inline-controls .pr-cycle-team-pill + .pr-cycle-team-pill {
+  border-left: 1px solid var(--segmented-border);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:hover {
+  background: var(--segmented-hover);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input:checked) {
+  background: var(--segmented-active);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="all"]:checked) {
+  background: color-mix(in srgb, var(--chart-active) 10%, white);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="api"]:checked) {
+  background: color-mix(in srgb, var(--team-api) 16%, white);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="legacy"]:checked),
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="frontend"]:checked) {
+  background: color-mix(in srgb, var(--team-legacy) 16%, white);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="react"]:checked) {
+  background: color-mix(in srgb, var(--team-react) 16%, white);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="bc"]:checked),
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="broadcast"]:checked) {
+  background: color-mix(in srgb, var(--team-bc) 16%, white);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="workers"]:checked) {
+  background: color-mix(in srgb, var(--team-workers) 16%, white);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="titanium"]:checked) {
+  background: color-mix(in srgb, var(--team-titanium) 16%, white);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="all"]:checked) span {
+  color: rgba(31, 51, 71, 0.96);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="api"]:checked) span {
+  color: color-mix(in srgb, var(--team-api) 78%, black);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="legacy"]:checked) span,
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="frontend"]:checked) span {
+  color: color-mix(in srgb, var(--team-legacy) 80%, black);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="react"]:checked) span {
+  color: color-mix(in srgb, var(--team-react) 80%, black);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="bc"]:checked) span,
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="broadcast"]:checked) span {
+  color: color-mix(in srgb, var(--team-bc) 78%, black);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="workers"]:checked) span {
+  color: color-mix(in srgb, var(--team-workers) 78%, black);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input[value="titanium"]:checked) span {
+  color: color-mix(in srgb, var(--team-titanium) 78%, black);
+}
+
+.panel-inline-controls .pr-cycle-team-pill:has(input:focus-visible) {
+  text-decoration: none;
+  background: var(--segmented-hover);
+}
+
+.panel-inline-controls .pr-cycle-team-pill input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  inline-size: 1px;
+  block-size: 1px;
+}
+
+.panel-inline-controls .pr-cycle-team-pill span {
+  color: rgba(17, 17, 17, 0.92);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+}
+
+.panel-inline-controls .pr-cycle-team-pill input:checked + span {
+  color: rgba(31, 51, 71, 0.96);
+}
+
+.panel--editorial .radio-control-groups {
+  margin-bottom: 2px;
+}
+
+.panel--editorial .pr-cycle-team-switch {
+  margin-bottom: 8px;
+}
+
 .panel--editorial .chart {
   margin: 0;
   justify-self: center;
   width: min(100%, var(--dashboard-panel-max));
-  padding: 8px 0 0;
+  padding: 14px 0 0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -1617,6 +1782,26 @@ main {
     grid-template-columns: 1fr;
   }
 
+  .panel-inline-controls {
+    display: grid;
+    gap: 8px;
+  }
+
+  .panel-inline-controls .radio-control-groups,
+  .panel-inline-controls .pr-cycle-team-switch {
+    width: 100%;
+  }
+
+  .panel-inline-controls .pr-cycle-team-switch {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .panel-inline-controls .pr-cycle-team-pill {
+    min-height: 36px;
+    padding: 0 10px;
+  }
+
   .panel--editorial .help-wrap {
     justify-self: start;
   }
@@ -1633,7 +1818,7 @@ main {
   }
 
   .panel--editorial .chart {
-    padding: 8px 0 0;
+    padding: 12px 0 0;
     border-radius: 0;
     width: 100%;
   }
@@ -1958,9 +2143,16 @@ main {
   box-shadow: none;
 }
 
-.shipped-timeline__nav > span {
-  font-size: 1.28rem;
-  line-height: 1;
+.shipped-timeline__nav svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+  overflow: visible;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
 }
 
 .shipped-timeline__nav-placeholder {
@@ -3057,6 +3249,7 @@ a.shipped-team-list__idea-key:focus-visible {
   --segmented-border: rgba(17, 17, 17, 0.26);
   --segmented-hover: color-mix(in srgb, var(--chart-active) 4%, white);
   --segmented-active: color-mix(in srgb, var(--chart-active) 10%, white);
+  flex-wrap: nowrap;
   gap: 0;
   padding: 0;
   border: 1px solid var(--segmented-border);
@@ -3213,14 +3406,14 @@ a.shipped-team-list__idea-key:focus-visible {
   .radio-control-groups {
     padding: 0;
     gap: 8px 10px;
-    margin-bottom: 0;
+    margin-bottom: 2px;
   }
 
   .pr-cycle-team-switch {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px 10px;
-    margin-bottom: 0;
+    margin-bottom: 8px;
     justify-items: start;
     align-items: center;
   }
