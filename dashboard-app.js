@@ -2884,14 +2884,34 @@
     if (safeRows.length === 0) return null;
     const sampleSize = toCount(filteredView?.sampleSize);
     const selectionLabel = String(filteredView?.selectionLabel || "All teams").trim();
-    const sortedRows = [...safeRows].sort((left, right) => {
+    const rankedRows = [...safeRows].sort((left, right) => {
       if (toNumber(right?.slot_0) !== toNumber(left?.slot_0)) {
         return toNumber(right?.slot_0) - toNumber(left?.slot_0);
       }
       return String(left?.phaseLabel || "").localeCompare(String(right?.phaseLabel || ""));
     });
-    const longestRow = sortedRows[0] || null;
-    const maxDays = Math.max(1, ...sortedRows.map((row) => toNumber(row?.slot_0)));
+    const lifecycleStageOrder = new Map([
+      ["parking", 0],
+      ["parking lot", 0],
+      ["design", 1],
+      ["ready", 2],
+      ["development", 3],
+      ["in development", 3],
+      ["feedback", 4],
+      ["uat", 4]
+    ]);
+    const displayRows = [...safeRows].sort((left, right) => {
+      const leftRank = lifecycleStageOrder.get(String(left?.phaseLabel || "").trim().toLowerCase());
+      const rightRank = lifecycleStageOrder.get(
+        String(right?.phaseLabel || "").trim().toLowerCase()
+      );
+      if (leftRank !== undefined || rightRank !== undefined) {
+        return (leftRank ?? Number.MAX_SAFE_INTEGER) - (rightRank ?? Number.MAX_SAFE_INTEGER);
+      }
+      return String(left?.phaseLabel || "").localeCompare(String(right?.phaseLabel || ""));
+    });
+    const longestRow = rankedRows[0] || null;
+    const maxDays = Math.max(1, ...rankedRows.map((row) => toNumber(row?.slot_0)));
     const teamKey =
       lifecycleTeamScopeKey(selectedTeamKey) === LIFECYCLE_TEAM_SCOPE_DEFAULT
         ? ALL_TEAM_SCOPE_KEY
@@ -2917,7 +2937,7 @@
       columnStartLabel: "Stage",
       columnEndLabel: "Avg time",
       footerBits: ["Ideas workflow"].filter(Boolean),
-      rows: sortedRows.map((row) => ({
+      rows: displayRows.map((row) => ({
         label: String(row?.phaseLabel || "").trim(),
         metaBits: [`${toCount(row?.meta_slot_0?.n)} open ideas`],
         valueText: formatCycleMonthsText(row?.slot_0, { short: true }),
