@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-03-29T22:24:34.351Z",
+  "updatedAt": "2026-03-27T21:41:09.369Z",
   "combinedPoints": [
     {
       "date": "2025-09-29",
@@ -402,8 +402,8 @@
       },
       "bc": {
         "highest": 4,
-        "high": 69,
-        "medium": 112,
+        "high": 68,
+        "medium": 113,
         "low": 8,
         "lowest": 0,
         "longstanding_30d_plus": 181,
@@ -449,8 +449,8 @@
       },
       "bc": {
         "highest": 4,
-        "high": 70,
-        "medium": 111,
+        "high": 69,
+        "medium": 112,
         "low": 8,
         "lowest": 0,
         "longstanding_30d_plus": 174,
@@ -496,8 +496,8 @@
       },
       "bc": {
         "highest": 6,
-        "high": 71,
-        "medium": 112,
+        "high": 70,
+        "medium": 113,
         "low": 8,
         "lowest": 0,
         "longstanding_30d_plus": 179,
@@ -543,8 +543,8 @@
       },
       "bc": {
         "highest": 4,
-        "high": 78,
-        "medium": 115,
+        "high": 77,
+        "medium": 116,
         "low": 8,
         "lowest": 0,
         "longstanding_30d_plus": 181,
@@ -590,8 +590,8 @@
       },
       "bc": {
         "highest": 6,
-        "high": 79,
-        "medium": 120,
+        "high": 78,
+        "medium": 121,
         "low": 8,
         "lowest": 0,
         "longstanding_30d_plus": 183,
@@ -613,7 +613,7 @@
       }
     },
     {
-      "date": "2026-03-29",
+      "date": "2026-03-27",
       "api": {
         "highest": 0,
         "high": 2,
@@ -637,11 +637,11 @@
       },
       "bc": {
         "highest": 7,
-        "high": 84,
-        "medium": 123,
+        "high": 83,
+        "medium": 124,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 191,
+        "longstanding_30d_plus": 189,
         "longstanding_60d_plus": 177
       },
       "workers": {

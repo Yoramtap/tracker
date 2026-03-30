@@ -69,12 +69,6 @@
     return `https://nepgroup.atlassian.net/browse/${encodeURIComponent(safeIssueKey)}`;
   }
 
-  function renderShippedNavIcon(direction) {
-    const isPrevious = direction === "previous";
-    const path = isPrevious ? "M9.5 3.5 5.5 8l4 4.5" : "M6.5 3.5 10.5 8l-4 4.5";
-    return `<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="${path}"></path></svg>`;
-  }
-
   function renderProductCycleShipmentsTimeline({
     containerId,
     timelineSnapshot,
@@ -202,7 +196,7 @@
                 data-shipped-year-target="${escapeHtml(previousYear)}"
                 aria-label="Show previous year"
               >
-                ${renderShippedNavIcon("previous")}
+                <span aria-hidden="true">‹</span>
               </button>
               `
                   : '<span class="shipped-timeline__nav-placeholder" aria-hidden="true"></span>'
@@ -217,7 +211,7 @@
                 data-shipped-year-target="${escapeHtml(nextYear)}"
                 aria-label="Show next year"
               >
-                ${renderShippedNavIcon("next")}
+                <span aria-hidden="true">›</span>
               </button>
               `
                   : '<span class="shipped-timeline__nav-placeholder" aria-hidden="true"></span>'

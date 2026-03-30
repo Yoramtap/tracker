@@ -41,7 +41,8 @@
     { value: "shipped", label: "Shipped" },
     { value: "product", label: "Product" },
     { value: "development", label: "Development" },
-    { value: "bug", label: "Bugs" }
+    { value: "bug", label: "Bugs" },
+    { value: SECTION_FILTER_ALL, label: "All" }
   ];
   const SECTION_FILTER_OPTIONS = SECTION_FILTER_ITEMS.map(({ value }) => value);
   const SECTION_FILTER_PANEL_IDS = {
@@ -233,7 +234,6 @@
 
   function renderSectionFilteredPanels() {
     applyModeVisibility();
-    ensurePanelBackToTopControls();
     ensureActiveSourcesLoaded();
     renderVisibleCharts();
   }
@@ -253,7 +253,6 @@
           await ensureHeavyScripts(state.mode, state.sectionFilter);
         }
         applyDashboardPanelOrder();
-        ensurePanelBackToTopControls();
         syncDashboardControlsFromState(CONTROL_BINDINGS, state);
         bindDashboardControlState(CONTROL_BINDINGS, state);
       } catch (error) {
@@ -596,7 +595,7 @@
   }
 
   function getManagementFlowScopeLabel(scope) {
-    return scope === "done" ? "Completed after testing" : "In user testing";
+    return scope === "done" ? "Done after UAT" : "Open in UAT";
   }
 
   function applyDashboardPanelOrder() {
@@ -608,47 +607,6 @@
         main.appendChild(panel);
       }
     });
-  }
-
-  function getDashboardTopReturnTarget() {
-    return document.getElementById("actions-required-panel") || document.getElementById("dashboard-main");
-  }
-
-  function scrollDashboardToTop() {
-    const target = getDashboardTopReturnTarget();
-    if (!target) return;
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  function ensurePanelBackToTopControl(panel) {
-    if (
-      !(panel instanceof HTMLElement) ||
-      !panel.id ||
-      panel.id === "actions-required-panel"
-    ) {
-      return;
-    }
-
-    let mount = panel.querySelector(".panel-return");
-    if (!mount) {
-      mount = document.createElement("div");
-      mount.className = "panel-return";
-      mount.innerHTML = `
-        <button type="button" class="panel-return__button" aria-label="Back to top of dashboard">
-          <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8 12.5V3.5"></path>
-            <path d="M4.5 7L8 3.5 11.5 7"></path>
-          </svg>
-        </button>
-      `;
-      const button = mount.querySelector(".panel-return__button");
-      button?.addEventListener("click", scrollDashboardToTop);
-      panel.appendChild(mount);
-    }
-  }
-
-  function ensurePanelBackToTopControls() {
-    document.querySelectorAll(".panel").forEach((panel) => ensurePanelBackToTopControl(panel));
   }
 
   function getConfig(configKey) {
@@ -1279,16 +1237,6 @@
     if (key === "shift") return "Shift";
     if (String(raw || "").trim().toUpperCase() === "UNMAPPED") return "Unmapped";
     return raw;
-  }
-
-  function formatCompactTeamTabLabel(name) {
-    const raw = String(name || "").trim();
-    const key = normalizeProductCycleTeamKey(raw);
-    if (key === "all") return "All";
-    if (key === PRODUCT_CYCLE_MULTI_TEAM_KEY) return "Multi";
-    if (key === "frontend") return "FE";
-    if (key === "broadcast" || key === "bc") return "BC";
-    return normalizeDisplayTeamName(raw);
   }
 
   function normalizeProductCycleTeamKey(value) {
@@ -1941,7 +1889,7 @@
         });
       const teams = orderProductCycleTeamsForDisplay(
         rows.map((row) => String(row?.team || "")).filter(Boolean)
-      ).filter((team) => productCycleTeamKey(team) !== "unmapped");
+      );
       if (teams.length === 0) {
         return {
           error: `No product-cycle items found for ${PRODUCT_CYCLE_SCOPE_LABEL.toLowerCase()}.`,
@@ -1984,8 +1932,8 @@
           value: key,
           label:
             key === "all"
-              ? formatCompactTeamTabLabel("all")
-              : formatCompactTeamTabLabel(
+              ? ALL_TEAMS_LABEL
+              : normalizeDisplayTeamName(
                   teams.find((team) => productCycleTeamKey(team) === key) || key
                 )
         })),
@@ -1999,11 +1947,11 @@
           : formatContextWithFreshness(
               selectedTeamKey === "all"
                 ? fetchedCount > 0
-                  ? `${cycleSampleCount} ideas with delivery data from ${fetchedCount} fetched ideas`
-                  : `${cycleSampleCount} ideas with delivery data`
+                  ? `${cycleSampleCount} ideas with cycle data from ${fetchedCount} fetched ideas`
+                  : `${cycleSampleCount} ideas with cycle data`
                 : fetchedCount > 0
-                  ? `${normalizeDisplayTeamName(selectedRow?.team || "")} • ${selectedSampleCount} ideas with delivery data from ${fetchedCount} fetched ideas`
-                  : `${normalizeDisplayTeamName(selectedRow?.team || "")} • ${selectedSampleCount} ideas with delivery data`,
+                  ? `${normalizeDisplayTeamName(selectedRow?.team || "")} • ${selectedSampleCount} ideas with cycle data from ${fetchedCount} fetched ideas`
+                  : `${normalizeDisplayTeamName(selectedRow?.team || "")} • ${selectedSampleCount} ideas with cycle data`,
               getSnapshotContextTimestamp(state),
               "generated"
             ),
@@ -2166,14 +2114,14 @@
         if (!team || key === "unmapped") return null;
         return {
           key,
-          label: formatCompactTeamTabLabel(team),
+          label: normalizeDisplayTeamName(team),
           team,
           sampleCount
         };
       })
       .filter(Boolean);
     return [
-      { key: LIFECYCLE_TEAM_SCOPE_DEFAULT, label: formatCompactTeamTabLabel("all"), sampleCount: 0 },
+      { key: LIFECYCLE_TEAM_SCOPE_DEFAULT, label: ALL_TEAMS_LABEL, sampleCount: 0 },
       ...options
     ];
   }
@@ -2756,6 +2704,12 @@
     return raw;
   }
 
+  function getRenderableWorkflowStages(stages) {
+    return (Array.isArray(stages) ? stages : []).filter(
+      (stage) => toCount(stage?.sampleCount) > 0 || toNumber(stage?.days) > 0
+    );
+  }
+
   function buildPretextWorkflowBreakdownModel(
     team,
     snapshot,
@@ -2764,7 +2718,7 @@
     inflowSummary
   ) {
     const teamColor = getPrCycleTeamColor(team?.key);
-    const stages = Array.isArray(team?.stages) ? team.stages : [];
+    const stages = getRenderableWorkflowStages(team?.stages);
     const maxDays =
       stages.reduce((highest, stage) => Math.max(highest, toNumber(stage?.days)), 0) || 1;
     const issueCount = toCount(team?.issueCount || team?.pullRequestCount);
@@ -2936,34 +2890,14 @@
     if (safeRows.length === 0) return null;
     const sampleSize = toCount(filteredView?.sampleSize);
     const selectionLabel = String(filteredView?.selectionLabel || "All teams").trim();
-    const rankedRows = [...safeRows].sort((left, right) => {
+    const sortedRows = [...safeRows].sort((left, right) => {
       if (toNumber(right?.slot_0) !== toNumber(left?.slot_0)) {
         return toNumber(right?.slot_0) - toNumber(left?.slot_0);
       }
       return String(left?.phaseLabel || "").localeCompare(String(right?.phaseLabel || ""));
     });
-    const lifecycleStageOrder = new Map([
-      ["parking", 0],
-      ["parking lot", 0],
-      ["design", 1],
-      ["ready", 2],
-      ["development", 3],
-      ["in development", 3],
-      ["feedback", 4],
-      ["uat", 4]
-    ]);
-    const displayRows = [...safeRows].sort((left, right) => {
-      const leftRank = lifecycleStageOrder.get(String(left?.phaseLabel || "").trim().toLowerCase());
-      const rightRank = lifecycleStageOrder.get(
-        String(right?.phaseLabel || "").trim().toLowerCase()
-      );
-      if (leftRank !== undefined || rightRank !== undefined) {
-        return (leftRank ?? Number.MAX_SAFE_INTEGER) - (rightRank ?? Number.MAX_SAFE_INTEGER);
-      }
-      return String(left?.phaseLabel || "").localeCompare(String(right?.phaseLabel || ""));
-    });
-    const longestRow = rankedRows[0] || null;
-    const maxDays = Math.max(1, ...rankedRows.map((row) => toNumber(row?.slot_0)));
+    const longestRow = sortedRows[0] || null;
+    const maxDays = Math.max(1, ...sortedRows.map((row) => toNumber(row?.slot_0)));
     const teamKey =
       lifecycleTeamScopeKey(selectedTeamKey) === LIFECYCLE_TEAM_SCOPE_DEFAULT
         ? ALL_TEAM_SCOPE_KEY
@@ -2988,8 +2922,8 @@
       ],
       columnStartLabel: "Stage",
       columnEndLabel: "Avg time",
-      footerBits: ["Current workflow"].filter(Boolean),
-      rows: displayRows.map((row) => ({
+      footerBits: ["Ideas workflow"].filter(Boolean),
+      rows: sortedRows.map((row) => ({
         label: String(row?.phaseLabel || "").trim(),
         metaBits: [`${toCount(row?.meta_slot_0?.n)} open ideas`],
         valueText: formatCycleMonthsText(row?.slot_0, { short: true }),
@@ -3029,7 +2963,7 @@
       teamColor: getPrCycleTeamColor(ALL_TEAM_SCOPE_KEY),
       accentColor: "var(--product-cycle-cycle)",
       stats: [
-        { label: "Avg delivery", value: formatCycleMonthsText(weightedCycleDays, { short: true }) },
+        { label: "Avg cycle", value: formatCycleMonthsText(weightedCycleDays, { short: true }) },
         {
           label: "Fastest team",
           value: normalizeDisplayTeamName(fastestRow?.team || "") || "N/A"
@@ -3038,7 +2972,7 @@
         { label: "Sample", value: `${toCount(cycleSampleCount)} ideas` }
       ],
       columnStartLabel: "Team",
-      columnEndLabel: "Avg delivery",
+      columnEndLabel: "Avg cycle",
       footerBits: [
         String(scopeLabel || PRODUCT_CYCLE_SCOPE_LABEL).trim(),
         fetchedCount > 0 ? `${toCount(fetchedCount)} fetched ideas` : ""
@@ -3052,7 +2986,7 @@
             metaBits: [
               `${toCount(row?.meta_cycle?.n)} ideas`,
               doneCount > 0 ? `${doneCount} shipped` : "",
-              ongoingCount > 0 ? `${ongoingCount} ongoing` : ""
+              ongoingCount > 0 ? `${ongoingCount} in development` : ""
             ].filter(Boolean),
             valueText: formatCycleMonthsText(row?.cycle, { short: true }),
             width: Math.max(12, Math.round((toNumber(row?.cycle) / maxCycleDays) * 100)),
@@ -3082,7 +3016,7 @@
       teamColor,
       accentColor: teamColor,
       stats: [
-        { label: "Delivery time", value: formatCycleMonthsText(row?.cycle, { short: true }) },
+        { label: "Cycle time", value: formatCycleMonthsText(row?.cycle, { short: true }) },
         { label: "Sample", value: `${cycleSample} ideas` },
         { label: "Shipped", value: `${shippedCount}` },
         { label: "Ongoing", value: `${ongoingCount}` }
@@ -3092,7 +3026,7 @@
       footerBits: [String(scopeLabel || PRODUCT_CYCLE_SCOPE_LABEL).trim()].filter(Boolean),
       rows: [
         {
-          label: "Delivery time",
+          label: "Cycle time",
           metaBits: [`${cycleSample} ideas`],
           valueText: formatCycleMonthsText(row?.cycle, { short: true }),
           width: getPretextFillWidth(row?.cycle, maxCycleDays),
@@ -3107,7 +3041,7 @@
         },
         {
           label: "Ongoing",
-          metaBits: ["ongoing ideas"],
+          metaBits: ["in development"],
           valueText: String(ongoingCount),
           width: getPretextFillWidth(ongoingCount, maxOngoing),
           color: teamColor
@@ -3197,7 +3131,7 @@
       return;
     }
 
-    const stages = Array.isArray(team?.stages) ? team.stages : [];
+    const stages = getRenderableWorkflowStages(team?.stages);
     const teamColor = getPrCycleTeamColor(team?.key);
     const maxDays =
       stages.reduce((highest, stage) => Math.max(highest, toNumber(stage?.days)), 0) || 1;
@@ -3764,7 +3698,6 @@
     renderActionsRequiredFrame();
     applyDashboardPanelOrder();
     applyModeVisibility();
-    ensurePanelBackToTopControls();
     syncDashboardControlsFromState(CONTROL_BINDINGS, state);
     bindDashboardControlState(CONTROL_BINDINGS, state);
     bindWindowResizeRerender();
