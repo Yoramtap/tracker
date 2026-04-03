@@ -6,7 +6,6 @@ This repo is now the single source of truth for the dashboard, the refresh scrip
 
 - Use this file for setup, security, and the main commands.
 - Use `RELEASE.md` for manual refresh + live publish steps.
-- Use `REPORT_AUTOMATION_CADENCE.md` for the Friday 09:00 automation schedule.
 
 ## Security
 
@@ -71,7 +70,7 @@ Then open [http://127.0.0.1:4173](http://127.0.0.1:4173).
 Read [RELEASE.md](/Users/yoramtap/Documents/AI/tracker/RELEASE.md) before shipping.
 
 - Manual release steps are in [RELEASE.md](/Users/yoramtap/Documents/AI/tracker/RELEASE.md).
-- Weekly timing and automation expectations are in [REPORT_AUTOMATION_CADENCE.md](/Users/yoramtap/Documents/AI/tracker/REPORT_AUTOMATION_CADENCE.md).
+- The Friday 09:00 weekly run is handled by Codex automation rather than a repo doc.
 
 ## GitHub Pages
 
