@@ -27,7 +27,7 @@ The live UI is the dashboard bundle rooted at `index.html`, with `dashboard-*.js
 ## Setup
 
 ```bash
-cd /Users/yoramtap/Documents/AI/bugtracker-workshop
+cd /Users/yoramtap/Documents/AI/workshop
 npm run backlog:setup-auth -- --email "you@company.com" --token "<jira_api_token>"
 ```
 
@@ -40,7 +40,7 @@ npm run backlog:setup-auth -- --email "you@company.com" --token "<jira_api_token
 ## Refresh Snapshot
 
 ```bash
-cd /Users/yoramtap/Documents/AI/bugtracker-workshop
+cd /Users/yoramtap/Documents/AI/workshop
 npm run refresh:full
 ```
 
@@ -72,7 +72,7 @@ If sprint discovery fails (permissions, API error, no boards), the script falls 
 ## Export To Public Repo
 
 ```bash
-cd /Users/yoramtap/Documents/AI/bugtracker-workshop
+cd /Users/yoramtap/Documents/AI/workshop
 npm run export:public
 ```
 
@@ -113,7 +113,7 @@ The export command only copies:
 Generate a concise analysis memo from `snapshot.json`:
 
 ```bash
-cd /Users/yoramtap/Documents/AI/bugtracker-workshop
+cd /Users/yoramtap/Documents/AI/workshop
 npm run analyze:brief
 ```
 
@@ -186,7 +186,7 @@ Optional overrides in `.env.backlog`:
 Serve the workshop files locally:
 
 ```bash
-cd /Users/yoramtap/.codex/worktrees/6935/bugtracker-workshop
+cd /Users/yoramtap/Documents/AI/workshop
 npm run dev
 ```
 
@@ -206,20 +206,21 @@ npm run dev:tracker
 
 ## Publish Flow
 
-Read [RELEASE.md](/Users/yoramtap/.codex/worktrees/6935/bugtracker-workshop/RELEASE.md) before any publish or release action.
+Read [RELEASE.md](/Users/yoramtap/Documents/AI/workshop/RELEASE.md) before any publish or release action.
 
-Short version:
+This is the standard full refresh + live release flow we use:
 
-1. Iterate charts and data in `bugtracker-workshop`.
-2. Run `npm run refresh:full`.
-3. Run `npm run export:public`.
-4. Commit/push from `/Users/yoramtap/Documents/AI/tracker`.
+1. In `/Users/yoramtap/Documents/AI/workshop`, run `npm run refresh:full`.
+2. Run `npm run analyze:brief`.
+3. Run `npm run export:public -- --target /Users/yoramtap/Documents/AI/tracker`.
+4. In `/Users/yoramtap/Documents/AI/tracker`, commit and push any changed files.
+5. Confirm the latest Pages deploy succeeds and [the live dashboard](https://yoramtap.github.io/tracker/) responds.
 
 Important:
 
-- Do not treat `git push` from this repo as the release step.
-- This repo is the private workshop; `tracker` is the public publish target.
-- Before any release, first ask whether the dataset should be updated: `yes` or `no`.
+- Do not treat `git push` from the workshop repo as the release step.
+- `workshop` is the private source repo; `tracker` is the public publish target.
+- If you intentionally want an export-only publish with no fresh data, call that out explicitly before skipping `refresh:full`.
 
 ## Live Dashboard Files
 
