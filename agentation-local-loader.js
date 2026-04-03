@@ -1,63 +1,9 @@
 "use strict";
 
 (function initLocalAgentation() {
-  const loaderState = {
-    bootPromise: null,
-    reactRuntimePromise: null
-  };
-
   function isLocalhost() {
     const host = String(window.location.hostname || "").toLowerCase();
     return host === "localhost" || host === "127.0.0.1" || host === "::1";
-  }
-
-  function loadScriptOnce(src, isReady) {
-    if (typeof isReady === "function" && isReady()) return Promise.resolve();
-
-    return new Promise((resolve, reject) => {
-      const existing = document.querySelector(`script[data-agentation-runtime-src="${src}"]`);
-      if (existing) {
-        existing.addEventListener(
-          "load",
-          () => {
-            if (typeof isReady === "function" && !isReady()) {
-              reject(new Error(`Loaded ${src} but runtime is still unavailable.`));
-              return;
-            }
-            resolve();
-          },
-          { once: true }
-        );
-        existing.addEventListener("error", () => reject(new Error(`Failed to load ${src}.`)), {
-          once: true
-        });
-        return;
-      }
-
-      const script = document.createElement("script");
-      script.src = src;
-      script.async = true;
-      script.dataset.agentationRuntimeSrc = src;
-      script.addEventListener(
-        "load",
-        () => {
-          if (typeof isReady === "function" && !isReady()) {
-            reject(new Error(`Loaded ${src} but runtime is still unavailable.`));
-            return;
-          }
-          resolve();
-        },
-        { once: true }
-      );
-      script.addEventListener("error", () => reject(new Error(`Failed to load ${src}.`)), {
-        once: true
-      });
-      document.head.appendChild(script);
-    });
-  }
-
-  function hasReactRuntime() {
-    return Boolean(window.React && window.ReactDOM && typeof window.ReactDOM.createRoot === "function");
   }
 
   function createJsxRuntime(React) {
@@ -86,15 +32,11 @@
   function resetLocalAgentationState() {
     try {
       window.sessionStorage.removeItem("feedback-toolbar-hidden");
-    } catch {
-      // Ignore storage access failures in local preview.
-    }
+    } catch {}
 
     try {
       window.localStorage.removeItem("feedback-toolbar-position");
-    } catch {
-      // Ignore storage access failures in local preview.
-    }
+    } catch {}
   }
 
   function showAgentationDebug(message) {
@@ -239,39 +181,6 @@
     document.head.appendChild(script);
   }
 
-  function scheduleAgentationBoot(bootFn) {
-    const runBoot = () => {
-      if (document.visibilityState === "hidden") {
-        window.setTimeout(bootFn, 1200);
-        return;
-      }
-      bootFn();
-    };
-
-    if (typeof window.requestIdleCallback === "function") {
-      window.requestIdleCallback(runBoot, { timeout: 2500 });
-      return;
-    }
-
-    window.setTimeout(runBoot, 1200);
-  }
-
-  function ensureReactRuntime() {
-    if (hasReactRuntime()) return Promise.resolve();
-    if (loaderState.reactRuntimePromise) return loaderState.reactRuntimePromise;
-
-    loaderState.reactRuntimePromise = (async () => {
-      showAgentationStatus("agentation: loading react runtime");
-      await loadScriptOnce("./vendor/react.production.min.js", () => Boolean(window.React));
-      await loadScriptOnce("./vendor/react-dom.production.min.js", hasReactRuntime);
-    })().catch((error) => {
-      loaderState.reactRuntimePromise = null;
-      throw error;
-    });
-
-    return loaderState.reactRuntimePromise;
-  }
-
   function mountAgentation(exportsObject) {
     const Agentation = exportsObject?.Agentation;
     if (typeof Agentation !== "function") {
@@ -313,61 +222,27 @@
     forceVisibleLocalToolbar();
   }
 
-  async function bootAgentationOnce() {
-    if (!isLocalhost()) return;
-    if (document.getElementById("agentation-local-root")) return;
-
-    if (!hasReactRuntime()) {
-      try {
-        await ensureReactRuntime();
-      } catch (error) {
-        showAgentationDebug(error?.stack || error?.message || String(error));
-        console.warn("Agentation local loader failed to load React runtime.", error);
-        return;
-      }
-    }
-    if (document.getElementById("agentation-local-root")) return;
-
-    showAgentationStatus("agentation: booting");
-    resetLocalAgentationState();
-
-    loadAgentationScript(
-      (exportsObject, restoreGlobals) => {
-        try {
-          mountAgentation(exportsObject);
-          restoreGlobals();
-        } catch (error) {
-          restoreGlobals();
-          showAgentationDebug(error?.stack || error?.message || String(error));
-          console.warn("Agentation local loader failed to mount.", error);
-        }
-      },
-      (error) => {
-        showAgentationDebug(error?.stack || error?.message || String(error));
-        console.warn("Agentation local loader failed to load the package script.", error);
-      }
-    );
-  }
-
-  function bootAgentation() {
-    if (loaderState.bootPromise) return loaderState.bootPromise;
-    loaderState.bootPromise = bootAgentationOnce().finally(() => {
-      loaderState.bootPromise = null;
-    });
-    return loaderState.bootPromise;
-  }
-
   if (!isLocalhost()) return;
-  if (document.readyState === "complete") {
-    scheduleAgentationBoot(bootAgentation);
-    return;
-  }
+  if (!window.React || !window.ReactDOM || typeof window.ReactDOM.createRoot !== "function") return;
+  if (document.getElementById("agentation-local-root")) return;
 
-  window.addEventListener(
-    "load",
-    () => {
-      scheduleAgentationBoot(bootAgentation);
+  showAgentationStatus("agentation: booting");
+  resetLocalAgentationState();
+
+  loadAgentationScript(
+    (exportsObject, restoreGlobals) => {
+      try {
+        mountAgentation(exportsObject);
+        restoreGlobals();
+      } catch (error) {
+        restoreGlobals();
+        showAgentationDebug(error?.stack || error?.message || String(error));
+        console.warn("Agentation local loader failed to mount.", error);
+      }
     },
-    { once: true }
+    (error) => {
+      showAgentationDebug(error?.stack || error?.message || String(error));
+      console.warn("Agentation local loader failed to load the package script.", error);
+    }
   );
 })();

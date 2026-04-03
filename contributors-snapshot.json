@@ -1,1 +1,50 @@
-{"updatedAt":"2026-03-29T22:23:47.820Z","summary":{"total_issues":26,"active_issues":4,"done_issues":22,"total_contributors":6,"linked_issues":19},"chartData":{"rows":[{"contributor":"Daniel Davis","totalIssues":7,"doneIssues":6,"activeIssues":1},{"contributor":"Tesoro Fedel","totalIssues":6,"doneIssues":6,"activeIssues":0},{"contributor":"Mitchell Kalika","totalIssues":6,"doneIssues":5,"activeIssues":1},{"contributor":"Sven Kommers","totalIssues":4,"doneIssues":2,"activeIssues":2},{"contributor":"David Oxe","totalIssues":2,"doneIssues":2,"activeIssues":0},{"contributor":"Jack Woodgate","totalIssues":1,"doneIssues":1,"activeIssues":0}]}}
+{
+  "updatedAt": "2026-04-03T16:47:29.494Z",
+  "summary": {
+    "total_issues": 27,
+    "active_issues": 4,
+    "done_issues": 23,
+    "total_contributors": 6,
+    "linked_issues": 19
+  },
+  "chartData": {
+    "rows": [
+      {
+        "contributor": "Daniel Davis",
+        "totalIssues": 8,
+        "doneIssues": 7,
+        "activeIssues": 1
+      },
+      {
+        "contributor": "Tesoro Fedel",
+        "totalIssues": 6,
+        "doneIssues": 6,
+        "activeIssues": 0
+      },
+      {
+        "contributor": "Mitchell Kalika",
+        "totalIssues": 6,
+        "doneIssues": 5,
+        "activeIssues": 1
+      },
+      {
+        "contributor": "Sven Kommers",
+        "totalIssues": 4,
+        "doneIssues": 2,
+        "activeIssues": 2
+      },
+      {
+        "contributor": "David Oxe",
+        "totalIssues": 2,
+        "doneIssues": 2,
+        "activeIssues": 0
+      },
+      {
+        "contributor": "Jack Woodgate",
+        "totalIssues": 1,
+        "doneIssues": 1,
+        "activeIssues": 0
+      }
+    ]
+  }
+}
