@@ -629,7 +629,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     panel.hidden = false;
     setPanelContext(
       contextNode,
-      formatContextWithFreshness("Oldest panel data", getSnapshotContextTimestamp(state))
+      formatContextWithFreshness("", getSnapshotContextTimestamp(state))
     );
 
     statusNode.hidden = true;

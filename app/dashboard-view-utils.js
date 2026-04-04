@@ -416,7 +416,7 @@
     panel.hidden = false;
     textNode.hidden = refreshUpdatedAt.length === 0;
     textNode.textContent = refreshUpdatedAt
-      ? `Oldest panel data updated ${formatUpdatedAt(refreshUpdatedAt)}`
+      ? `updated ${formatUpdatedAt(refreshUpdatedAt)}`
       : "";
   }
 
