@@ -15,7 +15,6 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    if: ${{ secrets.ATLASSIAN_EMAIL != '' && secrets.ATLASSIAN_API_TOKEN != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,6 +29,16 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Verify refresh secrets
+        env:
+          ATLASSIAN_EMAIL: ${{ secrets.ATLASSIAN_EMAIL }}
+          ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
+        run: |
+          if [ -z "$ATLASSIAN_EMAIL" ] || [ -z "$ATLASSIAN_API_TOKEN" ]; then
+            echo "Missing ATLASSIAN_EMAIL or ATLASSIAN_API_TOKEN."
+            exit 1
+          fi
 
       - name: Refresh dashboard data
         env:
