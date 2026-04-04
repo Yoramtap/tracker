@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-04T18:47:57.157Z",
+  "updatedAt": "2026-04-04T20:12:50.039Z",
   "defaultTeam": "bc",
   "defaultWindow": "30d",
   "windows": {
@@ -37,13 +37,13 @@
           "key": "legacy",
           "label": "Legacy FE",
           "issueCount": 20,
-          "totalCycleDays": 12.1,
+          "totalCycleDays": 12.2,
           "bottleneckLabel": "In Progress",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 6.3,
+              "days": 6.4,
               "sampleCount": 20
             },
             {
@@ -176,7 +176,7 @@
         {
           "key": "api",
           "label": "API",
-          "issueCount": 128,
+          "issueCount": 127,
           "totalCycleDays": 14.4,
           "bottleneckLabel": "In Review",
           "stages": [
@@ -196,14 +196,14 @@
               "key": "merge",
               "label": "QA",
               "days": 4.2,
-              "sampleCount": 87
+              "sampleCount": 86
             }
           ]
         },
         {
           "key": "legacy",
           "label": "Legacy FE",
-          "issueCount": 40,
+          "issueCount": 39,
           "totalCycleDays": 14.3,
           "bottleneckLabel": "In Progress",
           "stages": [
@@ -223,14 +223,14 @@
               "key": "merge",
               "label": "QA",
               "days": 0.4,
-              "sampleCount": 25
+              "sampleCount": 24
             }
           ]
         },
         {
           "key": "react",
           "label": "React FE",
-          "issueCount": 161,
+          "issueCount": 160,
           "totalCycleDays": 4.4,
           "bottleneckLabel": "In Progress",
           "stages": [
@@ -244,13 +244,13 @@
               "key": "review",
               "label": "In Review",
               "days": 1.4,
-              "sampleCount": 137
+              "sampleCount": 136
             },
             {
               "key": "merge",
               "label": "QA",
               "days": 0.6,
-              "sampleCount": 103
+              "sampleCount": 102
             }
           ]
         },
