@@ -1,19 +1,19 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-04-04T18:56:07.250Z",
+  "updatedAt": "2026-04-04T20:19:28.449Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-04-04T18:56:07.250Z",
+    "syncedAt": "2026-04-04T20:19:28.449Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. PR activity is derived from Jira dev-status pull request details."
   },
   "prActivity": {
-    "since": "2025-04-01",
+    "since": "2025-04-14",
     "interval": "sprint",
     "monthlyInterval": "month",
     "source": "jira_dev_status_detail",
     "candidateIssueCount": 4237,
-    "uniquePrCount": 2424,
-    "conflictCount": 5,
+    "uniquePrCount": 331,
+    "conflictCount": 0,
     "caveat": "Counts are deduped from Jira dev-status pull request records and attributed by Jira team label. Inflow dates use the earliest available PR lastUpdate and source-branch last commit timestamp, then are bucketed to Jira sprint points. Merged dates use Jira PR lastUpdate as a merge proxy and are bucketed to the corresponding sprint point. Review-to-merge time is a ticket proxy: first Jira In Review status to linked merged PR proxy date. Multiple done Jira tickets can still map to the same underlying PR.",
     "points": [
       {
@@ -916,40 +916,40 @@
       {
         "date": "2026-03-02",
         "api": {
-          "offered": 28,
-          "merged": 24,
-          "avgReviewToMergeDays": 4,
-          "avgReviewToMergeSampleCount": 13
+          "offered": 0,
+          "merged": 0,
+          "avgReviewToMergeDays": 0,
+          "avgReviewToMergeSampleCount": 0
         },
         "legacy": {
-          "offered": 1,
-          "merged": 1,
+          "offered": 0,
+          "merged": 0,
           "avgReviewToMergeDays": 0,
           "avgReviewToMergeSampleCount": 0
         },
         "react": {
-          "offered": 29,
-          "merged": 26,
-          "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 16
+          "offered": 2,
+          "merged": 2,
+          "avgReviewToMergeDays": 6,
+          "avgReviewToMergeSampleCount": 1
         },
         "bc": {
-          "offered": 46,
-          "merged": 40,
-          "avgReviewToMergeDays": 23,
-          "avgReviewToMergeSampleCount": 22
+          "offered": 10,
+          "merged": 9,
+          "avgReviewToMergeDays": 46,
+          "avgReviewToMergeSampleCount": 8
         },
         "workers": {
-          "offered": 14,
-          "merged": 11,
-          "avgReviewToMergeDays": 11,
-          "avgReviewToMergeSampleCount": 5
+          "offered": 4,
+          "merged": 1,
+          "avgReviewToMergeDays": 28,
+          "avgReviewToMergeSampleCount": 1
         },
         "titanium": {
-          "offered": 13,
-          "merged": 9,
-          "avgReviewToMergeDays": 1,
-          "avgReviewToMergeSampleCount": 9
+          "offered": 1,
+          "merged": 0,
+          "avgReviewToMergeDays": 0,
+          "avgReviewToMergeSampleCount": 0
         }
       },
       {
@@ -973,7 +973,7 @@
           "avgReviewToMergeSampleCount": 4
         },
         "bc": {
-          "offered": 31,
+          "offered": 32,
           "merged": 28,
           "avgReviewToMergeDays": 52,
           "avgReviewToMergeSampleCount": 18
@@ -1523,20 +1523,20 @@
           "avgReviewToMergeSampleCount": 18
         },
         "bc": {
-          "offered": 68,
-          "merged": 60,
+          "offered": 69,
+          "merged": 58,
           "avgReviewToMergeDays": 36,
           "avgReviewToMergeSampleCount": 43
         },
         "workers": {
           "offered": 36,
-          "merged": 33,
+          "merged": 29,
           "avgReviewToMergeDays": 6,
           "avgReviewToMergeSampleCount": 26
         },
         "titanium": {
           "offered": 21,
-          "merged": 17,
+          "merged": 16,
           "avgReviewToMergeDays": 7,
           "avgReviewToMergeSampleCount": 8
         }
@@ -1552,7 +1552,7 @@
             {
               "label": "ANZJ",
               "devAvg": 7.92,
-              "uatAvg": 9.64,
+              "uatAvg": 9.7,
               "devCount": 2,
               "uatCount": 2,
               "sampleCount": 2,
@@ -1574,7 +1574,7 @@
                 {
                   "label": "AU AHS",
                   "devAvg": 7.92,
-                  "uatAvg": 9.64,
+                  "uatAvg": 9.7,
                   "devCount": 2,
                   "uatCount": 2,
                   "sampleCount": 2,
@@ -1588,7 +1588,7 @@
             {
               "label": "EU",
               "devAvg": 0.02,
-              "uatAvg": 57.81,
+              "uatAvg": 57.86,
               "devCount": 2,
               "uatCount": 2,
               "sampleCount": 2,
@@ -1610,7 +1610,7 @@
                 {
                   "label": "NO OBC",
                   "devAvg": 0,
-                  "uatAvg": 35.85,
+                  "uatAvg": 35.91,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -1621,7 +1621,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.04,
-                  "uatAvg": 79.76,
+                  "uatAvg": 79.82,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -1634,7 +1634,7 @@
             {
               "label": "MEA",
               "devAvg": 1.1,
-              "uatAvg": 58.43,
+              "uatAvg": 58.49,
               "devCount": 1,
               "uatCount": 1,
               "sampleCount": 1,
@@ -1651,7 +1651,7 @@
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 58.43,
+                  "uatAvg": 58.49,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -1664,7 +1664,7 @@
             {
               "label": "US",
               "devAvg": 0.62,
-              "uatAvg": 59.75,
+              "uatAvg": 59.81,
               "devCount": 3,
               "uatCount": 3,
               "sampleCount": 3,
@@ -1691,7 +1691,7 @@
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 108.67,
+                  "uatAvg": 108.73,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -1702,7 +1702,7 @@
                 {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 59.85,
+                  "uatAvg": 59.9,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -1713,7 +1713,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0,
-                  "uatAvg": 10.73,
+                  "uatAvg": 10.79,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -1726,7 +1726,7 @@
             {
               "label": "Tech Debt",
               "devAvg": 28.75,
-              "uatAvg": 113.59,
+              "uatAvg": 113.65,
               "devCount": 1,
               "uatCount": 1,
               "sampleCount": 1,
@@ -1743,7 +1743,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 113.59,
+                  "uatAvg": 113.65,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
