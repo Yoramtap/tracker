@@ -5,9 +5,9 @@ export default [
   {
     ignores: [
       "node_modules/**",
+      "dist/**",
       "tasks/**",
       "vendor/**",
-      "snapshots/**",
       ".cache/**",
       ".codex-artifacts/**"
     ]

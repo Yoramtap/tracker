@@ -9,30 +9,23 @@ import { build as esbuildBuild, transform } from "esbuild";
 
 const JS_BUNDLE_PATH = "dashboard.bundle.js";
 const CSS_BUNDLE_PATH = "dashboard.bundle.css";
-const ICON_ASSET_PATHS = [
-  "assets/icons/share-3735079.png",
-  "assets/icons/bookmark-3735089.png",
-  "assets/icons/chart-3735080.png",
-  "assets/icons/search-3735055.png"
-];
+const STATIC_ASSETS_DIR = "assets";
 const JS_SOURCE_PATHS = [
-  "dashboard-runtime.js",
-  "dashboard-view-utils.js",
+  "app/dashboard-runtime.js",
+  "app/dashboard-view-utils.js",
   "vendor/react.production.min.js",
   "vendor/react-dom.production.min.js",
-  "dashboard-chart-core.js",
-  "dashboard-pretext-layout.js",
-  "dashboard-charts-shipped.js",
-  "dashboard-charts-product.js",
-  "dashboard-app.js"
+  "app/dashboard-chart-core.js",
+  "app/dashboard-pretext-layout.js",
+  "app/dashboard-charts-shipped.js",
+  "app/dashboard-charts-product.js",
+  "app/dashboard-app.js"
 ];
-const PANEL_SHELL_PATH = "dashboard-heavy-panels.html";
+const PANEL_SHELL_PATH = "app/dashboard-heavy-panels.html";
 const INDEX_PATH = "index.html";
-const STYLESHEET_PATH = "dashboard-styles.css";
-const FONT_STYLESHEET_PATH = "dashboard-fonts.css";
+const STYLESHEET_PATH = "app/dashboard-styles.css";
+const FONT_STYLESHEET_PATH = "app/dashboard-fonts.css";
 const PRETEXT_MODULE_PATH = "vendor/pretext.mjs";
-const FONT_URL_PATTERN =
-  /url\((["']?)\.\/(node_modules\/@fontsource\/[^"')]+\.(?:woff2|woff))\1\)/g;
 
 function getArg(flag) {
   const index = process.argv.indexOf(flag);
@@ -64,6 +57,21 @@ async function copyFileEnsured(sourcePath, targetPath) {
 
 async function readUtf8(sourceDir, relativePath) {
   return await fs.readFile(path.join(sourceDir, relativePath), "utf8");
+}
+
+async function listRelativeFiles(rootDir, currentDir = rootDir) {
+  const entries = await fs.readdir(currentDir, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const absolutePath = path.join(currentDir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...(await listRelativeFiles(rootDir, absolutePath)));
+      continue;
+    }
+    if (!entry.isFile()) continue;
+    files.push(path.relative(rootDir, absolutePath));
+  }
+  return files;
 }
 
 async function buildPretextIife(sourceDir) {
@@ -101,55 +109,26 @@ async function buildJsBundle(sourceDir) {
   return transformed.code;
 }
 
-async function buildCssBundle(sourceDir, outDir) {
+async function buildCssBundle(sourceDir) {
   const styles = await readUtf8(sourceDir, STYLESHEET_PATH);
   const fontStyles = await readUtf8(sourceDir, FONT_STYLESHEET_PATH);
-  const copiedFontPaths = new Map();
-  let rewrittenFontStyles = fontStyles;
-
-  for (const match of fontStyles.matchAll(FONT_URL_PATTERN)) {
-    const sourceRelativePath = String(match[2] || "").trim();
-    if (!sourceRelativePath) continue;
-    if (copiedFontPaths.has(sourceRelativePath)) continue;
-    const fileName = path.basename(sourceRelativePath);
-    const publicRelativePath = path.posix.join("assets", "fonts", fileName);
-    await copyFileEnsured(
-      path.join(sourceDir, sourceRelativePath),
-      path.join(outDir, publicRelativePath)
-    );
-    copiedFontPaths.set(sourceRelativePath, `./${publicRelativePath}`);
-  }
-
-  rewrittenFontStyles = rewrittenFontStyles.replace(
-    FONT_URL_PATTERN,
-    (_match, quote, assetPath) => {
-      const rewrittenPath = copiedFontPaths.get(String(assetPath || "").trim());
-      const safeQuote = quote || '"';
-      return rewrittenPath ? `url(${safeQuote}${rewrittenPath}${safeQuote})` : _match;
-    }
-  );
-
-  const transformed = await transform(`${rewrittenFontStyles}\n\n${styles}`, {
+  const normalizedFontStyles = fontStyles.replaceAll("../assets/", "./assets/");
+  const transformed = await transform(`${normalizedFontStyles}\n\n${styles}`, {
     loader: "css",
     minify: true,
     target: "es2020"
   });
-  return {
-    code: transformed.code,
-    copiedAssetPaths: Array.from(copiedFontPaths.values()).map((relativePath) =>
-      relativePath.replace(/^\.\//, "")
-    )
-  };
+  return transformed.code;
 }
 
 function buildBundledIndexHtml(indexHtml, panelShellHtml, { cssHash, jsHash }) {
   let output = indexHtml;
   output = output.replace(
-    /<link rel="stylesheet" href="\.\/dashboard-styles\.css[^"]*" \/>\s*\n\s*<link rel="stylesheet" href="\.\/dashboard-fonts\.css[^"]*" \/>/,
+    /<link rel="stylesheet" href="\.\/app\/dashboard-styles\.css[^"]*" \/>\s*\n\s*<link rel="stylesheet" href="\.\/app\/dashboard-fonts\.css[^"]*" \/>/,
     `<link rel="stylesheet" href="./${CSS_BUNDLE_PATH}?v=${cssHash}" />`
   );
   output = output.replace(
-    /<script defer src="\.\/dashboard-bootstrap\.js[^"]*"><\/script>/,
+    /<script defer src="\.\/app\/dashboard-runtime\.js[^"]*"><\/script>\s*\n\s*<script defer src="\.\/app\/dashboard-bootstrap\.js[^"]*"><\/script>/,
     `<script defer src="./${JS_BUNDLE_PATH}?v=${jsHash}"></script>`
   );
   output = output.replace('<div id="dashboard-heavy-panels"></div>', panelShellHtml.trim());
@@ -162,23 +141,27 @@ export async function buildPublicDashboard({
 } = {}) {
   await removeDir(outDir);
   await ensureDir(outDir);
+  const staticAssetPaths = (await listRelativeFiles(path.join(sourceDir, STATIC_ASSETS_DIR))).map(
+    (relativePath) =>
+      path.posix.join(STATIC_ASSETS_DIR, relativePath.split(path.sep).join(path.posix.sep))
+  );
 
   const [indexHtml, panelShellHtml, jsBundle, cssBundle] = await Promise.all([
     readUtf8(sourceDir, INDEX_PATH),
     readUtf8(sourceDir, PANEL_SHELL_PATH),
     buildJsBundle(sourceDir),
-    buildCssBundle(sourceDir, outDir)
+    buildCssBundle(sourceDir)
   ]);
 
   const jsHash = shortHash(jsBundle);
-  const cssHash = shortHash(cssBundle.code);
+  const cssHash = shortHash(cssBundle);
   const bundledIndexHtml = buildBundledIndexHtml(indexHtml, panelShellHtml, { cssHash, jsHash });
 
   await Promise.all([
     writeFileEnsured(path.join(outDir, INDEX_PATH), bundledIndexHtml),
     writeFileEnsured(path.join(outDir, JS_BUNDLE_PATH), jsBundle),
-    writeFileEnsured(path.join(outDir, CSS_BUNDLE_PATH), cssBundle.code),
-    ...ICON_ASSET_PATHS.map((assetPath) =>
+    writeFileEnsured(path.join(outDir, CSS_BUNDLE_PATH), cssBundle),
+    ...staticAssetPaths.map((assetPath) =>
       copyFileEnsured(path.join(sourceDir, assetPath), path.join(outDir, assetPath))
     )
   ]);
@@ -188,13 +171,7 @@ export async function buildPublicDashboard({
     jsBundlePath: path.join(outDir, JS_BUNDLE_PATH),
     cssBundlePath: path.join(outDir, CSS_BUNDLE_PATH),
     indexPath: path.join(outDir, INDEX_PATH),
-    assetPaths: [
-      INDEX_PATH,
-      JS_BUNDLE_PATH,
-      CSS_BUNDLE_PATH,
-      ...ICON_ASSET_PATHS,
-      ...cssBundle.copiedAssetPaths
-    ]
+    assetPaths: [INDEX_PATH, JS_BUNDLE_PATH, CSS_BUNDLE_PATH, ...staticAssetPaths]
   };
 }
 
@@ -202,7 +179,10 @@ async function main() {
   const targetDir = path.resolve(
     getArg("--target") || path.join(os.tmpdir(), "dashboard-public-build")
   );
-  const result = await buildPublicDashboard({ sourceDir: process.cwd(), outDir: targetDir });
+  const result = await buildPublicDashboard({
+    sourceDir: process.cwd(),
+    outDir: targetDir
+  });
   console.log(`Built public dashboard at ${result.outDir}`);
 }
 

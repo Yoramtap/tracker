@@ -8,20 +8,22 @@
     "lint:fix": "eslint . --ext .js,.mjs --fix",
     "format": "prettier \"**/*.{js,mjs,css,html,json}\" --write",
     "format:check": "prettier \"**/*.{js,mjs,css,html,json}\" --check",
-    "refresh:full": "node scripts/refresh-report-data.mjs",
-    "refresh:pr-cycle": "PR_CYCLE_ONLY=true node scripts/refresh-report-data.mjs",
-    "refresh:pr-activity": "PR_ACTIVITY_ONLY=true SKIP_TREND_REFRESH=true node scripts/refresh-report-data.mjs",
-    "refresh:product-cycle": "PRODUCT_CYCLE_ONLY=true node scripts/refresh-report-data.mjs",
-    "refresh:uat-flow": "UAT_ONLY=true SKIP_UAT_AGING=true node scripts/refresh-report-data.mjs",
+    "data:refresh": "node scripts/refresh-report-data.mjs",
+    "data:refresh:clean": "node scripts/refresh-report-data.mjs --clean",
+    "data:refresh:stage": "node scripts/refresh-report-data.mjs",
+    "data:refresh:pr-cycle": "PR_CYCLE_ONLY=true node scripts/refresh-report-data.mjs",
+    "data:refresh:pr-activity": "PR_ACTIVITY_ONLY=true SKIP_TREND_REFRESH=true node scripts/refresh-report-data.mjs",
+    "data:refresh:product-cycle": "PRODUCT_CYCLE_ONLY=true node scripts/refresh-report-data.mjs",
+    "data:refresh:uat": "UAT_ONLY=true SKIP_UAT_AGING=true node scripts/refresh-report-data.mjs",
+    "data:validate": "node scripts/validate-dashboard-snapshots.mjs",
     "benchmark:refresh": "node scripts/benchmark-refresh-phases.mjs",
     "benchmark:dashboard": "node scripts/benchmark-dashboard-assets.mjs",
-    "build:dashboard:public": "node scripts/build-public-dashboard.mjs",
-    "build:site": "node scripts/export-public.mjs --target dist",
+    "report:analyze": "node scripts/analyze-report-data.mjs --output .cache/analysis/latest-analysis.md",
+    "site:build": "node scripts/export-public.mjs --target dist",
     "smoke:dashboard": "node scripts/smoke-dashboard.mjs",
     "smoke:dashboard:render": "node scripts/smoke-dashboard-render.mjs",
-    "analyze:brief": "node scripts/analyze-report-data.mjs --output reports/latest-analysis.md",
     "backlog:setup-auth": "node scripts/setup-backlog-auth.mjs",
-    "publish:site": "node scripts/publish-tracker.mjs"
+    "site:publish": "node scripts/publish-tracker.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
@@ -31,8 +33,6 @@
     "prettier": "^3.5.0"
   },
   "dependencies": {
-    "@fontsource/ibm-plex-serif": "^5.2.7",
-    "@fontsource/inter": "^5.2.8",
     "@fontsource/open-sans": "^5.2.7",
     "@fontsource/roboto": "^5.2.10",
     "agentation": "^3.0.2"

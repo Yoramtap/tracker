@@ -1,11 +1,19 @@
 # Tracker
 
-This repo is now the single source of truth for the dashboard, the refresh scripts, and the GitHub Pages deployment.
+This repo has one job: regenerate committed dashboard snapshots and publish a static site from them.
+
+## Repo Story
+
+- `data/`: committed public snapshot contract
+- `app/`: dashboard UI that reads only from `data/`
+- `scripts/`: fetch, derive, validate, and publish pipeline
+- `.cache/`: disposable local state and analysis output
+- `dist/`: generated GitHub Pages artifact
 
 ## Which doc to use
 
 - Use this file for setup, security, and the main commands.
-- Use `RELEASE.md` for manual refresh + live publish steps.
+- Use `docs/release.md` for manual refresh + live publish steps.
 
 ## Security
 
@@ -35,26 +43,46 @@ npm run backlog:setup-auth -- --email "you@company.com" --site "your-site.atlass
 
 ```bash
 cd /Users/yoramtap/Documents/AI/tracker
-npm run refresh:full
-npm run analyze:brief
-npm run build:site
+npm run data:refresh
+npm run data:validate
+npm run site:build
 ```
 
 What they do:
 
-- `refresh:full`: refreshes the Jira-backed dashboard data
-- `analyze:brief`: writes `reports/latest-analysis.md`
-- `build:site`: builds the public Pages artifact into `dist/`
+- `data:refresh`: refreshes the Jira-backed dashboard data
+- `data:validate`: enforces the committed snapshot contract
+- `site:build`: builds the public Pages artifact into `dist/`
 
 Useful variants:
 
-- `npm run refresh:product-cycle`
-- `npm run refresh:pr-cycle`
-- `npm run refresh:pr-activity`
-- `npm run refresh:uat-flow`
-- `npm run publish:site -- --refresh yes --message "Refresh dashboard data" --push`
+- `npm run data:refresh:product-cycle`
+- `npm run data:refresh:pr-cycle`
+- `npm run data:refresh:pr-activity`
+- `npm run data:refresh:uat`
+- `npm run data:refresh:clean`
+- `npm run report:analyze`
+- `npm run site:publish -- --refresh yes --message "Refresh dashboard data" --push`
 
-Use `publish:site` only as a convenience helper when the repo is already clean. The canonical release instructions live in `RELEASE.md`.
+Use `site:publish` only as a convenience helper when the repo is already clean. The canonical release instructions live in `docs/release.md`.
+
+## Cache Behavior
+
+- Local refresh caches live under `.cache/`.
+- Default refreshes may reuse local PR activity cache, archived snapshot history, and Business Unit done-cache state.
+- `npm run data:refresh:clean` bypasses those local caches for the current run and rebuilds fresh cache artifacts afterward.
+- Use clean refreshes for debugging, CI, or whenever you want a reproducible run that is less dependent on local state.
+
+## Optional Analysis
+
+```bash
+cd /Users/yoramtap/Documents/AI/tracker
+npm run report:analyze
+```
+
+- Writes a local operator note to `.cache/analysis/latest-analysis.md`
+- Archives older copies under `.cache/analysis/history/`
+- Does not affect the product contract or GitHub Pages publish
 
 ## Local Preview
 
@@ -67,19 +95,22 @@ Then open [http://127.0.0.1:4173](http://127.0.0.1:4173).
 
 ## Release Flow
 
-Read [RELEASE.md](/Users/yoramtap/Documents/AI/tracker/RELEASE.md) before shipping.
+Read [docs/release.md](/Users/yoramtap/Documents/AI/tracker/docs/release.md) before shipping.
 
-- Manual release steps are in [RELEASE.md](/Users/yoramtap/Documents/AI/tracker/RELEASE.md).
-- The Friday 09:00 weekly run is handled by Codex automation rather than a repo doc.
+- Manual release steps are in [docs/release.md](/Users/yoramtap/Documents/AI/tracker/docs/release.md).
+- Scheduled GitHub refresh automation lives in [.github/workflows/refresh-data.yml](/Users/yoramtap/Documents/AI/tracker/.github/workflows/refresh-data.yml).
 
 ## GitHub Pages
 
 - GitHub Pages deploys from this repo via [.github/workflows/pages.yml](/Users/yoramtap/Documents/AI/tracker/.github/workflows/pages.yml).
-- The workflow runs `npm ci` and `npm run build:site`, then publishes `dist/`.
+- The workflow runs `npm ci` and `npm run site:build`, then publishes `dist/`.
+- Scheduled or manual data refresh automation lives in [.github/workflows/refresh-data.yml](/Users/yoramtap/Documents/AI/tracker/.github/workflows/refresh-data.yml).
 - The live site stays publicly accessible for Confluence embedding.
 
 ## Notes
 
 - `index.html` in the repo is the source entrypoint.
 - The public Pages artifact is built from source; `dist/` is not committed.
-- Current published snapshots and analysis reports remain in-repo. Local snapshot-history folders stay ignored unless you intentionally track them.
+- Current published snapshots remain in-repo under `data/`, and local caches plus snapshot archives stay under `.cache/`.
+- Analysis output is disposable and stays under `.cache/analysis/`.
+- Hand-authored release/docs material live under `docs/`.

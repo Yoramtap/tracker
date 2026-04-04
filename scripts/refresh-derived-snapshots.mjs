@@ -79,12 +79,12 @@ const DEFAULT_BUSINESS_UNIT_DONE_CACHE_OVERLAP_DAYS = 2;
 const DEFAULT_BUSINESS_UNIT_DONE_CACHE_MAX_AGE_DAYS = 14;
 const FACILITY_UNSPECIFIED = "Unspecified";
 const BUSINESS_UNIT_UNMAPPED = "Business unit unmapped";
-const BUSINESS_UNIT_DONE_CACHE_PATH = path.resolve(
-  process.cwd(),
-  "business-unit-uat-done-cache.json"
+const CACHE_DIR_PATH = path.resolve(
+  process.env.REFRESH_CACHE_DIR || path.join(process.cwd(), ".cache")
 );
-const BUSINESS_UNIT_DONE_CACHE_TMP_PATH = path.resolve(
-  process.cwd(),
+const BUSINESS_UNIT_DONE_CACHE_PATH = path.join(CACHE_DIR_PATH, "business-unit-uat-done-cache.json");
+const BUSINESS_UNIT_DONE_CACHE_TMP_PATH = path.join(
+  CACHE_DIR_PATH,
   "business-unit-uat-done-cache.json.tmp"
 );
 
@@ -272,6 +272,7 @@ async function readJsonFile(filePath) {
 async function writeJsonAtomic(filePath, tmpPath, value) {
   const serialized = `${JSON.stringify(value, null, 2)}\n`;
   try {
+    await fs.mkdir(path.dirname(tmpPath), { recursive: true });
     await fs.writeFile(tmpPath, serialized, "utf8");
     await fs.rename(tmpPath, filePath);
   } catch (error) {

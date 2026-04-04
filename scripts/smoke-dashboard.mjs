@@ -4,7 +4,10 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const rootUrl = String(process.env.DASHBOARD_SMOKE_URL || "http://127.0.0.1:4173").replace(/\/+$/, "");
+const rootUrl = String(process.env.DASHBOARD_SMOKE_URL || "http://127.0.0.1:4173").replace(
+  /\/+$/,
+  ""
+);
 const isLocalPreview = (() => {
   try {
     const hostname = new URL(rootUrl).hostname.toLowerCase();
@@ -13,13 +16,7 @@ const isLocalPreview = (() => {
     return false;
   }
 })();
-const FULL_HEAVY_PANEL_RESOURCE = "./dashboard-heavy-panels.html";
-const HEAVY_PANEL_SECTION_FRAGMENTS = [
-  "./dashboard-heavy-panels-shipped.html",
-  "./dashboard-heavy-panels-product.html",
-  "./dashboard-heavy-panels-development.html",
-  "./dashboard-heavy-panels-bug.html"
-];
+const FULL_HEAVY_PANEL_RESOURCE = "./app/dashboard-heavy-panels.html";
 const ALL_ROUTE_VISIBLE_PANEL_SETS = [
   [
     "actions-required-panel",
@@ -34,19 +31,12 @@ const ALL_ROUTE_VISIBLE_PANEL_SETS = [
 ];
 const FULL_ROUTE_FORBIDDEN_RESOURCES = ["./vendor/prop-types.min.js", "./vendor/recharts.umd.js"];
 const PR_ROUTE_FORBIDDEN_RESOURCES = [
-  FULL_HEAVY_PANEL_RESOURCE,
-  "./dashboard-heavy-panels-shipped.html",
-  "./dashboard-heavy-panels-product.html",
-  "./dashboard-heavy-panels-bug.html",
-  "./dashboard-charts-shipped.js",
-  "./dashboard-charts-product.js",
+  "./app/dashboard-charts-shipped.js",
+  "./app/dashboard-charts-product.js",
   "./vendor/prop-types.min.js",
   "./vendor/recharts.umd.js"
 ];
 const SHIPPED_ROUTE_FORBIDDEN_RESOURCES = [
-  "./dashboard-heavy-panels-product.html",
-  "./dashboard-heavy-panels-development.html",
-  "./dashboard-heavy-panels-bug.html",
   "./vendor/prop-types.min.js",
   "./vendor/recharts.umd.js"
 ];
@@ -55,7 +45,7 @@ const SWITCHED_ALL_ROUTE_FORBIDDEN_RESOURCES = [
   "./vendor/recharts.umd.js"
 ];
 const LOCAL_ONLY_SUPPORT_RESOURCES = new Set([
-  "./agentation-local-loader.js",
+  "./dev/agentation-local-loader.js",
   "./node_modules/agentation/dist/index.js"
 ]);
 const DEFAULT_ROUTE_LOCAL_ONLY_RUNTIME_RESOURCES = new Set([
@@ -151,7 +141,9 @@ function sameSet(actual, expected) {
 }
 
 function normalizeResourceName(resourceName) {
-  return String(resourceName || "").replace(/\?.*$/, "").trim();
+  return String(resourceName || "")
+    .replace(/\?.*$/, "")
+    .trim();
 }
 
 function matchesAnyVisiblePanelSet(actualPanels, candidateSets) {
@@ -348,33 +340,32 @@ function assertDefaultRoute(snapshot) {
     sameList(snapshot.visiblePanels, ["actions-required-panel", "community-contributors-panel"]),
     `Default route visible panels changed: ${JSON.stringify(snapshot.visiblePanels)}`
   );
-  assert(snapshot.filledCharts === 1, `Default route should render 1 filled chart, saw ${snapshot.filledCharts}.`);
-  assert(snapshot.statuses.length === 0, `Default route shows status errors: ${JSON.stringify(snapshot.statuses)}`);
+  assert(
+    snapshot.filledCharts === 1,
+    `Default route should render 1 filled chart, saw ${snapshot.filledCharts}.`
+  );
+  assert(
+    snapshot.statuses.length === 0,
+    `Default route shows status errors: ${JSON.stringify(snapshot.statuses)}`
+  );
   assert(
     snapshot.hasViewUtils === true,
     "Default route should eagerly load the heavy dashboard stack."
   );
   assert(
-    hasAllRouteShellResources(snapshot),
-    `Default route should load the full dashboard shell in the background: ${JSON.stringify(
-      snapshot.resourceNames
-    )}`
+    hasHeavyPanelShellResource(snapshot),
+    `Default route should load the heavy dashboard shell in the background: ${JSON.stringify(snapshot.resourceNames)}`
   );
   if (isLocalPreview) {
-    assert(snapshot.hasAgentRoot === true, "Default route should restore the localhost Agentation mount.");
+    assert(
+      snapshot.hasAgentRoot === true,
+      "Default route should restore the localhost Agentation mount."
+    );
   }
 }
 
-function hasAllRouteShellResources(snapshot) {
-  if (hasResource(snapshot, FULL_HEAVY_PANEL_RESOURCE)) return true;
-  return HEAVY_PANEL_SECTION_FRAGMENTS.every((resource) => hasResource(snapshot, resource));
-}
-
-function hasShippedRouteShellResources(snapshot) {
-  return (
-    hasResource(snapshot, FULL_HEAVY_PANEL_RESOURCE) ||
-    hasResource(snapshot, "./dashboard-heavy-panels-shipped.html")
-  );
+function hasHeavyPanelShellResource(snapshot) {
+  return hasResource(snapshot, FULL_HEAVY_PANEL_RESOURCE);
 }
 
 function assertAllRouteLayout(snapshot) {
@@ -382,8 +373,14 @@ function assertAllRouteLayout(snapshot) {
     matchesAnyVisiblePanelSet(snapshot.visiblePanels, ALL_ROUTE_VISIBLE_PANEL_SETS),
     `Full route visible panels changed: ${JSON.stringify(snapshot.visiblePanels)}`
   );
-  assert(snapshot.filledCharts === 8, `Full route should render 8 filled charts, saw ${snapshot.filledCharts}.`);
-  assert(snapshot.statuses.length === 0, `Full route shows status errors: ${JSON.stringify(snapshot.statuses)}`);
+  assert(
+    snapshot.filledCharts === 8,
+    `Full route should render 8 filled charts, saw ${snapshot.filledCharts}.`
+  );
+  assert(
+    snapshot.statuses.length === 0,
+    `Full route shows status errors: ${JSON.stringify(snapshot.statuses)}`
+  );
   assert(snapshot.hasViewUtils === true, "Full route should load dashboard view utils.");
   if (isLocalPreview) {
     assert(snapshot.hasAgentRoot === true, "Full route should mount localhost Agentation.");
@@ -393,10 +390,8 @@ function assertAllRouteLayout(snapshot) {
 function assertFullRoute(snapshot) {
   assertAllRouteLayout(snapshot);
   assert(
-    hasAllRouteShellResources(snapshot),
-    `Full route should load either the monolithic shell or the complete section fragment set: ${JSON.stringify(
-      snapshot.resourceNames
-    )}`
+    hasHeavyPanelShellResource(snapshot),
+    `Full route should load the heavy dashboard shell: ${JSON.stringify(snapshot.resourceNames)}`
   );
   const unexpectedResources = findUnexpectedFullRouteResources(snapshot);
   assert(
@@ -414,19 +409,24 @@ function assertShippedRoute(snapshot) {
     snapshot.filledCharts === 2,
     `Shipped route should keep the pre-rendered community card plus the shipped chart, saw ${snapshot.filledCharts}.`
   );
-  assert(snapshot.statuses.length === 0, `Shipped route shows status errors: ${JSON.stringify(snapshot.statuses)}`);
+  assert(
+    snapshot.statuses.length === 0,
+    `Shipped route shows status errors: ${JSON.stringify(snapshot.statuses)}`
+  );
   assert(snapshot.hasViewUtils === true, "Shipped route should load dashboard view utils.");
   assert(
-    hasShippedRouteShellResources(snapshot),
-    `Shipped route should load either the monolithic shell or the shipped fragment: ${JSON.stringify(
-      snapshot.resourceNames
-    )}`
+    hasHeavyPanelShellResource(snapshot),
+    `Shipped route should load the heavy dashboard shell: ${JSON.stringify(snapshot.resourceNames)}`
   );
-  assertResourcesPresent(snapshot, ["./dashboard-charts-shipped.js", "./product-cycle-shipments-snapshot.json"], "Shipped route");
+  assertResourcesPresent(
+    snapshot,
+    ["./app/dashboard-charts-shipped.js", "./data/product-cycle-shipments-snapshot.json"],
+    "Shipped route"
+  );
   const unexpectedResources = findUnexpectedShippedRouteResources(snapshot);
   assert(
     unexpectedResources.length === 0,
-    `Shipped route should not fetch unrelated product or bug fragments: ${JSON.stringify(unexpectedResources)}`
+    `Shipped route should not fetch unrelated heavy assets: ${JSON.stringify(unexpectedResources)}`
   );
   if (isLocalPreview) {
     assert(snapshot.hasAgentRoot === true, "Shipped route should mount localhost Agentation.");
@@ -436,10 +436,8 @@ function assertShippedRoute(snapshot) {
 function assertSwitchedAllRoute(snapshot) {
   assertAllRouteLayout(snapshot);
   assert(
-    hasAllRouteShellResources(snapshot),
-    `Switched all route should load either the monolithic shell or the complete section fragment set: ${JSON.stringify(
-      snapshot.resourceNames
-    )}`
+    hasHeavyPanelShellResource(snapshot),
+    `Switched all route should load the heavy dashboard shell: ${JSON.stringify(snapshot.resourceNames)}`
   );
   const unexpectedResources = findUnexpectedSwitchedAllRouteResources(snapshot);
   assert(
@@ -455,18 +453,30 @@ function assertPrRoute(snapshot) {
     sameList(snapshot.visiblePanels, ["development-workflow-breakdown-panel"]),
     `PR route visible panels changed: ${JSON.stringify(snapshot.visiblePanels)}`
   );
-  assert(snapshot.filledCharts === 1, `PR route should render 1 filled chart, saw ${snapshot.filledCharts}.`);
-  assert(snapshot.statuses.length === 0, `PR route shows status errors: ${JSON.stringify(snapshot.statuses)}`);
-  assert(snapshot.hasViewUtils === true, "PR route should load dashboard view utils.");
-  assert(snapshot.hasRecharts === false, "PR route should not require the legacy Recharts runtime.");
-  assertResourcesPresent(snapshot, ["./dashboard-heavy-panels-development.html"], "PR route");
-  assert(hasResource(snapshot, "./pr-cycle-snapshot.json"), "PR route should fetch pr-cycle-snapshot.json.");
   assert(
-    !hasResource(snapshot, "./pr-activity-snapshot.json"),
+    snapshot.filledCharts === 1,
+    `PR route should render 1 filled chart, saw ${snapshot.filledCharts}.`
+  );
+  assert(
+    snapshot.statuses.length === 0,
+    `PR route shows status errors: ${JSON.stringify(snapshot.statuses)}`
+  );
+  assert(snapshot.hasViewUtils === true, "PR route should load dashboard view utils.");
+  assert(
+    snapshot.hasRecharts === false,
+    "PR route should not require the legacy Recharts runtime."
+  );
+  assertResourcesPresent(snapshot, [FULL_HEAVY_PANEL_RESOURCE], "PR route");
+  assert(
+    hasResource(snapshot, "./data/pr-cycle-snapshot.json"),
+    "PR route should fetch pr-cycle-snapshot.json."
+  );
+  assert(
+    !hasResource(snapshot, "./data/pr-activity-snapshot.json"),
     "PR route should not fetch pr-activity-snapshot.json."
   );
   assert(
-    !hasResource(snapshot, "./backlog-snapshot.json"),
+    !hasResource(snapshot, "./data/backlog-snapshot.json"),
     "PR route should not fetch backlog-snapshot.json."
   );
   const unexpectedResources = findUnexpectedPrRouteResources(snapshot);
@@ -484,6 +494,9 @@ function verifyWorkflowBreakdownInflowLabels() {
   for (let attempt = 0; attempt < 10; attempt += 1) {
     breakdownState = evalJson(`JSON.stringify((() => {
       const panel = document.getElementById("development-workflow-breakdown-panel");
+      const utilityStats = Array.from(
+        panel?.querySelectorAll(".dashboard-utility-layout__stat") || []
+      );
       const metricValues = Array.from(
         panel?.querySelectorAll(".workflow-breakdown-metric__value") || []
       );
@@ -491,6 +504,12 @@ function verifyWorkflowBreakdownInflowLabels() {
         hasContent: Boolean(panel && panel.innerHTML.trim().length > 0),
         hasOverviewPanel: Boolean(document.getElementById("development-workflow-overview-panel")),
         metricValueCount: metricValues.length,
+        utilityStatCount: utilityStats.length,
+        utilityStatLabels: utilityStats.map((node) => node.querySelector("dt")?.textContent?.trim() || ""),
+        utilityStatValues: utilityStats.map((node) => node.querySelector("dd")?.textContent?.trim() || ""),
+        utilityRowCount: Array.from(
+          panel?.querySelectorAll(".dashboard-utility-layout__row") || []
+        ).length,
         firstMetricColor: metricValues[0] ? getComputedStyle(metricValues[0]).color : "",
         secondMetricColor: metricValues[1] ? getComputedStyle(metricValues[1]).color : "",
         firstSampleText:
@@ -510,17 +529,22 @@ function verifyWorkflowBreakdownInflowLabels() {
     "Development workflow overview panel should no longer be present."
   );
   assert(
-    breakdownState.metricValueCount >= 2,
-    "Development workflow breakdown should render both days and PR/sprint metrics."
+    breakdownState.metricValueCount >= 1 ||
+      (breakdownState.utilityStatCount >= 2 && breakdownState.utilityRowCount >= 1),
+    `Development workflow breakdown should render either legacy metrics or the utility layout card: ${JSON.stringify(breakdownState)}`
   );
-  assert(
-    breakdownState.firstMetricColor === breakdownState.secondMetricColor,
-    `Workflow breakdown metric values should share the same color: ${breakdownState.firstMetricColor} vs ${breakdownState.secondMetricColor}`
-  );
-  assert(
-    /^n = \d+$/.test(breakdownState.firstSampleText),
-    `Development workflow breakdown should show a team sample count under the label, saw ${JSON.stringify(breakdownState.firstSampleText)}`
-  );
+  if (breakdownState.metricValueCount >= 2) {
+    assert(
+      breakdownState.firstMetricColor === breakdownState.secondMetricColor,
+      `Workflow breakdown metric values should share the same color: ${breakdownState.firstMetricColor} vs ${breakdownState.secondMetricColor}`
+    );
+  }
+  if (breakdownState.metricValueCount >= 1) {
+    assert(
+      /^n = \d+$/.test(breakdownState.firstSampleText),
+      `Development workflow breakdown should show a team sample count under the label, saw ${JSON.stringify(breakdownState.firstSampleText)}`
+    );
+  }
 
   return breakdownState;
 }
@@ -547,7 +571,7 @@ async function assertFullRouteControlSwitch({ name, value, description }) {
         currentSnapshot.filledCharts >= 8 &&
         currentSnapshot.statuses.length === 0 &&
         currentSnapshot.hasViewUtils === true &&
-        hasAllRouteShellResources(currentSnapshot) &&
+        hasHeavyPanelShellResource(currentSnapshot) &&
         findUnexpectedSwitchedAllRouteResources(currentSnapshot).length === 0 &&
         (!isLocalPreview || currentSnapshot.hasAgentRoot === true)
       );
@@ -574,9 +598,12 @@ async function main() {
           snapshot.uptimeMs >= 1500 &&
           snapshot.filledCharts === 1 &&
           snapshot.statuses.length === 0 &&
-          sameList(snapshot.visiblePanels, ["actions-required-panel", "community-contributors-panel"]) &&
+          sameList(snapshot.visiblePanels, [
+            "actions-required-panel",
+            "community-contributors-panel"
+          ]) &&
           snapshot.hasViewUtils === true &&
-          hasAllRouteShellResources(snapshot) &&
+          hasHeavyPanelShellResource(snapshot) &&
           (!isLocalPreview || snapshot.hasAgentRoot === true)
         );
       }
@@ -594,7 +621,7 @@ async function main() {
           snapshot.statuses.length === 0 &&
           snapshot.hasViewUtils === true &&
           matchesAnyVisiblePanelSet(snapshot.visiblePanels, ALL_ROUTE_VISIBLE_PANEL_SETS) &&
-          hasAllRouteShellResources(snapshot) &&
+          hasHeavyPanelShellResource(snapshot) &&
           findUnexpectedFullRouteResources(snapshot).length === 0 &&
           (!isLocalPreview || snapshot.hasAgentRoot === true)
         );
@@ -612,7 +639,7 @@ async function main() {
           snapshot.statuses.length === 0 &&
           snapshot.hasViewUtils === true &&
           snapshot.hasRecharts === false &&
-          hasResource(snapshot, "./dashboard-heavy-panels-development.html") &&
+          hasHeavyPanelShellResource(snapshot) &&
           sameList(snapshot.visiblePanels, ["development-workflow-breakdown-panel"]) &&
           findUnexpectedPrRouteResources(snapshot).length === 0 &&
           (!isLocalPreview || snapshot.hasAgentRoot === true)
@@ -630,9 +657,12 @@ async function main() {
         snapshot.uptimeMs >= 1500 &&
         snapshot.filledCharts === 1 &&
         snapshot.statuses.length === 0 &&
-        sameList(snapshot.visiblePanels, ["actions-required-panel", "community-contributors-panel"]) &&
+        sameList(snapshot.visiblePanels, [
+          "actions-required-panel",
+          "community-contributors-panel"
+        ]) &&
         snapshot.hasViewUtils === true &&
-        hasAllRouteShellResources(snapshot) &&
+        hasHeavyPanelShellResource(snapshot) &&
         (!isLocalPreview || snapshot.hasAgentRoot === true)
       );
     }
@@ -647,8 +677,11 @@ async function main() {
           snapshot.filledCharts === 2 &&
           snapshot.statuses.length === 0 &&
           snapshot.hasViewUtils === true &&
-          sameList(snapshot.visiblePanels, ["actions-required-panel", "product-cycle-shipments-panel"]) &&
-          hasShippedRouteShellResources(snapshot) &&
+          sameList(snapshot.visiblePanels, [
+            "actions-required-panel",
+            "product-cycle-shipments-panel"
+          ]) &&
+          hasHeavyPanelShellResource(snapshot) &&
           findUnexpectedShippedRouteResources(snapshot).length === 0 &&
           (!isLocalPreview || snapshot.hasAgentRoot === true)
         );
@@ -667,7 +700,7 @@ async function main() {
           snapshot.statuses.length === 0 &&
           snapshot.hasViewUtils === true &&
           matchesAnyVisiblePanelSet(snapshot.visiblePanels, ALL_ROUTE_VISIBLE_PANEL_SETS) &&
-          hasAllRouteShellResources(snapshot) &&
+          hasHeavyPanelShellResource(snapshot) &&
           findUnexpectedSwitchedAllRouteResources(snapshot).length === 0 &&
           (!isLocalPreview || snapshot.hasAgentRoot === true)
         );

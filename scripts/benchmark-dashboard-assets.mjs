@@ -7,92 +7,85 @@ const rootDir = process.cwd();
 const indexPath = path.join(rootDir, "index.html");
 const localAssetPattern = /\b(?:src|href)=["']\.\/([^"'?#]+)(?:\?[^"']*)?["']/g;
 const deferredSharedHeavyScriptPaths = [
-  "dashboard-view-utils.js",
+  "app/dashboard-view-utils.js",
   "vendor/react.production.min.js",
   "vendor/react-dom.production.min.js",
-  "dashboard-chart-core.js",
-  "dashboard-pretext-layout.js",
-  "dashboard-app.js"
+  "app/dashboard-chart-core.js",
+  "app/dashboard-pretext-layout.js",
+  "app/dashboard-app.js"
 ];
 const deferredShippedScriptPaths = [
   ...deferredSharedHeavyScriptPaths,
-  "dashboard-charts-shipped.js"
+  "app/dashboard-charts-shipped.js"
 ];
 const deferredProductScriptPaths = [
   ...deferredSharedHeavyScriptPaths,
-  "dashboard-charts-product.js"
+  "app/dashboard-charts-product.js"
 ];
 const deferredFullDashboardScriptPaths = [
   ...deferredShippedScriptPaths,
-  "dashboard-charts-product.js"
+  "app/dashboard-charts-product.js"
 ];
 const deferredPrOnlyScriptPaths = [...deferredSharedHeavyScriptPaths];
-const deferredHeavyPanelPaths = ["dashboard-heavy-panels.html"];
-const deferredSectionPanelPaths = [
-  "dashboard-heavy-panels-shipped.html",
-  "dashboard-heavy-panels-product.html",
-  "dashboard-heavy-panels-development.html",
-  "dashboard-heavy-panels-bug.html"
-];
-const deferredPrOnlyPanelPaths = ["dashboard-heavy-panels-development.html"];
+const deferredHeavyPanelPaths = ["app/dashboard-heavy-panels.html"];
 const pretextLayoutPaths = ["vendor/pretext.mjs"];
 const routePayloadSpecs = [
   {
     label: "Direct bug route total",
     scripts: deferredPrOnlyScriptPaths,
-    panels: ["dashboard-heavy-panels-bug.html"],
-    data: ["backlog-snapshot.json"]
+    panels: deferredHeavyPanelPaths,
+    data: ["data/backlog-snapshot.json"]
   },
   {
     label: "Direct workflow route total",
     scripts: deferredPrOnlyScriptPaths,
-    panels: ["dashboard-heavy-panels-development.html"],
-    data: ["pr-activity-snapshot.json", "pr-cycle-snapshot.json"],
+    panels: deferredHeavyPanelPaths,
+    data: ["data/pr-activity-snapshot.json", "data/pr-cycle-snapshot.json"],
     extra: pretextLayoutPaths
   },
   {
     label: "Direct workflow legacy route total",
     scripts: deferredPrOnlyScriptPaths,
-    panels: ["dashboard-heavy-panels-development.html"],
-    data: ["pr-activity-snapshot.json", "pr-cycle-snapshot.json"]
+    panels: deferredHeavyPanelPaths,
+    data: ["data/pr-activity-snapshot.json", "data/pr-cycle-snapshot.json"]
   },
   {
     label: "Direct contributors route total",
     scripts: deferredPrOnlyScriptPaths,
     panels: [],
-    data: ["contributors-snapshot.json"]
+    data: ["data/contributors-snapshot.json"]
   },
   {
     label: "Direct product route total",
     scripts: deferredProductScriptPaths,
-    panels: ["dashboard-heavy-panels-product.html"],
-    data: ["management-facility-snapshot.json", "product-cycle-snapshot.json"],
+    panels: deferredHeavyPanelPaths,
+    data: ["data/management-facility-snapshot.json", "data/product-cycle-snapshot.json"],
     extra: pretextLayoutPaths
   },
   {
     label: "Direct product legacy route total",
     scripts: deferredProductScriptPaths,
-    panels: ["dashboard-heavy-panels-product.html"],
-    data: ["management-facility-snapshot.json", "product-cycle-snapshot.json"]
+    panels: deferredHeavyPanelPaths,
+    data: ["data/management-facility-snapshot.json", "data/product-cycle-snapshot.json"]
   },
   {
     label: "Direct shipped route total",
     scripts: deferredShippedScriptPaths,
-    panels: ["dashboard-heavy-panels-shipped.html"],
-    data: ["product-cycle-shipments-snapshot.json"]
+    panels: deferredHeavyPanelPaths,
+    data: ["data/product-cycle-shipments-snapshot.json"]
   },
   {
     label: "Full dashboard route total",
     scripts: deferredFullDashboardScriptPaths,
     panels: deferredHeavyPanelPaths,
     data: [
-      "backlog-snapshot.json",
-      "pr-activity-snapshot.json",
-      "management-facility-snapshot.json",
-      "product-cycle-snapshot.json",
-      "product-cycle-shipments-snapshot.json",
-      "contributors-snapshot.json",
-      "pr-cycle-snapshot.json"
+      "data/backlog-snapshot.json",
+      "data/pr-activity-snapshot.json",
+      "data/management-facility-snapshot.json",
+      "data/product-cycle-snapshot.json",
+      "data/product-cycle-shipments-snapshot.json",
+      "data/contributors-snapshot.json",
+      "data/pr-cycle-snapshot.json"
     ]
   }
 ];
@@ -148,13 +141,13 @@ async function main() {
   const assets = await Promise.all(assetPaths.map(statAsset));
   const totals = { styles: 0, scripts: 0, other: 0 };
   const dataSources = [
-    "backlog-snapshot.json",
-    "pr-activity-snapshot.json",
-    "management-facility-snapshot.json",
-    "product-cycle-snapshot.json",
-    "product-cycle-shipments-snapshot.json",
-    "contributors-snapshot.json",
-    "pr-cycle-snapshot.json"
+    "data/backlog-snapshot.json",
+    "data/pr-activity-snapshot.json",
+    "data/management-facility-snapshot.json",
+    "data/product-cycle-snapshot.json",
+    "data/product-cycle-shipments-snapshot.json",
+    "data/contributors-snapshot.json",
+    "data/pr-cycle-snapshot.json"
   ];
 
   for (const asset of assets) {
@@ -176,18 +169,12 @@ async function main() {
   const deferredHeavyPanels = (
     await Promise.all(deferredHeavyPanelPaths.map(statOptionalFile))
   ).filter(Boolean);
-  const deferredSectionPanels = (
-    await Promise.all(deferredSectionPanelPaths.map(statOptionalFile))
-  ).filter(Boolean);
   const deferredPrOnlyScripts = (
     await Promise.all(deferredPrOnlyScriptPaths.map(statOptionalFile))
   ).filter(Boolean);
-  const deferredPrOnlyPanels = (
-    await Promise.all(deferredPrOnlyPanelPaths.map(statOptionalFile))
-  ).filter(Boolean);
-  const pretextLayoutAssets = (
-    await Promise.all(pretextLayoutPaths.map(statOptionalFile))
-  ).filter(Boolean);
+  const pretextLayoutAssets = (await Promise.all(pretextLayoutPaths.map(statOptionalFile))).filter(
+    Boolean
+  );
 
   const dataSourceStats = (await Promise.all(dataSources.map(statOptionalFile))).filter(Boolean);
   const dataSourceSizeByPath = Object.fromEntries(
@@ -203,8 +190,6 @@ async function main() {
       ...deferredProductScripts,
       ...deferredFullDashboardScripts,
       ...deferredHeavyPanels,
-      ...deferredSectionPanels,
-      ...deferredPrOnlyPanels,
       ...pretextLayoutAssets,
       ...dataSourceStats
     ]
@@ -230,35 +215,18 @@ async function main() {
     )}`
   );
   console.log(
-    `Deferred section-fragment shell set: ${formatKiB(sum(deferredSectionPanels.map((asset) => asset.bytes)))}`
-  );
-  console.log(
     `Deferred shipped-only stack: ${formatKiB(
-      sum(
-        [
-          ...deferredShippedScripts,
-          ...["dashboard-heavy-panels-shipped.html"].map((relativePath) => ({
-            bytes: optionalAssetBytesByPath[relativePath] || 0
-          }))
-        ].map((asset) => asset.bytes)
-      )
+      sum([...deferredShippedScripts, ...deferredHeavyPanels].map((asset) => asset.bytes))
     )}`
   );
   console.log(
     `Deferred product-only stack: ${formatKiB(
-      sum(
-        [
-          ...deferredProductScripts,
-          ...["dashboard-heavy-panels-product.html"].map((relativePath) => ({
-            bytes: optionalAssetBytesByPath[relativePath] || 0
-          }))
-        ].map((asset) => asset.bytes)
-      )
+      sum([...deferredProductScripts, ...deferredHeavyPanels].map((asset) => asset.bytes))
     )}`
   );
   console.log(
     `Deferred PR-only stack: ${formatKiB(
-      sum([...deferredPrOnlyScripts, ...deferredPrOnlyPanels].map((asset) => asset.bytes))
+      sum([...deferredPrOnlyScripts, ...deferredHeavyPanels].map((asset) => asset.bytes))
     )}`
   );
   console.log(
@@ -270,24 +238,24 @@ async function main() {
   console.log("");
   console.log("Data source scenarios:");
   console.log(
-    `- Default community preload: ${formatKiB(dataSourceSizeByPath["contributors-snapshot.json"] || 0)}`
+    `- Default community preload: ${formatKiB(dataSourceSizeByPath["data/contributors-snapshot.json"] || 0)}`
   );
   console.log(
-    `- Direct bug route: ${formatKiB(dataSourceSizeByPath["backlog-snapshot.json"] || 0)}`
+    `- Direct bug route: ${formatKiB(dataSourceSizeByPath["data/backlog-snapshot.json"] || 0)}`
   );
   console.log(
     `- Direct product route: ${formatKiB(
-      (dataSourceSizeByPath["management-facility-snapshot.json"] || 0) +
-        (dataSourceSizeByPath["product-cycle-snapshot.json"] || 0)
+      (dataSourceSizeByPath["data/management-facility-snapshot.json"] || 0) +
+        (dataSourceSizeByPath["data/product-cycle-snapshot.json"] || 0)
     )}`
   );
   console.log(
-    `- Direct workflow route: ${formatKiB(dataSourceSizeByPath["pr-cycle-snapshot.json"] || 0)}`
+    `- Direct workflow route: ${formatKiB(dataSourceSizeByPath["data/pr-cycle-snapshot.json"] || 0)}`
   );
   console.log(
     `- Full development section: ${formatKiB(
-      (dataSourceSizeByPath["pr-activity-snapshot.json"] || 0) +
-        (dataSourceSizeByPath["pr-cycle-snapshot.json"] || 0)
+      (dataSourceSizeByPath["data/pr-activity-snapshot.json"] || 0) +
+        (dataSourceSizeByPath["data/pr-cycle-snapshot.json"] || 0)
     )}`
   );
   console.log(`- All dashboard sources: ${formatKiB(sum(Object.values(dataSourceSizeByPath)))}`);
@@ -296,7 +264,7 @@ async function main() {
       Math.max(
         0,
         sum(Object.values(dataSourceSizeByPath)) -
-          (dataSourceSizeByPath["contributors-snapshot.json"] || 0)
+          (dataSourceSizeByPath["data/contributors-snapshot.json"] || 0)
       )
     )}`
   );

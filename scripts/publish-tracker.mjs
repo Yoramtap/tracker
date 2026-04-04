@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
+
+import { ANALYSIS_REPORT_PATH, DIST_DIR } from "./dashboard-contract.mjs";
+
 function getArg(flag) {
   const index = process.argv.indexOf(flag);
   if (index === -1) return "";
@@ -21,17 +24,20 @@ function parseYesNoArg(flag, fallback = null) {
 
 function printHelp() {
   console.log(`Usage:
-  node scripts/publish-tracker.mjs --refresh yes|no [--analyze yes|no] [--message "<commit message>"] [--push]
+  node scripts/publish-tracker.mjs --refresh yes|no [--clean] [--analyze yes|no] [--message "<commit message>"] [--push]
 
 Examples:
   node scripts/publish-tracker.mjs --refresh yes
+  node scripts/publish-tracker.mjs --refresh yes --clean
   node scripts/publish-tracker.mjs --refresh yes --message "Refresh dashboard data"
   node scripts/publish-tracker.mjs --refresh no --message "Republish current dashboard state" --push
 
 Notes:
   - --refresh is required so dataset updates stay explicit.
+  - --clean bypasses local refresh caches for that run and rebuilds them from fresh Jira reads.
   - Analysis defaults to yes when refresh=yes, otherwise no.
-  - The public site artifact is rebuilt locally into dist/ before any optional commit/push.
+  - Analysis writes a local operator note into ${ANALYSIS_REPORT_PATH}.
+  - The public site artifact is rebuilt locally into ${DIST_DIR}/ before any optional commit/push.
   - Commit/push happen in the current repo.
 `);
 }
@@ -111,6 +117,7 @@ async function main() {
   const analyze = parseYesNoArg("--analyze", refresh);
   const commitMessage = getArg("--message");
   const shouldPush = hasFlag("--push");
+  const cleanRun = hasFlag("--clean");
   const repoDir = process.cwd();
 
   if (shouldPush && !commitMessage) {
@@ -119,6 +126,7 @@ async function main() {
 
   console.log("Publish plan:");
   console.log(`- refresh dataset: ${refresh ? "yes" : "no"}`);
+  console.log(`- bypass refresh caches: ${cleanRun ? "yes" : "no"}`);
   console.log(`- run analysis: ${analyze ? "yes" : "no"}`);
   console.log("- build public site artifact: yes");
   console.log(`- commit repo: ${commitMessage ? "yes" : "no"}`);
@@ -130,19 +138,19 @@ async function main() {
 
   if (refresh) {
     console.log("\n=== Refreshing data ===");
-    await runNodeScript("scripts/refresh-report-data.mjs");
+    await runNodeScript("scripts/refresh-report-data.mjs", cleanRun ? ["--clean"] : []);
   }
 
   if (analyze) {
     console.log("\n=== Generating analysis ===");
     await runNodeScript("scripts/analyze-report-data.mjs", [
       "--output",
-      "reports/latest-analysis.md"
+      ANALYSIS_REPORT_PATH
     ]);
   }
 
   console.log("\n=== Building public site artifact ===");
-  await runNodeScript("scripts/export-public.mjs", ["--target", "dist"]);
+  await runNodeScript("scripts/export-public.mjs", ["--target", DIST_DIR]);
 
   if (!commitMessage) {
     console.log("\nPublish helper finished. Site artifact built; git commit/push skipped.");

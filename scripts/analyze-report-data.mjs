@@ -3,6 +3,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import {
+  ANALYSIS_HISTORY_DIR,
+  PRIMARY_DASHBOARD_SNAPSHOT_PATH,
+  SNAPSHOT_HISTORY_DIR
+} from "./dashboard-contract.mjs";
+
 const PRIORITIES = ["highest", "high", "medium", "low", "lowest"];
 const TEAMS = ["api", "legacy", "react", "bc"];
 const TEAM_LABELS = {
@@ -11,9 +17,9 @@ const TEAM_LABELS = {
   react: "React FE",
   bc: "Broadcast Team"
 };
-const DEFAULT_INPUT = "snapshot.json";
-const DEFAULT_HISTORY_DIR = "snapshots";
-const DEFAULT_REPORT_HISTORY_DIR = "reports/history";
+const DEFAULT_INPUT = PRIMARY_DASHBOARD_SNAPSHOT_PATH;
+const DEFAULT_HISTORY_DIR = SNAPSHOT_HISTORY_DIR;
+const DEFAULT_REPORT_HISTORY_DIR = ANALYSIS_HISTORY_DIR;
 
 function getArg(flag) {
   const index = process.argv.indexOf(flag);
@@ -421,7 +427,9 @@ async function main() {
   const points = Array.isArray(snapshot?.combinedPoints) ? snapshot.combinedPoints : [];
 
   if (points.length < 2) {
-    throw new Error("Need at least 2 combinedPoints in snapshot.json to analyze trend over time.");
+    throw new Error(
+      `Need at least 2 combinedPoints in ${PRIMARY_DASHBOARD_SNAPSHOT_PATH} to analyze trend over time.`
+    );
   }
 
   const bugSeries = buildBugSeries(points);

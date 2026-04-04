@@ -7,8 +7,4 @@ dist/
 !.env.example
 .codex/
 .codex-artifacts/
-snapshot.json.tmp
-snapshot-history/
-snapshots/
-business-unit-uat-done-cache.json
-pr-activity-issue-cache.json
+data/*.tmp

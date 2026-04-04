@@ -3,19 +3,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import { DIST_DIR, PUBLIC_DASHBOARD_SNAPSHOT_PATHS } from "./dashboard-contract.mjs";
 import { SNAPSHOT_SANITIZERS } from "./snapshot-sanitizers.mjs";
 import { buildPublicDashboard } from "./build-public-dashboard.mjs";
+import { validateDashboardSnapshotFiles } from "./validate-dashboard-snapshots.mjs";
 
-const DEFAULT_TARGET = "dist";
-const PUBLIC_SNAPSHOT_FILES = [
-  "backlog-snapshot.json",
-  "pr-activity-snapshot.json",
-  "management-facility-snapshot.json",
-  "contributors-snapshot.json",
-  "product-cycle-snapshot.json",
-  "product-cycle-shipments-snapshot.json",
-  "pr-cycle-snapshot.json"
-];
+const DEFAULT_TARGET = DIST_DIR;
 
 function getArg(flag) {
   const index = process.argv.indexOf(flag);
@@ -42,7 +35,7 @@ async function copySafeFiles(sourceDir, targetDir, fileNames) {
   for (const fileName of fileNames) {
     const sourcePath = path.join(sourceDir, fileName);
     const targetPath = path.join(targetDir, fileName);
-    const sanitize = SNAPSHOT_SANITIZERS[fileName];
+    const sanitize = SNAPSHOT_SANITIZERS[path.basename(fileName)];
 
     await fs.mkdir(path.dirname(targetPath), { recursive: true });
     if (sanitize) {
@@ -69,11 +62,20 @@ async function main() {
     await fs.rm(targetDir, { recursive: true, force: true });
     await fs.mkdir(targetDir, { recursive: true });
 
-    const buildResult = await buildPublicDashboard({ sourceDir, outDir: buildDir });
+    const buildResult = await buildPublicDashboard({
+      sourceDir,
+      outDir: buildDir
+    });
     const builtFileNames = await listFilesRecursively(buildResult.outDir);
 
+    await validateDashboardSnapshotFiles(
+      sourceDir,
+      PUBLIC_DASHBOARD_SNAPSHOT_PATHS.map((relativePath) =>
+        relativePath.split(path.posix.sep).join(path.sep)
+      )
+    );
     await copySafeFiles(buildResult.outDir, targetDir, builtFileNames);
-    await copySafeFiles(sourceDir, targetDir, PUBLIC_SNAPSHOT_FILES);
+    await copySafeFiles(sourceDir, targetDir, PUBLIC_DASHBOARD_SNAPSHOT_PATHS);
     await fs.writeFile(path.join(targetDir, ".nojekyll"), "", "utf8");
     console.log(`Public site artifact built at: ${targetDir}`);
   } finally {
