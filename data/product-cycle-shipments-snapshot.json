@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-04-03T17:45:24.522Z",
+  "generatedAt": "2026-04-04T18:56:07.241Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-04-01",
-      "totalShipped": 167,
+      "totalShipped": 168,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -1539,9 +1539,21 @@
         {
           "monthStart": "2026-04-01",
           "monthKey": "2026-04",
-          "totalShipped": 1,
-          "teamCount": 1,
+          "totalShipped": 2,
+          "teamCount": 2,
           "teams": [
+            {
+              "team": "Frontend",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-401",
+                  "productAreaLabel": "TFC",
+                  "summary": "UI Porting: Utilization",
+                  "shippedAt": "2026-04-04T06:24:00.097Z"
+                }
+              ]
+            },
             {
               "team": "Orchestration",
               "shippedCount": 1,
