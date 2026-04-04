@@ -5,7 +5,7 @@
 ```bash
 npm run data:refresh
 npm run data:validate
-npm run site:build
+npm run build
 ```
 
 Use this when you want the normal incremental refresh path.
@@ -15,7 +15,7 @@ Use this when you want the normal incremental refresh path.
 ```bash
 npm run data:refresh:clean
 npm run data:validate
-npm run site:build
+npm run build
 ```
 
 Use this when you want a reproducible run that ignores existing local refresh caches for the current execution.
@@ -32,7 +32,7 @@ It still writes fresh cache artifacts afterward.
 ## Optional Analysis
 
 ```bash
-npm run report:analyze
+npm run dev:analyze
 ```
 
 This writes a local operator note to `.cache/analysis/latest-analysis.md` and archives older copies under `.cache/analysis/history/`. It is not part of the product publish path.
@@ -46,7 +46,7 @@ This writes a local operator note to `.cache/analysis/latest-analysis.md` and ar
 ## Publish Helper
 
 ```bash
-npm run site:publish -- --refresh yes --clean --message "Refresh dashboard data" --push
+npm run dev:publish -- --refresh yes --clean --message "Refresh dashboard data" --push
 ```
 
 Use `--clean` when you want the publish helper to refresh from Jira without depending on old local caches.

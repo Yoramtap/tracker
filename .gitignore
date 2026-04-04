@@ -8,3 +8,4 @@ dist/
 .codex/
 .codex-artifacts/
 data/*.tmp
+tracker-review-*.zip

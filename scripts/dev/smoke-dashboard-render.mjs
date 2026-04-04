@@ -14,9 +14,9 @@ const scenarios = [
     outputFile: path.join(outputRoot, "default-community.png")
   },
   {
-    name: "all-dashboard",
-    url: `${baseUrl}/?report-section=all`,
-    outputFile: path.join(outputRoot, "all-dashboard.png")
+    name: "development-dashboard",
+    url: `${baseUrl}/?report-section=development`,
+    outputFile: path.join(outputRoot, "development-dashboard.png")
   }
 ];
 

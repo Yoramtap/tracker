@@ -25,7 +25,7 @@ async function main() {
 
   if (!email || !token) {
     throw new Error(
-      "Usage: node scripts/setup-backlog-auth.mjs --email <email> [--site nepgroup.atlassian.net]"
+      "Usage: node scripts/dev/setup-backlog-auth.mjs --email <email> [--site nepgroup.atlassian.net]"
     );
   }
 

@@ -36,7 +36,7 @@ jobs:
         run: npm ci
 
       - name: Build static site artifact
-        run: npm run site:build
+        run: npm run build
 
       - name: Upload static files
         uses: actions/upload-pages-artifact@v4

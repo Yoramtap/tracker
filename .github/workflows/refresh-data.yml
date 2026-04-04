@@ -51,7 +51,7 @@ jobs:
         run: npm run data:validate
 
       - name: Build static site artifact
-        run: npm run site:build
+        run: npm run build
 
       - name: Configure git author
         run: |
