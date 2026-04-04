@@ -1,6 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import {
+  BUSINESS_UNIT_DONE_CACHE_PATH,
+  BUSINESS_UNIT_DONE_CACHE_TMP_PATH
+} from "./dashboard-paths.mjs";
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CONTRIBUTOR_DUPLICATE_STATUS = "duplicate";
 const DEFAULT_CONTRIBUTOR_PROJECT = "TFC";
@@ -79,15 +84,6 @@ const DEFAULT_BUSINESS_UNIT_DONE_CACHE_OVERLAP_DAYS = 2;
 const DEFAULT_BUSINESS_UNIT_DONE_CACHE_MAX_AGE_DAYS = 14;
 const FACILITY_UNSPECIFIED = "Unspecified";
 const BUSINESS_UNIT_UNMAPPED = "Business unit unmapped";
-const CACHE_DIR_PATH = path.resolve(
-  process.env.REFRESH_CACHE_DIR || path.join(process.cwd(), ".cache")
-);
-const BUSINESS_UNIT_DONE_CACHE_PATH = path.join(CACHE_DIR_PATH, "business-unit-uat-done-cache.json");
-const BUSINESS_UNIT_DONE_CACHE_TMP_PATH = path.join(
-  CACHE_DIR_PATH,
-  "business-unit-uat-done-cache.json.tmp"
-);
-
 function normalizeText(value) {
   return String(value || "")
     .trim()

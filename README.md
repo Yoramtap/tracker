@@ -26,12 +26,11 @@ This repo has one job: regenerate committed dashboard snapshots and publish a st
 ## Local Setup
 
 ```bash
-cd /Users/yoramtap/Documents/AI/tracker
 npm install
 npm run backlog:setup-auth -- --email "you@company.com"
 ```
 
-The setup helper prompts for the Jira API token securely and writes a local `.env.backlog` file that stays ignored.
+Run commands from the repo root. The setup helper prompts for the Jira API token securely and writes a local `.env.backlog` file that stays ignored.
 
 Optional Jira site override:
 
@@ -42,7 +41,6 @@ npm run backlog:setup-auth -- --email "you@company.com" --site "your-site.atlass
 ## Core Commands
 
 ```bash
-cd /Users/yoramtap/Documents/AI/tracker
 npm run data:refresh
 npm run data:validate
 npm run site:build
@@ -76,7 +74,6 @@ Use `site:publish` only as a convenience helper when the repo is already clean. 
 ## Optional Analysis
 
 ```bash
-cd /Users/yoramtap/Documents/AI/tracker
 npm run report:analyze
 ```
 
@@ -87,7 +84,6 @@ npm run report:analyze
 ## Local Preview
 
 ```bash
-cd /Users/yoramtap/Documents/AI/tracker
 npm run dev
 ```
 
@@ -95,16 +91,16 @@ Then open [http://127.0.0.1:4173](http://127.0.0.1:4173).
 
 ## Release Flow
 
-Read [docs/release.md](/Users/yoramtap/Documents/AI/tracker/docs/release.md) before shipping.
+Read [docs/release.md](docs/release.md) before shipping.
 
-- Manual release steps are in [docs/release.md](/Users/yoramtap/Documents/AI/tracker/docs/release.md).
-- Scheduled GitHub refresh automation lives in [.github/workflows/refresh-data.yml](/Users/yoramtap/Documents/AI/tracker/.github/workflows/refresh-data.yml).
+- Manual release steps are in [docs/release.md](docs/release.md).
+- Scheduled GitHub refresh automation lives in [.github/workflows/refresh-data.yml](.github/workflows/refresh-data.yml).
 
 ## GitHub Pages
 
-- GitHub Pages deploys from this repo via [.github/workflows/pages.yml](/Users/yoramtap/Documents/AI/tracker/.github/workflows/pages.yml).
+- GitHub Pages deploys from this repo via [.github/workflows/pages.yml](.github/workflows/pages.yml).
 - The workflow runs `npm ci` and `npm run site:build`, then publishes `dist/`.
-- Scheduled or manual data refresh automation lives in [.github/workflows/refresh-data.yml](/Users/yoramtap/Documents/AI/tracker/.github/workflows/refresh-data.yml).
+- Scheduled or manual data refresh automation lives in [.github/workflows/refresh-data.yml](.github/workflows/refresh-data.yml).
 - The live site stays publicly accessible for Confluence embedding.
 
 ## Notes

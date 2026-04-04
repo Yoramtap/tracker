@@ -5,18 +5,39 @@ import path from "node:path";
 
 import {
   sanitizeBacklogSnapshot,
-  sanitizeContributorsSnapshot,
   sanitizeManagementFacilitySnapshot,
-  sanitizePrActivitySnapshot,
-  sanitizePrCycleSnapshot,
-  sanitizeProductCycleSnapshot
+  sanitizePrActivitySnapshot
 } from "./snapshot-sanitizers.mjs";
 import { validateDashboardSnapshot } from "./validate-dashboard-snapshots.mjs";
+import {
+  BACKLOG_SNAPSHOT_PATH,
+  MANAGEMENT_FACILITY_SNAPSHOT_PATH,
+  PR_ACTIVITY_ISSUE_CACHE_PATH,
+  PR_ACTIVITY_ISSUE_CACHE_TMP_PATH,
+  PR_ACTIVITY_SNAPSHOT_PATH,
+  PR_CYCLE_SNAPSHOT_PATH,
+  PRIMARY_SNAPSHOT_PATH,
+  REPO_ROOT_PATH
+} from "./dashboard-paths.mjs";
+import {
+  buildSupplementalWriteArtifacts,
+  commitSnapshotRefresh,
+  readJsonFile,
+  writeJsonAtomic,
+  writePrCycleSnapshotAtomic,
+  writeProductCycleShipmentsSnapshotAtomic,
+  writeProductCycleSnapshotAtomic
+} from "./dashboard-snapshot-store.mjs";
 import {
   refreshBusinessUnitUatChartData,
   refreshContributorsSnapshot,
   refreshProductCycleSnapshot
 } from "./refresh-derived-snapshots.mjs";
+import {
+  countPrActivitySeriesPoints,
+  mergePrActivitySnapshots,
+  readPrActivityHistoryState
+} from "./refresh-pr-activity-history.mjs";
 
 const FALLBACK_DATES = [
   "2025-06-23",
@@ -76,48 +97,6 @@ const PR_DETAIL_CONCURRENCY = 12;
 const UAT_CHANGELOG_CONCURRENCY = 6;
 const PR_CYCLE_CHANGELOG_CONCURRENCY = 6;
 const DEFAULT_TREND_COUNT_CONCURRENCY = 2;
-const REPO_ROOT_PATH = path.resolve(process.env.REPO_ROOT || process.cwd());
-const DATA_DIR_PATH = path.resolve(process.env.REFRESH_DATA_DIR || path.join(process.cwd(), "data"));
-const CACHE_DIR_PATH = path.resolve(
-  process.env.REFRESH_CACHE_DIR || path.join(process.cwd(), ".cache")
-);
-const SNAPSHOT_PATH = path.join(DATA_DIR_PATH, "snapshot.json");
-const SNAPSHOT_TMP_PATH = path.join(DATA_DIR_PATH, "snapshot.json.tmp");
-const BACKLOG_SNAPSHOT_PATH = path.join(DATA_DIR_PATH, "backlog-snapshot.json");
-const BACKLOG_SNAPSHOT_TMP_PATH = path.join(DATA_DIR_PATH, "backlog-snapshot.json.tmp");
-const PR_ACTIVITY_SNAPSHOT_PATH = path.join(DATA_DIR_PATH, "pr-activity-snapshot.json");
-const PR_ACTIVITY_SNAPSHOT_TMP_PATH = path.join(DATA_DIR_PATH, "pr-activity-snapshot.json.tmp");
-const MANAGEMENT_FACILITY_SNAPSHOT_PATH = path.join(
-  DATA_DIR_PATH,
-  "management-facility-snapshot.json"
-);
-const MANAGEMENT_FACILITY_SNAPSHOT_TMP_PATH = path.join(
-  DATA_DIR_PATH,
-  "management-facility-snapshot.json.tmp"
-);
-const CONTRIBUTORS_SNAPSHOT_PATH = path.join(DATA_DIR_PATH, "contributors-snapshot.json");
-const CONTRIBUTORS_SNAPSHOT_TMP_PATH = path.join(DATA_DIR_PATH, "contributors-snapshot.json.tmp");
-const PRODUCT_CYCLE_SNAPSHOT_PATH = path.join(DATA_DIR_PATH, "product-cycle-snapshot.json");
-const PRODUCT_CYCLE_SNAPSHOT_TMP_PATH = path.join(
-  DATA_DIR_PATH,
-  "product-cycle-snapshot.json.tmp"
-);
-const PRODUCT_CYCLE_SHIPMENTS_SNAPSHOT_PATH = path.join(
-  DATA_DIR_PATH,
-  "product-cycle-shipments-snapshot.json"
-);
-const PRODUCT_CYCLE_SHIPMENTS_SNAPSHOT_TMP_PATH = path.join(
-  DATA_DIR_PATH,
-  "product-cycle-shipments-snapshot.json.tmp"
-);
-const PR_CYCLE_SNAPSHOT_PATH = path.join(DATA_DIR_PATH, "pr-cycle-snapshot.json");
-const PR_CYCLE_SNAPSHOT_TMP_PATH = path.join(DATA_DIR_PATH, "pr-cycle-snapshot.json.tmp");
-const PR_ACTIVITY_ISSUE_CACHE_PATH = path.join(CACHE_DIR_PATH, "pr-activity-issue-cache.json");
-const PR_ACTIVITY_ISSUE_CACHE_TMP_PATH = path.join(
-  CACHE_DIR_PATH,
-  "pr-activity-issue-cache.json.tmp"
-);
-const SNAPSHOTS_DIR_PATH = path.join(CACHE_DIR_PATH, "snapshots");
 const SNAPSHOT_SCHEMA_VERSION = 3;
 const DEFAULT_SNAPSHOT_RETENTION_COUNT = 26;
 const ALLOW_EMPTY = process.argv.includes("--allow-empty");
@@ -1654,7 +1633,7 @@ async function fetchPrActivity(site, email, token, sinceDate, options = {}) {
     cacheWriteCount += 1;
   }
   if (cacheWriteCount > 0) {
-    await writeJsonAtomic(PR_ACTIVITY_ISSUE_CACHE_TMP_PATH, PR_ACTIVITY_ISSUE_CACHE_PATH, {
+    await writeJsonAtomic(PR_ACTIVITY_ISSUE_CACHE_PATH, PR_ACTIVITY_ISSUE_CACHE_TMP_PATH, {
       updatedAt: new Date().toISOString(),
       issues: prActivityIssueCacheByIssueKey
     });
@@ -2176,36 +2155,6 @@ async function preparePrimarySnapshotArtifacts(snapshot) {
   };
 }
 
-async function writeSnapshotAtomic(snapshot) {
-  const primaryArtifacts = await preparePrimarySnapshotArtifacts(snapshot);
-
-  const serialized = `${JSON.stringify(primaryArtifacts.snapshot, null, 2)}\n`;
-  const backlogSerialized = `${JSON.stringify(primaryArtifacts.backlogSnapshot, null, 2)}\n`;
-  const prActivitySerialized = `${JSON.stringify(primaryArtifacts.prActivitySnapshot, null, 2)}\n`;
-  const managementFacilitySerialized = `${JSON.stringify(primaryArtifacts.managementFacilitySnapshot, null, 2)}\n`;
-  try {
-    await fs.mkdir(DATA_DIR_PATH, { recursive: true });
-    await fs.writeFile(SNAPSHOT_TMP_PATH, serialized, "utf8");
-    await fs.writeFile(BACKLOG_SNAPSHOT_TMP_PATH, backlogSerialized, "utf8");
-    await fs.writeFile(PR_ACTIVITY_SNAPSHOT_TMP_PATH, prActivitySerialized, "utf8");
-    await fs.writeFile(
-      MANAGEMENT_FACILITY_SNAPSHOT_TMP_PATH,
-      managementFacilitySerialized,
-      "utf8"
-    );
-    await fs.rename(SNAPSHOT_TMP_PATH, SNAPSHOT_PATH);
-    await fs.rename(BACKLOG_SNAPSHOT_TMP_PATH, BACKLOG_SNAPSHOT_PATH);
-    await fs.rename(PR_ACTIVITY_SNAPSHOT_TMP_PATH, PR_ACTIVITY_SNAPSHOT_PATH);
-    await fs.rename(MANAGEMENT_FACILITY_SNAPSHOT_TMP_PATH, MANAGEMENT_FACILITY_SNAPSHOT_PATH);
-  } catch (error) {
-    await fs.unlink(SNAPSHOT_TMP_PATH).catch(() => undefined);
-    await fs.unlink(BACKLOG_SNAPSHOT_TMP_PATH).catch(() => undefined);
-    await fs.unlink(PR_ACTIVITY_SNAPSHOT_TMP_PATH).catch(() => undefined);
-    await fs.unlink(MANAGEMENT_FACILITY_SNAPSHOT_TMP_PATH).catch(() => undefined);
-    throw error;
-  }
-}
-
 function getManagementBusinessUnitRowCount(snapshot, scopeKey) {
   return Array.isArray(snapshot?.chartData?.managementBusinessUnit?.byScope?.[scopeKey]?.rows)
     ? snapshot.chartData.managementBusinessUnit.byScope[scopeKey].rows.length
@@ -2249,109 +2198,6 @@ function assertManagementFacilitySnapshotIntegrity(previousSnapshot, nextSnapsho
   }
 }
 
-async function readJsonFile(filePath) {
-  try {
-    const raw = await fs.readFile(filePath, "utf8");
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
-
-function countPrActivitySeriesPoints(prActivity, key) {
-  return Array.isArray(prActivity?.[key]) ? prActivity[key].filter(Boolean).length : 0;
-}
-
-function getPrActivityHistoryMetrics(prActivity) {
-  return {
-    pointsCount: countPrActivitySeriesPoints(prActivity, "points"),
-    monthlyPointsCount: countPrActivitySeriesPoints(prActivity, "monthlyPoints"),
-    updatedAt: String(prActivity?.updatedAt || "").trim()
-  };
-}
-
-function comparePrActivityHistoryMetrics(left, right) {
-  const safeLeft = left || { pointsCount: 0, monthlyPointsCount: 0, updatedAt: "" };
-  const safeRight = right || { pointsCount: 0, monthlyPointsCount: 0, updatedAt: "" };
-  if (safeLeft.monthlyPointsCount !== safeRight.monthlyPointsCount) {
-    return safeLeft.monthlyPointsCount - safeRight.monthlyPointsCount;
-  }
-  if (safeLeft.pointsCount !== safeRight.pointsCount) {
-    return safeLeft.pointsCount - safeRight.pointsCount;
-  }
-  return String(safeLeft.updatedAt || "").localeCompare(String(safeRight.updatedAt || ""));
-}
-
-async function readBestExistingPrActivityHistorySnapshot() {
-  const currentSnapshot = await readJsonFile(SNAPSHOT_PATH);
-  let bestSnapshot = currentSnapshot;
-  let bestSource = SNAPSHOT_PATH;
-  let bestMetrics = getPrActivityHistoryMetrics(currentSnapshot?.prActivity);
-
-  let entries = [];
-  try {
-    entries = await fs.readdir(SNAPSHOTS_DIR_PATH, { withFileTypes: true });
-  } catch {
-    return {
-      currentSnapshot,
-      bestPrActivity: bestSnapshot?.prActivity || null,
-      bestSource,
-      bestMetrics
-    };
-  }
-
-  const archiveFiles = entries
-    .filter(
-      (entry) =>
-        entry.isFile() && entry.name.startsWith("snapshot-") && entry.name.endsWith(".json")
-    )
-    .map((entry) => entry.name)
-    .sort()
-    .reverse();
-
-  for (const fileName of archiveFiles) {
-    const archivedSnapshot = await readJsonFile(path.join(SNAPSHOTS_DIR_PATH, fileName));
-    const archivedMetrics = getPrActivityHistoryMetrics(archivedSnapshot?.prActivity);
-    if (comparePrActivityHistoryMetrics(archivedMetrics, bestMetrics) <= 0) continue;
-    bestSnapshot = archivedSnapshot;
-    bestSource = path.join(SNAPSHOTS_DIR_PATH, fileName);
-    bestMetrics = archivedMetrics;
-  }
-
-  return {
-    currentSnapshot,
-    bestPrActivity: bestSnapshot?.prActivity || null,
-    bestSource,
-    bestMetrics
-  };
-}
-
-async function readPrActivityHistoryState(options = {}) {
-  if (options.skipHistoryReuse) {
-    const currentSnapshot = await readJsonFile(SNAPSHOT_PATH);
-    return {
-      currentSnapshot,
-      bestPrActivity: null,
-      bestSource: "",
-      bestMetrics: getPrActivityHistoryMetrics(null)
-    };
-  }
-
-  return await readBestExistingPrActivityHistorySnapshot();
-}
-
-async function writeJsonAtomic(tmpPath, outputPath, value) {
-  const serialized = `${JSON.stringify(value, null, 2)}\n`;
-  try {
-    await fs.mkdir(path.dirname(tmpPath), { recursive: true });
-    await fs.writeFile(tmpPath, serialized, "utf8");
-    await fs.rename(tmpPath, outputPath);
-  } catch (error) {
-    await fs.unlink(tmpPath).catch(() => undefined);
-    throw error;
-  }
-}
-
 function updateExistingSnapshotPrActivity(existingSnapshot, prActivity, syncedAt) {
   if (!existingSnapshot || typeof existingSnapshot !== "object") {
     throw new Error("Cannot run PR_ACTIVITY_ONLY without an existing snapshot.json to update.");
@@ -2390,289 +2236,6 @@ function updateExistingSnapshotUat(existingSnapshot, { uatAging, chartData, sync
     ...(uatAging && typeof uatAging === "object" ? { uatAging } : {}),
     ...(chartData && typeof chartData === "object" ? { chartData } : {})
   };
-}
-
-function filterDatedPointSeriesFromFloor(points, floorDate) {
-  const safeFloorDate = isoDateOnly(floorDate);
-  const safePoints = Array.isArray(points) ? points.filter(Boolean) : [];
-  if (!safeFloorDate) return safePoints;
-  return safePoints.filter((point) => String(point?.date || "").trim() >= safeFloorDate);
-}
-
-function mergePrActivitySnapshots(existingPrActivity, refreshedPrActivity, options = {}) {
-  const truncateAfterRefreshedLatest = options.truncateAfterRefreshedLatest !== false;
-  const ceilingDate = isoDateOnly(options.ceilingDate);
-  const monthlyFloorDate = isoDateOnly(options.monthlyFloorDate);
-  const refreshedPoints = Array.isArray(refreshedPrActivity?.points)
-    ? refreshedPrActivity.points.filter(Boolean)
-    : [];
-  if (refreshedPoints.length === 0) {
-    if (!existingPrActivity || typeof existingPrActivity !== "object") {
-      return refreshedPrActivity;
-    }
-    const preservedMonthlyPoints = filterDatedPointSeriesFromFloor(
-      Array.isArray(refreshedPrActivity?.monthlyPoints)
-        ? refreshedPrActivity.monthlyPoints
-        : Array.isArray(existingPrActivity?.monthlyPoints)
-          ? existingPrActivity.monthlyPoints
-          : [],
-      monthlyFloorDate
-    );
-    return {
-      ...existingPrActivity,
-      ...refreshedPrActivity,
-      since: String(existingPrActivity?.points?.[0]?.date || refreshedPrActivity?.since || ""),
-      points: Array.isArray(existingPrActivity?.points) ? existingPrActivity.points : [],
-      monthlySince: String(
-        preservedMonthlyPoints[0]?.date ||
-          refreshedPrActivity?.monthlySince ||
-          existingPrActivity?.monthlySince ||
-          ""
-      ),
-      monthlyPoints: preservedMonthlyPoints
-    };
-  }
-  const refreshedMonthlyPoints = Array.isArray(refreshedPrActivity?.monthlyPoints)
-    ? refreshedPrActivity.monthlyPoints.filter(Boolean)
-    : [];
-  const mergedPoints = mergeDatedPointSeries(existingPrActivity?.points, refreshedPoints, {
-    ceilingDate,
-    truncateAfterRefreshedLatest
-  });
-  const mergedMonthlyPoints = mergeDatedPointSeries(
-    existingPrActivity?.monthlyPoints,
-    refreshedMonthlyPoints,
-    {
-      ceilingDate,
-      truncateAfterRefreshedLatest
-    }
-  );
-  const filteredMonthlyPoints = filterDatedPointSeriesFromFloor(
-    mergedMonthlyPoints,
-    monthlyFloorDate
-  );
-
-  return {
-    ...(existingPrActivity && typeof existingPrActivity === "object" ? existingPrActivity : {}),
-    ...refreshedPrActivity,
-    since: String(mergedPoints[0]?.date || refreshedPrActivity?.since || ""),
-    points: mergedPoints,
-    monthlySince: String(
-      filteredMonthlyPoints[0]?.date ||
-        refreshedPrActivity?.monthlySince ||
-        refreshedPrActivity?.monthlyPoints?.[0]?.date ||
-        ""
-    ),
-    monthlyPoints: filteredMonthlyPoints
-  };
-}
-
-function mergeDatedPointSeries(existingPoints, refreshedPoints, options = {}) {
-  const truncateAfterRefreshedLatest = options.truncateAfterRefreshedLatest !== false;
-  const ceilingDate = isoDateOnly(options.ceilingDate);
-  const safeExistingPoints = Array.isArray(existingPoints) ? existingPoints.filter(Boolean) : [];
-  const safeRefreshedPoints = Array.isArray(refreshedPoints) ? refreshedPoints.filter(Boolean) : [];
-  const refreshedLatestPointDate = String(
-    safeRefreshedPoints[safeRefreshedPoints.length - 1]?.date || ""
-  ).trim();
-  const mergedByDate = new Map();
-
-  for (const point of [...safeExistingPoints, ...safeRefreshedPoints]) {
-    const date = String(point?.date || "").trim();
-    if (!date) continue;
-    mergedByDate.set(date, point);
-  }
-
-  return Array.from(mergedByDate.entries())
-    .sort((left, right) => left[0].localeCompare(right[0]))
-    .map(([, point]) => point)
-    .filter((point) => {
-      const date = String(point?.date || "").trim();
-      if (!date) return false;
-      if (ceilingDate && date > ceilingDate) return false;
-      if (!truncateAfterRefreshedLatest || !refreshedLatestPointDate) return true;
-      return date <= refreshedLatestPointDate;
-    });
-}
-
-async function writeSanitizedSnapshotAtomic(snapshot, sanitizer, tmpPath, outputPath, fileName) {
-  const sanitizedSnapshot = sanitizer(snapshot);
-  validateDashboardSnapshot(fileName, sanitizedSnapshot);
-  const serialized = `${JSON.stringify(sanitizedSnapshot, null, 2)}\n`;
-  try {
-    await fs.mkdir(path.dirname(tmpPath), { recursive: true });
-    await fs.writeFile(tmpPath, serialized, "utf8");
-    await fs.rename(tmpPath, outputPath);
-  } catch (error) {
-    await fs.unlink(tmpPath).catch(() => undefined);
-    throw error;
-  }
-}
-
-async function writePrCycleSnapshotAtomic(snapshot) {
-  return writeSanitizedSnapshotAtomic(
-    snapshot,
-    sanitizePrCycleSnapshot,
-    PR_CYCLE_SNAPSHOT_TMP_PATH,
-    PR_CYCLE_SNAPSHOT_PATH,
-    "pr-cycle-snapshot.json"
-  );
-}
-
-async function writeProductCycleSnapshotAtomic(snapshot) {
-  return writeSanitizedSnapshotAtomic(
-    snapshot,
-    sanitizeProductCycleSnapshot,
-    PRODUCT_CYCLE_SNAPSHOT_TMP_PATH,
-    PRODUCT_CYCLE_SNAPSHOT_PATH,
-    "product-cycle-snapshot.json"
-  );
-}
-
-function buildProductCycleShipmentsSnapshot(snapshot) {
-  const shippedTimeline =
-    snapshot?.detailData?.shippedTimeline && typeof snapshot.detailData.shippedTimeline === "object"
-      ? snapshot.detailData.shippedTimeline
-      : null;
-  return {
-    generatedAt: String(snapshot?.generatedAt || new Date().toISOString()).trim(),
-    chartData: {
-      shippedTimeline: shippedTimeline || {
-        timelineStart: "",
-        timelineEnd: "",
-        totalShipped: 0,
-        months: []
-      }
-    }
-  };
-}
-
-async function writeProductCycleShipmentsSnapshotAtomic(snapshot) {
-  const shipmentsSnapshot = buildProductCycleShipmentsSnapshot(snapshot);
-  validateDashboardSnapshot("product-cycle-shipments-snapshot.json", shipmentsSnapshot);
-  return writeJsonAtomic(
-    PRODUCT_CYCLE_SHIPMENTS_SNAPSHOT_TMP_PATH,
-    PRODUCT_CYCLE_SHIPMENTS_SNAPSHOT_PATH,
-    shipmentsSnapshot
-  );
-}
-
-async function writeContributorsSnapshotAtomic(snapshot) {
-  return writeSanitizedSnapshotAtomic(
-    snapshot,
-    sanitizeContributorsSnapshot,
-    CONTRIBUTORS_SNAPSHOT_TMP_PATH,
-    CONTRIBUTORS_SNAPSHOT_PATH,
-    "contributors-snapshot.json"
-  );
-}
-
-function buildSupplementalWriteArtifacts({ contributorsSnapshot, productCycleSnapshot, prCycleSnapshot }) {
-  const artifacts = [];
-
-  if (contributorsSnapshot) {
-    artifacts.push({
-      fileName: "contributors-snapshot.json",
-      outputSnapshot: sanitizeContributorsSnapshot(contributorsSnapshot),
-      logMessage: "Wrote contributors-snapshot.json.",
-      write: () => writeContributorsSnapshotAtomic(contributorsSnapshot)
-    });
-  }
-
-  if (productCycleSnapshot) {
-    artifacts.push({
-      fileName: "product-cycle-snapshot.json",
-      outputSnapshot: sanitizeProductCycleSnapshot(productCycleSnapshot),
-      logMessage: "Wrote product-cycle-snapshot.json.",
-      write: () => writeProductCycleSnapshotAtomic(productCycleSnapshot)
-    });
-    artifacts.push({
-      fileName: "product-cycle-shipments-snapshot.json",
-      outputSnapshot: buildProductCycleShipmentsSnapshot(productCycleSnapshot),
-      logMessage: "Wrote product-cycle-shipments-snapshot.json.",
-      write: () => writeProductCycleShipmentsSnapshotAtomic(productCycleSnapshot)
-    });
-  }
-
-  if (prCycleSnapshot) {
-    artifacts.push({
-      fileName: "pr-cycle-snapshot.json",
-      outputSnapshot: sanitizePrCycleSnapshot(prCycleSnapshot),
-      logMessage: "",
-      write: () => writePrCycleSnapshotAtomic(prCycleSnapshot)
-    });
-  }
-
-  return artifacts;
-}
-
-function snapshotArchiveFileName(syncedAt) {
-  const safeStamp = String(syncedAt || "unknown")
-    .replace(/[:.]/g, "-")
-    .replace(/[^0-9TZ-]/g, "");
-  return `snapshot-${safeStamp}.json`;
-}
-
-async function archiveSnapshot(snapshot, syncedAt) {
-  const serialized = `${JSON.stringify(snapshot, null, 2)}\n`;
-  const fileName = snapshotArchiveFileName(syncedAt);
-  const filePath = path.join(SNAPSHOTS_DIR_PATH, fileName);
-  await fs.mkdir(SNAPSHOTS_DIR_PATH, { recursive: true });
-  await fs.writeFile(filePath, serialized, "utf8");
-  return filePath;
-}
-
-async function pruneArchivedSnapshots(maxSnapshots) {
-  let entries = [];
-  try {
-    entries = await fs.readdir(SNAPSHOTS_DIR_PATH, { withFileTypes: true });
-  } catch {
-    return [];
-  }
-
-  const fileNames = entries
-    .filter(
-      (entry) =>
-        entry.isFile() && entry.name.startsWith("snapshot-") && entry.name.endsWith(".json")
-    )
-    .map((entry) => entry.name)
-    .sort();
-
-  const overflowCount = fileNames.length - maxSnapshots;
-  if (overflowCount <= 0) return [];
-
-  const removed = [];
-  for (const fileName of fileNames.slice(0, overflowCount)) {
-    await fs.unlink(path.join(SNAPSHOTS_DIR_PATH, fileName));
-    removed.push(fileName);
-  }
-  return removed;
-}
-
-async function commitSnapshotRefresh({
-  snapshot,
-  syncedAt,
-  snapshotRetentionCount,
-  summaryMessage,
-  extraWrites = [],
-  extraLogs = []
-}) {
-  await writeSnapshotAtomic(snapshot);
-  for (const writeExtra of extraWrites) {
-    await writeExtra();
-  }
-  const archivedPath = await archiveSnapshot(snapshot, syncedAt);
-  const prunedSnapshots = await pruneArchivedSnapshots(snapshotRetentionCount);
-  console.log(summaryMessage);
-  for (const line of extraLogs) {
-    if (line) console.log(line);
-  }
-  console.log(`Archived snapshot history copy: ${archivedPath}`);
-  if (prunedSnapshots.length > 0) {
-    console.log(
-      `Pruned ${prunedSnapshots.length} archived snapshot(s) to keep the latest ${snapshotRetentionCount}.`
-    );
-  }
 }
 
 function buildRefreshConfig() {
@@ -2977,7 +2540,7 @@ async function buildTrendAndPrActivityState(config, todayIso) {
   if (
     reuseHistoricalPrActivity &&
     prActivityHistoryState.bestSource &&
-    prActivityHistoryState.bestSource !== SNAPSHOT_PATH
+    prActivityHistoryState.bestSource !== PRIMARY_SNAPSHOT_PATH
   ) {
     console.warn(
       `Using archived PR activity history from ${prActivityHistoryState.bestSource} (${prActivityHistoryState.bestMetrics.pointsCount} sprint buckets, ${prActivityHistoryState.bestMetrics.monthlyPointsCount} monthly buckets) because current snapshot.json is missing older monthly history.`
@@ -3073,7 +2636,7 @@ async function buildPrActivityOnlyState(config, todayIso) {
   if (
     reuseHistoricalPrActivity &&
     prActivityHistoryState.bestSource &&
-    prActivityHistoryState.bestSource !== SNAPSHOT_PATH
+    prActivityHistoryState.bestSource !== PRIMARY_SNAPSHOT_PATH
   ) {
     console.warn(
       `Using archived PR activity history from ${prActivityHistoryState.bestSource} (${prActivityHistoryState.bestMetrics.pointsCount} sprint buckets, ${prActivityHistoryState.bestMetrics.monthlyPointsCount} monthly buckets) because current snapshot.json is missing older monthly history.`
@@ -3134,7 +2697,7 @@ async function runUatOnlyRefresh(config) {
     );
     return;
   }
-  const existingSnapshot = await readJsonFile(SNAPSHOT_PATH);
+  const existingSnapshot = await readJsonFile(PRIMARY_SNAPSHOT_PATH);
   const syncedAt = new Date().toISOString();
   await commitSnapshotRefresh({
     snapshot: updateExistingSnapshotUat(existingSnapshot, {
@@ -3142,6 +2705,7 @@ async function runUatOnlyRefresh(config) {
       chartData: businessUnitChartData,
       syncedAt
     }),
+    preparePrimarySnapshotArtifacts,
     syncedAt,
     snapshotRetentionCount: config.snapshotRetentionCount,
     summaryMessage:
@@ -3200,7 +2764,7 @@ async function runPrActivityOnlyRefresh(config, sharedState) {
     return;
   }
   const existingSnapshot =
-    sharedState.existingSnapshotForPrActivity || (await readJsonFile(SNAPSHOT_PATH));
+    sharedState.existingSnapshotForPrActivity || (await readJsonFile(PRIMARY_SNAPSHOT_PATH));
   const syncedAt = new Date().toISOString();
   await commitSnapshotRefresh({
     snapshot: updateExistingSnapshotPrActivity(
@@ -3208,6 +2772,7 @@ async function runPrActivityOnlyRefresh(config, sharedState) {
       sharedState.mergedPrActivity,
       syncedAt
     ),
+    preparePrimarySnapshotArtifacts,
     syncedAt,
     snapshotRetentionCount: config.snapshotRetentionCount,
     summaryMessage:
@@ -3353,6 +2918,7 @@ async function runFullRefreshWriteStage(config, validatedState) {
 
   await commitSnapshotRefresh({
     snapshot: validatedState.snapshot,
+    primaryArtifacts: validatedState.primaryArtifacts,
     syncedAt: validatedState.syncedAt,
     snapshotRetentionCount: validatedState.snapshotRetentionCount,
     summaryMessage: validatedState.summaryMessage,
