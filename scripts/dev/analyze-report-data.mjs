@@ -7,7 +7,7 @@ import {
   ANALYSIS_HISTORY_DIR,
   PRIMARY_DASHBOARD_SNAPSHOT_PATH,
   SNAPSHOT_HISTORY_DIR
-} from "./dashboard-contract.mjs";
+} from "../dashboard-contract.mjs";
 
 const PRIORITIES = ["highest", "high", "medium", "low", "lowest"];
 const TEAMS = ["api", "legacy", "react", "bc"];

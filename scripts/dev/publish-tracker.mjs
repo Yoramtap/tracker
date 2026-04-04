@@ -2,7 +2,7 @@
 
 import { spawn } from "node:child_process";
 
-import { ANALYSIS_REPORT_PATH, DIST_DIR } from "./dashboard-contract.mjs";
+import { ANALYSIS_REPORT_PATH, DIST_DIR } from "../dashboard-contract.mjs";
 
 function getArg(flag) {
   const index = process.argv.indexOf(flag);
@@ -24,13 +24,13 @@ function parseYesNoArg(flag, fallback = null) {
 
 function printHelp() {
   console.log(`Usage:
-  node scripts/publish-tracker.mjs --refresh yes|no [--clean] [--analyze yes|no] [--message "<commit message>"] [--push]
+  node scripts/dev/publish-tracker.mjs --refresh yes|no [--clean] [--analyze yes|no] [--message "<commit message>"] [--push]
 
 Examples:
-  node scripts/publish-tracker.mjs --refresh yes
-  node scripts/publish-tracker.mjs --refresh yes --clean
-  node scripts/publish-tracker.mjs --refresh yes --message "Refresh dashboard data"
-  node scripts/publish-tracker.mjs --refresh no --message "Republish current dashboard state" --push
+  node scripts/dev/publish-tracker.mjs --refresh yes
+  node scripts/dev/publish-tracker.mjs --refresh yes --clean
+  node scripts/dev/publish-tracker.mjs --refresh yes --message "Refresh dashboard data"
+  node scripts/dev/publish-tracker.mjs --refresh no --message "Republish current dashboard state" --push
 
 Notes:
   - --refresh is required so dataset updates stay explicit.
@@ -143,7 +143,7 @@ async function main() {
 
   if (analyze) {
     console.log("\n=== Generating analysis ===");
-    await runNodeScript("scripts/analyze-report-data.mjs", [
+    await runNodeScript("scripts/dev/analyze-report-data.mjs", [
       "--output",
       ANALYSIS_REPORT_PATH
     ]);

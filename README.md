@@ -6,7 +6,9 @@ This repo has one job: regenerate committed dashboard snapshots and publish a st
 
 - `data/`: committed public snapshot contract
 - `app/`: dashboard UI that reads only from `data/`
-- `scripts/`: fetch, derive, validate, and publish pipeline
+- `scripts/`: core fetch, derive, validate, and build pipeline
+- `scripts/dev/`: optional operator and debugging helpers
+- `dev/`: local preview-only runtime support
 - `.cache/`: disposable local state and analysis output
 - `dist/`: generated GitHub Pages artifact
 
@@ -20,14 +22,13 @@ This repo has one job: regenerate committed dashboard snapshots and publish a st
 - The repo can be public.
 - The Jira API token must never be committed.
 - Keep credentials only in `.env.backlog` or `.env.local`, or in GitHub Actions secrets if you later automate refreshes in GitHub.
-- Start from `.env.example` if you want a template instead of using the setup script.
 - `.env*`, `node_modules/`, `.cache/`, and `dist/` are ignored locally.
 
 ## Local Setup
 
 ```bash
 npm install
-npm run backlog:setup-auth -- --email "you@company.com"
+npm run auth:setup -- --email "you@company.com"
 ```
 
 Run commands from the repo root. The setup helper prompts for the Jira API token securely and writes a local `.env.backlog` file that stays ignored.
@@ -35,7 +36,7 @@ Run commands from the repo root. The setup helper prompts for the Jira API token
 Optional Jira site override:
 
 ```bash
-npm run backlog:setup-auth -- --email "you@company.com" --site "your-site.atlassian.net"
+npm run auth:setup -- --email "you@company.com" --site "your-site.atlassian.net"
 ```
 
 ## Core Commands
@@ -43,26 +44,26 @@ npm run backlog:setup-auth -- --email "you@company.com" --site "your-site.atlass
 ```bash
 npm run data:refresh
 npm run data:validate
-npm run site:build
+npm run build
 ```
 
 What they do:
 
 - `data:refresh`: refreshes the Jira-backed dashboard data
 - `data:validate`: enforces the committed snapshot contract
-- `site:build`: builds the public Pages artifact into `dist/`
+- `build`: builds the public Pages artifact into `dist/`
 
-Useful variants:
+Operator helpers:
 
-- `npm run data:refresh:product-cycle`
-- `npm run data:refresh:pr-cycle`
-- `npm run data:refresh:pr-activity`
-- `npm run data:refresh:uat`
 - `npm run data:refresh:clean`
-- `npm run report:analyze`
-- `npm run site:publish -- --refresh yes --message "Refresh dashboard data" --push`
+- `npm run dev:refresh:pr-cycle`
+- `npm run dev:refresh:pr-activity`
+- `npm run dev:refresh:product-cycle`
+- `npm run dev:refresh:uat`
+- `npm run dev:analyze`
+- `npm run dev:publish -- --refresh yes --message "Refresh dashboard data" --push`
 
-Use `site:publish` only as a convenience helper when the repo is already clean. The canonical release instructions live in `docs/release.md`.
+Use `dev:publish` only as a convenience helper when the repo is already clean. The canonical release instructions live in `docs/release.md`.
 
 ## Cache Behavior
 
@@ -74,7 +75,7 @@ Use `site:publish` only as a convenience helper when the repo is already clean. 
 ## Optional Analysis
 
 ```bash
-npm run report:analyze
+npm run dev:analyze
 ```
 
 - Writes a local operator note to `.cache/analysis/latest-analysis.md`
@@ -99,7 +100,7 @@ Read [docs/release.md](docs/release.md) before shipping.
 ## GitHub Pages
 
 - GitHub Pages deploys from this repo via [.github/workflows/pages.yml](.github/workflows/pages.yml).
-- The workflow runs `npm ci` and `npm run site:build`, then publishes `dist/`.
+- The workflow runs `npm ci` and `npm run build`, then publishes `dist/`.
 - Scheduled or manual data refresh automation lives in [.github/workflows/refresh-data.yml](.github/workflows/refresh-data.yml).
 - The live site stays publicly accessible for Confluence embedding.
 
