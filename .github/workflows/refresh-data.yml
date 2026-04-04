@@ -45,7 +45,7 @@ jobs:
           ATLASSIAN_EMAIL: ${{ secrets.ATLASSIAN_EMAIL }}
           ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
           ATLASSIAN_SITE: ${{ secrets.ATLASSIAN_SITE }}
-        run: npm run data:refresh:clean
+        run: npm run data:refresh
 
       - name: Validate snapshots
         run: npm run data:validate
