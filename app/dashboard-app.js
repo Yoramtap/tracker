@@ -1,6 +1,19 @@
-"use strict";
+import { resolveDashboardAppDeps } from "./dashboard-app/deps.js";
+import { createProductPanels } from "./dashboard-app/product-panels.js";
+import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
 
 (function initDashboardApp() {
+  const {
+    dashboardRuntimeContract,
+    dashboardUiUtils,
+    dashboardDataUtils,
+    dashboardChartCore,
+    dashboardSvgCore,
+    getDashboardCharts,
+    getDashboardPretextLayout,
+    getPreloadedDataSourcePromises,
+    browserApi
+  } = resolveDashboardAppDeps();
   const PRODUCT_CYCLE_SCOPE = "inception";
   const PRODUCT_CYCLE_SCOPE_LABEL = "All ideas";
   const PRODUCT_CYCLE_MULTI_TEAM_KEY = "multiteam";
@@ -34,11 +47,6 @@
   const LIFECYCLE_TEAM_SCOPE_DEFAULT = "all";
   const PRODUCT_CYCLE_TEAM_DEFAULT = "all";
   const DEVELOPMENT_WORKFLOW_WINDOWS = [THIRTY_DAY_WINDOW_KEY, "90d", "6m", "1y"];
-  const dashboardRuntimeContract =
-    window.DashboardRuntimeContract ||
-    (() => {
-      throw new Error("Dashboard runtime contract not loaded.");
-    })();
   const getSourcePath = (rootKey, relativePath) =>
     dashboardRuntimeContract.getSourcePath(rootKey, relativePath);
   const SECTION_FILTER_DEFAULT = dashboardRuntimeContract.defaultSection || "community";
@@ -178,8 +186,7 @@
       clearContainers: ["workflow-breakdown-card"]
     }
   };
-  const PRELOADED_DATA_SOURCE_PROMISES =
-    window.__dashboardDataSourcePromiseCache || Object.create(null);
+  const PRELOADED_DATA_SOURCE_PROMISES = getPreloadedDataSourcePromises();
   const CHART_DATA_SOURCES = {
     trend: ["snapshot"],
     "management-facility": ["managementFacility"],
@@ -189,15 +196,7 @@
     "product-cycle": ["productCycle"],
     "workflow-breakdown": ["prCycle"]
   };
-  const CHART_RENDERERS = {
-    trend: renderBugTrendsPanel,
-    "management-facility": renderDevelopmentVsUatByFacilityChart,
-    "pr-activity-legacy": renderLegacyPrActivityCharts,
-    contributors: renderTopContributorsChart,
-    "product-cycle-shipments": renderProductCycleShipmentsTimeline,
-    "product-cycle": renderLeadAndCycleTimeByTeamChart,
-    "workflow-breakdown": renderWorkflowBreakdown
-  };
+  let CHART_RENDERERS = {};
 
   function productDeliveryWorkflowViewKey(value) {
     return normalizeOption(
@@ -295,68 +294,7 @@
     ).join("");
   }
 
-  const CONTROL_BINDINGS = [
-    {
-      name: "report-section",
-      stateKey: "sectionFilter",
-      defaultValue: SECTION_FILTER_DEFAULT,
-      normalizeValue: sectionFilterKey,
-      onChangeRender: renderSectionFilteredPanelsAfterShell
-    },
-    {
-      name: "bug-trends-view",
-      stateKey: "bugTrendsView",
-      defaultValue: BUG_TRENDS_VIEW_DEFAULT,
-      normalizeValue: bugTrendsViewKey,
-      onChangeRender: renderBugTrendsPanel
-    },
-    {
-      name: "management-facility-flow-scope",
-      stateKey: "managementFlowScope",
-      defaultValue: "ongoing",
-      normalizeValue: (value) => normalizeOption(value, MANAGEMENT_FLOW_SCOPES, "ongoing"),
-      onChangeRender: renderDevelopmentVsUatByFacilityChart
-    },
-    {
-      name: "pr-cycle-team",
-      stateKey: "prCycleTeam",
-      defaultValue: ALL_TEAM_SCOPE_KEY,
-      normalizeValue: (value) =>
-        String(value || "")
-          .trim()
-          .toLowerCase() || ALL_TEAM_SCOPE_KEY,
-      onChangeRender: renderWorkflowBreakdown
-    },
-    {
-      name: "pr-cycle-window",
-      stateKey: "developmentWorkflowWindow",
-      defaultValue: THIRTY_DAY_WINDOW_KEY,
-      normalizeValue: (value) =>
-        normalizeOption(value, DEVELOPMENT_WORKFLOW_WINDOWS, THIRTY_DAY_WINDOW_KEY),
-      onChangeRender: renderWorkflowBreakdown
-    },
-    {
-      name: "pr-activity-legacy-metric",
-      stateKey: "prActivityLegacyMetric",
-      defaultValue: "offered",
-      normalizeValue: (value) => (value === "merged" ? "merged" : "offered"),
-      onChangeRender: renderLegacyPrActivityCharts
-    },
-    {
-      name: "product-delivery-workflow-view",
-      stateKey: "productDeliveryWorkflowView",
-      defaultValue: PRODUCT_DELIVERY_WORKFLOW_VIEW_DEFAULT,
-      normalizeValue: productDeliveryWorkflowViewKey,
-      onChangeRender: renderLeadAndCycleTimeByTeamChart
-    },
-    {
-      name: "product-cycle-team",
-      stateKey: "productCycleTeam",
-      defaultValue: PRODUCT_CYCLE_TEAM_DEFAULT,
-      normalizeValue: productCycleTeamKey,
-      onChangeRender: renderLeadAndCycleTimeByTeamChart
-    }
-  ];
+  let CONTROL_BINDINGS = [];
 
   const state = {
     snapshot: null,
@@ -387,26 +325,6 @@
   let chartRenderFrame = 0;
   let resizeRenderFrame = 0;
   let windowResizeBound = false;
-
-  const dashboardUiUtils = window.DashboardViewUtils;
-  if (!dashboardUiUtils) {
-    throw new Error("Dashboard UI helpers not loaded.");
-  }
-  const dashboardDataUtils = window.DashboardDataUtils;
-  if (!dashboardDataUtils) {
-    throw new Error("Dashboard data helpers not loaded.");
-  }
-  const dashboardChartCore = window.DashboardChartCore;
-  if (!dashboardChartCore) {
-    throw new Error("Dashboard chart core not loaded.");
-  }
-  const dashboardSvgCore = window.DashboardSvgCore;
-  if (!dashboardSvgCore) {
-    throw new Error("Dashboard SVG core not loaded.");
-  }
-  function getDashboardPretextLayout() {
-    return window.DashboardPretextLayout || window.DashboardPretextExperiment || null;
-  }
   const {
     toNumber,
     getOldestTimestamp,
@@ -442,6 +360,13 @@
     renderWithRoot
   } = dashboardChartCore;
   const { SvgChartShell, linearScale, withAlpha } = dashboardSvgCore;
+  const {
+    addEventListener,
+    fetchJson,
+    getLocationSearch,
+    hasUrlParam,
+    requestAnimationFrame
+  } = browserApi;
 
   const PR_ACTIVITY_LINE_DEFS = [
     { dataKey: "api", name: "API", colorKey: "api" },
@@ -596,10 +521,6 @@
     return options.includes(value) ? value : fallback;
   }
 
-  function getManagementFlowScopeLabel(scope) {
-    return scope === "done" ? "Completed after testing" : "In user testing";
-  }
-
   function applyDashboardPanelOrder() {
     const main = document.getElementById("dashboard-main");
     if (!main) return;
@@ -659,7 +580,7 @@
     rendererName = config.rendererName,
     missingMessage = config.missingMessage
   ) {
-    const renderer = window.DashboardCharts?.[rendererName];
+    const renderer = getDashboardCharts()?.[rendererName];
     if (renderer) return renderer;
     setStatusMessage(config.statusId, missingMessage);
     return null;
@@ -887,6 +808,15 @@
     );
   }
 
+  function isPretextLayoutActive() {
+    const pretextLayout = getDashboardPretextLayout();
+    const locationSearch = getLocationSearch();
+    return (
+      pretextLayout?.isLayoutEnabled?.(locationSearch) === true ||
+      pretextLayout?.isWorkflowEnabled?.(locationSearch) === true
+    );
+  }
+
   function setBugTrendsViewVisibility(viewKey) {
     const graphNode = document.getElementById("bug-trends-chart");
     const tableNode = document.getElementById("bug-trends-table");
@@ -1072,7 +1002,7 @@
           ),
       render: () => {
         const pretextLayout = getDashboardPretextLayout();
-        const clearChart = window.DashboardCharts?.clearChart;
+        const clearChart = getDashboardCharts()?.clearChart;
         const graphContainerId = "bug-trends-chart";
         const tableContainerId = "bug-trends-table";
         const renderUtilityTable =
@@ -1201,118 +1131,6 @@
       return PRODUCT_CYCLE_MULTI_TEAM_KEY;
     }
     return raw;
-  }
-
-  function buildPrCycleAllTeamsMetric(windowSnapshot, inflowByTeamKey = {}) {
-    const teams = Array.isArray(windowSnapshot?.teams) ? windowSnapshot.teams : [];
-    const weightedStageDaysByLabel = new Map();
-    const teamRows = teams
-      .map((team) => {
-        const key = String(team?.key || "")
-          .trim()
-          .toLowerCase();
-        const label = String(team?.label || "").trim();
-        const issueCount = toCount(team?.issueCount || team?.pullRequestCount);
-        const stageDays = Array.isArray(team?.stages)
-          ? team.stages.reduce((sum, stage) => sum + toNumber(stage?.days), 0)
-          : 0;
-        if (Array.isArray(team?.stages) && issueCount > 0) {
-          team.stages.forEach((stage) => {
-            const stageLabel = getPrCycleStageDisplayLabel(stage);
-            weightedStageDaysByLabel.set(
-              stageLabel,
-              (weightedStageDaysByLabel.get(stageLabel) || 0) + toNumber(stage?.days) * issueCount
-            );
-          });
-        }
-        const totalCycleDays = Number(
-          (Number.isFinite(toNumber(team?.totalCycleDays))
-            ? toNumber(team?.totalCycleDays)
-            : stageDays
-          ).toFixed(1)
-        );
-        return {
-          key,
-          label,
-          issueCount,
-          avgPrInflow: toNumber(inflowByTeamKey[key]),
-          totalCycleDays,
-          bottleneckLabel: String(team?.bottleneckLabel || "").trim()
-        };
-      })
-      .filter((team) => team.key && team.label)
-      .sort((left, right) => {
-        if (left.totalCycleDays !== right.totalCycleDays) {
-          return left.totalCycleDays - right.totalCycleDays;
-        }
-        return left.label.localeCompare(right.label);
-      });
-    const totalIssueCount = teamRows.reduce((sum, team) => sum + toCount(team?.issueCount), 0);
-    const weightedCycleDaysTotal = teamRows.reduce(
-      (sum, team) => sum + toNumber(team?.totalCycleDays) * toCount(team?.issueCount),
-      0
-    );
-    const totalCycleDays = Number(
-      (totalIssueCount > 0
-        ? weightedCycleDaysTotal / totalIssueCount
-        : teamRows.reduce((sum, team) => sum + toNumber(team?.totalCycleDays), 0) /
-          Math.max(1, teamRows.length)
-      ).toFixed(1)
-    );
-    const avgPrInflow = Number(
-      teamRows.reduce((sum, team) => sum + Math.max(0, toNumber(team?.avgPrInflow)), 0).toFixed(1)
-    );
-    const slowestTeam = teamRows[teamRows.length - 1] || null;
-    const fastestTeam = teamRows[0] || null;
-    const bottleneckLabel =
-      Array.from(weightedStageDaysByLabel.entries()).sort((left, right) => {
-        if (right[1] !== left[1]) return right[1] - left[1];
-        return String(left[0] || "").localeCompare(String(right[0] || ""));
-      })[0]?.[0] || "";
-    return {
-      key: ALL_TEAM_SCOPE_KEY,
-      label: "All teams",
-      issueCount: totalIssueCount,
-      totalCycleDays,
-      avgPrInflow,
-      bottleneckLabel,
-      teamCount: teamRows.length,
-      fastestTeamLabel: String(fastestTeam?.label || "").trim(),
-      fastestTeamDays: toNumber(fastestTeam?.totalCycleDays),
-      slowestTeamLabel: String(slowestTeam?.label || "").trim(),
-      slowestTeamDays: toNumber(slowestTeam?.totalCycleDays),
-      teamRows
-    };
-  }
-
-  function buildPrActivityAverageInflowByTeam(points, prCycleWindowSnapshot) {
-    const safePoints = Array.isArray(points) ? points : [];
-    const availableTeamKeys = new Set(
-      (Array.isArray(prCycleWindowSnapshot?.teams) ? prCycleWindowSnapshot.teams : [])
-        .map((team) =>
-          String(team?.key || "")
-            .trim()
-            .toLowerCase()
-        )
-        .filter(Boolean)
-    );
-    return Object.fromEntries(
-      PR_ACTIVITY_LINE_DEFS.map((lineDef) => {
-        if (!availableTeamKeys.has(lineDef.dataKey)) return null;
-        const inflowValues = safePoints
-          .map((point) => toNumber(point?.[lineDef.dataKey]?.offered))
-          .filter((value) => Number.isFinite(value));
-        if (inflowValues.length === 0) return null;
-        return [
-          lineDef.dataKey,
-          Number(
-            (
-              inflowValues.reduce((sum, value) => sum + value, 0) / Math.max(1, inflowValues.length)
-            ).toFixed(1)
-          )
-        ];
-      }).filter(Boolean)
-    );
   }
 
   function getPrActivityLineDefs(colors) {
@@ -1835,1704 +1653,174 @@
     });
   }
 
-  function renderLeadAndCycleTimeByTeamChartFromChartData(
-    chartScopeData,
-    {
-      configKey = "product-cycle",
-      teamSwitchContainerId = "product-cycle-team-switch",
-      teamControlName = "product-cycle-team",
-      teamStateKey = "productCycleTeam",
-      onChangeRender = renderLeadAndCycleTimeByTeamChart
-    } = {}
-  ) {
-    if (!chartScopeData || typeof chartScopeData !== "object") return;
-    renderDashboardChartState(configKey, getConfig, ({ config }) => {
-      const rows = (Array.isArray(chartScopeData.rows) ? chartScopeData.rows.slice() : [])
-        .map((row) => ({
-          ...row,
-          team: normalizeDisplayTeamName(row?.team)
-        }))
-        .filter(
-          (row) => !(String(row?.team || "") === "UNMAPPED" && toCount(row?.meta_cycle?.n) === 0)
-        )
-        .sort((left, right) => {
-          const leftN = toCount(left?.meta_cycle?.n);
-          const rightN = toCount(right?.meta_cycle?.n);
-          if (leftN === 0 && rightN > 0) return 1;
-          if (rightN === 0 && leftN > 0) return -1;
-          const cycleDiff = toNumber(left?.cycle) - toNumber(right?.cycle);
-          if (cycleDiff !== 0) return cycleDiff;
-          return String(left?.team || "").localeCompare(String(right?.team || ""));
-        });
-      const teams = orderProductCycleTeamsForDisplay(
-        rows.map((row) => String(row?.team || "")).filter(Boolean)
-      ).filter((team) => productCycleTeamKey(team) !== "unmapped");
-      if (teams.length === 0) {
-        return {
-          error: `No product-cycle items found for ${PRODUCT_CYCLE_SCOPE_LABEL.toLowerCase()}.`,
-          clearContainer: true
-        };
-      }
-
-      const fallbackCycleSampleCount = rows.reduce(
-        (sum, row) => sum + toCount(row?.meta_cycle?.n),
-        0
-      );
-      const cycleSampleCount = toCount(chartScopeData.cycleSampleCount) || fallbackCycleSampleCount;
-      const sampleCount = Math.max(toCount(chartScopeData.sampleCount), cycleSampleCount);
-      const fetchedCount = Math.max(
-        toCount(state.productCycle?.chartData?.fetchedCount),
-        toCount(state.productCycle?.fetchedCount)
-      );
-      const scopeLabel = String(chartScopeData.scopeLabel || PRODUCT_CYCLE_SCOPE_LABEL);
-
-      if (sampleCount === 0) {
-        return {
-          error: `No product-cycle items found for ${scopeLabel.toLowerCase()}.`,
-          clearContainer: true
-        };
-      }
-
-      const allowedTeamKeys = ["all", ...teams.map(productCycleTeamKey)];
-      const selectedTeamKey = allowedTeamKeys.includes(productCycleTeamKey(state[teamStateKey]))
-        ? productCycleTeamKey(state[teamStateKey])
-        : productCycleTeamKey(teams[0]);
-      state[teamStateKey] = selectedTeamKey;
-      const selectedRow =
-        rows.find((row) => productCycleTeamKey(row?.team) === selectedTeamKey) || rows[0];
-      const selectedSampleCount = toCount(selectedRow?.meta_cycle?.n);
-
-      return buildRadioChartStateResult({
-        containerId: teamSwitchContainerId,
-        name: teamControlName,
-        options: ["all", ...teams.map(productCycleTeamKey)].map((key) => ({
-          value: key,
-          label:
-            key === "all"
-              ? formatCompactTeamTabLabel("all")
-              : formatCompactTeamTabLabel(
-                  teams.find((team) => productCycleTeamKey(team) === key) || key
-                )
-        })),
-        selectedValue: selectedTeamKey,
-        stateKey: teamStateKey,
-        normalizeValue: productCycleTeamKey,
-        onChangeRender,
-        state,
-        contextText: isPretextLayoutActive()
-          ? ""
-          : formatContextWithFreshness(
-              selectedTeamKey === "all"
-                ? fetchedCount > 0
-                  ? `${cycleSampleCount} ideas with delivery data from ${fetchedCount} fetched ideas`
-                  : `${cycleSampleCount} ideas with delivery data`
-                : fetchedCount > 0
-                  ? `${normalizeDisplayTeamName(selectedRow?.team || "")} • ${selectedSampleCount} ideas with delivery data from ${fetchedCount} fetched ideas`
-                  : `${normalizeDisplayTeamName(selectedRow?.team || "")} • ${selectedSampleCount} ideas with delivery data`,
-              getSnapshotContextTimestamp(state),
-              "generated"
-            ),
-        render: () => {
-          const pretextLayout = getDashboardPretextLayout();
-          clearChartContainer(config.containerId);
-          if (selectedTeamKey === "all") {
-            if (isPretextLayoutActive() && pretextLayout) {
-              const model = buildPretextProductCycleComparisonModel(
-                rows,
-                scopeLabel,
-                cycleSampleCount,
-                fetchedCount
-              );
-              const rendered =
-                pretextLayout.renderPretextCard?.(config.containerId, model) ||
-                pretextLayout.renderWorkflowBreakdownCard?.(config.containerId, model);
-              if (rendered) return;
-            }
-            window.DashboardCharts?.renderProductCycleComparisonCard?.(
-              config.containerId,
-              rows,
-              scopeLabel
-            );
-            return;
-          }
-
-          if (isPretextLayoutActive() && pretextLayout) {
-            const model = buildPretextProductCycleSingleTeamModel(selectedRow, rows, scopeLabel);
-            const rendered =
-              pretextLayout.renderPretextCard?.(config.containerId, model) ||
-              pretextLayout.renderWorkflowBreakdownCard?.(config.containerId, model);
-            if (rendered) return;
-          }
-
-          window.DashboardCharts?.renderProductCycleSingleTeamCard?.(
-            config.containerId,
-            selectedRow,
-            rows
-          );
-        }
-      });
-    });
-  }
-
-  function buildRadioChartStateResult({
-    containerId,
-    name,
-    options,
-    selectedValue,
-    stateKey,
-    normalizeValue,
-    onChangeRender,
+  const productPanels = createProductPanels({
     state,
-    contextText,
-    render,
-    error,
-    clearContainer = false
-  }) {
-    if (error) {
-      return clearContainer ? { error, clearContainer: true } : { error };
+    constants: {
+      PRODUCT_CYCLE_SCOPE,
+      PRODUCT_CYCLE_SCOPE_LABEL,
+      PRODUCT_CYCLE_MULTI_TEAM_KEY,
+      PRODUCT_CYCLE_MULTI_TEAM_LABEL,
+      PRODUCT_CYCLE_TEAM_ORDER,
+      ALL_TEAM_SCOPE_KEY,
+      ALL_TEAMS_LABEL,
+      LIFECYCLE_TEAM_SCOPE_DEFAULT,
+      PRODUCT_CYCLE_TEAM_DEFAULT
+    },
+    accessors: {
+      getConfig
+    },
+    ui: {
+      getDashboardPretextLayout,
+      isPretextLayoutActive
+    },
+    helpers: {
+      buildTeamColorMap,
+      buildTintMap,
+      clearChartContainer,
+      clearPanelLead,
+      clearPanelStats,
+      formatCompactMonthYear,
+      formatCompactTeamTabLabel,
+      formatContextWithFreshness,
+      formatCountLabel,
+      getPrCycleTeamColor,
+      getSnapshotContextTimestamp,
+      getThemeColors,
+      normalizeDisplayTeamName,
+      normalizeProductCycleTeamKey,
+      renderDashboardChartState,
+      renderPanelLead,
+      renderPanelStats,
+      syncControlValue,
+      toCount,
+      toNumber
+    },
+    chart: {
+      renderProductCycleCard
+    },
+    getDashboardCharts
+  });
+  const workflowPanels = createWorkflowPanels({
+    state,
+    constants: {
+      ALL_TEAM_SCOPE_KEY,
+      THIRTY_DAY_WINDOW_KEY,
+      DEVELOPMENT_WORKFLOW_WINDOWS,
+      MANAGEMENT_FLOW_SCOPES
+    },
+    prActivityLineDefs: PR_ACTIVITY_LINE_DEFS,
+    accessors: {
+      getConfig,
+      getManagementFacilitySnapshot,
+      getPrActivitySnapshot,
+      getPrActivityWindowedPoints
+    },
+    ui: {
+      getDashboardPretextLayout,
+      isPretextLayoutActive
+    },
+    helpers: {
+      buildIssueItemsSearchUrl,
+      buildRowMarkup,
+      clearChartContainer,
+      clearPanelLead,
+      escapeHtml,
+      formatContextWithFreshness,
+      getBroadcastScopeLabel,
+      getPrCycleTeamColor,
+      getSnapshotContextTimestamp,
+      getThemeColors,
+      normalizeDisplayTeamName,
+      normalizeOption,
+      renderDashboardChartState,
+      renderNamedChart,
+      renderPanelLead,
+      renderProductCycleCard,
+      setPanelContext,
+      showPanelStatus,
+      syncControlValue,
+      syncRadioAvailability,
+      toCount,
+      toNumber,
+      withChart
+    },
+    chart: {
+      isCompactViewport
     }
-    return {
-      controlGroup: {
-        containerId,
-        name,
-        options,
-        selectedValue,
-        bindings: [{ name, stateKey, normalizeValue, onChangeRender }],
-        state
-      },
-      contextText,
-      render
-    };
-  }
+  });
 
-  function normalizeCurrentStageChartData(chartSnapshotData) {
-    if (!chartSnapshotData || typeof chartSnapshotData !== "object") return null;
-    const rows = (Array.isArray(chartSnapshotData.rows) ? chartSnapshotData.rows : []).map(
-      (row) => {
-        const phaseLabel = String(row?.phaseLabel || "");
-        if (phaseLabel === "Development") {
-          return {
-            ...row,
-            phaseLabel: "In Development"
-          };
-        }
-        if (phaseLabel === "Feedback") {
-          return {
-            ...row,
-            phaseLabel: "UAT"
-          };
-        }
-        return row;
-      }
-    );
-    const teamDefs = Array.isArray(chartSnapshotData.teamDefs)
-      ? chartSnapshotData.teamDefs.map((teamDef) => ({
-          ...teamDef,
-          name: normalizeDisplayTeamName(teamDef?.name),
-          team: normalizeDisplayTeamName(teamDef?.team)
-        }))
-      : [];
-    const rawSecondaryLabels =
-      chartSnapshotData.categorySecondaryLabels &&
-      typeof chartSnapshotData.categorySecondaryLabels === "object"
-        ? chartSnapshotData.categorySecondaryLabels
-        : {};
-    const categorySecondaryLabels = { ...rawSecondaryLabels };
-    if (
-      Object.prototype.hasOwnProperty.call(categorySecondaryLabels, "Development") &&
-      !Object.prototype.hasOwnProperty.call(categorySecondaryLabels, "In Development")
-    ) {
-      categorySecondaryLabels["In Development"] = categorySecondaryLabels.Development;
-      delete categorySecondaryLabels.Development;
-    }
-    if (
-      Object.prototype.hasOwnProperty.call(categorySecondaryLabels, "Feedback") &&
-      !Object.prototype.hasOwnProperty.call(categorySecondaryLabels, "UAT")
-    ) {
-      categorySecondaryLabels.UAT = categorySecondaryLabels.Feedback;
-      delete categorySecondaryLabels.Feedback;
-    }
-    return {
-      ...chartSnapshotData,
-      teamDefs,
-      rows,
-      categorySecondaryLabels
-    };
-  }
-
-  function lifecycleTeamScopeKey(value) {
-    return normalizeProductCycleTeamKey(value) || LIFECYCLE_TEAM_SCOPE_DEFAULT;
-  }
-
-  function totalLifecycleSampleCount(teamDef, rows) {
-    const slotKey = String(teamDef?.slot || "");
-    if (!slotKey) return 0;
-    return (Array.isArray(rows) ? rows : []).reduce(
-      (sum, row) => sum + toCount(row?.[`meta_${slotKey}`]?.n),
-      0
-    );
-  }
-
-  function getLifecycleTeamOptions(normalizedChartData) {
-    const rows = Array.isArray(normalizedChartData?.rows) ? normalizedChartData.rows : [];
-    const teamDefs = Array.isArray(normalizedChartData?.teamDefs)
-      ? normalizedChartData.teamDefs
-      : [];
-    const orderedTeamDefs = orderProductCycleTeamsForDisplay(
-      teamDefs.map((teamDef) => String(teamDef?.team || "")).filter(Boolean)
-    )
-      .map((teamName) => teamDefs.find((teamDef) => String(teamDef?.team || "") === teamName))
-      .filter(Boolean);
-    const options = orderedTeamDefs
-      .map((teamDef) => {
-        const team = String(teamDef?.team || "");
-        const key = lifecycleTeamScopeKey(team);
-        const sampleCount = totalLifecycleSampleCount(teamDef, rows);
-        if (!team || key === "unmapped") return null;
-        return {
-          key,
-          label: formatCompactTeamTabLabel(team),
-          team,
-          sampleCount
-        };
-      })
-      .filter(Boolean);
-    return [
-      {
-        key: LIFECYCLE_TEAM_SCOPE_DEFAULT,
-        label: formatCompactTeamTabLabel("all"),
-        sampleCount: 0
-      },
-      ...options
-    ];
-  }
-
-  function buildLifecycleFilteredView(normalizedChartData, selectedTeamKey) {
-    const rows = Array.isArray(normalizedChartData?.rows) ? normalizedChartData.rows : [];
-    const teamDefs = Array.isArray(normalizedChartData?.teamDefs)
-      ? normalizedChartData.teamDefs
-      : [];
-    const selectedKey = lifecycleTeamScopeKey(selectedTeamKey);
-    if (selectedKey === LIFECYCLE_TEAM_SCOPE_DEFAULT) {
-      const includedTeamDefs = teamDefs.filter((teamDef) => {
-        const key = lifecycleTeamScopeKey(teamDef?.team);
-        return key !== "unmapped" && totalLifecycleSampleCount(teamDef, rows) > 0;
-      });
-      const aggregateRows = rows.map((row) => {
-        const totals = includedTeamDefs.reduce(
-          (acc, teamDef) => {
-            const slotKey = String(teamDef?.slot || "");
-            const meta = row?.[`meta_${slotKey}`] || {};
-            const sampleCount = toCount(meta?.n);
-            const average = toNumber(meta?.average);
-            if (sampleCount <= 0 || !Number.isFinite(average) || average <= 0) return acc;
-            acc.weightedValue += average * sampleCount;
-            acc.sampleCount += sampleCount;
-            return acc;
-          },
-          { weightedValue: 0, sampleCount: 0 }
-        );
-        const average =
-          totals.sampleCount > 0
-            ? Number((totals.weightedValue / totals.sampleCount).toFixed(2))
-            : 0;
-        return {
-          phaseLabel: row?.phaseLabel,
-          phaseKey: row?.phaseKey,
-          slot_0: average,
-          meta_slot_0: {
-            team: ALL_TEAMS_LABEL,
-            n: totals.sampleCount,
-            average
-          }
-        };
-      });
-      return {
-        rows: aggregateRows,
-        teamDefs: [{ slot: "slot_0", name: ALL_TEAMS_LABEL, team: ALL_TEAMS_LABEL }],
-        categorySecondaryLabels: Object.fromEntries(
-          aggregateRows.map((row) => [
-            String(row?.phaseLabel || ""),
-            `n=${toCount(row?.meta_slot_0?.n)}`
-          ])
-        ),
-        selectionLabel: ALL_TEAMS_LABEL,
-        sampleSize: aggregateRows.reduce((sum, row) => sum + toCount(row?.meta_slot_0?.n), 0)
-      };
-    }
-
-    const selectedTeamDef = teamDefs.find(
-      (teamDef) => lifecycleTeamScopeKey(teamDef?.team) === selectedKey
-    );
-    if (!selectedTeamDef) return null;
-    const slotKey = String(selectedTeamDef.slot || "");
-    const filteredRows = rows.map((row) => {
-      const value = toNumber(row?.[slotKey]);
-      const meta = row?.[`meta_${slotKey}`] || {};
-      return {
-        phaseLabel: row?.phaseLabel,
-        phaseKey: row?.phaseKey,
-        slot_0: value,
-        meta_slot_0: {
-          team: normalizeDisplayTeamName(selectedTeamDef.team),
-          n: toCount(meta?.n),
-          average: Number.isFinite(toNumber(meta?.average)) ? toNumber(meta?.average) : value
-        }
-      };
-    });
-    return {
-      rows: filteredRows,
-      teamDefs: [
-        {
-          slot: "slot_0",
-          name: normalizeDisplayTeamName(selectedTeamDef.name),
-          team: normalizeDisplayTeamName(selectedTeamDef.team)
-        }
-      ],
-      categorySecondaryLabels: Object.fromEntries(
-        filteredRows.map((row) => [
-          String(row?.phaseLabel || ""),
-          `n=${toCount(row?.meta_slot_0?.n)}`
-        ])
-      ),
-      selectionLabel: normalizeDisplayTeamName(selectedTeamDef.team),
-      sampleSize: filteredRows.reduce((sum, row) => sum + toCount(row?.meta_slot_0?.n), 0)
-    };
-  }
-
-  function renderLifecycleTimeSpentPerStageChartFromChartData(
-    chartSnapshotData,
+  CONTROL_BINDINGS = [
     {
-      configKey = "product-cycle",
-      teamSwitchContainerId = "product-cycle-team-switch",
-      teamControlName = "product-cycle-team",
-      teamStateKey = "productCycleTeam",
-      normalizeTeamValue = productCycleTeamKey,
-      onChangeRender = renderLeadAndCycleTimeByTeamChart
-    } = {}
-  ) {
-    const normalizedChartData = normalizeCurrentStageChartData(chartSnapshotData);
-    if (!normalizedChartData) return;
-    renderDashboardChartState(configKey, getConfig, ({ config }) => {
-      const lifecycleTeamOptions = getLifecycleTeamOptions(normalizedChartData);
-      const validTeamKeys = new Set(lifecycleTeamOptions.map((option) => option.key));
-      const selectedTeamKey = validTeamKeys.has(lifecycleTeamScopeKey(state[teamStateKey]))
-        ? lifecycleTeamScopeKey(state[teamStateKey])
-        : LIFECYCLE_TEAM_SCOPE_DEFAULT;
-      state[teamStateKey] = selectedTeamKey;
-
-      const filteredView = buildLifecycleFilteredView(normalizedChartData, selectedTeamKey);
-      if (!filteredView) {
-        clearPanelLead(config.panelId);
-        return { error: "No current lifecycle stage counts found.", clearContainer: true };
-      }
-      const teams = orderProductCycleTeamsForDisplay(
-        filteredView.teamDefs.map((teamDef) => String(teamDef?.team || "")).filter(Boolean)
-      );
-      const rows = Array.isArray(filteredView.rows) ? filteredView.rows : [];
-      const teamDefsBase = Array.isArray(filteredView.teamDefs) ? filteredView.teamDefs : [];
-      if (teams.length === 0 || teamDefsBase.length === 0) {
-        clearPanelLead(config.panelId);
-        return { error: "No current lifecycle stage counts found.", clearContainer: true };
-      }
-
-      const themeColors = getThemeColors();
-      const lifecycleTeamColorMap =
-        selectedTeamKey === LIFECYCLE_TEAM_SCOPE_DEFAULT
-          ? { [ALL_TEAMS_LABEL]: themeColors.teams.all }
-          : buildTeamColorMap(teams);
-      const lifecycleTintByTeam = buildTintMap(lifecycleTeamColorMap, 0.02);
-      const teamDefs = teamDefsBase.map((teamDef, index) => ({
-        key: String(teamDef?.slot || `slot_${index}`),
-        ...teamDef,
-        color:
-          lifecycleTeamColorMap[String(teamDef?.team || "")] ||
-          buildTeamColorMap([String(teamDef?.team || "")])[String(teamDef?.team || "")] ||
-          themeColors.teams.api,
-        showSeriesLabel: false,
-        metaTeamColorMap: lifecycleTintByTeam
-      }));
-      const categorySecondaryLabels =
-        filteredView.categorySecondaryLabels &&
-        typeof filteredView.categorySecondaryLabels === "object"
-          ? filteredView.categorySecondaryLabels
-          : Object.fromEntries(rows.map((row) => [String(row.phaseLabel || ""), ""]));
-      const sampleSize = toCount(filteredView.sampleSize);
-
-      return buildRadioChartStateResult({
-        containerId: teamSwitchContainerId,
-        name: teamControlName,
-        options: lifecycleTeamOptions.map((option) => ({
-          value: option.key,
-          label: option.label
-        })),
-        selectedValue: selectedTeamKey,
-        stateKey: teamStateKey,
-        normalizeValue: normalizeTeamValue,
-        onChangeRender,
-        state,
-        contextText: isPretextLayoutActive()
-          ? ""
-          : formatContextWithFreshness(
-              `${filteredView.selectionLabel} • ${sampleSize} open ideas sampled`,
-              getSnapshotContextTimestamp(state),
-              "generated"
-            ),
-        render: () => {
-          const pretextLayout = getDashboardPretextLayout();
-          if (isPretextLayoutActive() && pretextLayout) {
-            clearPanelLead(config.panelId);
-            const model = buildPretextLifecycleStageModel(filteredView, selectedTeamKey);
-            const rendered =
-              pretextLayout.renderPretextCard?.(config.containerId, model) ||
-              pretextLayout.renderWorkflowBreakdownCard?.(config.containerId, model);
-            if (rendered) {
-              return {
-                clearError: true
-              };
-            }
-          }
-          window.DashboardCharts?.renderLifecycleTimeSpentPerStageChart?.({
-            containerId: config.containerId,
-            rows,
-            seriesDefs: teamDefs,
-            colors: themeColors,
-            categorySecondaryLabels
-          });
-          return {
-            clearError: true
-          };
-        }
-      });
-    });
-  }
-
-  function getShipmentMonthsByYear(timelineSnapshot) {
-    const safeMonths = Array.isArray(timelineSnapshot?.months) ? timelineSnapshot.months : [];
-    const monthsByYear = new Map();
-    for (const month of safeMonths) {
-      const monthKey = String(month?.monthKey || "").trim();
-      const yearKey = monthKey.slice(0, 4);
-      if (!/^\d{4}$/.test(yearKey)) continue;
-      if (!monthsByYear.has(yearKey)) monthsByYear.set(yearKey, []);
-      monthsByYear.get(yearKey).push(month);
-    }
-    for (const months of monthsByYear.values()) {
-      months.sort((left, right) =>
-        String(left?.monthKey || "").localeCompare(String(right?.monthKey || ""))
-      );
-    }
-    return monthsByYear;
-  }
-
-  function buildShipmentTimelineLeadModel(timelineSnapshot, selectedYear, selectedMonthKey) {
-    const monthsByYear = getShipmentMonthsByYear(timelineSnapshot);
-    const months = monthsByYear.get(selectedYear) || [];
-    const selectedMonth =
-      months.find(
-        (month) => String(month?.monthKey || "").trim() === String(selectedMonthKey || "").trim()
-      ) ||
-      months[months.length - 1] ||
-      null;
-    if (!selectedMonth) return null;
-
-    const topTeam = [...(Array.isArray(selectedMonth?.teams) ? selectedMonth.teams : [])].sort(
-      (left, right) => {
-        if (toCount(right?.shippedCount) !== toCount(left?.shippedCount)) {
-          return toCount(right?.shippedCount) - toCount(left?.shippedCount);
-        }
-        return String(left?.team || "").localeCompare(String(right?.team || ""));
-      }
-    )[0];
-    const monthLabel = formatCompactMonthYear(selectedMonth?.monthKey);
-
-    return {
-      summaryText: `${monthLabel} shipped ${toCount(selectedMonth?.totalShipped)} ideas across ${toCount(
-        selectedMonth?.teamCount
-      )} teams, led by ${normalizeDisplayTeamName(topTeam?.team || "the busiest team")}.`,
-      calloutLabel: "Shipped",
-      calloutValue: String(toCount(selectedMonth?.totalShipped)),
-      calloutSubtext: monthLabel,
-      chips: [
-        `${toCount(timelineSnapshot?.totalShipped)} shipped total`,
-        `${toCount(selectedMonth?.teamCount)} teams this month`,
-        topTeam ? `Top team: ${normalizeDisplayTeamName(topTeam.team)}` : ""
-      ].filter(Boolean),
-      accentColor: "rgba(82, 131, 94, 0.22)"
-    };
-  }
-
-  function buildShipmentTimelineStatsModel(timelineSnapshot, selectedYear, selectedMonthKey) {
-    const monthsByYear = getShipmentMonthsByYear(timelineSnapshot);
-    const months = monthsByYear.get(selectedYear) || [];
-    const selectedMonth =
-      months.find(
-        (month) => String(month?.monthKey || "").trim() === String(selectedMonthKey || "").trim()
-      ) ||
-      months[months.length - 1] ||
-      null;
-    if (!selectedMonth) return null;
-
-    const topTeam = [...(Array.isArray(selectedMonth?.teams) ? selectedMonth.teams : [])].sort(
-      (left, right) => {
-        if (toCount(right?.shippedCount) !== toCount(left?.shippedCount)) {
-          return toCount(right?.shippedCount) - toCount(left?.shippedCount);
-        }
-        return String(left?.team || "").localeCompare(String(right?.team || ""));
-      }
-    )[0];
-    const monthLabel = formatCompactMonthYear(selectedMonth?.monthKey);
-    const yearTotal = months.reduce((sum, month) => sum + toCount(month?.totalShipped), 0);
-
-    return {
-      accentColor: "var(--team-react)",
-      stats: [
-        { label: "Month", value: monthLabel || String(selectedYear || "") },
-        { label: "Shipped", value: formatCountLabel(selectedMonth?.totalShipped, "idea") },
-        { label: "Top team", value: normalizeDisplayTeamName(topTeam?.team || "None") },
-        { label: "Year total", value: formatCountLabel(yearTotal, "idea") }
-      ]
-    };
-  }
-
-  function renderProductCycleShipmentsTimeline() {
-    renderDashboardChartState("product-cycle-shipments", getConfig, ({ config }) => {
-      const timelineSnapshot = state.productCycleShipments?.chartData?.shippedTimeline;
-      const monthsByYear = getShipmentMonthsByYear(timelineSnapshot);
-      const availableYears = Array.from(monthsByYear.keys()).sort((left, right) =>
-        left.localeCompare(right)
-      );
-      if (availableYears.length === 0) {
-        clearPanelLead(config.panelId);
-        clearPanelStats(config.summaryId);
-        return {
-          error: config.missingMessage,
-          clearContainer: true
-        };
-      }
-
-      const selectedYear = availableYears.includes(state.productCycleShipmentsYear)
-        ? state.productCycleShipmentsYear
-        : availableYears[availableYears.length - 1];
-      const monthsInYear = monthsByYear.get(selectedYear) || [];
-      const availableMonthKeys = new Set(
-        monthsInYear.map((month) => String(month?.monthKey || "").trim()).filter(Boolean)
-      );
-      const selectedMonthKey = availableMonthKeys.has(state.productCycleShipmentsMonthKey)
-        ? state.productCycleShipmentsMonthKey
-        : String(monthsInYear[monthsInYear.length - 1]?.monthKey || "").trim();
-
-      state.productCycleShipmentsYear = selectedYear;
-      state.productCycleShipmentsMonthKey = selectedMonthKey;
-
-      return {
-        contextText: isPretextLayoutActive()
-          ? ""
-          : formatContextWithFreshness(
-              `Shipment history • ${toCount(timelineSnapshot?.totalShipped)} shipped total • ${availableYears.join(", ")}`,
-              state.productCycleShipments?.generatedAt,
-              "generated"
-            ),
-        render: () => {
-          if (isPretextLayoutActive()) {
-            clearPanelLead(config.panelId);
-            renderPanelStats(
-              config.summaryId,
-              buildShipmentTimelineStatsModel(timelineSnapshot, selectedYear, selectedMonthKey)
-            );
-          } else {
-            clearPanelStats(config.summaryId);
-            renderPanelLead(
-              config.panelId,
-              buildShipmentTimelineLeadModel(timelineSnapshot, selectedYear, selectedMonthKey)
-            );
-          }
-          window.DashboardCharts?.renderProductCycleShipmentsTimeline?.({
-            containerId: config.containerId,
-            timelineSnapshot,
-            selectedYear,
-            selectedMonthKey
-          });
-          const container = document.getElementById(config.containerId);
-          if (container) {
-            container.onclick = (event) => {
-              const target = event.target instanceof Element ? event.target : null;
-              if (!target) return;
-              const yearButton = target.closest("[data-shipped-year-target]");
-              if (yearButton instanceof HTMLButtonElement && !yearButton.disabled) {
-                state.productCycleShipmentsYear =
-                  String(yearButton.dataset.shippedYearTarget || "").trim() ||
-                  state.productCycleShipmentsYear;
-                state.productCycleShipmentsMonthKey = "";
-                renderProductCycleShipmentsTimeline();
-                return;
-              }
-              const monthButton = target.closest("[data-shipped-month-key]");
-              if (monthButton instanceof HTMLButtonElement && !monthButton.disabled) {
-                state.productCycleShipmentsMonthKey =
-                  String(monthButton.dataset.shippedMonthKey || "").trim() ||
-                  state.productCycleShipmentsMonthKey;
-                renderProductCycleShipmentsTimeline();
-              }
-            };
-          }
-          return {
-            clearError: true
-          };
-        }
-      };
-    });
-  }
-
-  function renderLeadAndCycleTimeByTeamChart() {
-    const viewKey = productDeliveryWorkflowViewKey(state.productDeliveryWorkflowView);
-    state.productDeliveryWorkflowView = viewKey;
-    syncControlValue("product-delivery-workflow-view", viewKey);
-
-    const chartDataValue = state.productCycle?.chartData;
-    const chartData = chartDataValue && typeof chartDataValue === "object" ? chartDataValue : null;
-    if (!chartData) {
-      renderDashboardChartState("product-cycle", getConfig, ({ config }) => ({
-        error: config.missingMessage,
-        clearContainer: true
-      }));
-      return;
-    }
-
-    if (viewKey === "workflow") {
-      const chartSnapshotData = chartData.currentStageSnapshot;
-      if (!chartSnapshotData) {
-        renderDashboardChartState("product-cycle", getConfig, () => ({
-          error: "No current lifecycle chart data found in product-cycle-snapshot.json.",
-          clearContainer: true
-        }));
-        return;
-      }
-      renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData, {
-        configKey: "product-cycle",
-        teamSwitchContainerId: "product-cycle-team-switch",
-        teamControlName: "product-cycle-team",
-        teamStateKey: "productCycleTeam",
-        normalizeTeamValue: productCycleTeamKey,
-        onChangeRender: renderLeadAndCycleTimeByTeamChart
-      });
-      return;
-    }
-
-    const chartScopeData = chartData.leadCycleByScope?.[PRODUCT_CYCLE_SCOPE];
-    if (!chartScopeData) {
-      renderDashboardChartState("product-cycle", getConfig, () => ({
-        error: `No product cycle chart data found for ${PRODUCT_CYCLE_SCOPE_LABEL}.`,
-        clearContainer: true
-      }));
-      return;
-    }
-
-    renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData, {
-      configKey: "product-cycle",
-      teamSwitchContainerId: "product-cycle-team-switch",
-      teamControlName: "product-cycle-team",
-      teamStateKey: "productCycleTeam",
-      onChangeRender: renderLeadAndCycleTimeByTeamChart
-    });
-  }
-
-  function productCycleTeamKey(value) {
-    return normalizeProductCycleTeamKey(value);
-  }
-
-  function orderProductCycleTeamsForDisplay(teams) {
-    const rankByTeam = new Map(PRODUCT_CYCLE_TEAM_ORDER.map((team, index) => [team, index]));
-    const seenKeys = new Set();
-    return (Array.isArray(teams) ? teams : [])
-      .map((team) => String(team || "").trim())
-      .filter(Boolean)
-      .filter((team) => {
-        const key = productCycleTeamKey(team);
-        if (seenKeys.has(key)) return false;
-        seenKeys.add(key);
-        return true;
-      })
-      .sort((left, right) => {
-        const leftRank = rankByTeam.has(productCycleTeamKey(left))
-          ? rankByTeam.get(productCycleTeamKey(left))
-          : Number.MAX_SAFE_INTEGER;
-        const rightRank = rankByTeam.has(productCycleTeamKey(right))
-          ? rankByTeam.get(productCycleTeamKey(right))
-          : Number.MAX_SAFE_INTEGER;
-        if (leftRank !== rightRank) return leftRank - rightRank;
-        return String(left || "").localeCompare(String(right || ""));
-      });
-  }
-
-  function getPrCycleStageDisplayLabel(stage) {
-    const key = String(stage?.key || "").trim();
-    if (key === "coding") return "Progress";
-    if (key === "review") return "Review";
-    if (key === "merge") return "QA";
-    return String(stage?.label || "").trim();
-  }
-
-  function formatStackedCycleDaysValueMarkup(valueInDays) {
-    const days = Math.max(0, toNumber(valueInDays));
-    const rounded = days.toFixed(1);
-    const unit = Math.abs(days - 1) < 0.05 ? "day" : "days";
-    return `<span class="stacked-duration"><span class="stacked-duration__value">${rounded}</span><span class="stacked-duration__unit">${unit}</span></span>`;
-  }
-
-  function formatWorkflowBreakdownMetricMarkup(value, modifierClass = "") {
-    return `
-    <span class="workflow-breakdown-metric${modifierClass ? ` ${modifierClass}` : ""}">
-      <span class="workflow-breakdown-metric__value">${escapeHtml(value)}</span>
-    </span>
-  `;
-  }
-
-  function formatWorkflowBreakdownDurationMetricMarkup(valueInDays) {
-    const days = Math.max(0, toNumber(valueInDays));
-    const rounded = days.toFixed(1);
-    return formatWorkflowBreakdownMetricMarkup(rounded, "workflow-breakdown-metric--days");
-  }
-
-  function formatWorkflowBreakdownInflowMetricMarkup(value) {
-    const inflow = toNumber(value);
-    if (!Number.isFinite(inflow) || inflow <= 0) return "";
-    const rounded = String(Math.max(0, Math.round(inflow)));
-    return formatWorkflowBreakdownMetricMarkup(rounded, "workflow-breakdown-metric--inflow");
-  }
-
-  function formatWorkflowBreakdownValueMarkup(totalCycleDays, avgPrInflow) {
-    return `
-    <span class="workflow-breakdown-metrics">
-      ${formatWorkflowBreakdownDurationMetricMarkup(totalCycleDays)}
-      ${formatWorkflowBreakdownInflowMetricMarkup(avgPrInflow)}
-    </span>
-  `;
-  }
-
-  function formatWorkflowBreakdownHeaderMarkup() {
-    return `
-    <div class="workflow-breakdown-card__header-main">
-      <div class="pr-cycle-stage-card__team">All teams</div>
-    </div>
-  `;
-  }
-
-  function isPretextLayoutActive() {
-    const pretextLayout = getDashboardPretextLayout();
-    return (
-      pretextLayout?.isLayoutEnabled?.(window.location.search) === true ||
-      pretextLayout?.isWorkflowEnabled?.(window.location.search) === true
-    );
-  }
-
-  function formatWorkflowDaysText(value) {
-    const days = Math.max(0, toNumber(value));
-    return `${days.toFixed(1)} ${Math.abs(days - 1) < 0.05 ? "day" : "days"}`;
-  }
-
-  function formatCycleMonthsText(valueInDays, { short = false } = {}) {
-    const months = Math.max(0, toNumber(valueInDays) / 30.4375);
-    const rounded = months === 0 ? "0" : months.toFixed(1);
-    const unit = Math.abs(months - 1) < 0.05 ? "month" : "months";
-    if (short) return `${rounded} ${unit}`;
-    return `${rounded} ${unit}`;
-  }
-
-  function getPretextFillWidth(value, upperBound) {
-    const safeUpper = Math.max(1, toNumber(upperBound));
-    const safeValue = Math.max(0, toNumber(value));
-    if (safeValue <= 0) return 0;
-    return Math.max(12, Math.round((safeValue / safeUpper) * 100));
-  }
-
-  function normalizeWorkflowBottleneckLabel(value) {
-    const raw = String(value || "").trim();
-    const normalized = raw.toLowerCase();
-    if (normalized === "in progress") return "Progress";
-    if (normalized === "in review") return "Review";
-    return raw;
-  }
-
-  function getRenderableWorkflowStages(stages) {
-    return (Array.isArray(stages) ? stages : []).filter(
-      (stage) => toCount(stage?.sampleCount) > 0 || toNumber(stage?.days) > 0
-    );
-  }
-
-  function buildPretextWorkflowBreakdownModel(team, snapshot, footerPrimary, footerSecondary) {
-    const teamColor = getPrCycleTeamColor(team?.key);
-    const stages = getRenderableWorkflowStages(team?.stages);
-    const maxDays =
-      stages.reduce((highest, stage) => Math.max(highest, toNumber(stage?.days)), 0) || 1;
-    const issueCount = toCount(team?.issueCount || team?.pullRequestCount);
-    const inflow = toNumber(team?.avgPrInflow);
-    const bottleneckLabel = normalizeWorkflowBottleneckLabel(team?.bottleneckLabel);
-
-    return {
-      teamKey: String(team?.key || ""),
-      teamColor,
-      accentColor: teamColor,
-      stats: [
-        { label: "Cycle time", value: formatWorkflowDaysText(team?.totalCycleDays) },
-        { label: "Main blocker", value: bottleneckLabel || "None" },
-        { label: "Sample", value: `${issueCount} ${issueCount === 1 ? "issue" : "issues"}` },
-        inflow > 0
-          ? { label: "PRs / sprint", value: `≈ ${Math.round(inflow)}` }
-          : { label: "Window", value: String(snapshot?.windowLabel || "").trim() }
-      ],
-      columnStartLabel: "Stage",
-      columnEndLabel: "Avg time",
-      footerBits: [footerSecondary].filter(Boolean),
-      rows: stages.map((stage) => ({
-        label: getPrCycleStageDisplayLabel(stage),
-        metaBits: [
-          `${toCount(stage?.sampleCount)} ${toCount(stage?.sampleCount) === 1 ? "issue" : "issues"}`
-        ],
-        valueText: formatWorkflowDaysText(stage?.days),
-        width: Math.max(12, Math.round((toNumber(stage?.days) / maxDays) * 100)),
-        color: teamColor
-      }))
-    };
-  }
-
-  function buildPretextAllTeamsBreakdownModel(team, snapshot, footerPrimary, footerSecondary) {
-    const orderedRows = [...(Array.isArray(team?.teamRows) ? team.teamRows : [])].sort(
-      (left, right) => {
-        if (toNumber(left?.totalCycleDays) !== toNumber(right?.totalCycleDays)) {
-          return toNumber(left?.totalCycleDays) - toNumber(right?.totalCycleDays);
-        }
-        return String(left?.label || "").localeCompare(String(right?.label || ""));
-      }
-    );
-    const maxDays =
-      orderedRows.reduce((highest, row) => Math.max(highest, toNumber(row?.totalCycleDays)), 0) ||
-      1;
-    const inflowSummary =
-      toNumber(team?.avgPrInflow) > 0
-        ? `≈ ${Math.round(toNumber(team?.avgPrInflow))} PRs per sprint`
-        : "";
-
-    return {
-      teamKey: ALL_TEAM_SCOPE_KEY,
-      teamColor: getPrCycleTeamColor(ALL_TEAM_SCOPE_KEY),
-      accentColor: "var(--chart-active)",
-      stats: [
-        { label: "Cycle time", value: formatWorkflowDaysText(team?.totalCycleDays) },
-        {
-          label: "Main blocker",
-          value: normalizeWorkflowBottleneckLabel(team?.bottleneckLabel) || "None"
-        },
-        { label: "Teams", value: `${toCount(team?.teamCount)} teams` },
-        inflowSummary
-          ? { label: "PRs / sprint", value: `≈ ${Math.round(toNumber(team?.avgPrInflow))}` }
-          : { label: "Sample", value: footerPrimary }
-      ],
-      columnStartLabel: "Team",
-      columnEndLabel: "Avg cycle",
-      footerBits: [footerSecondary].filter(Boolean),
-      rows: orderedRows.map((row) => {
-        const bottleneck = normalizeWorkflowBottleneckLabel(row?.bottleneckLabel);
-        const inflow = toNumber(row?.avgPrInflow);
-        return {
-          label: normalizeDisplayTeamName(row?.label || ""),
-          metaBits: [
-            `${toCount(row?.issueCount)} ${toCount(row?.issueCount) === 1 ? "issue" : "issues"}`,
-            bottleneck ? `${bottleneck} blocker` : "",
-            Number.isFinite(inflow) && inflow > 0 ? `≈ ${Math.round(inflow)} PRs / sprint` : ""
-          ].filter(Boolean),
-          valueText: formatWorkflowDaysText(row?.totalCycleDays),
-          width: Math.max(12, Math.round((toNumber(row?.totalCycleDays) / maxDays) * 100)),
-          color: getPrCycleTeamColor(row?.key)
-        };
-      })
-    };
-  }
-
-  function buildPretextContributorsModel(rows, summary) {
-    const safeRows = Array.isArray(rows) ? rows : [];
-    if (safeRows.length === 0) return null;
-    const topContributor = safeRows[0] || null;
-    const totalIssues = toCount(summary?.totalIssues);
-    const totalContributors = Math.max(toCount(summary?.totalContributors), safeRows.length);
-    const maxTotal = Math.max(1, ...safeRows.map((row) => toCount(row?.totalIssues)));
-
-    return {
-      teamKey: "contributors",
-      teamColor: "var(--team-react)",
-      accentColor: "var(--team-react)",
-      stats: [
-        { label: "Included issues", value: `${totalIssues}` },
-        {
-          label: "Top contributor",
-          value: String(topContributor?.contributor || "").trim() || `${totalContributors} ranked`
-        },
-        { label: "Active", value: `${toCount(summary?.activeIssues)}` },
-        { label: "Done", value: `${toCount(summary?.doneIssues)}` }
-      ],
-      columnStartLabel: "Contributor",
-      columnEndLabel: "Included issues",
-      rows: safeRows.map((row) => ({
-        label: String(row?.contributor || "").trim(),
-        metaBits: [
-          `${toCount(row?.doneIssues)} done`,
-          toCount(row?.activeIssues) > 0 ? `${toCount(row?.activeIssues)} active` : ""
-        ].filter(Boolean),
-        valueText: String(toCount(row?.totalIssues)),
-        width: getPretextFillWidth(row?.totalIssues, maxTotal),
-        color: "var(--team-react)"
-      }))
-    };
-  }
-
-  function buildPretextManagementFacilityModel(scopeLabel, rows, scopeKey = "ongoing") {
-    const safeRows = (Array.isArray(rows) ? rows : []).filter(
-      (row) => toCount(row?.sampleCount) > 0
-    );
-    if (safeRows.length === 0) return null;
-    const sampleCount = safeRows.reduce((sum, row) => sum + toCount(row?.sampleCount), 0);
-    const weightedUatAverage =
-      safeRows.reduce((sum, row) => sum + toNumber(row?.uatAvg) * toCount(row?.sampleCount), 0) /
-      Math.max(1, sampleCount);
-    const sortedRows = [...safeRows].sort((left, right) => {
-      if (toNumber(right?.uatAvg) !== toNumber(left?.uatAvg)) {
-        return toNumber(right?.uatAvg) - toNumber(left?.uatAvg);
-      }
-      return String(left?.label || "").localeCompare(String(right?.label || ""));
-    });
-    const slowestRow = sortedRows[0] || null;
-    const maxUatDays = Math.max(1, ...sortedRows.map((row) => toNumber(row?.uatAvg)));
-
-    return {
-      teamKey: "uat",
-      teamColor: "var(--chart-active)",
-      accentColor: "var(--chart-active)",
-      stats: [
-        { label: "UAT average", value: formatCycleMonthsText(weightedUatAverage, { short: true }) },
-        ...(scopeKey === "done"
-          ? []
-          : [
-              {
-                label: "Action needed",
-                value: String(slowestRow?.label || "").trim() || scopeLabel
-              }
-            ]),
-        { label: "Slowest avg", value: formatCycleMonthsText(slowestRow?.uatAvg, { short: true }) },
-        { label: "Sample", value: `${sampleCount} issues` }
-      ],
-      columnStartLabel: "Business unit",
-      columnEndLabel: "Avg time in UAT",
-      rows: sortedRows.map((row) => ({
-        label: String(row?.label || "").trim(),
-        rowHref: buildIssueItemsSearchUrl(row?.issueItems),
-        linkAriaLabel: `Open ${String(row?.label || "").trim()} Jira issues in new tab`,
-        metaBits: [
-          `${toCount(row?.sampleCount)} ${toCount(row?.sampleCount) === 1 ? "issue" : "issues"}`
-        ],
-        valueText: formatCycleMonthsText(row?.uatAvg, { short: true }),
-        width: getPretextFillWidth(row?.uatAvg, maxUatDays),
-        color: "var(--chart-active)"
-      }))
-    };
-  }
-
-  function buildPretextLifecycleStageModel(filteredView, selectedTeamKey) {
-    const safeRows = Array.isArray(filteredView?.rows) ? filteredView.rows : [];
-    if (safeRows.length === 0) return null;
-    const sampleSize = toCount(filteredView?.sampleSize);
-    const selectionLabel = String(filteredView?.selectionLabel || "All teams").trim();
-    const rankedRows = [...safeRows].sort((left, right) => {
-      if (toNumber(right?.slot_0) !== toNumber(left?.slot_0)) {
-        return toNumber(right?.slot_0) - toNumber(left?.slot_0);
-      }
-      return String(left?.phaseLabel || "").localeCompare(String(right?.phaseLabel || ""));
-    });
-    const lifecycleStageOrder = new Map([
-      ["parking", 0],
-      ["parking lot", 0],
-      ["design", 1],
-      ["ready", 2],
-      ["development", 3],
-      ["in development", 3],
-      ["feedback", 4],
-      ["uat", 4]
-    ]);
-    const displayRows = [...safeRows].sort((left, right) => {
-      const leftRank = lifecycleStageOrder.get(
-        String(left?.phaseLabel || "")
+      name: "report-section",
+      stateKey: "sectionFilter",
+      defaultValue: SECTION_FILTER_DEFAULT,
+      normalizeValue: sectionFilterKey,
+      onChangeRender: renderSectionFilteredPanelsAfterShell
+    },
+    {
+      name: "bug-trends-view",
+      stateKey: "bugTrendsView",
+      defaultValue: BUG_TRENDS_VIEW_DEFAULT,
+      normalizeValue: bugTrendsViewKey,
+      onChangeRender: renderBugTrendsPanel
+    },
+    {
+      name: "management-facility-flow-scope",
+      stateKey: "managementFlowScope",
+      defaultValue: "ongoing",
+      normalizeValue: (value) => normalizeOption(value, MANAGEMENT_FLOW_SCOPES, "ongoing"),
+      onChangeRender: workflowPanels.renderDevelopmentVsUatByFacilityChart
+    },
+    {
+      name: "pr-cycle-team",
+      stateKey: "prCycleTeam",
+      defaultValue: ALL_TEAM_SCOPE_KEY,
+      normalizeValue: (value) =>
+        String(value || "")
           .trim()
-          .toLowerCase()
-      );
-      const rightRank = lifecycleStageOrder.get(
-        String(right?.phaseLabel || "")
-          .trim()
-          .toLowerCase()
-      );
-      if (leftRank !== undefined || rightRank !== undefined) {
-        return (leftRank ?? Number.MAX_SAFE_INTEGER) - (rightRank ?? Number.MAX_SAFE_INTEGER);
-      }
-      return String(left?.phaseLabel || "").localeCompare(String(right?.phaseLabel || ""));
-    });
-    const longestRow = rankedRows[0] || null;
-    const maxDays = Math.max(1, ...rankedRows.map((row) => toNumber(row?.slot_0)));
-    const teamKey =
-      lifecycleTeamScopeKey(selectedTeamKey) === LIFECYCLE_TEAM_SCOPE_DEFAULT
-        ? ALL_TEAM_SCOPE_KEY
-        : lifecycleTeamScopeKey(selectedTeamKey);
-    const rowColor =
-      teamKey === ALL_TEAM_SCOPE_KEY ? "var(--product-cycle-cycle)" : getPrCycleTeamColor(teamKey);
-    const accentColor = teamKey === ALL_TEAM_SCOPE_KEY ? "var(--product-cycle-cycle)" : rowColor;
-
-    return {
-      teamKey,
-      teamColor: rowColor,
-      accentColor,
-      stats: [
-        {
-          label: "Longest hold",
-          value: formatCycleMonthsText(longestRow?.slot_0, { short: true })
-        },
-        {
-          label: "Slowest stage",
-          value: String(longestRow?.phaseLabel || "").trim() || selectionLabel
-        },
-        { label: "Sample", value: `${sampleSize} open ideas` },
-        { label: "Scope", value: selectionLabel }
-      ],
-      columnStartLabel: "Stage",
-      columnEndLabel: "Avg time",
-      footerBits: ["Current workflow"].filter(Boolean),
-      rows: displayRows.map((row) => ({
-        label: String(row?.phaseLabel || "").trim(),
-        metaBits: [`${toCount(row?.meta_slot_0?.n)} open ideas`],
-        valueText: formatCycleMonthsText(row?.slot_0, { short: true }),
-        width: getPretextFillWidth(row?.slot_0, maxDays),
-        color: rowColor
-      }))
-    };
-  }
-
-  function buildPretextProductCycleComparisonModel(
-    rows,
-    scopeLabel,
-    cycleSampleCount,
-    fetchedCount
-  ) {
-    const safeRows = (Array.isArray(rows) ? rows : []).filter(
-      (row) => toCount(row?.meta_cycle?.n) > 0
-    );
-    const maxCycleDays =
-      safeRows.reduce((highest, row) => Math.max(highest, toNumber(row?.cycle)), 0) || 1;
-    const weightedCycleDays =
-      safeRows.reduce((sum, row) => sum + toNumber(row?.cycle) * toCount(row?.meta_cycle?.n), 0) /
-      Math.max(
-        1,
-        safeRows.reduce((sum, row) => sum + toCount(row?.meta_cycle?.n), 0)
-      );
-    const rankedRows = [...safeRows].sort((left, right) => {
-      if (toNumber(left?.cycle) !== toNumber(right?.cycle)) {
-        return toNumber(left?.cycle) - toNumber(right?.cycle);
-      }
-      return String(left?.team || "").localeCompare(String(right?.team || ""));
-    });
-    const fastestRow = rankedRows[0] || null;
-
-    return {
-      teamKey: ALL_TEAM_SCOPE_KEY,
-      teamColor: getPrCycleTeamColor(ALL_TEAM_SCOPE_KEY),
-      accentColor: "var(--product-cycle-cycle)",
-      stats: [
-        { label: "Avg delivery", value: formatCycleMonthsText(weightedCycleDays, { short: true }) },
-        {
-          label: "Fastest team",
-          value: normalizeDisplayTeamName(fastestRow?.team || "") || "N/A"
-        },
-        { label: "Teams", value: `${rankedRows.length}` },
-        { label: "Sample", value: `${toCount(cycleSampleCount)} ideas` }
-      ],
-      columnStartLabel: "Team",
-      columnEndLabel: "Avg delivery",
-      footerBits: [
-        String(scopeLabel || PRODUCT_CYCLE_SCOPE_LABEL).trim(),
-        fetchedCount > 0 ? `${toCount(fetchedCount)} fetched ideas` : ""
-      ].filter(Boolean),
-      rows: rankedRows.map((row) => {
-        const doneCount = toCount(row?.cycleDoneCount);
-        const ongoingCount = toCount(row?.cycleOngoingCount);
-        return {
-          label: normalizeDisplayTeamName(row?.team || ""),
-          metaBits: [
-            `${toCount(row?.meta_cycle?.n)} ideas`,
-            doneCount > 0 ? `${doneCount} shipped` : "",
-            ongoingCount > 0 ? `${ongoingCount} ongoing` : ""
-          ].filter(Boolean),
-          valueText: formatCycleMonthsText(row?.cycle, { short: true }),
-          width: Math.max(12, Math.round((toNumber(row?.cycle) / maxCycleDays) * 100)),
-          color: getPrCycleTeamColor(row?.team)
-        };
-      })
-    };
-  }
-
-  function buildPretextProductCycleSingleTeamModel(row, allRows, scopeLabel) {
-    const cycleSample = toCount(row?.meta_cycle?.n);
-    const shippedCount = toCount(row?.cycleDoneCount);
-    const ongoingCount = toCount(row?.cycleOngoingCount);
-    const teamColor = getPrCycleTeamColor(row?.team);
-    const maxCycleDays = 5 * 30.4375;
-    const maxShipped = Math.max(
-      1,
-      ...(Array.isArray(allRows) ? allRows : []).map((item) => toCount(item?.cycleDoneCount))
-    );
-    const maxOngoing = Math.max(
-      1,
-      ...(Array.isArray(allRows) ? allRows : []).map((item) => toCount(item?.cycleOngoingCount))
-    );
-
-    return {
-      teamKey: String(row?.team || ""),
-      teamColor,
-      accentColor: teamColor,
-      stats: [
-        { label: "Delivery time", value: formatCycleMonthsText(row?.cycle, { short: true }) },
-        { label: "Sample", value: `${cycleSample} ideas` },
-        { label: "Shipped", value: `${shippedCount}` },
-        { label: "Ongoing", value: `${ongoingCount}` }
-      ],
-      columnStartLabel: "Measure",
-      columnEndLabel: "Current",
-      footerBits: [String(scopeLabel || PRODUCT_CYCLE_SCOPE_LABEL).trim()].filter(Boolean),
-      rows: [
-        {
-          label: "Delivery time",
-          metaBits: [`${cycleSample} ideas`],
-          valueText: formatCycleMonthsText(row?.cycle, { short: true }),
-          width: getPretextFillWidth(row?.cycle, maxCycleDays),
-          color: teamColor
-        },
-        {
-          label: "Shipped",
-          metaBits: ["completed ideas"],
-          valueText: String(shippedCount),
-          width: getPretextFillWidth(shippedCount, maxShipped),
-          color: teamColor
-        },
-        {
-          label: "Ongoing",
-          metaBits: ["ongoing ideas"],
-          valueText: String(ongoingCount),
-          width: getPretextFillWidth(ongoingCount, maxOngoing),
-          color: teamColor
-        }
-      ]
-    };
-  }
-
-  function formatWorkflowBreakdownColumnHeaderRowMarkup() {
-    return `
-    <div class="pr-cycle-stage-row workflow-breakdown-column-header" aria-hidden="true">
-      <div class="pr-cycle-stage-row__label workflow-breakdown-column-header__placeholder"></div>
-      <div class="workflow-breakdown-column-header__spacer"></div>
-      <div class="pr-cycle-stage-row__value workflow-breakdown-column-header__value">
-        <span class="workflow-breakdown-metrics workflow-breakdown-metrics--headings">
-          <span class="workflow-breakdown-metric-heading">Days</span>
-          <span class="workflow-breakdown-metric-heading">PR/sprint</span>
-        </span>
-      </div>
-    </div>
-  `;
-  }
-
-  function renderWorkflowBreakdownCard(containerId, team, snapshot) {
-    if (!team) return;
-    const compactViewport = isCompactViewport();
-    const pretextWorkflowEnabled = isPretextLayoutActive();
-    const pretextLayout = getDashboardPretextLayout();
-    const isAllTeamsView =
-      String(team?.key || "")
-        .trim()
-        .toLowerCase() === ALL_TEAM_SCOPE_KEY && Array.isArray(team?.teamRows);
-    if (isAllTeamsView) {
-      const teamRows = Array.isArray(team?.teamRows) ? team.teamRows : [];
-      const maxDays =
-        teamRows.reduce((highest, row) => Math.max(highest, toNumber(row?.totalCycleDays)), 0) || 1;
-      const rowsMarkup = `${formatWorkflowBreakdownColumnHeaderRowMarkup()}${teamRows
-        .map((row) => {
-          const width = Math.max(12, Math.round((toNumber(row?.totalCycleDays) / maxDays) * 100));
-          const sampleCount = toCount(row?.issueCount);
-          return buildRowMarkup({
-            stage: String(row?.key || ""),
-            label: normalizeDisplayTeamName(row?.label || ""),
-            sampleMarkup: sampleCount > 0 ? `n = ${sampleCount}` : "n = 0",
-            width,
-            wrapValueFrame: false,
-            valueMarkup: formatWorkflowBreakdownValueMarkup(row?.totalCycleDays, row?.avgPrInflow),
-            fillStyle: `background:${escapeHtml(getPrCycleTeamColor(row?.key))}`
-          });
-        })
-        .join("")}`;
-      const issueCount = toNumber(team?.issueCount);
-      const footerPrimary =
-        issueCount > 0
-          ? compactViewport
-            ? `${issueCount} sampled`
-            : `${issueCount} issues sampled`
-          : compactViewport
-            ? "No samples"
-            : "No sampled issues";
-      const footerSecondary = String(snapshot?.windowLabel || "").trim();
-      if (pretextWorkflowEnabled && pretextLayout) {
-        const model = buildPretextAllTeamsBreakdownModel(
-          team,
-          snapshot,
-          footerPrimary,
-          footerSecondary
-        );
-        const rendered =
-          pretextLayout.renderPretextCard?.(containerId, model) ||
-          pretextLayout.renderWorkflowBreakdownCard?.(containerId, model);
-        if (rendered) return;
-      }
-      renderProductCycleCard(containerId, {
-        className: "workflow-breakdown-card",
-        teamKey: ALL_TEAM_SCOPE_KEY,
-        teamColor: getPrCycleTeamColor(ALL_TEAM_SCOPE_KEY),
-        headerMarkup: formatWorkflowBreakdownHeaderMarkup(),
-        rowsMarkup,
-        footerMarkup: `
-        <div class="pr-cycle-stage-card__footer">
-          <span><strong>${escapeHtml(footerPrimary)}</strong>${footerSecondary ? ` • ${escapeHtml(footerSecondary)}` : ""}</span>
-          <span>Sorted: <strong>Fastest to slowest</strong></span>
-        </div>
-      `
-      });
-      return;
+          .toLowerCase() || ALL_TEAM_SCOPE_KEY,
+      onChangeRender: workflowPanels.renderWorkflowBreakdown
+    },
+    {
+      name: "pr-cycle-window",
+      stateKey: "developmentWorkflowWindow",
+      defaultValue: THIRTY_DAY_WINDOW_KEY,
+      normalizeValue: (value) =>
+        normalizeOption(value, DEVELOPMENT_WORKFLOW_WINDOWS, THIRTY_DAY_WINDOW_KEY),
+      onChangeRender: workflowPanels.renderWorkflowBreakdown
+    },
+    {
+      name: "pr-activity-legacy-metric",
+      stateKey: "prActivityLegacyMetric",
+      defaultValue: "offered",
+      normalizeValue: (value) => (value === "merged" ? "merged" : "offered"),
+      onChangeRender: renderLegacyPrActivityCharts
+    },
+    {
+      name: "product-delivery-workflow-view",
+      stateKey: "productDeliveryWorkflowView",
+      defaultValue: PRODUCT_DELIVERY_WORKFLOW_VIEW_DEFAULT,
+      normalizeValue: productDeliveryWorkflowViewKey,
+      onChangeRender: productPanels.renderLeadAndCycleTimeByTeamChart
+    },
+    {
+      name: "product-cycle-team",
+      stateKey: "productCycleTeam",
+      defaultValue: PRODUCT_CYCLE_TEAM_DEFAULT,
+      normalizeValue: productPanels.productCycleTeamKey,
+      onChangeRender: productPanels.renderLeadAndCycleTimeByTeamChart
     }
+  ];
 
-    const stages = getRenderableWorkflowStages(team?.stages);
-    const teamColor = getPrCycleTeamColor(team?.key);
-    const maxDays =
-      stages.reduce((highest, stage) => Math.max(highest, toNumber(stage?.days)), 0) || 1;
-    const rowsMarkup = stages
-      .map((stage) => {
-        const width = Math.max(12, Math.round((toNumber(stage?.days) / maxDays) * 100));
-        const sampleCount = toCount(stage?.sampleCount);
-        return buildRowMarkup({
-          stage: String(stage?.key || ""),
-          label: getPrCycleStageDisplayLabel(stage),
-          sampleMarkup: sampleCount > 0 ? `n = ${sampleCount}` : "n = 0",
-          width,
-          valueMarkup: formatStackedCycleDaysValueMarkup(stage?.days)
-        });
-      })
-      .join("");
-    const issueCount = toNumber(team?.issueCount || team?.pullRequestCount);
-    const footerPrimary =
-      issueCount > 0
-        ? compactViewport
-          ? `${issueCount} sampled`
-          : `${issueCount} issues sampled`
-        : compactViewport
-          ? "No samples"
-          : "No sampled issues";
-    const footerSecondary = String(snapshot?.windowLabel || "").trim();
-    const inflow = toNumber(team?.avgPrInflow);
-    const inflowSummary =
-      Number.isFinite(inflow) && inflow > 0 ? `≈ ${Math.round(inflow)} PRs per sprint` : "";
-    const footerLabel = compactViewport ? "Blocker" : "Bottleneck";
-    if (pretextWorkflowEnabled && pretextLayout) {
-      const model = buildPretextWorkflowBreakdownModel(
-        team,
-        snapshot,
-        footerPrimary,
-        footerSecondary,
-        inflowSummary
-      );
-      const rendered =
-        pretextLayout.renderPretextCard?.(containerId, model) ||
-        pretextLayout.renderWorkflowBreakdownCard?.(containerId, model);
-      if (rendered) return;
-    }
-    renderProductCycleCard(containerId, {
-      className: "workflow-breakdown-card",
-      teamKey: String(team?.key || ""),
-      teamColor,
-      headerMarkup: `
-      <div class="pr-cycle-stage-card__team">${escapeHtml(String(team?.label || ""))}</div>
-      <div class="pr-cycle-stage-card__total metric-duration"><span class="metric-duration__value">${toNumber(
-        team?.totalCycleDays
-      ).toFixed(1)}</span><span class="metric-duration__unit">${
-        Math.abs(toNumber(team?.totalCycleDays) - 1) < 0.05 ? "day" : "days"
-      }</span></div>
-    `,
-      rowsMarkup,
-      footerMarkup: `
-      <div class="pr-cycle-stage-card__footer">
-        <span><strong>${escapeHtml(footerPrimary)}</strong>${footerSecondary ? ` • ${escapeHtml(footerSecondary)}` : ""}${
-          inflowSummary ? ` • ${escapeHtml(inflowSummary)}` : ""
-        }</span>
-        <span>${footerLabel}: <strong>${escapeHtml(String(team?.bottleneckLabel || ""))}</strong></span>
-      </div>
-    `
-    });
-  }
-
-  function renderWorkflowBreakdown() {
-    withChart("workflow-breakdown", getConfig, ({ status, context, config }) => {
-      const windows =
-        state.prCycle?.windows && typeof state.prCycle.windows === "object"
-          ? state.prCycle.windows
-          : null;
-      const availableWindowKeys = Object.keys(windows || {});
-      const effectiveWindowKeys =
-        availableWindowKeys.length > 0 ? availableWindowKeys : [THIRTY_DAY_WINDOW_KEY];
-      const fallbackWindowKey =
-        String(state.prCycle?.defaultWindow || "")
-          .trim()
-          .toLowerCase() || THIRTY_DAY_WINDOW_KEY;
-      const desiredWindowKey = normalizeOption(
-        state.developmentWorkflowWindow || state.prCycleWindow,
-        DEVELOPMENT_WORKFLOW_WINDOWS,
-        THIRTY_DAY_WINDOW_KEY
-      );
-      const selectedWindowKey = effectiveWindowKeys.includes(desiredWindowKey)
-        ? desiredWindowKey
-        : effectiveWindowKeys.includes(fallbackWindowKey)
-          ? fallbackWindowKey
-          : THIRTY_DAY_WINDOW_KEY;
-      const selectedWindowSnapshot =
-        windows?.[selectedWindowKey] && typeof windows[selectedWindowKey] === "object"
-          ? windows[selectedWindowKey]
-          : windows?.[fallbackWindowKey] && typeof windows[fallbackWindowKey] === "object"
-            ? windows[fallbackWindowKey]
-            : Object.values(windows || {}).find(
-                (windowSnapshot) => windowSnapshot && typeof windowSnapshot === "object"
-              ) || null;
-      const teams = Array.isArray(selectedWindowSnapshot?.teams)
-        ? selectedWindowSnapshot.teams
-        : [];
-      if (teams.length === 0) {
-        clearChartContainer(config.containerId);
-        showPanelStatus(status, config.missingMessage);
-        return;
-      }
-
-      const availableKeys = [
-        ALL_TEAM_SCOPE_KEY,
-        ...teams.map((team) =>
-          String(team?.key || "")
-            .trim()
-            .toLowerCase()
-        )
-      ];
-      syncRadioAvailability("pr-cycle-window", effectiveWindowKeys);
-      syncRadioAvailability("pr-cycle-team", availableKeys);
-      const fallbackTeamKey = ALL_TEAM_SCOPE_KEY;
-      let selectedKey = availableKeys.includes(state.prCycleTeam)
-        ? state.prCycleTeam
-        : fallbackTeamKey;
-      const inflowByTeamKeyFromSnapshot = Object.fromEntries(
-        teams
-          .map((team) => {
-            const teamKey = String(team?.key || "")
-              .trim()
-              .toLowerCase();
-            if (!teamKey || team?.avgPrInflow === null || team?.avgPrInflow === undefined)
-              return null;
-            return [teamKey, toNumber(team?.avgPrInflow)];
-          })
-          .filter(Boolean)
-      );
-      const prActivitySourcePoints = Array.isArray(getPrActivitySnapshot()?.prActivity?.points)
-        ? getPrActivitySnapshot().prActivity.points
-        : [];
-      const { points: prActivityWindowPoints } = getPrActivityWindowedPoints(
-        prActivitySourcePoints,
-        selectedWindowKey
-      );
-      const inflowByTeamKey =
-        Object.keys(inflowByTeamKeyFromSnapshot).length > 0
-          ? inflowByTeamKeyFromSnapshot
-          : state.loadedSources.prActivity === true
-            ? buildPrActivityAverageInflowByTeam(prActivityWindowPoints, selectedWindowSnapshot)
-            : {};
-      const selectedTeam =
-        selectedKey === ALL_TEAM_SCOPE_KEY
-          ? buildPrCycleAllTeamsMetric(selectedWindowSnapshot, inflowByTeamKey)
-          : (() => {
-              const matchedTeam =
-                teams.find(
-                  (team) =>
-                    String(team?.key || "")
-                      .trim()
-                      .toLowerCase() === selectedKey
-                ) || teams[0];
-              if (!matchedTeam) return null;
-              return {
-                ...matchedTeam,
-                avgPrInflow: toNumber(
-                  inflowByTeamKey[
-                    String(matchedTeam?.key || "")
-                      .trim()
-                      .toLowerCase()
-                  ]
-                )
-              };
-            })();
-
-      state.prCycleTeam = selectedKey;
-      state.developmentWorkflowWindow = selectedWindowKey;
-      state.prCycleWindow = selectedWindowKey;
-      syncControlValue("pr-cycle-team", selectedKey);
-      syncControlValue("pr-cycle-window", selectedWindowKey);
-      setPanelContext(
-        context,
-        isPretextLayoutActive()
-          ? ""
-          : formatContextWithFreshness(
-              `${selectedTeam?.label || ""} • ${selectedWindowSnapshot?.windowLabel || ""} • ${toCount(selectedTeam?.issueCount)} issues sampled`,
-              state.prCycle?.updatedAt
-            )
-      );
-      renderWorkflowBreakdownCard(config.containerId, selectedTeam, selectedWindowSnapshot);
-    });
-  }
-
-  function compareBusinessUnitLabels(left, right) {
-    const leftLabel = String(left || "").trim();
-    const rightLabel = String(right || "").trim();
-    const leftIsTechDebt = leftLabel.toLowerCase() === "tech debt";
-    const rightIsTechDebt = rightLabel.toLowerCase() === "tech debt";
-    if (leftIsTechDebt && !rightIsTechDebt) return 1;
-    if (!leftIsTechDebt && rightIsTechDebt) return -1;
-    return leftLabel.localeCompare(rightLabel);
-  }
-
-  function buildEmptyBusinessUnitRow(label) {
-    return {
-      label,
-      devAvg: 0,
-      uatAvg: 0,
-      devCount: 0,
-      uatCount: 0,
-      sampleCount: 0,
-      issueIds: [],
-      issueItems: [],
-      facilities: []
-    };
-  }
-
-  function getAlignedBusinessUnitRows(scope) {
-    const byScope = getManagementFacilitySnapshot()?.chartData?.managementBusinessUnit?.byScope;
-    const ongoingRows = Array.isArray(byScope?.ongoing?.rows) ? byScope.ongoing.rows : [];
-    const doneRows = Array.isArray(byScope?.done?.rows) ? byScope.done.rows : [];
-    const labels = Array.from(
-      new Set(
-        [...ongoingRows, ...doneRows].map((row) => String(row?.label || "").trim()).filter(Boolean)
-      )
-    ).sort(compareBusinessUnitLabels);
-    const targetRows = scope === "done" ? doneRows : ongoingRows;
-    const rowMap = new Map(targetRows.map((row) => [String(row?.label || "").trim(), row]));
-    return labels.map((label) => rowMap.get(label) || buildEmptyBusinessUnitRow(label));
-  }
-
-  function buildManagementFacilityLeadModel(scopeLabel, rows) {
-    const safeRows = (Array.isArray(rows) ? rows : []).filter(
-      (row) => toCount(row?.sampleCount) > 0
-    );
-    if (safeRows.length === 0) return null;
-    const weightedUatAverage =
-      safeRows.reduce((sum, row) => sum + toNumber(row?.uatAvg) * toCount(row?.sampleCount), 0) /
-      Math.max(
-        1,
-        safeRows.reduce((sum, row) => sum + toCount(row?.sampleCount), 0)
-      );
-    const slowestRow = [...safeRows].sort((left, right) => {
-      if (toNumber(right?.uatAvg) !== toNumber(left?.uatAvg)) {
-        return toNumber(right?.uatAvg) - toNumber(left?.uatAvg);
-      }
-      return String(left?.label || "").localeCompare(String(right?.label || ""));
-    })[0];
-    const sampleCount = safeRows.reduce((sum, row) => sum + toCount(row?.sampleCount), 0);
-
-    return {
-      summaryText: `${scopeLabel} work is averaging ${formatCycleMonthsText(
-        weightedUatAverage
-      )} in UAT, with ${String(
-        slowestRow?.label || "the slowest business unit"
-      ).trim()} currently waiting the longest.`,
-      calloutLabel: "UAT average",
-      calloutValue: formatCycleMonthsText(weightedUatAverage, { short: true }),
-      calloutSubtext: slowestRow ? `Slowest: ${String(slowestRow.label || "").trim()}` : scopeLabel,
-      chips: [scopeLabel, `${sampleCount} issues sampled`, `${getBroadcastScopeLabel()} scope`],
-      accentColor: "rgba(79, 123, 155, 0.22)"
-    };
-  }
-
-  function renderDevelopmentVsUatByFacilityChart() {
-    renderDashboardChartState("management-facility", getConfig, ({ config }) => {
-      const scope = normalizeOption(state.managementFlowScope, MANAGEMENT_FLOW_SCOPES, "ongoing");
-      const scopeLabel = getManagementFlowScopeLabel(scope);
-      const titleNode = document.getElementById("management-facility-title");
-      syncControlValue("management-facility-flow-scope", scope);
-      const rows = getAlignedBusinessUnitRows(scope);
-      if (rows.length === 0) {
-        clearPanelLead(config.panelId);
-        return {
-          error: `No ${scopeLabel.toLowerCase()} Business Unit chart data found in backlog-snapshot.json.`,
-          clearContainer: true
-        };
-      }
-
-      if (titleNode) titleNode.textContent = "User acceptance time by business unit";
-      return {
-        contextText: isPretextLayoutActive()
-          ? ""
-          : formatContextWithFreshness(
-              `${scopeLabel} • ${rows.reduce((sum, row) => sum + row.sampleCount, 0)} issues sampled`,
-              getSnapshotContextTimestamp(state, { preferChartData: true }),
-              "chart data updated"
-            ),
-        render: () => {
-          const pretextLayout = getDashboardPretextLayout();
-          if (isPretextLayoutActive() && pretextLayout) {
-            clearPanelLead(config.panelId);
-            const model = buildPretextManagementFacilityModel(scopeLabel, rows, scope);
-            const rendered =
-              pretextLayout.renderManagementAcceptancePanel?.(config.containerId, model) ||
-              pretextLayout.renderPretextCard?.(config.containerId, model) ||
-              pretextLayout.renderWorkflowBreakdownCard?.(config.containerId, model);
-            if (rendered) return;
-          } else {
-            renderPanelLead(config.panelId, buildManagementFacilityLeadModel(scopeLabel, rows));
-          }
-          renderNamedChart(
-            config,
-            {
-              containerId: config.containerId,
-              rows,
-              groupingLabel: "Business Unit",
-              jiraBrowseBase: "https://nepgroup.atlassian.net/browse/",
-              scope,
-              colors: getThemeColors()
-            },
-            { missingMessage: "Development vs UAT chart unavailable: renderer missing." }
-          );
-        }
-      };
-    });
-  }
-
-  function summarizeContributorRows(rows) {
-    return (Array.isArray(rows) ? rows : []).reduce(
-      (summary, row) => ({
-        totalIssues: summary.totalIssues + toCount(row?.totalIssues),
-        doneIssues: summary.doneIssues + toCount(row?.doneIssues),
-        activeIssues: summary.activeIssues + toCount(row?.activeIssues),
-        totalContributors: summary.totalContributors + 1
-      }),
-      { totalIssues: 0, doneIssues: 0, activeIssues: 0, totalContributors: 0 }
-    );
-  }
-
-  function buildContributorsLeadModel(rows, summary) {
-    const topRow = (Array.isArray(rows) ? rows : [])[0] || null;
-    if (!topRow) return null;
-    return {
-      summaryText: `${String(topRow?.contributor || "The top contributor").trim()} leads the community queue with ${toCount(
-        topRow?.totalIssues
-      )} included issues, while the wider contributor set is carrying ${toCount(
-        summary?.activeIssues
-      )} active issues in total.`,
-      calloutLabel: "Top contributor",
-      calloutValue: String(toCount(topRow?.totalIssues)),
-      calloutSubtext: String(topRow?.contributor || "").trim(),
-      chips: [
-        `${toCount(summary?.totalContributors)} contributors`,
-        `${toCount(summary?.doneIssues)} done`,
-        `${toCount(summary?.activeIssues)} active`
-      ],
-      accentColor: "rgba(98, 153, 140, 0.22)"
-    };
-  }
-
-  function renderTopContributorsCard(containerId, rows, summary) {
-    if (!containerId || !Array.isArray(rows)) return;
-    const safeRows = Array.isArray(rows) ? rows : [];
-    const totalIssues = toCount(summary?.totalIssues);
-    const totalContributors = Math.max(toCount(summary?.totalContributors), safeRows.length);
-    const maxTotal = Math.max(1, ...safeRows.map((row) => toCount(row?.totalIssues)));
-    const rowsMarkup = safeRows
-      .map((row) => {
-        const total = toCount(row?.totalIssues);
-        const done = toCount(row?.doneIssues);
-        const active = toCount(row?.activeIssues);
-        const width = total > 0 ? Math.max(10, Math.round((total / maxTotal) * 100)) : 0;
-        return buildRowMarkup({
-          rowClassName: "contributors-card__row",
-          trackClassName: "contributors-card__track",
-          fillClassName: "contributors-card__fill",
-          label: String(row?.contributor || "").trim(),
-          sampleMarkup: `done ${done}${active > 0 ? ` • active ${active}` : ""}`,
-          width,
-          valueMarkup: String(total)
-        });
-      })
-      .join("");
-
-    renderProductCycleCard(containerId, {
-      className: "contributors-card",
-      headerMarkup: `
-      <div class="pr-cycle-stage-card__team">Community contributors</div>
-      <div class="pr-cycle-stage-card__total">${totalIssues}</div>
-    `,
-      rowsMarkup,
-      footerMarkup: `
-      <div class="pr-cycle-stage-card__footer">
-        <span><strong>${totalContributors} contributors ranked</strong> • ${totalIssues} included issues</span>
-      </div>
-    `
-    });
-  }
-
-  function renderTopContributorsChart() {
-    withChart("contributors", getConfig, ({ status, context, config }) => {
-      const contributorsSnapshot = state.contributors;
-      const rows = Array.isArray(contributorsSnapshot?.chartData?.rows)
-        ? contributorsSnapshot.chartData.rows.slice().sort((left, right) => {
-            const leftTotal = toNumber(left?.totalIssues);
-            const rightTotal = toNumber(right?.totalIssues);
-            if (rightTotal !== leftTotal) return rightTotal - leftTotal;
-            const leftDone = toNumber(left?.doneIssues);
-            const rightDone = toNumber(right?.doneIssues);
-            if (rightDone !== leftDone) return rightDone - leftDone;
-            return String(left?.contributor || "").localeCompare(String(right?.contributor || ""));
-          })
-        : [];
-      if (rows.length === 0) {
-        clearPanelLead(config.panelId);
-        showPanelStatus(status, "No contributor chart data found in contributors-snapshot.json.", {
-          containerId: config.containerId
-        });
-        return;
-      }
-
-      const displaySummary = summarizeContributorRows(rows);
-      setPanelContext(context, "");
-      const pretextLayout = getDashboardPretextLayout();
-      if (isPretextLayoutActive() && pretextLayout) {
-        clearPanelLead(config.panelId);
-        const model = buildPretextContributorsModel(rows, displaySummary);
-        const rendered =
-          pretextLayout.renderPretextCard?.(config.containerId, model) ||
-          pretextLayout.renderWorkflowBreakdownCard?.(config.containerId, model);
-        if (rendered) return;
-      } else {
-        renderPanelLead(config.panelId, buildContributorsLeadModel(rows, displaySummary));
-      }
-      renderTopContributorsCard(config.containerId, rows, displaySummary);
-    });
-  }
+  CHART_RENDERERS = {
+    trend: renderBugTrendsPanel,
+    "management-facility": workflowPanels.renderDevelopmentVsUatByFacilityChart,
+    "pr-activity-legacy": renderLegacyPrActivityCharts,
+    contributors: workflowPanels.renderTopContributorsChart,
+    "product-cycle-shipments": productPanels.renderProductCycleShipmentsTimeline,
+    "product-cycle": productPanels.renderLeadAndCycleTimeByTeamChart,
+    "workflow-breakdown": workflowPanels.renderWorkflowBreakdown
+  };
 
   function queueRenderableCharts(entries, shouldQueue) {
     entries.forEach(([mode, payload]) => {
@@ -3597,7 +1885,7 @@
 
   function scheduleChartRenderFlush() {
     if (chartRenderFrame !== 0) return;
-    chartRenderFrame = window.requestAnimationFrame(flushChartRenderQueue);
+    chartRenderFrame = requestAnimationFrame(flushChartRenderQueue);
   }
 
   function queueChartRender(mode, renderChart) {
@@ -3608,7 +1896,7 @@
 
   function scheduleResizeRender() {
     if (resizeRenderFrame !== 0) return;
-    resizeRenderFrame = window.requestAnimationFrame(() => {
+    resizeRenderFrame = requestAnimationFrame(() => {
       resizeRenderFrame = 0;
       renderVisibleCharts();
     });
@@ -3617,8 +1905,8 @@
   function bindWindowResizeRerender() {
     if (windowResizeBound) return;
     windowResizeBound = true;
-    window.addEventListener("resize", scheduleResizeRender);
-    window.addEventListener("orientationchange", scheduleResizeRender);
+    addEventListener("resize", scheduleResizeRender);
+    addEventListener("orientationchange", scheduleResizeRender);
   }
 
   async function loadDataSource(sourceKey) {
@@ -3629,10 +1917,7 @@
       const sourceData =
         preloadedPromise && typeof preloadedPromise.then === "function"
           ? await preloadedPromise
-          : await fetch(source.url, { cache: "no-cache" }).then(async (response) => {
-              if (!response.ok) throw new Error(`HTTP ${response.status}`);
-              return response.json();
-            });
+          : await fetchJson(source.url);
       state[source.stateKey] = sourceData;
       state.loadedSources[sourceKey] = true;
       delete state.loadErrors[sourceKey];
@@ -3665,7 +1950,7 @@
     const rawMode = getModeFromUrl();
     state.mode = normalizeDashboardMode(rawMode);
     readDashboardControlStateFromUrl(CONTROL_BINDINGS, state);
-    if (!new URLSearchParams(window.location.search).has("bug-trends-view")) {
+    if (!hasUrlParam("bug-trends-view")) {
       state.bugTrendsView = defaultBugTrendsViewForMode(rawMode);
     }
     renderDashboardRefreshStrip(state);

@@ -6,6 +6,7 @@ This repo has one job: regenerate committed dashboard snapshots and publish a st
 
 - `data/`: committed public snapshot contract
 - `app/`: dashboard UI that reads only from `data/`
+- `app/dashboard-app/`: feature modules and browser/runtime dependency bridge for the dashboard app
 - `scripts/`: core fetch, derive, validate, and build pipeline
 - `scripts/dev/`: optional operator and debugging helpers
 - `dev/`: local preview-only runtime support
@@ -107,6 +108,7 @@ Read [docs/release.md](docs/release.md) before shipping.
 ## Notes
 
 - `index.html` in the repo is the source entrypoint.
+- `app/dashboard-app.js` is now the app bootstrap/composition entry; feature slices live under `app/dashboard-app/`.
 - The public Pages artifact is built from source; `dist/` is not committed.
 - Current published snapshots remain in-repo under `data/`, and local caches plus snapshot archives stay under `.cache/`.
 - Analysis output is disposable and stays under `.cache/analysis/`.

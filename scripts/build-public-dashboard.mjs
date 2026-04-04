@@ -18,9 +18,9 @@ const JS_SOURCE_PATHS = [
   "app/dashboard-chart-core.js",
   "app/dashboard-pretext-layout.js",
   "app/dashboard-charts-shipped.js",
-  "app/dashboard-charts-product.js",
-  "app/dashboard-app.js"
+  "app/dashboard-charts-product.js"
 ];
+const DASHBOARD_APP_ENTRY_PATH = "app/dashboard-app.js";
 const PANEL_SHELL_PATH = "app/dashboard-heavy-panels.html";
 const INDEX_PATH = "index.html";
 const STYLESHEET_PATH = "app/dashboard-styles.css";
@@ -94,12 +94,26 @@ async function buildPretextIife(sourceDir) {
   return result.outputFiles[0].text;
 }
 
+async function buildDashboardAppIife(sourceDir) {
+  const result = await esbuildBuild({
+    entryPoints: [path.join(sourceDir, DASHBOARD_APP_ENTRY_PATH)],
+    bundle: true,
+    format: "iife",
+    minify: false,
+    write: false,
+    platform: "browser",
+    target: "es2020"
+  });
+  return result.outputFiles[0].text;
+}
+
 async function buildJsBundle(sourceDir) {
   const chunks = [];
   for (const relativePath of JS_SOURCE_PATHS) {
     chunks.push(await readUtf8(sourceDir, relativePath));
   }
   chunks.splice(6, 0, await buildPretextIife(sourceDir));
+  chunks.push(await buildDashboardAppIife(sourceDir));
   const concatenated = chunks.join("\n\n");
   const transformed = await transform(concatenated, {
     loader: "js",

@@ -198,7 +198,10 @@
     return [
       ...BASE_HEAVY_SCRIPT_SOURCES,
       ...getOptionalChartScriptSources(mode, sectionKey),
-      DASHBOARD_APP_SCRIPT_SOURCE
+      {
+        src: DASHBOARD_APP_SCRIPT_SOURCE,
+        module: true
+      }
     ];
   }
 
@@ -446,9 +449,14 @@
     return cache.contributors;
   }
 
-  function loadScript(src) {
+  function loadScript(source) {
+    const scriptSource =
+      typeof source === "string" ? { src: source, module: false } : { module: false, ...source };
+    const { src, module } = scriptSource;
     return new Promise((resolve, reject) => {
-      const existing = document.querySelector(`script[data-dashboard-src="${src}"]`);
+      const existing = document.querySelector(
+        `script[data-dashboard-src="${src}"][data-dashboard-module="${module ? "1" : "0"}"]`
+      );
       if (existing) {
         if (existing.dataset.loaded === "true") {
           resolve();
@@ -466,6 +474,8 @@
       script.defer = true;
       script.async = false;
       script.dataset.dashboardSrc = src;
+      script.dataset.dashboardModule = module ? "1" : "0";
+      if (module) script.type = "module";
       script.addEventListener(
         "load",
         () => {
