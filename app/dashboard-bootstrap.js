@@ -277,10 +277,7 @@
     syncControlValue("report-section", bootstrapState.sectionFilter);
     setPanelContext(
       contextNode,
-      formatContextWithFreshness(
-        "Oldest panel data",
-        bootstrapState.contributorsSnapshot?.updatedAt || ""
-      )
+      formatContextWithFreshness("", bootstrapState.contributorsSnapshot?.updatedAt || "")
     );
     statusNode.hidden = true;
   }
