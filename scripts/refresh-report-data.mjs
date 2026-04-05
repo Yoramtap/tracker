@@ -2549,8 +2549,31 @@ async function buildPrActivityRefreshState(config, todayIso, resolvedDates, opti
   };
 }
 
-async function buildTrendAndPrActivityState(config, todayIso) {
-  const prCycleSnapshot = await buildPrCycleRefreshSnapshot(config, todayIso);
+export function buildTrendRefreshDateState(config, resolvedDates) {
+  const allResolvedDates = Array.isArray(resolvedDates?.dates) ? resolvedDates.dates : [];
+  const dates =
+    Number.isFinite(config.sprintLookbackCount) && config.sprintLookbackCount > 0
+      ? allResolvedDates.slice(-config.sprintLookbackCount)
+      : allResolvedDates;
+
+  if (resolvedDates?.usedFallback) {
+    return {
+      allResolvedDates,
+      dates,
+      logMethod: "warn",
+      logMessage: `Using fallback trend dates (${allResolvedDates.length} points, latest ${dates.length} used for backlog trend). Reason: ${resolvedDates.fallbackReason}`
+    };
+  }
+
+  return {
+    allResolvedDates,
+    dates,
+    logMethod: "log",
+    logMessage: `Resolved ${allResolvedDates.length} trend dates from Jira sprints (point=${config.sprintPoint}, includeActive=${config.sprintIncludeActive}, mondayAnchor=${config.sprintMondayAnchor}); using latest ${dates.length} for backlog trend.`
+  };
+}
+
+async function resolveTrendRefreshDates(config, todayIso) {
   const resolvedDates = await withTiming(
     "Resolve sprint dates",
     () =>
@@ -2566,20 +2589,18 @@ async function buildTrendAndPrActivityState(config, todayIso) {
       }),
     console
   );
-  const allResolvedDates = resolvedDates.dates;
-  const dates =
-    Number.isFinite(config.sprintLookbackCount) && config.sprintLookbackCount > 0
-      ? allResolvedDates.slice(-config.sprintLookbackCount)
-      : allResolvedDates;
-  if (resolvedDates.usedFallback) {
-    console.warn(
-      `Using fallback trend dates (${allResolvedDates.length} points, latest ${dates.length} used for backlog trend). Reason: ${resolvedDates.fallbackReason}`
-    );
-  } else {
-    console.log(
-      `Resolved ${allResolvedDates.length} trend dates from Jira sprints (point=${config.sprintPoint}, includeActive=${config.sprintIncludeActive}, mondayAnchor=${config.sprintMondayAnchor}); using latest ${dates.length} for backlog trend.`
-    );
-  }
+  const trendDateState = buildTrendRefreshDateState(config, resolvedDates);
+  console[trendDateState.logMethod](trendDateState.logMessage);
+  return {
+    resolvedDates,
+    allResolvedDates: trendDateState.allResolvedDates,
+    dates: trendDateState.dates
+  };
+}
+
+async function buildTrendAndPrActivityState(config, todayIso) {
+  const prCycleSnapshot = await buildPrCycleRefreshSnapshot(config, todayIso);
+  const { resolvedDates, dates } = await resolveTrendRefreshDates(config, todayIso);
 
   let computed = {};
   if (config.skipTrendRefresh) {
