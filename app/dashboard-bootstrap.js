@@ -162,38 +162,40 @@
       .toLowerCase();
   }
 
-  function isPreloadAllSections(sectionKey = bootstrapState.sectionFilter) {
-    return normalizeMode(sectionKey) === "all";
-  }
-
   function getSectionOptionalChartScriptSources(sectionKey = bootstrapState.sectionFilter) {
     const normalizedSection = normalizeSectionFilter(sectionKey);
     if (normalizedSection === "shipped") return [SHIPPED_CHART_SCRIPT_SOURCE];
     if (normalizedSection === "product" || normalizedSection === "bug") {
       return [PRODUCT_CHART_SCRIPT_SOURCE];
     }
-    return isPreloadAllSections(sectionKey)
-      ? [SHIPPED_CHART_SCRIPT_SOURCE, PRODUCT_CHART_SCRIPT_SOURCE]
-      : [];
+    return [];
+  }
+
+  function getAllSectionOptionalChartScriptSources() {
+    return [SHIPPED_CHART_SCRIPT_SOURCE, PRODUCT_CHART_SCRIPT_SOURCE];
   }
 
   function getOptionalChartScriptSources(
     mode = getModeFromUrl(window.location.search),
-    sectionKey = bootstrapState.sectionFilter
+    sectionKey = bootstrapState.sectionFilter,
+    { preloadAllSections = false } = {}
   ) {
     const normalizedMode = normalizeMode(mode);
     if (PRODUCT_CHART_MODES.has(normalizedMode)) return [PRODUCT_CHART_SCRIPT_SOURCE];
-    if (normalizedMode === "all") return getSectionOptionalChartScriptSources(sectionKey);
-    return [];
+    if (normalizedMode !== "all") return [];
+    return preloadAllSections
+      ? getAllSectionOptionalChartScriptSources()
+      : getSectionOptionalChartScriptSources(sectionKey);
   }
 
   function getHeavyScriptSources(
     mode = getModeFromUrl(window.location.search),
-    sectionKey = bootstrapState.sectionFilter
+    sectionKey = bootstrapState.sectionFilter,
+    options = {}
   ) {
     return [
       ...BASE_HEAVY_SCRIPT_SOURCES,
-      ...getOptionalChartScriptSources(mode, sectionKey),
+      ...getOptionalChartScriptSources(mode, sectionKey, options),
       {
         src: DASHBOARD_APP_SCRIPT_SOURCE,
         module: true
@@ -203,13 +205,14 @@
 
   function shouldLoadHeavyPanelShell(
     mode = getModeFromUrl(window.location.search),
-    sectionKey = bootstrapState.sectionFilter
+    sectionKey = bootstrapState.sectionFilter,
+    { preloadAllSections = false } = {}
   ) {
     if (bootstrapState.heavyPanelShellLoaded) return false;
     const normalizedMode = normalizeMode(mode || "all");
     if (normalizedMode === "contributors") return false;
     if (normalizedMode !== "all") return true;
-    if (isPreloadAllSections(sectionKey)) return true;
+    if (preloadAllSections) return true;
     return normalizeSectionFilter(sectionKey) !== DEFAULT_SECTION;
   }
 
@@ -505,12 +508,16 @@
 
   async function ensureHeavyPanelShell(
     mode = getModeFromUrl(window.location.search),
-    sectionKey = bootstrapState.sectionFilter
+    sectionKey = bootstrapState.sectionFilter,
+    options = {}
   ) {
     const pending = (bootstrapState.heavyShellPromise || Promise.resolve()).then(async () => {
       const mountNode = document.getElementById("dashboard-heavy-panels");
       if (!mountNode) return;
-      if (shouldLoadHeavyPanelShell(mode, sectionKey) && !bootstrapState.heavyPanelShellLoaded) {
+      if (
+        shouldLoadHeavyPanelShell(mode, sectionKey, options) &&
+        !bootstrapState.heavyPanelShellLoaded
+      ) {
         mountNode.insertAdjacentHTML("beforebegin", await loadHeavyPanelShell());
         bootstrapState.heavyPanelShellLoaded = true;
       }
@@ -526,9 +533,10 @@
 
   function ensureHeavyScripts(
     mode = getModeFromUrl(window.location.search),
-    sectionKey = bootstrapState.sectionFilter
+    sectionKey = bootstrapState.sectionFilter,
+    options = {}
   ) {
-    return getHeavyScriptSources(mode, sectionKey).reduce(
+    return getHeavyScriptSources(mode, sectionKey, options).reduce(
       (promise, src) => promise.then(() => loadScript(src)),
       Promise.resolve()
     );
@@ -536,13 +544,14 @@
 
   async function loadHeavyDashboard(
     mode = getModeFromUrl(window.location.search),
-    sectionKey = bootstrapState.sectionFilter
+    sectionKey = bootstrapState.sectionFilter,
+    options = {}
   ) {
     const previousPending = bootstrapState.heavyStackPromise || Promise.resolve();
     bootstrapState.heavyStackPromise = previousPending
       .then(async () => {
-        await ensureHeavyPanelShell(mode, sectionKey);
-        await ensureHeavyScripts(mode, sectionKey);
+        await ensureHeavyPanelShell(mode, sectionKey, options);
+        await ensureHeavyScripts(mode, sectionKey, options);
       })
       .catch((error) => {
         bootstrapState.heavyStackPromise = null;
@@ -590,7 +599,7 @@
     applyDefaultCommunityVisibility();
     renderActionsPanel();
     bindSectionFilter();
-    void loadHeavyDashboard("all", "all").catch(() => {});
+    void loadHeavyDashboard("all", DEFAULT_SECTION, { preloadAllSections: true }).catch(() => {});
 
     try {
       bootstrapState.contributorsSnapshot = await loadContributorsSnapshot();
