@@ -2471,7 +2471,6 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
 }
 
 async function buildPrActivityRefreshState(config, todayIso, resolvedDates, options = {}) {
-  const allResolvedDates = Array.isArray(resolvedDates?.dates) ? resolvedDates.dates : [];
   const { skipRefresh = false } = options;
   const shouldRebuildPrActivityHistory = config.prActivityRebuildAll || config.cleanRun;
   const prActivityHistoryState = await readPrActivityHistoryState({
@@ -2515,13 +2514,37 @@ async function buildPrActivityRefreshState(config, todayIso, resolvedDates, opti
       }),
     console
   );
+  const prActivitySnapshotState = buildPrActivitySnapshotState(todayIso, resolvedDates, prRows, {
+    existingPrActivityForMerge,
+    reuseHistoricalPrActivity
+  });
+  console.log(
+    `Computed Jira Development PR inflow proxy (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} candidate issues, ${prRows.detailIssueCount} with recent PR summary activity, since ${prActivitySnapshotState.prActivityFetchSinceDate} across ${prActivitySnapshotState.prActivitySprintDates.length} sprint buckets and ${prActivitySnapshotState.refreshedPrActivity.monthlyPoints.length} monthly buckets; fetched ${prRows.reviewChangelogIssueCount} review changelogs, cache hits ${prRows.cacheHitCount}, cache writes ${prRows.cacheWriteCount}${reuseHistoricalPrActivity ? "; reused cached older PR activity buckets" : ""}).`
+  );
+
+  return {
+    existingSnapshotForPrActivity,
+    mergedPrActivity: prActivitySnapshotState.mergedPrActivity
+  };
+}
+
+export function buildPrActivitySnapshotState(todayIso, resolvedDates, prRows, options = {}) {
+  const {
+    existingPrActivityForMerge = null,
+    reuseHistoricalPrActivity = false
+  } = options;
+  const allResolvedDates = Array.isArray(resolvedDates?.dates) ? resolvedDates.dates : [];
+  const prActivityWindowKey = reuseHistoricalPrActivity
+    ? PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY
+    : "1y";
+  const prActivityFetchSinceDate = resolvePrActivityFetchSinceDate(todayIso, prActivityWindowKey);
   const prActivitySprintDates = allResolvedDates.filter(
     (date) => String(date || "") >= prActivityFetchSinceDate
   );
   const latestClosedSprintDate = Array.isArray(resolvedDates?.closedDates)
     ? String(resolvedDates.closedDates[resolvedDates.closedDates.length - 1] || "").trim()
     : "";
-  const prActivity = buildPrActivitySprintSnapshot(
+  const refreshedPrActivity = buildPrActivitySprintSnapshot(
     prRows,
     prActivityFetchSinceDate,
     prActivitySprintDates
@@ -2529,22 +2552,23 @@ async function buildPrActivityRefreshState(config, todayIso, resolvedDates, opti
   const prActivityMonthly = buildPrActivityMonthlySnapshot(prRows, prActivityFetchSinceDate, {
     ceilingDate: latestClosedSprintDate
   });
-  prActivity.latestClosedSprintDate = latestClosedSprintDate;
-  prActivity.monthlySince = prActivityMonthly.since;
-  prActivity.monthlyPoints = prActivityMonthly.points;
+  refreshedPrActivity.latestClosedSprintDate = latestClosedSprintDate;
+  refreshedPrActivity.monthlySince = prActivityMonthly.since;
+  refreshedPrActivity.monthlyPoints = prActivityMonthly.points;
   const mergedPrActivity = reuseHistoricalPrActivity
-    ? mergePrActivitySnapshots(existingPrActivityForMerge, prActivity, {
+    ? mergePrActivitySnapshots(existingPrActivityForMerge, refreshedPrActivity, {
         truncateAfterRefreshedLatest: !resolvedDates.usedFallback,
         ceilingDate: todayIso,
         monthlyFloorDate: resolvePrActivityFetchSinceDate(todayIso, "1y")
       })
-    : prActivity;
-  console.log(
-    `Computed Jira Development PR inflow proxy (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} candidate issues, ${prRows.detailIssueCount} with recent PR summary activity, since ${prActivityFetchSinceDate} across ${prActivitySprintDates.length} sprint buckets and ${prActivity.monthlyPoints.length} monthly buckets; fetched ${prRows.reviewChangelogIssueCount} review changelogs, cache hits ${prRows.cacheHitCount}, cache writes ${prRows.cacheWriteCount}${reuseHistoricalPrActivity ? "; reused cached older PR activity buckets" : ""}).`
-  );
+    : refreshedPrActivity;
 
   return {
-    existingSnapshotForPrActivity,
+    prActivityWindowKey,
+    prActivityFetchSinceDate,
+    prActivitySprintDates,
+    latestClosedSprintDate,
+    refreshedPrActivity,
     mergedPrActivity
   };
 }
