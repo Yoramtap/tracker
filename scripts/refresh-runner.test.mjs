@@ -367,3 +367,170 @@ test("runModeSpecificRefresh dispatches PR_ACTIVITY_ONLY through the shared PR a
   );
   assert.deepEqual(commitCalls[0].snapshot.mergedPrActivity, sharedState.mergedPrActivity);
 });
+
+test("runFullRefreshPipeline assembles derive-stage state from fetched snapshots", async () => {
+  const contributorsSnapshot = { id: "contributors" };
+  const productCycleSnapshot = { id: "product-cycle" };
+  const prCycleSnapshot = { id: "pr-cycle" };
+  const mergedPrActivity = { id: "pr-activity" };
+  const snapshot = { id: "combined-snapshot" };
+  const supplementalArtifacts = [
+    {
+      fileName: "contributors-snapshot.json",
+      outputSnapshot: { id: "contributors-output" },
+      logMessage: "",
+      write: async () => {}
+    }
+  ];
+  const buildCombinedCalls = [];
+  const supplementalArtifactCalls = [];
+  const runner = createRefreshRunner(
+    createDeps({
+      io: {
+        buildSupplementalWriteArtifacts: (payload) => {
+          supplementalArtifactCalls.push(payload);
+          return supplementalArtifacts;
+        }
+      },
+      helpers: {
+        buildCombinedSnapshot: (...args) => {
+          buildCombinedCalls.push(args);
+          return snapshot;
+        },
+        buildTrendAndPrActivityState: async () => ({
+          computed: {
+            BOARD_38_TREND: [{ highest: 1, high: 2, medium: 3, low: 4, lowest: 5 }]
+          },
+          mergedPrActivity,
+          prCycleSnapshot
+        }),
+        buildUatRefreshArtifacts: async () => ({
+          uatAging: { total: 3 },
+          businessUnitChartData: { series: [1, 2, 3] }
+        })
+      },
+      refreshers: {
+        refreshContributorsSnapshot: async () => contributorsSnapshot,
+        refreshProductCycleSnapshot: async () => productCycleSnapshot
+      }
+    })
+  );
+
+  const derivedState = await runner.runFullRefreshPipeline(
+    {
+      noWrite: false,
+      skipContributors: false,
+      skipProductCycle: false,
+      snapshotRetentionCount: 11
+    },
+    {
+      stopAfterStage: "derive",
+      todayIso: "2026-04-05"
+    }
+  );
+
+  assert.equal(derivedState.todayIso, "2026-04-05");
+  assert.equal(derivedState.grandTotal, 15);
+  assert.equal(typeof derivedState.syncedAt, "string");
+  assert.deepEqual(derivedState.snapshot, snapshot);
+  assert.equal(
+    derivedState.summaryMessage,
+    "Updated snapshot.json for BOARD_38_TREND, BOARD_39_TREND, BOARD_46_TREND, BOARD_40_TREND, BOARD_333_TREND, and BOARD_399_TREND."
+  );
+  assert.equal(derivedState.snapshotRetentionCount, 11);
+  assert.equal(derivedState.supplementalArtifacts, supplementalArtifacts);
+  assert.deepEqual(buildCombinedCalls, [
+    [
+      { BOARD_38_TREND: [{ highest: 1, high: 2, medium: 3, low: 4, lowest: 5 }] },
+      derivedState.syncedAt,
+      { total: 3 },
+      mergedPrActivity,
+      { series: [1, 2, 3] }
+    ]
+  ]);
+  assert.deepEqual(supplementalArtifactCalls, [
+    {
+      contributorsSnapshot,
+      productCycleSnapshot,
+      prCycleSnapshot
+    }
+  ]);
+});
+
+test("runFullRefreshPipeline validate stage prepares primary artifacts and validates supplemental snapshots", async () => {
+  const primaryArtifacts = { snapshot: { id: "primary-artifact" } };
+  const validatedSnapshots = [];
+  const commitCalls = [];
+  const runner = createRefreshRunner(
+    createDeps({
+      io: {
+        buildSupplementalWriteArtifacts: () => [
+          {
+            fileName: "contributors-snapshot.json",
+            outputSnapshot: { id: "contributors-output" },
+            logMessage: "",
+            write: async () => {}
+          },
+          {
+            fileName: "product-cycle-snapshot.json",
+            outputSnapshot: { id: "product-output" },
+            logMessage: "",
+            write: async () => {}
+          }
+        ],
+        commitSnapshotRefresh: async (args) => {
+          commitCalls.push(args);
+        },
+        preparePrimarySnapshotArtifacts: async (snapshot) => {
+          assert.deepEqual(snapshot, { id: "combined-snapshot" });
+          return primaryArtifacts;
+        }
+      },
+      validators: {
+        validateDashboardSnapshot: (fileName, outputSnapshot) => {
+          validatedSnapshots.push({ fileName, outputSnapshot });
+        }
+      },
+      helpers: {
+        buildCombinedSnapshot: () => ({ id: "combined-snapshot" }),
+        buildTrendAndPrActivityState: async () => ({
+          computed: {
+            BOARD_38_TREND: [{ highest: 1, high: 0, medium: 0, low: 0, lowest: 0 }]
+          },
+          mergedPrActivity: { id: "pr-activity" },
+          prCycleSnapshot: { id: "pr-cycle" }
+        }),
+        buildUatRefreshArtifacts: async () => ({
+          uatAging: { total: 1 },
+          businessUnitChartData: { series: [1] }
+        })
+      }
+    })
+  );
+
+  const validatedState = await runner.runFullRefreshPipeline(
+    {
+      noWrite: false,
+      skipContributors: true,
+      skipProductCycle: true,
+      snapshotRetentionCount: 4
+    },
+    {
+      stopAfterStage: "validate",
+      todayIso: "2026-04-05"
+    }
+  );
+
+  assert.equal(commitCalls.length, 0);
+  assert.deepEqual(validatedState.primaryArtifacts, primaryArtifacts);
+  assert.deepEqual(validatedSnapshots, [
+    {
+      fileName: "contributors-snapshot.json",
+      outputSnapshot: { id: "contributors-output" }
+    },
+    {
+      fileName: "product-cycle-snapshot.json",
+      outputSnapshot: { id: "product-output" }
+    }
+  ]);
+});

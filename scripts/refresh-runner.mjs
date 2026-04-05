@@ -95,6 +95,9 @@ export function createRefreshRunner(deps) {
     );
   }
 
+  const FULL_REFRESH_SUMMARY_MESSAGE =
+    "Updated snapshot.json for BOARD_38_TREND, BOARD_39_TREND, BOARD_46_TREND, BOARD_40_TREND, BOARD_333_TREND, and BOARD_399_TREND.";
+
   async function refreshProductCycleSnapshotWithTiming(config, label = "Product cycle refresh") {
     return await withTiming(
       label,
@@ -244,7 +247,15 @@ export function createRefreshRunner(deps) {
     };
   }
 
-  function runFullRefreshDeriveStage(config, normalizedState) {
+  function buildFullRefreshSupplementalArtifacts(normalizedState) {
+    return buildSupplementalWriteArtifacts({
+      contributorsSnapshot: normalizedState.contributorsSnapshot,
+      productCycleSnapshot: normalizedState.productCycleSnapshot,
+      prCycleSnapshot: normalizedState.sharedState.prCycleSnapshot
+    });
+  }
+
+  function buildFullRefreshDerivedState(config, normalizedState) {
     const snapshot = buildCombinedSnapshot(
       normalizedState.sharedState.computed,
       normalizedState.syncedAt,
@@ -256,37 +267,46 @@ export function createRefreshRunner(deps) {
     return {
       ...normalizedState,
       snapshot,
-      summaryMessage:
-        "Updated snapshot.json for BOARD_38_TREND, BOARD_39_TREND, BOARD_46_TREND, BOARD_40_TREND, BOARD_333_TREND, and BOARD_399_TREND.",
-      supplementalArtifacts: buildSupplementalWriteArtifacts({
-        contributorsSnapshot: normalizedState.contributorsSnapshot,
-        productCycleSnapshot: normalizedState.productCycleSnapshot,
-        prCycleSnapshot: normalizedState.sharedState.prCycleSnapshot
-      }),
+      summaryMessage: FULL_REFRESH_SUMMARY_MESSAGE,
+      supplementalArtifacts: buildFullRefreshSupplementalArtifacts(normalizedState),
       snapshotRetentionCount: config.snapshotRetentionCount
     };
   }
 
-  async function runFullRefreshValidateStage(derivedState) {
-    if (derivedState.grandTotal === 0 && !allowEmpty) {
-      throw new Error(
-        [
-          "Refusing to write snapshot.json because every board/date returned 0 issues.",
-          "Likely causes: wrong Jira credentials, no Browse Project permission on TFC, or JQL label filters no longer matching.",
-          "If this is intentionally empty, rerun with --allow-empty."
-        ].join(" ")
-      );
-    }
+  function runFullRefreshDeriveStage(config, normalizedState) {
+    return buildFullRefreshDerivedState(config, normalizedState);
+  }
 
+  async function prepareFullRefreshValidationState(derivedState) {
     const primaryArtifacts = await preparePrimarySnapshotArtifacts(derivedState.snapshot);
-    for (const artifact of derivedState.supplementalArtifacts) {
-      validateDashboardSnapshot(artifact.fileName, artifact.outputSnapshot);
-    }
+    validateFullRefreshSupplementalArtifacts(derivedState.supplementalArtifacts);
 
     return {
       ...derivedState,
       primaryArtifacts
     };
+  }
+
+  function validateFullRefreshGrandTotal(grandTotal) {
+    if (grandTotal !== 0 || allowEmpty) return;
+    throw new Error(
+      [
+        "Refusing to write snapshot.json because every board/date returned 0 issues.",
+        "Likely causes: wrong Jira credentials, no Browse Project permission on TFC, or JQL label filters no longer matching.",
+        "If this is intentionally empty, rerun with --allow-empty."
+      ].join(" ")
+    );
+  }
+
+  function validateFullRefreshSupplementalArtifacts(supplementalArtifacts) {
+    for (const artifact of supplementalArtifacts) {
+      validateDashboardSnapshot(artifact.fileName, artifact.outputSnapshot);
+    }
+  }
+
+  async function runFullRefreshValidateStage(derivedState) {
+    validateFullRefreshGrandTotal(derivedState.grandTotal);
+    return await prepareFullRefreshValidationState(derivedState);
   }
 
   async function runFullRefreshWriteStage(config, validatedState) {
