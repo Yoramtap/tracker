@@ -2414,48 +2414,23 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
   console.log(
     `Fetching PR cycle issue histories for ${prCycleRefreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.windowLabel).join(", ")}.`
   );
-  const prCycleRows = await fetchPrCycleIssueBreakdown(config.site, config.email, config.token, {
-    projectKeys: config.prCycleProjectKeys,
-    windowDays:
-      prCycleRefreshPlan.prCycleWindowsToRefresh[
-        prCycleRefreshPlan.prCycleWindowsToRefresh.length - 1
-      ]?.windowDays || 365,
-    windowLabel:
-      prCycleRefreshPlan.prCycleWindowsToRefresh[
-        prCycleRefreshPlan.prCycleWindowsToRefresh.length - 1
-      ]?.windowLabel || "Last year",
-    windowStartDate: prCycleRefreshPlan.prCycleRangeStartDate,
-    windowStartIso: `${prCycleRefreshPlan.prCycleRangeStartDate}T00:00:00.000Z`,
-    windowEndIso: new Date().toISOString(),
-    codingStatuses: config.prCycleCodingStatuses,
-    reviewStatuses: config.prCycleReviewStatuses,
-    mergeStatuses: config.prCycleMergeStatuses
-  });
-  const refreshedPrCycleSnapshot = buildPrCycleSnapshot(prCycleRows, {
-    windows: prCycleRefreshPlan.prCycleWindowsToRefresh,
-    defaultWindow: PR_CYCLE_WINDOW_DEFAULT_KEY,
-    codingStatuses: config.prCycleCodingStatuses,
-    reviewStatuses: config.prCycleReviewStatuses,
-    mergeStatuses: config.prCycleMergeStatuses
-  });
-  const prCycleSnapshot = prCycleRefreshPlan.reuseHistoricalPrCycleWindows
-    ? finalizePrCycleSnapshot(
-        {
-          ...(existingPrCycleSnapshot?.windows &&
-          typeof existingPrCycleSnapshot.windows === "object"
-            ? existingPrCycleSnapshot.windows
-            : {}),
-          ...refreshedPrCycleSnapshot.windows
-        },
-        {
-          defaultWindow: existingPrCycleSnapshot?.defaultWindow || PR_CYCLE_WINDOW_DEFAULT_KEY
-        }
-      )
-    : refreshedPrCycleSnapshot;
+  const prCycleFetchRequest = buildPrCycleFetchRequest(config, prCycleRefreshPlan);
+  const prCycleRows = await fetchPrCycleIssueBreakdown(
+    config.site,
+    config.email,
+    config.token,
+    prCycleFetchRequest
+  );
+  const prCycleSnapshotState = buildPrCycleSnapshotState(
+    config,
+    existingPrCycleSnapshot,
+    prCycleRefreshPlan,
+    prCycleRows
+  );
   console.log(
     `Computed PR cycle stage breakdown (${prCycleRows.length} issue histories across ${config.prCycleProjectKeys.join(", ")} for ${prCycleRefreshPlan.prCycleWindowsToRefresh.length} window${prCycleRefreshPlan.prCycleWindowsToRefresh.length === 1 ? "" : "s"}${prCycleRefreshPlan.reuseHistoricalPrCycleWindows ? "; refreshed 30d and 90d, reused cached 6m and 1y windows" : prCycleRefreshPlan.historicalPrCycleSnapshotFreshEnough ? "" : `; refreshed all windows because cached 6m and 1y data was older than ${PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS} days`}).`
   );
-  return prCycleSnapshot;
+  return prCycleSnapshotState.prCycleSnapshot;
 }
 
 export function resolvePrCycleRefreshPlan(prCycleWindows, existingPrCycleSnapshot, options = {}) {
@@ -2488,6 +2463,59 @@ export function resolvePrCycleRefreshPlan(prCycleWindows, existingPrCycleSnapsho
     reuseHistoricalPrCycleWindows,
     prCycleWindowsToRefresh,
     prCycleRangeStartDate
+  };
+}
+
+export function buildPrCycleFetchRequest(config, prCycleRefreshPlan) {
+  const lastWindowConfig =
+    prCycleRefreshPlan?.prCycleWindowsToRefresh?.[
+      prCycleRefreshPlan.prCycleWindowsToRefresh.length - 1
+    ] || null;
+
+  return {
+    projectKeys: config.prCycleProjectKeys,
+    windowDays: lastWindowConfig?.windowDays || 365,
+    windowLabel: lastWindowConfig?.windowLabel || "Last year",
+    windowStartDate: prCycleRefreshPlan?.prCycleRangeStartDate || "",
+    windowStartIso: `${String(prCycleRefreshPlan?.prCycleRangeStartDate || "").trim()}T00:00:00.000Z`,
+    windowEndIso: new Date().toISOString(),
+    codingStatuses: config.prCycleCodingStatuses,
+    reviewStatuses: config.prCycleReviewStatuses,
+    mergeStatuses: config.prCycleMergeStatuses
+  };
+}
+
+export function buildPrCycleSnapshotState(
+  config,
+  existingPrCycleSnapshot,
+  prCycleRefreshPlan,
+  prCycleRows
+) {
+  const refreshedPrCycleSnapshot = buildPrCycleSnapshot(prCycleRows, {
+    windows: prCycleRefreshPlan.prCycleWindowsToRefresh,
+    defaultWindow: PR_CYCLE_WINDOW_DEFAULT_KEY,
+    codingStatuses: config.prCycleCodingStatuses,
+    reviewStatuses: config.prCycleReviewStatuses,
+    mergeStatuses: config.prCycleMergeStatuses
+  });
+  const prCycleSnapshot = prCycleRefreshPlan.reuseHistoricalPrCycleWindows
+    ? finalizePrCycleSnapshot(
+        {
+          ...(existingPrCycleSnapshot?.windows &&
+          typeof existingPrCycleSnapshot.windows === "object"
+            ? existingPrCycleSnapshot.windows
+            : {}),
+          ...refreshedPrCycleSnapshot.windows
+        },
+        {
+          defaultWindow: existingPrCycleSnapshot?.defaultWindow || PR_CYCLE_WINDOW_DEFAULT_KEY
+        }
+      )
+    : refreshedPrCycleSnapshot;
+
+  return {
+    refreshedPrCycleSnapshot,
+    prCycleSnapshot
   };
 }
 

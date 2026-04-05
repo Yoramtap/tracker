@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  buildPrCycleFetchRequest,
+  buildPrCycleSnapshotState,
   buildPrActivitySnapshotState,
   buildTrendRefreshDateState,
   resolvePrActivityHistoryPlan,
@@ -280,4 +282,58 @@ test("resolvePrCycleRefreshPlan refreshes all windows when rebuilding or history
     ["30d", "90d", "6m", "1y"]
   );
   assert.equal(refreshPlan.prCycleRangeStartDate, "2025-04-05");
+});
+
+test("buildPrCycleFetchRequest uses the widest window selected by the refresh plan", () => {
+  const fetchRequest = buildPrCycleFetchRequest(
+    {
+      prCycleProjectKeys: ["TFC", "MESO"],
+      prCycleCodingStatuses: ["Coding"],
+      prCycleReviewStatuses: ["In Review"],
+      prCycleMergeStatuses: ["Merged"]
+    },
+    {
+      prCycleWindowsToRefresh: makePrCycleWindows().slice(0, 2),
+      prCycleRangeStartDate: "2026-01-07"
+    }
+  );
+
+  assert.deepEqual(fetchRequest.projectKeys, ["TFC", "MESO"]);
+  assert.equal(fetchRequest.windowDays, 90);
+  assert.equal(fetchRequest.windowLabel, "Last 90 days");
+  assert.equal(fetchRequest.windowStartDate, "2026-01-07");
+  assert.equal(fetchRequest.windowStartIso, "2026-01-07T00:00:00.000Z");
+  assert.deepEqual(fetchRequest.codingStatuses, ["Coding"]);
+  assert.deepEqual(fetchRequest.reviewStatuses, ["In Review"]);
+  assert.deepEqual(fetchRequest.mergeStatuses, ["Merged"]);
+  assert.match(fetchRequest.windowEndIso, /^\d{4}-\d{2}-\d{2}T/);
+});
+
+test("buildPrCycleSnapshotState preserves cached long windows when reuse is enabled", () => {
+  const snapshotState = buildPrCycleSnapshotState(
+    {
+      prCycleCodingStatuses: ["Coding"],
+      prCycleReviewStatuses: ["In Review"],
+      prCycleMergeStatuses: ["Merged"]
+    },
+    {
+      defaultWindow: "6m",
+      windows: {
+        "6m": { windowLabel: "Last 6 months", teams: [{ key: "api", marker: "cached-6m" }] },
+        "1y": { windowLabel: "Last year", teams: [{ key: "api", marker: "cached-1y" }] }
+      }
+    },
+    {
+      reuseHistoricalPrCycleWindows: true,
+      prCycleWindowsToRefresh: makePrCycleWindows().slice(0, 2)
+    },
+    []
+  );
+
+  assert.equal(snapshotState.prCycleSnapshot.defaultWindow, "6m");
+  assert.deepEqual(Object.keys(snapshotState.prCycleSnapshot.windows), ["6m", "1y", "30d", "90d"]);
+  assert.equal(snapshotState.prCycleSnapshot.windows["6m"].teams[0].marker, "cached-6m");
+  assert.equal(snapshotState.prCycleSnapshot.windows["1y"].teams[0].marker, "cached-1y");
+  assert.equal(snapshotState.prCycleSnapshot.windows["30d"].windowLabel, "Last 30 days");
+  assert.equal(snapshotState.prCycleSnapshot.windows["90d"].windowLabel, "Last 90 days");
 });
