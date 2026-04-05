@@ -276,18 +276,20 @@ export function createRefreshRunner(deps) {
     });
   }
 
-  function buildFullRefreshDerivedState(config, normalizedState) {
-    const snapshot = buildCombinedSnapshot(
+  function buildFullRefreshSnapshot(normalizedState) {
+    return buildCombinedSnapshot(
       normalizedState.sharedState.computed,
       normalizedState.syncedAt,
       normalizedState.uatAging,
       normalizedState.sharedState.mergedPrActivity,
       normalizedState.businessUnitChartData
     );
+  }
 
+  function buildFullRefreshDerivedState(config, normalizedState) {
     return {
       ...normalizedState,
-      snapshot,
+      snapshot: buildFullRefreshSnapshot(normalizedState),
       summaryMessage: FULL_REFRESH_SUMMARY_MESSAGE,
       supplementalArtifacts: buildFullRefreshSupplementalArtifacts(normalizedState),
       snapshotRetentionCount: config.snapshotRetentionCount

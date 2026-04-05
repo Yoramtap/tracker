@@ -662,3 +662,130 @@ test("runFullRefreshPipeline skips optional contributor and product-cycle fetche
   assert.equal(contributorsFetchCount, 0);
   assert.equal(productCycleFetchCount, 0);
 });
+
+test("runFullRefreshPipeline returns normalized state before derive-stage assembly", async () => {
+  let buildCombinedSnapshotCalls = 0;
+  let buildSupplementalWriteArtifactsCalls = 0;
+  const runner = createRefreshRunner(
+    createDeps({
+      io: {
+        buildSupplementalWriteArtifacts: () => {
+          buildSupplementalWriteArtifactsCalls += 1;
+          return [];
+        }
+      },
+      helpers: {
+        buildCombinedSnapshot: () => {
+          buildCombinedSnapshotCalls += 1;
+          return { id: "combined-snapshot" };
+        },
+        buildTrendAndPrActivityState: async () => ({
+          computed: {
+            BOARD_38_TREND: [{ highest: 1, high: 2, medium: 3, low: 4, lowest: 5 }]
+          },
+          mergedPrActivity: { id: "pr-activity" },
+          prCycleSnapshot: { id: "pr-cycle" }
+        }),
+        buildUatRefreshArtifacts: async () => ({
+          uatAging: { total: 7 },
+          businessUnitChartData: { series: [4, 5, 6] }
+        })
+      },
+      refreshers: {
+        refreshContributorsSnapshot: async () => ({ id: "contributors" }),
+        refreshProductCycleSnapshot: async () => ({ id: "product-cycle" })
+      }
+    })
+  );
+
+  const normalizedState = await runner.runFullRefreshPipeline(
+    {
+      noWrite: false,
+      skipContributors: false,
+      skipProductCycle: false,
+      snapshotRetentionCount: 9
+    },
+    {
+      stopAfterStage: "normalize",
+      todayIso: "2026-04-05"
+    }
+  );
+
+  assert.equal(normalizedState.todayIso, "2026-04-05");
+  assert.equal(normalizedState.grandTotal, 15);
+  assert.equal(typeof normalizedState.syncedAt, "string");
+  assert.deepEqual(normalizedState.sharedState, {
+    computed: {
+      BOARD_38_TREND: [{ highest: 1, high: 2, medium: 3, low: 4, lowest: 5 }]
+    },
+    mergedPrActivity: { id: "pr-activity" },
+    prCycleSnapshot: { id: "pr-cycle" }
+  });
+  assert.deepEqual(normalizedState.uatAging, { total: 7 });
+  assert.deepEqual(normalizedState.businessUnitChartData, { series: [4, 5, 6] });
+  assert.deepEqual(normalizedState.contributorsSnapshot, { id: "contributors" });
+  assert.deepEqual(normalizedState.productCycleSnapshot, { id: "product-cycle" });
+  assert.equal(buildCombinedSnapshotCalls, 0);
+  assert.equal(buildSupplementalWriteArtifactsCalls, 0);
+});
+
+test("runFullRefreshPipeline preserves normalize-stage output even when grandTotal is zero", async () => {
+  const buildCombinedSnapshotCalls = [];
+  const preparePrimarySnapshotArtifactsCalls = [];
+  const validateDashboardSnapshotCalls = [];
+  const commitSnapshotRefreshCalls = [];
+  const runner = createRefreshRunner(
+    createDeps({
+      helpers: {
+        buildCombinedSnapshot: (...args) => {
+          buildCombinedSnapshotCalls.push(args);
+          return { kind: "combined-snapshot" };
+        },
+        buildTrendAndPrActivityState: async () => ({
+          computed: {},
+          mergedPrActivity: { id: "pr-activity" },
+          prCycleSnapshot: { id: "pr-cycle" }
+        }),
+        buildUatRefreshArtifacts: async () => ({
+          uatAging: { total: 0 },
+          businessUnitChartData: { series: [] }
+        })
+      },
+      io: {
+        buildSupplementalWriteArtifacts: () => [],
+        commitSnapshotRefresh: async (args) => {
+          commitSnapshotRefreshCalls.push(args);
+        },
+        preparePrimarySnapshotArtifacts: async (snapshot) => {
+          preparePrimarySnapshotArtifactsCalls.push(snapshot);
+          return [{ id: "primary-artifact" }];
+        }
+      },
+      validators: {
+        validateDashboardSnapshot: (fileName, outputSnapshot) => {
+          validateDashboardSnapshotCalls.push([fileName, outputSnapshot]);
+        }
+      }
+    })
+  );
+
+  const result = await runner.runFullRefreshPipeline(
+    {
+      noWrite: false,
+      skipContributors: true,
+      skipProductCycle: true,
+      snapshotRetentionCount: 0
+    },
+    {
+      stopAfterStage: "normalize",
+      todayIso: "2026-04-05"
+    }
+  );
+
+  assert.equal(result.grandTotal, 0);
+  assert.equal(typeof result.syncedAt, "string");
+  assert.deepEqual(buildCombinedSnapshotCalls, []);
+  assert.deepEqual(preparePrimarySnapshotArtifactsCalls, []);
+  assert.deepEqual(validateDashboardSnapshotCalls, []);
+  assert.deepEqual(commitSnapshotRefreshCalls, []);
+});
