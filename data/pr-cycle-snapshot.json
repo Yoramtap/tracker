@@ -28,7 +28,7 @@
             {
               "key": "merge",
               "label": "QA",
-              "days": 5,
+              "days": 4.9,
               "sampleCount": 30
             }
           ]
@@ -43,7 +43,7 @@
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 6.4,
+              "days": 6.3,
               "sampleCount": 20
             },
             {
@@ -109,7 +109,7 @@
             {
               "key": "merge",
               "label": "QA",
-              "days": 7.4,
+              "days": 7.3,
               "sampleCount": 30
             }
           ]
@@ -291,7 +291,7 @@
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 4.4,
+              "days": 4.3,
               "sampleCount": 76
             },
             {
@@ -312,7 +312,7 @@
           "key": "titanium",
           "label": "Titanium",
           "issueCount": 85,
-          "totalCycleDays": 17.7,
+          "totalCycleDays": 17.6,
           "bottleneckLabel": "In Progress",
           "stages": [
             {
