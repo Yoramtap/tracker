@@ -2598,43 +2598,49 @@ async function resolveTrendRefreshDates(config, todayIso) {
   };
 }
 
-async function buildTrendAndPrActivityState(config, todayIso) {
-  const prCycleSnapshot = await buildPrCycleRefreshSnapshot(config, todayIso);
-  const { resolvedDates, dates } = await resolveTrendRefreshDates(config, todayIso);
-
-  let computed = {};
+async function refreshTrendSnapshotData(config, dates) {
   if (config.skipTrendRefresh) {
     console.log("Skipping bug trend refresh (SKIP_TREND_REFRESH=true).");
-  } else {
-    const computedEntries = await withTiming(
-      "Bug trend refresh",
-      () =>
-        mapWithConcurrency(BOARDS, config.trendBoardConcurrency, async (board) => {
-          const trendRows = await buildBoardTrend(
-            board,
-            dates,
-            config.site,
-            config.email,
-            config.token,
-            config.trendCountConcurrency
-          );
-          console.log(`Computed ${board.constName} (${dates.length} points).`);
-          return [board.constName, trendRows];
-        }),
-      console
-    );
-    computed = Object.fromEntries(computedEntries);
+    return {};
   }
 
-  const prActivityState = await buildPrActivityRefreshState(config, todayIso, resolvedDates, {
-    skipRefresh: config.skipPrActivity
-  });
+  const computedEntries = await withTiming(
+    "Bug trend refresh",
+    () =>
+      mapWithConcurrency(BOARDS, config.trendBoardConcurrency, async (board) => {
+        const trendRows = await buildBoardTrend(
+          board,
+          dates,
+          config.site,
+          config.email,
+          config.token,
+          config.trendCountConcurrency
+        );
+        console.log(`Computed ${board.constName} (${dates.length} points).`);
+        return [board.constName, trendRows];
+      }),
+    console
+  );
+  return Object.fromEntries(computedEntries);
+}
 
+function buildTrendAndPrActivityResult(prCycleSnapshot, computed, prActivityState) {
   return {
     prCycleSnapshot: attachPrCycleAvgInflow(prCycleSnapshot, prActivityState.mergedPrActivity),
     computed,
     ...prActivityState
   };
+}
+
+async function buildTrendAndPrActivityState(config, todayIso) {
+  const prCycleSnapshot = await buildPrCycleRefreshSnapshot(config, todayIso);
+  const { resolvedDates, dates } = await resolveTrendRefreshDates(config, todayIso);
+  const computed = await refreshTrendSnapshotData(config, dates);
+  const prActivityState = await buildPrActivityRefreshState(config, todayIso, resolvedDates, {
+    skipRefresh: config.skipPrActivity
+  });
+
+  return buildTrendAndPrActivityResult(prCycleSnapshot, computed, prActivityState);
 }
 
 const refreshRunner = createRefreshRunner({
