@@ -35,17 +35,24 @@
     }
   }
 
-  const cache = globalObject.__dashboardDataSourcePromiseCache || {};
-  for (const sourceKey of getNeededSourceKeys()) {
-    if (cache[sourceKey]) continue;
-    const url = DATA_SOURCE_URLS[sourceKey];
-    if (!url) continue;
-    cache[sourceKey] = fetch(url, { cache: "no-cache" }).then(async (response) => {
+  function fetchJsonNoCache(url) {
+    return fetch(url, { cache: "no-cache" }).then(async (response) => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.json();
     });
   }
 
+  function preloadRequestedDataSources(cache) {
+    for (const sourceKey of getNeededSourceKeys()) {
+      if (cache[sourceKey]) continue;
+      const url = DATA_SOURCE_URLS[sourceKey];
+      if (!url) continue;
+      cache[sourceKey] = fetchJsonNoCache(url);
+    }
+  }
+
+  const cache = globalObject.__dashboardDataSourcePromiseCache || {};
+  preloadRequestedDataSources(cache);
   globalObject.__dashboardDataSourcePromiseCache = cache;
 
   const shortDateFormatter = new Intl.DateTimeFormat(undefined, {
@@ -195,6 +202,32 @@
     });
   }
 
+  function getBoundControlNextState({
+    control,
+    controlType,
+    normalizeValue,
+    normalizeChecked
+  }) {
+    if (controlType === "checkbox") {
+      return normalizeChecked ? normalizeChecked(control.checked) : Boolean(control.checked);
+    }
+    return normalizeValue(control.value);
+  }
+
+  function syncDashboardUrlFromBindings(bindings, state) {
+    const nextUrl = new URL(globalObject.location.href);
+    (Array.isArray(bindings) ? bindings : []).forEach(
+      ({ name, stateKey, controlType }) => {
+        if (controlType === "checkbox") {
+          nextUrl.searchParams.set(name, state[stateKey] ? "true" : "false");
+          return;
+        }
+        nextUrl.searchParams.set(name, String(state[stateKey] || ""));
+      }
+    );
+    globalObject.history.replaceState({}, "", nextUrl);
+  }
+
   function bindDashboardControlState(bindings, state) {
     (Array.isArray(bindings) ? bindings : []).forEach(
       ({ name, stateKey, normalizeValue, normalizeChecked, onChangeRender, controlType }) => {
@@ -204,28 +237,14 @@
           if (control.dataset.bound === "1") return;
           control.dataset.bound = "1";
           control.addEventListener("change", () => {
-            state[stateKey] =
-              controlType === "checkbox"
-                ? normalizeChecked
-                  ? normalizeChecked(control.checked)
-                  : Boolean(control.checked)
-                : normalizeValue(control.value);
+            state[stateKey] = getBoundControlNextState({
+              control,
+              controlType,
+              normalizeValue,
+              normalizeChecked
+            });
             syncControlSelectionClasses(name, controlType);
-            const nextUrl = new URL(globalObject.location.href);
-            (Array.isArray(bindings) ? bindings : []).forEach(
-              ({
-                name: bindingName,
-                stateKey: bindingStateKey,
-                controlType: bindingControlType
-              }) => {
-                if (bindingControlType === "checkbox") {
-                  nextUrl.searchParams.set(bindingName, state[bindingStateKey] ? "true" : "false");
-                  return;
-                }
-                nextUrl.searchParams.set(bindingName, String(state[bindingStateKey] || ""));
-              }
-            );
-            globalObject.history.replaceState({}, "", nextUrl);
+            syncDashboardUrlFromBindings(bindings, state);
             onChangeRender();
           });
         });

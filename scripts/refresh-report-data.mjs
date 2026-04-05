@@ -2470,6 +2470,85 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
   return prCycleSnapshot;
 }
 
+async function buildPrActivityRefreshState(config, todayIso, resolvedDates, options = {}) {
+  const allResolvedDates = Array.isArray(resolvedDates?.dates) ? resolvedDates.dates : [];
+  const { skipRefresh = false } = options;
+  const shouldRebuildPrActivityHistory = config.prActivityRebuildAll || config.cleanRun;
+  const prActivityHistoryState = await readPrActivityHistoryState({
+    skipHistoryReuse: shouldRebuildPrActivityHistory
+  });
+  const existingSnapshotForPrActivity = prActivityHistoryState.currentSnapshot;
+  const existingPrActivityForMerge = prActivityHistoryState.bestPrActivity;
+  const canReuseHistoricalPrActivity = Boolean(
+    countPrActivitySeriesPoints(existingPrActivityForMerge, "points") > 0 &&
+      countPrActivitySeriesPoints(existingPrActivityForMerge, "monthlyPoints") > 0
+  );
+  const reuseHistoricalPrActivity =
+    !shouldRebuildPrActivityHistory && canReuseHistoricalPrActivity;
+  if (
+    reuseHistoricalPrActivity &&
+    prActivityHistoryState.bestSource &&
+    prActivityHistoryState.bestSource !== PRIMARY_SNAPSHOT_PATH
+  ) {
+    console.warn(
+      `Using archived PR activity history from ${prActivityHistoryState.bestSource} (${prActivityHistoryState.bestMetrics.pointsCount} sprint buckets, ${prActivityHistoryState.bestMetrics.monthlyPointsCount} monthly buckets) because current snapshot.json is missing older monthly history.`
+    );
+  }
+
+  if (skipRefresh) {
+    console.log("Skipping PR activity refresh (SKIP_PR_ACTIVITY=true); reusing cached history.");
+    return {
+      existingSnapshotForPrActivity,
+      mergedPrActivity: existingPrActivityForMerge
+    };
+  }
+
+  const prActivityWindowKey = reuseHistoricalPrActivity
+    ? PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY
+    : "1y";
+  const prActivityFetchSinceDate = resolvePrActivityFetchSinceDate(todayIso, prActivityWindowKey);
+  const prRows = await withTiming(
+    "PR activity fetch",
+    () =>
+      fetchPrActivity(config.site, config.email, config.token, prActivityFetchSinceDate, {
+        useCache: !config.cleanRun
+      }),
+    console
+  );
+  const prActivitySprintDates = allResolvedDates.filter(
+    (date) => String(date || "") >= prActivityFetchSinceDate
+  );
+  const latestClosedSprintDate = Array.isArray(resolvedDates?.closedDates)
+    ? String(resolvedDates.closedDates[resolvedDates.closedDates.length - 1] || "").trim()
+    : "";
+  const prActivity = buildPrActivitySprintSnapshot(
+    prRows,
+    prActivityFetchSinceDate,
+    prActivitySprintDates
+  );
+  const prActivityMonthly = buildPrActivityMonthlySnapshot(prRows, prActivityFetchSinceDate, {
+    ceilingDate: latestClosedSprintDate
+  });
+  prActivity.latestClosedSprintDate = latestClosedSprintDate;
+  prActivity.monthlySince = prActivityMonthly.since;
+  prActivity.monthlyPoints = prActivityMonthly.points;
+  const mergedPrActivity = reuseHistoricalPrActivity
+    ? mergePrActivitySnapshots(existingPrActivityForMerge, prActivity, {
+        truncateAfterRefreshedLatest: !resolvedDates.usedFallback,
+        ceilingDate: todayIso,
+        monthlyFloorDate: resolvePrActivityFetchSinceDate(todayIso, "1y")
+      })
+    : prActivity;
+  console.log(
+    `Computed Jira Development PR inflow proxy (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} candidate issues, ${prRows.detailIssueCount} with recent PR summary activity, since ${prActivityFetchSinceDate} across ${prActivitySprintDates.length} sprint buckets and ${prActivity.monthlyPoints.length} monthly buckets; fetched ${prRows.reviewChangelogIssueCount} review changelogs, cache hits ${prRows.cacheHitCount}, cache writes ${prRows.cacheWriteCount}${reuseHistoricalPrActivity ? "; reused cached older PR activity buckets" : ""}).`
+  );
+
+  return {
+    existingSnapshotForPrActivity,
+    mergedPrActivity
+  };
+}
+
 async function buildTrendAndPrActivityState(config, todayIso) {
   const prCycleSnapshot = await buildPrCycleRefreshSnapshot(config, todayIso);
   const resolvedDates = await withTiming(
@@ -2526,81 +2605,14 @@ async function buildTrendAndPrActivityState(config, todayIso) {
     computed = Object.fromEntries(computedEntries);
   }
 
-  const shouldRebuildPrActivityHistory = config.prActivityRebuildAll || config.cleanRun;
-  const prActivityHistoryState = await readPrActivityHistoryState({
-    skipHistoryReuse: shouldRebuildPrActivityHistory
+  const prActivityState = await buildPrActivityRefreshState(config, todayIso, resolvedDates, {
+    skipRefresh: config.skipPrActivity
   });
-  const existingSnapshotForPrActivity = prActivityHistoryState.currentSnapshot;
-  const existingPrActivityForMerge = prActivityHistoryState.bestPrActivity;
-  const canReuseHistoricalPrActivity = Boolean(
-    countPrActivitySeriesPoints(existingPrActivityForMerge, "points") > 0 &&
-      countPrActivitySeriesPoints(existingPrActivityForMerge, "monthlyPoints") > 0
-  );
-  const reuseHistoricalPrActivity =
-    !shouldRebuildPrActivityHistory && canReuseHistoricalPrActivity;
-  if (
-    reuseHistoricalPrActivity &&
-    prActivityHistoryState.bestSource &&
-    prActivityHistoryState.bestSource !== PRIMARY_SNAPSHOT_PATH
-  ) {
-    console.warn(
-      `Using archived PR activity history from ${prActivityHistoryState.bestSource} (${prActivityHistoryState.bestMetrics.pointsCount} sprint buckets, ${prActivityHistoryState.bestMetrics.monthlyPointsCount} monthly buckets) because current snapshot.json is missing older monthly history.`
-    );
-  }
-  if (config.skipPrActivity) {
-    console.log("Skipping PR activity refresh (SKIP_PR_ACTIVITY=true); reusing cached history.");
-    return {
-      prCycleSnapshot: attachPrCycleAvgInflow(prCycleSnapshot, existingPrActivityForMerge),
-      computed,
-      existingSnapshotForPrActivity,
-      mergedPrActivity: existingPrActivityForMerge
-    };
-  }
-  const prActivityWindowKey = reuseHistoricalPrActivity
-    ? PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY
-    : "1y";
-  const prActivityFetchSinceDate = resolvePrActivityFetchSinceDate(todayIso, prActivityWindowKey);
-  const prRows = await withTiming(
-    "PR activity fetch",
-    () =>
-      fetchPrActivity(config.site, config.email, config.token, prActivityFetchSinceDate, {
-        useCache: !config.cleanRun
-      }),
-    console
-  );
-  const prActivitySprintDates = allResolvedDates.filter(
-    (date) => String(date || "") >= prActivityFetchSinceDate
-  );
-  const latestClosedSprintDate = Array.isArray(resolvedDates.closedDates)
-    ? String(resolvedDates.closedDates[resolvedDates.closedDates.length - 1] || "").trim()
-    : "";
-  const prActivity = buildPrActivitySprintSnapshot(
-    prRows,
-    prActivityFetchSinceDate,
-    prActivitySprintDates
-  );
-  const prActivityMonthly = buildPrActivityMonthlySnapshot(prRows, prActivityFetchSinceDate, {
-    ceilingDate: latestClosedSprintDate
-  });
-  prActivity.latestClosedSprintDate = latestClosedSprintDate;
-  prActivity.monthlySince = prActivityMonthly.since;
-  prActivity.monthlyPoints = prActivityMonthly.points;
-  const mergedPrActivity = reuseHistoricalPrActivity
-    ? mergePrActivitySnapshots(existingPrActivityForMerge, prActivity, {
-        truncateAfterRefreshedLatest: !resolvedDates.usedFallback,
-        ceilingDate: todayIso,
-        monthlyFloorDate: resolvePrActivityFetchSinceDate(todayIso, "1y")
-      })
-    : prActivity;
-  console.log(
-    `Computed Jira Development PR inflow proxy (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} candidate issues, ${prRows.detailIssueCount} with recent PR summary activity, since ${prActivityFetchSinceDate} across ${prActivitySprintDates.length} sprint buckets and ${prActivity.monthlyPoints.length} monthly buckets; fetched ${prRows.reviewChangelogIssueCount} review changelogs, cache hits ${prRows.cacheHitCount}, cache writes ${prRows.cacheWriteCount}${reuseHistoricalPrActivity ? "; reused cached older PR activity buckets" : ""}).`
-  );
 
   return {
-    prCycleSnapshot: attachPrCycleAvgInflow(prCycleSnapshot, mergedPrActivity),
+    prCycleSnapshot: attachPrCycleAvgInflow(prCycleSnapshot, prActivityState.mergedPrActivity),
     computed,
-    existingSnapshotForPrActivity,
-    mergedPrActivity
+    ...prActivityState
   };
 }
 
@@ -2609,7 +2621,6 @@ const refreshRunner = createRefreshRunner({
   resolveStopAfterStage,
   constants: {
     FALLBACK_DATES,
-    PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY,
     PRIMARY_SNAPSHOT_PATH
   },
   io: {
@@ -2628,20 +2639,13 @@ const refreshRunner = createRefreshRunner({
     refreshContributorsSnapshot,
     refreshProductCycleSnapshot
   },
-  history: {
-    countPrActivitySeriesPoints,
-    mergePrActivitySnapshots,
-    readPrActivityHistoryState
-  },
   helpers: {
     buildCombinedSnapshot,
-    buildPrActivityMonthlySnapshot,
-    buildPrActivitySprintSnapshot,
+    buildPrActivityRefreshState,
     buildPrCycleRefreshSnapshot,
     buildTrendAndPrActivityState,
     buildUatRefreshArtifacts,
     maybeRefreshSnapshot,
-    resolvePrActivityFetchSinceDate,
     resolveTrendDates,
     updateExistingSnapshotPrActivity,
     updateExistingSnapshotUat,
@@ -2651,7 +2655,6 @@ const refreshRunner = createRefreshRunner({
   jira: {
     env,
     fetchIssueChangelog,
-    fetchPrActivity,
     jiraRequest,
     mapWithConcurrency,
     searchJiraIssues
@@ -2672,7 +2675,7 @@ export async function runRefresh(options = {}) {
   }
 
   if (stopAfterStage) {
-    if ([config.uatOnly, config.productCycleOnly, config.prCycleOnly, config.prActivityOnly].some(Boolean)) {
+    if (refreshRunner.hasModeSpecificRefresh(config)) {
       throw new Error("--stage only supports the default full refresh mode.");
     }
     const result = await refreshRunner.runFullRefreshPipeline(config, { stopAfterStage });
@@ -2680,25 +2683,8 @@ export async function runRefresh(options = {}) {
     return result;
   }
 
-  if (config.uatOnly) {
-    await refreshRunner.runUatOnlyRefresh(config);
-    return;
-  }
-
-  if (config.productCycleOnly) {
-    await refreshRunner.runProductCycleOnlyRefresh(config);
-    return;
-  }
-
   const todayIso = new Date().toISOString().slice(0, 10);
-  if (config.prCycleOnly) {
-    await refreshRunner.runPrCycleOnlyRefresh(config, todayIso);
-    return;
-  }
-
-  if (config.prActivityOnly) {
-    const sharedState = await refreshRunner.buildPrActivityOnlyState(config, todayIso);
-    await refreshRunner.runPrActivityOnlyRefresh(config, sharedState);
+  if (await refreshRunner.runModeSpecificRefresh(config, todayIso)) {
     return;
   }
 

@@ -62,6 +62,13 @@
   const SECTION_FILTER_ITEMS = Array.isArray(dashboardRuntimeContract.sectionFilterItems)
     ? dashboardRuntimeContract.sectionFilterItems
     : [];
+  const PRODUCT_CHART_MODES = new Set([
+    "trend",
+    "composition",
+    "management-facility",
+    "product-cycle",
+    "lifecycle-days"
+  ]);
   const getModeFromUrl = (search = window.location.search) =>
     dashboardRuntimeContract.getModeFromUrl(search);
   const normalizeSectionFilter = (value) => dashboardRuntimeContract.normalizeSectionFilter(value);
@@ -149,12 +156,14 @@
     syncControlSelectionClasses(name);
   }
 
+  function normalizeMode(mode) {
+    return String(mode || "")
+      .trim()
+      .toLowerCase();
+  }
+
   function isPreloadAllSections(sectionKey = bootstrapState.sectionFilter) {
-    return (
-      String(sectionKey || "")
-        .trim()
-        .toLowerCase() === "all"
-    );
+    return normalizeMode(sectionKey) === "all";
   }
 
   function getSectionOptionalChartScriptSources(sectionKey = bootstrapState.sectionFilter) {
@@ -163,32 +172,19 @@
     if (normalizedSection === "product" || normalizedSection === "bug") {
       return [PRODUCT_CHART_SCRIPT_SOURCE];
     }
-    if (isPreloadAllSections(sectionKey)) {
-      return [SHIPPED_CHART_SCRIPT_SOURCE, PRODUCT_CHART_SCRIPT_SOURCE];
-    }
-    return [];
+    return isPreloadAllSections(sectionKey)
+      ? [SHIPPED_CHART_SCRIPT_SOURCE, PRODUCT_CHART_SCRIPT_SOURCE]
+      : [];
   }
 
   function getOptionalChartScriptSources(
     mode = getModeFromUrl(window.location.search),
     sectionKey = bootstrapState.sectionFilter
   ) {
-    switch (
-      String(mode || "")
-        .trim()
-        .toLowerCase()
-    ) {
-      case "trend":
-      case "composition":
-      case "management-facility":
-      case "product-cycle":
-      case "lifecycle-days":
-        return [PRODUCT_CHART_SCRIPT_SOURCE];
-      case "all":
-        return getSectionOptionalChartScriptSources(sectionKey);
-      default:
-        return [];
-    }
+    const normalizedMode = normalizeMode(mode);
+    if (PRODUCT_CHART_MODES.has(normalizedMode)) return [PRODUCT_CHART_SCRIPT_SOURCE];
+    if (normalizedMode === "all") return getSectionOptionalChartScriptSources(sectionKey);
+    return [];
   }
 
   function getHeavyScriptSources(
@@ -209,18 +205,12 @@
     mode = getModeFromUrl(window.location.search),
     sectionKey = bootstrapState.sectionFilter
   ) {
-    const normalizedMode = String(mode || "all")
-      .trim()
-      .toLowerCase();
-    if (normalizedMode === "all") {
-      if (isPreloadAllSections(sectionKey)) {
-        return !bootstrapState.heavyPanelShellLoaded;
-      }
-      const normalizedSection = normalizeSectionFilter(sectionKey);
-      return normalizedSection !== DEFAULT_SECTION && !bootstrapState.heavyPanelShellLoaded;
-    }
+    if (bootstrapState.heavyPanelShellLoaded) return false;
+    const normalizedMode = normalizeMode(mode || "all");
     if (normalizedMode === "contributors") return false;
-    return !bootstrapState.heavyPanelShellLoaded;
+    if (normalizedMode !== "all") return true;
+    if (isPreloadAllSections(sectionKey)) return true;
+    return normalizeSectionFilter(sectionKey) !== DEFAULT_SECTION;
   }
 
   function isDefaultCommunityPath() {

@@ -46,6 +46,10 @@ const PRIMARY_SNAPSHOT_WRITE_ENTRIES = Object.freeze([
   }
 ]);
 
+function serializeJson(value) {
+  return `${JSON.stringify(value, null, 2)}\n`;
+}
+
 export async function readJsonFile(filePath) {
   try {
     const raw = await fs.readFile(filePath, "utf8");
@@ -56,7 +60,7 @@ export async function readJsonFile(filePath) {
 }
 
 export async function writeJsonAtomic(outputPath, tmpPath, value) {
-  const serialized = `${JSON.stringify(value, null, 2)}\n`;
+  const serialized = serializeJson(value);
   try {
     await fs.mkdir(path.dirname(tmpPath), { recursive: true });
     await fs.writeFile(tmpPath, serialized, "utf8");
@@ -69,10 +73,7 @@ export async function writeJsonAtomic(outputPath, tmpPath, value) {
 
 export async function writeDashboardPrimaryArtifactsAtomic(primaryArtifacts) {
   const serializedByKey = Object.fromEntries(
-    PRIMARY_SNAPSHOT_WRITE_ENTRIES.map((entry) => [
-      entry.key,
-      `${JSON.stringify(primaryArtifacts[entry.key], null, 2)}\n`
-    ])
+    PRIMARY_SNAPSHOT_WRITE_ENTRIES.map((entry) => [entry.key, serializeJson(primaryArtifacts[entry.key])])
   );
 
   try {
@@ -157,47 +158,66 @@ export async function writeContributorsSnapshotAtomic(snapshot) {
   );
 }
 
+function createSupplementalWriteArtifact({ fileName, outputSnapshot, logMessage = "", write }) {
+  return {
+    fileName,
+    outputSnapshot,
+    logMessage,
+    write
+  };
+}
+
+function buildContributorsWriteArtifacts(contributorsSnapshot) {
+  if (!contributorsSnapshot) return [];
+  return [
+    createSupplementalWriteArtifact({
+      fileName: "contributors-snapshot.json",
+      outputSnapshot: sanitizeContributorsSnapshot(contributorsSnapshot),
+      logMessage: "Wrote contributors-snapshot.json.",
+      write: () => writeContributorsSnapshotAtomic(contributorsSnapshot)
+    })
+  ];
+}
+
+function buildProductCycleWriteArtifacts(productCycleSnapshot) {
+  if (!productCycleSnapshot) return [];
+  return [
+    createSupplementalWriteArtifact({
+      fileName: "product-cycle-snapshot.json",
+      outputSnapshot: sanitizeProductCycleSnapshot(productCycleSnapshot),
+      logMessage: "Wrote product-cycle-snapshot.json.",
+      write: () => writeProductCycleSnapshotAtomic(productCycleSnapshot)
+    }),
+    createSupplementalWriteArtifact({
+      fileName: "product-cycle-shipments-snapshot.json",
+      outputSnapshot: buildProductCycleShipmentsSnapshot(productCycleSnapshot),
+      logMessage: "Wrote product-cycle-shipments-snapshot.json.",
+      write: () => writeProductCycleShipmentsSnapshotAtomic(productCycleSnapshot)
+    })
+  ];
+}
+
+function buildPrCycleWriteArtifacts(prCycleSnapshot) {
+  if (!prCycleSnapshot) return [];
+  return [
+    createSupplementalWriteArtifact({
+      fileName: "pr-cycle-snapshot.json",
+      outputSnapshot: sanitizePrCycleSnapshot(prCycleSnapshot),
+      write: () => writePrCycleSnapshotAtomic(prCycleSnapshot)
+    })
+  ];
+}
+
 export function buildSupplementalWriteArtifacts({
   contributorsSnapshot,
   productCycleSnapshot,
   prCycleSnapshot
 }) {
-  const artifacts = [];
-
-  if (contributorsSnapshot) {
-    artifacts.push({
-      fileName: "contributors-snapshot.json",
-      outputSnapshot: sanitizeContributorsSnapshot(contributorsSnapshot),
-      logMessage: "Wrote contributors-snapshot.json.",
-      write: () => writeContributorsSnapshotAtomic(contributorsSnapshot)
-    });
-  }
-
-  if (productCycleSnapshot) {
-    artifacts.push({
-      fileName: "product-cycle-snapshot.json",
-      outputSnapshot: sanitizeProductCycleSnapshot(productCycleSnapshot),
-      logMessage: "Wrote product-cycle-snapshot.json.",
-      write: () => writeProductCycleSnapshotAtomic(productCycleSnapshot)
-    });
-    artifacts.push({
-      fileName: "product-cycle-shipments-snapshot.json",
-      outputSnapshot: buildProductCycleShipmentsSnapshot(productCycleSnapshot),
-      logMessage: "Wrote product-cycle-shipments-snapshot.json.",
-      write: () => writeProductCycleShipmentsSnapshotAtomic(productCycleSnapshot)
-    });
-  }
-
-  if (prCycleSnapshot) {
-    artifacts.push({
-      fileName: "pr-cycle-snapshot.json",
-      outputSnapshot: sanitizePrCycleSnapshot(prCycleSnapshot),
-      logMessage: "",
-      write: () => writePrCycleSnapshotAtomic(prCycleSnapshot)
-    });
-  }
-
-  return artifacts;
+  return [
+    ...buildContributorsWriteArtifacts(contributorsSnapshot),
+    ...buildProductCycleWriteArtifacts(productCycleSnapshot),
+    ...buildPrCycleWriteArtifacts(prCycleSnapshot)
+  ];
 }
 
 function snapshotArchiveFileName(syncedAt) {
@@ -208,7 +228,7 @@ function snapshotArchiveFileName(syncedAt) {
 }
 
 export async function archiveSnapshot(snapshot, syncedAt) {
-  const serialized = `${JSON.stringify(snapshot, null, 2)}\n`;
+  const serialized = serializeJson(snapshot);
   const fileName = snapshotArchiveFileName(syncedAt);
   const filePath = path.join(SNAPSHOT_HISTORY_DIR_PATH, fileName);
   await fs.mkdir(SNAPSHOT_HISTORY_DIR_PATH, { recursive: true });
