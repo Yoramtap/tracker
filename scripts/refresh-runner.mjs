@@ -3,7 +3,6 @@ export function createRefreshRunner(deps) {
     allowEmpty,
     constants: {
       FALLBACK_DATES,
-      PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY,
       PRIMARY_SNAPSHOT_PATH
     },
     io: {
@@ -22,20 +21,13 @@ export function createRefreshRunner(deps) {
       refreshContributorsSnapshot,
       refreshProductCycleSnapshot
     },
-    history: {
-      countPrActivitySeriesPoints,
-      mergePrActivitySnapshots,
-      readPrActivityHistoryState
-    },
     helpers: {
       buildCombinedSnapshot,
-      buildPrActivityMonthlySnapshot,
-      buildPrActivitySprintSnapshot,
+      buildPrActivityRefreshState,
       buildPrCycleRefreshSnapshot,
       buildTrendAndPrActivityState,
       buildUatRefreshArtifacts,
       maybeRefreshSnapshot,
-      resolvePrActivityFetchSinceDate,
       resolveTrendDates,
       updateExistingSnapshotPrActivity,
       updateExistingSnapshotUat,
@@ -45,7 +37,6 @@ export function createRefreshRunner(deps) {
     jira: {
       env,
       fetchIssueChangelog,
-      fetchPrActivity,
       jiraRequest,
       mapWithConcurrency,
       searchJiraIssues
@@ -68,116 +59,45 @@ export function createRefreshRunner(deps) {
         }),
       console
     );
-    const allResolvedDates = resolvedDates.dates;
-
-    const shouldRebuildPrActivityHistory = config.prActivityRebuildAll || config.cleanRun;
-    const prActivityHistoryState = await readPrActivityHistoryState({
-      skipHistoryReuse: shouldRebuildPrActivityHistory
-    });
-    const existingSnapshotForPrActivity = prActivityHistoryState.currentSnapshot;
-    const existingPrActivityForMerge = prActivityHistoryState.bestPrActivity;
-    const canReuseHistoricalPrActivity = Boolean(
-      countPrActivitySeriesPoints(existingPrActivityForMerge, "points") > 0 &&
-        countPrActivitySeriesPoints(existingPrActivityForMerge, "monthlyPoints") > 0
-    );
-    const reuseHistoricalPrActivity =
-      !shouldRebuildPrActivityHistory && canReuseHistoricalPrActivity;
-    if (
-      reuseHistoricalPrActivity &&
-      prActivityHistoryState.bestSource &&
-      prActivityHistoryState.bestSource !== PRIMARY_SNAPSHOT_PATH
-    ) {
-      console.warn(
-        `Using archived PR activity history from ${prActivityHistoryState.bestSource} (${prActivityHistoryState.bestMetrics.pointsCount} sprint buckets, ${prActivityHistoryState.bestMetrics.monthlyPointsCount} monthly buckets) because current snapshot.json is missing older monthly history.`
-      );
-    }
-
-    const prActivityWindowKey = reuseHistoricalPrActivity
-      ? PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY
-      : "1y";
-    const prActivityFetchSinceDate = resolvePrActivityFetchSinceDate(todayIso, prActivityWindowKey);
-    const prRows = await withTiming(
-      "PR activity fetch",
-      () =>
-        fetchPrActivity(config.site, config.email, config.token, prActivityFetchSinceDate, {
-          useCache: !config.cleanRun
-        }),
-      console
-    );
-    const prActivitySprintDates = allResolvedDates.filter(
-      (date) => String(date || "") >= prActivityFetchSinceDate
-    );
-    const latestClosedSprintDate = Array.isArray(resolvedDates.closedDates)
-      ? String(resolvedDates.closedDates[resolvedDates.closedDates.length - 1] || "").trim()
-      : "";
-    const prActivity = buildPrActivitySprintSnapshot(
-      prRows,
-      prActivityFetchSinceDate,
-      prActivitySprintDates
-    );
-    const prActivityMonthly = buildPrActivityMonthlySnapshot(prRows, prActivityFetchSinceDate, {
-      ceilingDate: latestClosedSprintDate
-    });
-    prActivity.latestClosedSprintDate = latestClosedSprintDate;
-    prActivity.monthlySince = prActivityMonthly.since;
-    prActivity.monthlyPoints = prActivityMonthly.points;
-    const mergedPrActivity = reuseHistoricalPrActivity
-      ? mergePrActivitySnapshots(existingPrActivityForMerge, prActivity, {
-          truncateAfterRefreshedLatest: !resolvedDates.usedFallback,
-          ceilingDate: todayIso,
-          monthlyFloorDate: resolvePrActivityFetchSinceDate(todayIso, "1y")
-        })
-      : prActivity;
-    console.log(
-      `Computed Jira Development PR inflow proxy (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} candidate issues, ${prRows.detailIssueCount} with recent PR summary activity, since ${prActivityFetchSinceDate} across ${prActivitySprintDates.length} sprint buckets and ${prActivity.monthlyPoints.length} monthly buckets; fetched ${prRows.reviewChangelogIssueCount} review changelogs, cache hits ${prRows.cacheHitCount}, cache writes ${prRows.cacheWriteCount}${reuseHistoricalPrActivity ? "; reused cached older PR activity buckets" : ""}).`
-    );
-
-    return {
-      existingSnapshotForPrActivity,
-      mergedPrActivity
-    };
+    return await buildPrActivityRefreshState(config, todayIso, resolvedDates);
   }
 
-  async function runUatOnlyRefresh(config) {
-    const { uatAging, businessUnitChartData } = await buildUatRefreshArtifacts(config);
-    if (config.noWrite) {
-      console.log(
-        "NO_WRITE=true: skipped snapshot.json, backlog-snapshot.json, pr-activity-snapshot.json, and management-facility-snapshot.json write (UAT_ONLY mode)."
-      );
-      return;
-    }
-    const existingSnapshot = await readJsonFile(PRIMARY_SNAPSHOT_PATH);
+  function shouldSkipRefreshWrite(noWrite, logMessage) {
+    if (!noWrite) return false;
+    console.log(logMessage);
+    return true;
+  }
+
+  async function commitPrimarySnapshotModeRefresh(config, summaryMessage, buildSnapshot) {
     const syncedAt = new Date().toISOString();
     await commitSnapshotRefresh({
-      snapshot: updateExistingSnapshotUat(existingSnapshot, {
-        uatAging,
-        chartData: businessUnitChartData,
-        syncedAt
-      }),
+      snapshot: await buildSnapshot(syncedAt),
       preparePrimarySnapshotArtifacts,
       syncedAt,
       snapshotRetentionCount: config.snapshotRetentionCount,
-      summaryMessage:
-        "Wrote snapshot.json, backlog-snapshot.json, pr-activity-snapshot.json, and management-facility-snapshot.json (UAT_ONLY mode)."
+      summaryMessage
     });
   }
 
-  async function runPrCycleOnlyRefresh(config, todayIso) {
-    const prCycleSnapshot = await buildPrCycleRefreshSnapshot(config, todayIso);
-    if (!prCycleSnapshot) {
-      throw new Error("PR_CYCLE_ONLY cannot be used when SKIP_PR_CYCLE=true.");
-    }
-    if (config.noWrite) {
-      console.log("NO_WRITE=true: skipped pr-cycle-snapshot.json write (PR_CYCLE_ONLY mode).");
-      return;
-    }
-    await writePrCycleSnapshotAtomic(prCycleSnapshot);
-    console.log("Wrote pr-cycle-snapshot.json (PR_CYCLE_ONLY mode).");
+  async function refreshContributorsSnapshotWithTiming(config, label = "Contributors snapshot") {
+    return await withTiming(
+      label,
+      () =>
+        refreshContributorsSnapshot({
+          site: config.site,
+          email: config.email,
+          token: config.token,
+          searchJiraIssues,
+          envValue: env,
+          logger: console
+        }),
+      console
+    );
   }
 
-  async function runProductCycleOnlyRefresh(config) {
-    const productCycleSnapshot = await withTiming(
-      "Product cycle refresh",
+  async function refreshProductCycleSnapshotWithTiming(config, label = "Product cycle refresh") {
+    return await withTiming(
+      label,
       () =>
         refreshProductCycleSnapshot({
           site: config.site,
@@ -192,12 +112,55 @@ export function createRefreshRunner(deps) {
         }),
       console
     );
-    if (config.noWrite) {
-      console.log(
-        "NO_WRITE=true: skipped product-cycle-snapshot.json and product-cycle-shipments-snapshot.json write (PRODUCT_CYCLE_ONLY mode)."
-      );
+  }
+
+  async function runUatOnlyRefresh(config) {
+    const { uatAging, businessUnitChartData } = await buildUatRefreshArtifacts(config);
+    if (
+      shouldSkipRefreshWrite(
+        config.noWrite,
+        "NO_WRITE=true: skipped snapshot.json, backlog-snapshot.json, pr-activity-snapshot.json, and management-facility-snapshot.json write (UAT_ONLY mode)."
+      )
+    )
       return;
+    const existingSnapshot = await readJsonFile(PRIMARY_SNAPSHOT_PATH);
+    await commitPrimarySnapshotModeRefresh(
+      config,
+      "Wrote snapshot.json, backlog-snapshot.json, pr-activity-snapshot.json, and management-facility-snapshot.json (UAT_ONLY mode).",
+      (syncedAt) =>
+        updateExistingSnapshotUat(existingSnapshot, {
+          uatAging,
+          chartData: businessUnitChartData,
+          syncedAt
+        })
+    );
+  }
+
+  async function runPrCycleOnlyRefresh(config, todayIso) {
+    const prCycleSnapshot = await buildPrCycleRefreshSnapshot(config, todayIso);
+    if (!prCycleSnapshot) {
+      throw new Error("PR_CYCLE_ONLY cannot be used when SKIP_PR_CYCLE=true.");
     }
+    if (
+      shouldSkipRefreshWrite(
+        config.noWrite,
+        "NO_WRITE=true: skipped pr-cycle-snapshot.json write (PR_CYCLE_ONLY mode)."
+      )
+    )
+      return;
+    await writePrCycleSnapshotAtomic(prCycleSnapshot);
+    console.log("Wrote pr-cycle-snapshot.json (PR_CYCLE_ONLY mode).");
+  }
+
+  async function runProductCycleOnlyRefresh(config) {
+    const productCycleSnapshot = await refreshProductCycleSnapshotWithTiming(config);
+    if (
+      shouldSkipRefreshWrite(
+        config.noWrite,
+        "NO_WRITE=true: skipped product-cycle-snapshot.json and product-cycle-shipments-snapshot.json write (PRODUCT_CYCLE_ONLY mode)."
+      )
+    )
+      return;
     await writeProductCycleSnapshotAtomic(productCycleSnapshot);
     await writeProductCycleShipmentsSnapshotAtomic(productCycleSnapshot);
     console.log(
@@ -206,27 +169,25 @@ export function createRefreshRunner(deps) {
   }
 
   async function runPrActivityOnlyRefresh(config, sharedState) {
-    if (config.noWrite) {
-      console.log(
+    if (
+      shouldSkipRefreshWrite(
+        config.noWrite,
         "NO_WRITE=true: skipped snapshot.json, backlog-snapshot.json, pr-activity-snapshot.json, and management-facility-snapshot.json write (PR_ACTIVITY_ONLY mode)."
-      );
+      )
+    )
       return;
-    }
     const existingSnapshot =
       sharedState.existingSnapshotForPrActivity || (await readJsonFile(PRIMARY_SNAPSHOT_PATH));
-    const syncedAt = new Date().toISOString();
-    await commitSnapshotRefresh({
-      snapshot: updateExistingSnapshotPrActivity(
-        existingSnapshot,
-        sharedState.mergedPrActivity,
-        syncedAt
-      ),
-      preparePrimarySnapshotArtifacts,
-      syncedAt,
-      snapshotRetentionCount: config.snapshotRetentionCount,
-      summaryMessage:
-        "Wrote snapshot.json, backlog-snapshot.json, pr-activity-snapshot.json, and management-facility-snapshot.json (PR_ACTIVITY_ONLY mode)."
-    });
+    await commitPrimarySnapshotModeRefresh(
+      config,
+      "Wrote snapshot.json, backlog-snapshot.json, pr-activity-snapshot.json, and management-facility-snapshot.json (PR_ACTIVITY_ONLY mode).",
+      (syncedAt) =>
+        updateExistingSnapshotPrActivity(
+          existingSnapshot,
+          sharedState.mergedPrActivity,
+          syncedAt
+        )
+    );
   }
 
   function calculateGrandTotal(computed) {
@@ -256,41 +217,12 @@ export function createRefreshRunner(deps) {
       maybeRefreshSnapshot(
         config.skipContributors,
         "Skipping contributors snapshot refresh (SKIP_CONTRIBUTORS=true).",
-        () =>
-          withTiming(
-            "Contributors snapshot",
-            () =>
-              refreshContributorsSnapshot({
-                site: config.site,
-                email: config.email,
-                token: config.token,
-                searchJiraIssues,
-                envValue: env,
-                logger: console
-              }),
-            console
-          )
+        () => refreshContributorsSnapshotWithTiming(config)
       ),
       maybeRefreshSnapshot(
         config.skipProductCycle,
         "Skipping product-cycle snapshot refresh (SKIP_PRODUCT_CYCLE=true).",
-        () =>
-          withTiming(
-            "Product cycle snapshot",
-            () =>
-              refreshProductCycleSnapshot({
-                site: config.site,
-                email: config.email,
-                token: config.token,
-                jiraRequest,
-                searchJiraIssues,
-                fetchIssueChangelog,
-                mapWithConcurrency,
-                envValue: env,
-                logger: console
-              }),
-            console
-          )
+        () => refreshProductCycleSnapshotWithTiming(config, "Product cycle snapshot")
       )
     ]);
 
@@ -358,10 +290,13 @@ export function createRefreshRunner(deps) {
   }
 
   async function runFullRefreshWriteStage(config, validatedState) {
-    if (config.noWrite) {
-      console.log("NO_WRITE=true: skipped snapshot and derived snapshot writes (full refresh).");
+    if (
+      shouldSkipRefreshWrite(
+        config.noWrite,
+        "NO_WRITE=true: skipped snapshot and derived snapshot writes (full refresh)."
+      )
+    )
       return validatedState;
-    }
 
     await commitSnapshotRefresh({
       snapshot: validatedState.snapshot,
@@ -376,6 +311,40 @@ export function createRefreshRunner(deps) {
     });
 
     return validatedState;
+  }
+
+  function hasModeSpecificRefresh(config) {
+    return [
+      config.uatOnly,
+      config.productCycleOnly,
+      config.prCycleOnly,
+      config.prActivityOnly
+    ].some(Boolean);
+  }
+
+  async function runModeSpecificRefresh(config, todayIso) {
+    if (config.uatOnly) {
+      await runUatOnlyRefresh(config);
+      return true;
+    }
+
+    if (config.productCycleOnly) {
+      await runProductCycleOnlyRefresh(config);
+      return true;
+    }
+
+    if (config.prCycleOnly) {
+      await runPrCycleOnlyRefresh(config, todayIso);
+      return true;
+    }
+
+    if (config.prActivityOnly) {
+      const sharedState = await buildPrActivityOnlyState(config, todayIso);
+      await runPrActivityOnlyRefresh(config, sharedState);
+      return true;
+    }
+
+    return false;
   }
 
   async function runFullRefreshPipeline(config, options = {}) {
@@ -400,7 +369,9 @@ export function createRefreshRunner(deps) {
 
   return {
     buildPrActivityOnlyState,
+    hasModeSpecificRefresh,
     runFullRefreshPipeline,
+    runModeSpecificRefresh,
     runPrActivityOnlyRefresh,
     runPrCycleOnlyRefresh,
     runProductCycleOnlyRefresh,

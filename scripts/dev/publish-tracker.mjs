@@ -103,6 +103,45 @@ async function ensureCleanRepo(cwd) {
   );
 }
 
+function logPublishPlan({ refresh, cleanRun, analyze, commitMessage, shouldPush }) {
+  console.log("Publish plan:");
+  console.log(`- refresh dataset: ${refresh ? "yes" : "no"}`);
+  console.log(`- bypass refresh caches: ${cleanRun ? "yes" : "no"}`);
+  console.log(`- run analysis: ${analyze ? "yes" : "no"}`);
+  console.log("- build public site artifact: yes");
+  console.log(`- commit repo: ${commitMessage ? "yes" : "no"}`);
+  console.log(`- push repo: ${shouldPush ? "yes" : "no"}`);
+}
+
+async function refreshData(cleanRun) {
+  console.log("\n=== Refreshing data ===");
+  await runNodeScript("scripts/refresh-report-data.mjs", cleanRun ? ["--clean"] : []);
+}
+
+async function generateAnalysis() {
+  console.log("\n=== Generating analysis ===");
+  await runNodeScript("scripts/dev/analyze-report-data.mjs", ["--output", ANALYSIS_REPORT_PATH]);
+}
+
+async function buildPublicSiteArtifact() {
+  console.log("\n=== Building public site artifact ===");
+  await runNodeScript("scripts/export-public.mjs", ["--target", DIST_DIR]);
+}
+
+async function commitRepo(cwd, message) {
+  console.log("\n=== Committing repo ===");
+  await runCommand("git", ["add", "."], { cwd, stdio: "inherit" });
+  await runCommand("git", ["commit", "-m", message], {
+    cwd,
+    stdio: "inherit"
+  });
+}
+
+async function pushRepo(cwd) {
+  console.log("\n=== Pushing repo ===");
+  await runCommand("git", ["push"], { cwd, stdio: "inherit" });
+}
+
 async function main() {
   if (hasFlag("--help") || hasFlag("-h")) {
     printHelp();
@@ -124,33 +163,21 @@ async function main() {
     throw new Error("--push requires --message so the git commit stays explicit.");
   }
 
-  console.log("Publish plan:");
-  console.log(`- refresh dataset: ${refresh ? "yes" : "no"}`);
-  console.log(`- bypass refresh caches: ${cleanRun ? "yes" : "no"}`);
-  console.log(`- run analysis: ${analyze ? "yes" : "no"}`);
-  console.log("- build public site artifact: yes");
-  console.log(`- commit repo: ${commitMessage ? "yes" : "no"}`);
-  console.log(`- push repo: ${shouldPush ? "yes" : "no"}`);
+  logPublishPlan({ refresh, cleanRun, analyze, commitMessage, shouldPush });
 
   if (commitMessage) {
     await ensureCleanRepo(repoDir);
   }
 
   if (refresh) {
-    console.log("\n=== Refreshing data ===");
-    await runNodeScript("scripts/refresh-report-data.mjs", cleanRun ? ["--clean"] : []);
+    await refreshData(cleanRun);
   }
 
   if (analyze) {
-    console.log("\n=== Generating analysis ===");
-    await runNodeScript("scripts/dev/analyze-report-data.mjs", [
-      "--output",
-      ANALYSIS_REPORT_PATH
-    ]);
+    await generateAnalysis();
   }
 
-  console.log("\n=== Building public site artifact ===");
-  await runNodeScript("scripts/export-public.mjs", ["--target", DIST_DIR]);
+  await buildPublicSiteArtifact();
 
   if (!commitMessage) {
     console.log("\nPublish helper finished. Site artifact built; git commit/push skipped.");
@@ -163,26 +190,14 @@ async function main() {
     return;
   }
 
-  console.log("\n=== Committing repo ===");
-  await runCommand("git", ["add", "."], {
-    cwd: repoDir,
-    stdio: "inherit"
-  });
-  await runCommand("git", ["commit", "-m", commitMessage], {
-    cwd: repoDir,
-    stdio: "inherit"
-  });
+  await commitRepo(repoDir, commitMessage);
 
   if (!shouldPush) {
     console.log("\nPublish helper finished. Local commit created; push skipped.");
     return;
   }
 
-  console.log("\n=== Pushing repo ===");
-  await runCommand("git", ["push"], {
-    cwd: repoDir,
-    stdio: "inherit"
-  });
+  await pushRepo(repoDir);
 
   console.log("\nPublish helper finished. Repo committed and pushed.");
 }
