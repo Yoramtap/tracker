@@ -535,6 +535,135 @@ test("runFullRefreshPipeline validate stage prepares primary artifacts and valid
   ]);
 });
 
+test("runFullRefreshPipeline commits the validated full refresh payload in write stage", async () => {
+  const primaryArtifacts = { id: "primary-artifacts" };
+  const supplementalArtifacts = [
+    {
+      fileName: "contributors-snapshot.json",
+      outputSnapshot: { id: "contributors-output" },
+      logMessage: "Wrote contributors-snapshot.json.",
+      write: async () => {}
+    },
+    {
+      fileName: "product-cycle-snapshot.json",
+      outputSnapshot: { id: "product-output" },
+      logMessage: "",
+      write: async () => {}
+    }
+  ];
+  const commitCalls = [];
+  const runner = createRefreshRunner(
+    createDeps({
+      io: {
+        buildSupplementalWriteArtifacts: () => supplementalArtifacts,
+        commitSnapshotRefresh: async (args) => {
+          commitCalls.push(args);
+        },
+        preparePrimarySnapshotArtifacts: async () => primaryArtifacts
+      },
+      helpers: {
+        buildCombinedSnapshot: () => ({ id: "combined-snapshot" }),
+        buildTrendAndPrActivityState: async () => ({
+          computed: {
+            BOARD_38_TREND: [{ highest: 1, high: 0, medium: 0, low: 0, lowest: 0 }]
+          },
+          mergedPrActivity: { id: "pr-activity" },
+          prCycleSnapshot: { id: "pr-cycle" }
+        }),
+        buildUatRefreshArtifacts: async () => ({
+          uatAging: { total: 1 },
+          businessUnitChartData: { series: [1] }
+        })
+      }
+    })
+  );
+
+  const result = await runner.runFullRefreshPipeline({
+    noWrite: false,
+    skipContributors: true,
+    skipProductCycle: true,
+    snapshotRetentionCount: 6
+  });
+
+  assert.equal(commitCalls.length, 1);
+  assert.deepEqual(commitCalls[0], {
+    snapshot: { id: "combined-snapshot" },
+    primaryArtifacts,
+    syncedAt: result.syncedAt,
+    snapshotRetentionCount: 6,
+    summaryMessage:
+      "Updated snapshot.json for BOARD_38_TREND, BOARD_39_TREND, BOARD_46_TREND, BOARD_40_TREND, BOARD_333_TREND, and BOARD_399_TREND.",
+    extraWrites: supplementalArtifacts.map((artifact) => artifact.write),
+    extraLogs: ["Wrote contributors-snapshot.json."]
+  });
+  assert.deepEqual(result.primaryArtifacts, primaryArtifacts);
+});
+
+test("runFullRefreshPipeline returns validated state without committing when noWrite is enabled", async () => {
+  const primaryArtifacts = { id: "primary-artifacts" };
+  const validatedSnapshots = [];
+  const commitCalls = [];
+  const runner = createRefreshRunner(
+    createDeps({
+      io: {
+        buildSupplementalWriteArtifacts: () => [
+          {
+            fileName: "contributors-snapshot.json",
+            outputSnapshot: { id: "contributors-output" },
+            logMessage: "Wrote contributors-snapshot.json.",
+            write: async () => {}
+          }
+        ],
+        commitSnapshotRefresh: async (args) => {
+          commitCalls.push(args);
+        },
+        preparePrimarySnapshotArtifacts: async () => primaryArtifacts
+      },
+      validators: {
+        validateDashboardSnapshot: (fileName, outputSnapshot) => {
+          validatedSnapshots.push({ fileName, outputSnapshot });
+        }
+      },
+      helpers: {
+        buildCombinedSnapshot: () => ({ id: "combined-snapshot" }),
+        buildTrendAndPrActivityState: async () => ({
+          computed: {
+            BOARD_38_TREND: [{ highest: 1, high: 0, medium: 0, low: 0, lowest: 0 }]
+          },
+          mergedPrActivity: { id: "pr-activity" },
+          prCycleSnapshot: { id: "pr-cycle" }
+        }),
+        buildUatRefreshArtifacts: async () => ({
+          uatAging: { total: 1 },
+          businessUnitChartData: { series: [1] }
+        })
+      }
+    })
+  );
+
+  await captureConsoleLogs(async (logs) => {
+    const result = await runner.runFullRefreshPipeline({
+      noWrite: true,
+      skipContributors: true,
+      skipProductCycle: true,
+      snapshotRetentionCount: 6
+    });
+
+    assert.deepEqual(result.primaryArtifacts, primaryArtifacts);
+    assert.deepEqual(validatedSnapshots, [
+      {
+        fileName: "contributors-snapshot.json",
+        outputSnapshot: { id: "contributors-output" }
+      }
+    ]);
+    assert.deepEqual(logs, [
+      "NO_WRITE=true: skipped snapshot and derived snapshot writes (full refresh)."
+    ]);
+  });
+
+  assert.equal(commitCalls.length, 0);
+});
+
 test("runFullRefreshPipeline returns the assembled fetch-stage state without deriving or writing", async () => {
   const contributorsSnapshot = { id: "contributors" };
   const productCycleSnapshot = { id: "product-cycle" };
