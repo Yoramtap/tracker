@@ -332,16 +332,8 @@ export function createRefreshRunner(deps) {
     return await prepareFullRefreshValidationState(derivedState);
   }
 
-  async function runFullRefreshWriteStage(config, validatedState) {
-    if (
-      shouldSkipRefreshWrite(
-        config.noWrite,
-        "NO_WRITE=true: skipped snapshot and derived snapshot writes (full refresh)."
-      )
-    )
-      return validatedState;
-
-    await commitSnapshotRefresh({
+  function buildFullRefreshCommitPayload(validatedState) {
+    return {
       snapshot: validatedState.snapshot,
       primaryArtifacts: validatedState.primaryArtifacts,
       syncedAt: validatedState.syncedAt,
@@ -351,7 +343,19 @@ export function createRefreshRunner(deps) {
       extraLogs: validatedState.supplementalArtifacts
         .map((artifact) => artifact.logMessage)
         .filter(Boolean)
-    });
+    };
+  }
+
+  async function runFullRefreshWriteStage(config, validatedState) {
+    if (
+      shouldSkipRefreshWrite(
+        config.noWrite,
+        "NO_WRITE=true: skipped snapshot and derived snapshot writes (full refresh)."
+      )
+    )
+      return validatedState;
+
+    await commitSnapshotRefresh(buildFullRefreshCommitPayload(validatedState));
 
     return validatedState;
   }
