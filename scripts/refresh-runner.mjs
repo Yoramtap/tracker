@@ -208,14 +208,7 @@ export function createRefreshRunner(deps) {
       );
   }
 
-  async function runFullRefreshFetchStage(config, todayIso) {
-    const sharedState = await buildTrendAndPrActivityState(config, todayIso);
-    const { uatAging, businessUnitChartData } = await withTiming(
-      "UAT refresh artifacts",
-      () => buildUatRefreshArtifacts(config),
-      console
-    );
-
+  async function fetchFullRefreshSupplementalSnapshots(config) {
     const [contributorsSnapshot, productCycleSnapshot] = await Promise.all([
       maybeRefreshSnapshot(
         config.skipContributors,
@@ -230,13 +223,41 @@ export function createRefreshRunner(deps) {
     ]);
 
     return {
+      contributorsSnapshot,
+      productCycleSnapshot
+    };
+  }
+
+  function buildFullRefreshFetchedState(
+    todayIso,
+    sharedState,
+    { uatAging, businessUnitChartData },
+    supplementalSnapshots
+  ) {
+    return {
       todayIso,
       sharedState,
       uatAging,
       businessUnitChartData,
-      contributorsSnapshot,
-      productCycleSnapshot
+      ...supplementalSnapshots
     };
+  }
+
+  async function runFullRefreshFetchStage(config, todayIso) {
+    const sharedState = await buildTrendAndPrActivityState(config, todayIso);
+    const uatRefreshState = await withTiming(
+      "UAT refresh artifacts",
+      () => buildUatRefreshArtifacts(config),
+      console
+    );
+    const supplementalSnapshots = await fetchFullRefreshSupplementalSnapshots(config);
+
+    return buildFullRefreshFetchedState(
+      todayIso,
+      sharedState,
+      uatRefreshState,
+      supplementalSnapshots
+    );
   }
 
   function runFullRefreshNormalizeStage(fetchedState) {

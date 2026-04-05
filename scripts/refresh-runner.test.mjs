@@ -534,3 +534,131 @@ test("runFullRefreshPipeline validate stage prepares primary artifacts and valid
     }
   ]);
 });
+
+test("runFullRefreshPipeline returns the assembled fetch-stage state without deriving or writing", async () => {
+  const contributorsSnapshot = { id: "contributors" };
+  const productCycleSnapshot = { id: "product-cycle" };
+  const prCycleSnapshot = { id: "pr-cycle" };
+  let contributorsFetchCount = 0;
+  let productCycleFetchCount = 0;
+  const runner = createRefreshRunner(
+    createDeps({
+      helpers: {
+        buildTrendAndPrActivityState: async () => ({
+          computed: {
+            BOARD_38_TREND: [{ highest: 1, high: 2, medium: 3, low: 4, lowest: 5 }]
+          },
+          mergedPrActivity: { id: "pr-activity" },
+          prCycleSnapshot
+        }),
+        buildUatRefreshArtifacts: async () => ({
+          uatAging: { total: 7 },
+          businessUnitChartData: { series: [4, 5, 6] }
+        })
+      },
+      refreshers: {
+        refreshContributorsSnapshot: async () => {
+          contributorsFetchCount += 1;
+          return contributorsSnapshot;
+        },
+        refreshProductCycleSnapshot: async () => {
+          productCycleFetchCount += 1;
+          return productCycleSnapshot;
+        }
+      }
+    })
+  );
+
+  const result = await runner.runFullRefreshPipeline(
+    {
+      noWrite: false,
+      skipContributors: false,
+      skipProductCycle: false,
+      snapshotRetentionCount: 9
+    },
+    {
+      stopAfterStage: "fetch",
+      todayIso: "2026-04-05"
+    }
+  );
+
+  assert.deepEqual(result, {
+    todayIso: "2026-04-05",
+    sharedState: {
+      computed: {
+        BOARD_38_TREND: [{ highest: 1, high: 2, medium: 3, low: 4, lowest: 5 }]
+      },
+      mergedPrActivity: { id: "pr-activity" },
+      prCycleSnapshot
+    },
+    uatAging: { total: 7 },
+    businessUnitChartData: { series: [4, 5, 6] },
+    contributorsSnapshot,
+    productCycleSnapshot
+  });
+  assert.equal(contributorsFetchCount, 1);
+  assert.equal(productCycleFetchCount, 1);
+});
+
+test("runFullRefreshPipeline skips optional contributor and product-cycle fetches in fetch stage", async () => {
+  const prCycleSnapshot = { id: "pr-cycle" };
+  let contributorsFetchCount = 0;
+  let productCycleFetchCount = 0;
+  const runner = createRefreshRunner(
+    createDeps({
+      helpers: {
+        buildTrendAndPrActivityState: async () => ({
+          computed: {},
+          mergedPrActivity: { id: "pr-activity" },
+          prCycleSnapshot
+        }),
+        buildUatRefreshArtifacts: async () => ({
+          uatAging: { total: 1 },
+          businessUnitChartData: { series: [1] }
+        }),
+        maybeRefreshSnapshot: async (skip, _message, buildSnapshot) => {
+          if (skip) return null;
+          return buildSnapshot();
+        }
+      },
+      refreshers: {
+        refreshContributorsSnapshot: async () => {
+          contributorsFetchCount += 1;
+          return { id: "contributors" };
+        },
+        refreshProductCycleSnapshot: async () => {
+          productCycleFetchCount += 1;
+          return { id: "product-cycle" };
+        }
+      }
+    })
+  );
+
+  const result = await runner.runFullRefreshPipeline(
+    {
+      noWrite: false,
+      skipContributors: true,
+      skipProductCycle: true,
+      snapshotRetentionCount: 9
+    },
+    {
+      stopAfterStage: "fetch",
+      todayIso: "2026-04-05"
+    }
+  );
+
+  assert.deepEqual(result, {
+    todayIso: "2026-04-05",
+    sharedState: {
+      computed: {},
+      mergedPrActivity: { id: "pr-activity" },
+      prCycleSnapshot
+    },
+    uatAging: { total: 1 },
+    businessUnitChartData: { series: [1] },
+    contributorsSnapshot: null,
+    productCycleSnapshot: null
+  });
+  assert.equal(contributorsFetchCount, 0);
+  assert.equal(productCycleFetchCount, 0);
+});
