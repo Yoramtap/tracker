@@ -2476,33 +2476,22 @@ async function buildPrActivityRefreshState(config, todayIso, resolvedDates, opti
   const prActivityHistoryState = await readPrActivityHistoryState({
     skipHistoryReuse: shouldRebuildPrActivityHistory
   });
-  const existingSnapshotForPrActivity = prActivityHistoryState.currentSnapshot;
-  const existingPrActivityForMerge = prActivityHistoryState.bestPrActivity;
-  const canReuseHistoricalPrActivity = Boolean(
-    countPrActivitySeriesPoints(existingPrActivityForMerge, "points") > 0 &&
-      countPrActivitySeriesPoints(existingPrActivityForMerge, "monthlyPoints") > 0
-  );
-  const reuseHistoricalPrActivity =
-    !shouldRebuildPrActivityHistory && canReuseHistoricalPrActivity;
-  if (
-    reuseHistoricalPrActivity &&
-    prActivityHistoryState.bestSource &&
-    prActivityHistoryState.bestSource !== PRIMARY_SNAPSHOT_PATH
-  ) {
-    console.warn(
-      `Using archived PR activity history from ${prActivityHistoryState.bestSource} (${prActivityHistoryState.bestMetrics.pointsCount} sprint buckets, ${prActivityHistoryState.bestMetrics.monthlyPointsCount} monthly buckets) because current snapshot.json is missing older monthly history.`
-    );
+  const prActivityHistoryPlan = resolvePrActivityHistoryPlan(prActivityHistoryState, {
+    shouldRebuildPrActivityHistory
+  });
+  if (prActivityHistoryPlan.archivedHistoryWarning) {
+    console.warn(prActivityHistoryPlan.archivedHistoryWarning);
   }
 
   if (skipRefresh) {
     console.log("Skipping PR activity refresh (SKIP_PR_ACTIVITY=true); reusing cached history.");
     return {
-      existingSnapshotForPrActivity,
-      mergedPrActivity: existingPrActivityForMerge
+      existingSnapshotForPrActivity: prActivityHistoryPlan.existingSnapshotForPrActivity,
+      mergedPrActivity: prActivityHistoryPlan.existingPrActivityForMerge
     };
   }
 
-  const prActivityWindowKey = reuseHistoricalPrActivity
+  const prActivityWindowKey = prActivityHistoryPlan.reuseHistoricalPrActivity
     ? PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY
     : "1y";
   const prActivityFetchSinceDate = resolvePrActivityFetchSinceDate(todayIso, prActivityWindowKey);
@@ -2515,16 +2504,42 @@ async function buildPrActivityRefreshState(config, todayIso, resolvedDates, opti
     console
   );
   const prActivitySnapshotState = buildPrActivitySnapshotState(todayIso, resolvedDates, prRows, {
-    existingPrActivityForMerge,
-    reuseHistoricalPrActivity
+    existingPrActivityForMerge: prActivityHistoryPlan.existingPrActivityForMerge,
+    reuseHistoricalPrActivity: prActivityHistoryPlan.reuseHistoricalPrActivity
   });
   console.log(
-    `Computed Jira Development PR inflow proxy (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} candidate issues, ${prRows.detailIssueCount} with recent PR summary activity, since ${prActivitySnapshotState.prActivityFetchSinceDate} across ${prActivitySnapshotState.prActivitySprintDates.length} sprint buckets and ${prActivitySnapshotState.refreshedPrActivity.monthlyPoints.length} monthly buckets; fetched ${prRows.reviewChangelogIssueCount} review changelogs, cache hits ${prRows.cacheHitCount}, cache writes ${prRows.cacheWriteCount}${reuseHistoricalPrActivity ? "; reused cached older PR activity buckets" : ""}).`
+    `Computed Jira Development PR inflow proxy (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} candidate issues, ${prRows.detailIssueCount} with recent PR summary activity, since ${prActivitySnapshotState.prActivityFetchSinceDate} across ${prActivitySnapshotState.prActivitySprintDates.length} sprint buckets and ${prActivitySnapshotState.refreshedPrActivity.monthlyPoints.length} monthly buckets; fetched ${prRows.reviewChangelogIssueCount} review changelogs, cache hits ${prRows.cacheHitCount}, cache writes ${prRows.cacheWriteCount}${prActivityHistoryPlan.reuseHistoricalPrActivity ? "; reused cached older PR activity buckets" : ""}).`
   );
 
   return {
-    existingSnapshotForPrActivity,
+    existingSnapshotForPrActivity: prActivityHistoryPlan.existingSnapshotForPrActivity,
     mergedPrActivity: prActivitySnapshotState.mergedPrActivity
+  };
+}
+
+export function resolvePrActivityHistoryPlan(prActivityHistoryState, options = {}) {
+  const { shouldRebuildPrActivityHistory = false } = options;
+  const existingSnapshotForPrActivity = prActivityHistoryState?.currentSnapshot || null;
+  const existingPrActivityForMerge = prActivityHistoryState?.bestPrActivity || null;
+  const canReuseHistoricalPrActivity = Boolean(
+    countPrActivitySeriesPoints(existingPrActivityForMerge, "points") > 0 &&
+      countPrActivitySeriesPoints(existingPrActivityForMerge, "monthlyPoints") > 0
+  );
+  const reuseHistoricalPrActivity =
+    !shouldRebuildPrActivityHistory && canReuseHistoricalPrActivity;
+  const archivedHistoryWarning =
+    reuseHistoricalPrActivity &&
+    prActivityHistoryState?.bestSource &&
+    prActivityHistoryState.bestSource !== PRIMARY_SNAPSHOT_PATH
+      ? `Using archived PR activity history from ${prActivityHistoryState.bestSource} (${prActivityHistoryState.bestMetrics.pointsCount} sprint buckets, ${prActivityHistoryState.bestMetrics.monthlyPointsCount} monthly buckets) because current snapshot.json is missing older monthly history.`
+      : "";
+
+  return {
+    existingSnapshotForPrActivity,
+    existingPrActivityForMerge,
+    canReuseHistoricalPrActivity,
+    reuseHistoricalPrActivity,
+    archivedHistoryWarning
   };
 }
 

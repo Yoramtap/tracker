@@ -3,7 +3,8 @@ import test from "node:test";
 
 import {
   buildPrActivitySnapshotState,
-  buildTrendRefreshDateState
+  buildTrendRefreshDateState,
+  resolvePrActivityHistoryPlan
 } from "./refresh-report-data.mjs";
 
 function makePrActivityRows() {
@@ -153,4 +154,46 @@ test("buildPrActivitySnapshotState preserves later cached history when using fal
     prActivityState.mergedPrActivity.monthlyPoints.map((point) => point.date),
     ["2025-04-01", "2026-03-01", "2026-04-01"]
   );
+});
+
+test("resolvePrActivityHistoryPlan reuses archived history when sprint and monthly buckets exist", () => {
+  const historyPlan = resolvePrActivityHistoryPlan(
+    {
+      currentSnapshot: { updatedAt: "2026-04-05T10:00:00.000Z" },
+      bestPrActivity: {
+        points: [{ date: "2026-03-16" }],
+        monthlyPoints: [{ date: "2026-03-01" }]
+      },
+      bestSource: "/tmp/archive-snapshot.json",
+      bestMetrics: { pointsCount: 1, monthlyPointsCount: 1 }
+    },
+    { shouldRebuildPrActivityHistory: false }
+  );
+
+  assert.equal(historyPlan.canReuseHistoricalPrActivity, true);
+  assert.equal(historyPlan.reuseHistoricalPrActivity, true);
+  assert.equal(historyPlan.existingSnapshotForPrActivity.updatedAt, "2026-04-05T10:00:00.000Z");
+  assert.equal(
+    historyPlan.archivedHistoryWarning,
+    "Using archived PR activity history from /tmp/archive-snapshot.json (1 sprint buckets, 1 monthly buckets) because current snapshot.json is missing older monthly history."
+  );
+});
+
+test("resolvePrActivityHistoryPlan disables reuse during rebuilds and for incomplete history", () => {
+  const historyPlan = resolvePrActivityHistoryPlan(
+    {
+      currentSnapshot: null,
+      bestPrActivity: {
+        points: [{ date: "2026-03-16" }],
+        monthlyPoints: []
+      },
+      bestSource: "/tmp/archive-snapshot.json",
+      bestMetrics: { pointsCount: 1, monthlyPointsCount: 0 }
+    },
+    { shouldRebuildPrActivityHistory: true }
+  );
+
+  assert.equal(historyPlan.canReuseHistoricalPrActivity, false);
+  assert.equal(historyPlan.reuseHistoricalPrActivity, false);
+  assert.equal(historyPlan.archivedHistoryWarning, "");
 });
