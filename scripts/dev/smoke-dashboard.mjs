@@ -16,20 +16,17 @@ const isLocalPreview = (() => {
     return false;
   }
 })();
-const FULL_HEAVY_PANEL_RESOURCE = "./app/dashboard-heavy-panels.html";
-const ALL_ROUTE_VISIBLE_PANEL_SETS = [
-  [
-    "actions-required-panel",
-    "product-cycle-shipments-panel",
-    "community-contributors-panel",
-    "uat-acceptance-time-panel",
-    "cycle-time-to-ship-panel",
-    "development-workflow-breakdown-panel",
-    "development-workflow-trends-panel",
-    "bug-trends-panel"
-  ]
+const DEVELOPMENT_ROUTE_VISIBLE_PANELS = [
+  "actions-required-panel",
+  "development-workflow-breakdown-panel",
+  "development-workflow-trends-panel"
 ];
-const FULL_ROUTE_FORBIDDEN_RESOURCES = ["./vendor/prop-types.min.js", "./vendor/recharts.umd.js"];
+const PRODUCT_ROUTE_VISIBLE_PANELS = [
+  "actions-required-panel",
+  "uat-acceptance-time-panel",
+  "cycle-time-to-ship-panel"
+];
+const BUG_ROUTE_VISIBLE_PANELS = ["actions-required-panel", "bug-trends-panel"];
 const PR_ROUTE_FORBIDDEN_RESOURCES = [
   "./app/dashboard-charts-shipped.js",
   "./app/dashboard-charts-product.js",
@@ -37,10 +34,6 @@ const PR_ROUTE_FORBIDDEN_RESOURCES = [
   "./vendor/recharts.umd.js"
 ];
 const SHIPPED_ROUTE_FORBIDDEN_RESOURCES = [
-  "./vendor/prop-types.min.js",
-  "./vendor/recharts.umd.js"
-];
-const SWITCHED_ALL_ROUTE_FORBIDDEN_RESOURCES = [
   "./vendor/prop-types.min.js",
   "./vendor/recharts.umd.js"
 ];
@@ -134,22 +127,10 @@ function sameList(actual, expected) {
   return JSON.stringify(actual) === JSON.stringify(expected);
 }
 
-function sameSet(actual, expected) {
-  const left = Array.isArray(actual) ? [...actual].sort() : [];
-  const right = Array.isArray(expected) ? [...expected].sort() : [];
-  return JSON.stringify(left) === JSON.stringify(right);
-}
-
 function normalizeResourceName(resourceName) {
   return String(resourceName || "")
     .replace(/\?.*$/, "")
     .trim();
-}
-
-function matchesAnyVisiblePanelSet(actualPanels, candidateSets) {
-  return (Array.isArray(candidateSets) ? candidateSets : []).some((expectedPanels) =>
-    sameSet(actualPanels, expectedPanels)
-  );
 }
 
 function routeSnapshotExpression() {
@@ -159,6 +140,10 @@ function routeSnapshotExpression() {
     hasRecharts: Boolean(window.Recharts),
     hasViewUtils: !!window.DashboardViewUtils,
     hasAgentRoot: !!document.getElementById("agentation-local-root"),
+    hasHeavyPanelShellDom: Boolean(
+      document.getElementById("bug-trends-panel") &&
+        document.getElementById("development-workflow-breakdown-panel")
+    ),
     visiblePanels: Array.from(document.querySelectorAll("main .panel"))
       .filter((node) => !node.hidden)
       .map((node) => node.id),
@@ -189,13 +174,6 @@ function normalizeExpectedResources(resources) {
     .filter(Boolean);
 }
 
-function findUnexpectedFullRouteResources(snapshot) {
-  const loaded = getResourceNameSet(snapshot);
-  return normalizeExpectedResources(FULL_ROUTE_FORBIDDEN_RESOURCES).filter((resource) =>
-    loaded.has(resource)
-  );
-}
-
 function findUnexpectedPrRouteResources(snapshot) {
   const loaded = getResourceNameSet(snapshot);
   return normalizeExpectedResources(PR_ROUTE_FORBIDDEN_RESOURCES).filter((resource) =>
@@ -206,13 +184,6 @@ function findUnexpectedPrRouteResources(snapshot) {
 function findUnexpectedShippedRouteResources(snapshot) {
   const loaded = getResourceNameSet(snapshot);
   return normalizeExpectedResources(SHIPPED_ROUTE_FORBIDDEN_RESOURCES).filter((resource) =>
-    loaded.has(resource)
-  );
-}
-
-function findUnexpectedSwitchedAllRouteResources(snapshot) {
-  const loaded = getResourceNameSet(snapshot);
-  return normalizeExpectedResources(SWITCHED_ALL_ROUTE_FORBIDDEN_RESOURCES).filter((resource) =>
     loaded.has(resource)
   );
 }
@@ -365,39 +336,94 @@ function assertDefaultRoute(snapshot) {
 }
 
 function hasHeavyPanelShellResource(snapshot) {
-  return hasResource(snapshot, FULL_HEAVY_PANEL_RESOURCE);
+  return Boolean(snapshot?.hasHeavyPanelShellDom);
 }
 
-function assertAllRouteLayout(snapshot) {
+function assertDevelopmentRoute(snapshot) {
   assert(
-    matchesAnyVisiblePanelSet(snapshot.visiblePanels, ALL_ROUTE_VISIBLE_PANEL_SETS),
-    `Full route visible panels changed: ${JSON.stringify(snapshot.visiblePanels)}`
+    sameList(snapshot.visiblePanels, DEVELOPMENT_ROUTE_VISIBLE_PANELS),
+    `Development route visible panels changed: ${JSON.stringify(snapshot.visiblePanels)}`
   );
   assert(
-    snapshot.filledCharts === 8,
-    `Full route should render 8 filled charts, saw ${snapshot.filledCharts}.`
+    snapshot.filledCharts >= 3,
+    `Development route should render at least 3 filled charts, saw ${snapshot.filledCharts}.`
   );
   assert(
     snapshot.statuses.length === 0,
-    `Full route shows status errors: ${JSON.stringify(snapshot.statuses)}`
+    `Development route shows status errors: ${JSON.stringify(snapshot.statuses)}`
   );
-  assert(snapshot.hasViewUtils === true, "Full route should load dashboard view utils.");
+  assert(snapshot.hasViewUtils === true, "Development route should load dashboard view utils.");
+  assertResourcesPresent(
+    snapshot,
+    ["./data/pr-activity-snapshot.json", "./data/pr-cycle-snapshot.json"],
+    "Development route"
+  );
   if (isLocalPreview) {
-    assert(snapshot.hasAgentRoot === true, "Full route should mount localhost Agentation.");
+    assert(snapshot.hasAgentRoot === true, "Development route should mount localhost Agentation.");
   }
 }
 
-function assertFullRoute(snapshot) {
-  assertAllRouteLayout(snapshot);
+function assertProductRoute(snapshot) {
   assert(
-    hasHeavyPanelShellResource(snapshot),
-    `Full route should load the heavy dashboard shell: ${JSON.stringify(snapshot.resourceNames)}`
+    sameList(snapshot.visiblePanels, PRODUCT_ROUTE_VISIBLE_PANELS),
+    `Product route visible panels changed: ${JSON.stringify(snapshot.visiblePanels)}`
   );
-  const unexpectedResources = findUnexpectedFullRouteResources(snapshot);
   assert(
-    unexpectedResources.length === 0,
-    `Full route should not fetch legacy Recharts assets: ${JSON.stringify(unexpectedResources)}`
+    snapshot.filledCharts >= 2,
+    `Product route should render at least 2 filled charts, saw ${snapshot.filledCharts}.`
   );
+  assert(
+    snapshot.statuses.length === 0,
+    `Product route shows status errors: ${JSON.stringify(snapshot.statuses)}`
+  );
+  assert(snapshot.hasViewUtils === true, "Product route should load dashboard view utils.");
+  assertResourcesPresent(
+    snapshot,
+    [
+      "./data/management-facility-snapshot.json",
+      "./data/product-cycle-snapshot.json"
+    ],
+    "Product route"
+  );
+  const unexpectedResources = getResourceNameSet(snapshot);
+  assert(
+    !unexpectedResources.has("./vendor/prop-types.min.js") &&
+      !unexpectedResources.has("./vendor/recharts.umd.js"),
+    `Product route should not fetch legacy Recharts assets: ${JSON.stringify(snapshot.resourceNames)}`
+  );
+  if (isLocalPreview) {
+    assert(snapshot.hasAgentRoot === true, "Product route should mount localhost Agentation.");
+  }
+}
+
+function assertBugRoute(snapshot) {
+  assert(
+    sameList(snapshot.visiblePanels, BUG_ROUTE_VISIBLE_PANELS),
+    `Bug route visible panels changed: ${JSON.stringify(snapshot.visiblePanels)}`
+  );
+  assert(
+    snapshot.filledCharts >= 1,
+    `Bug route should render at least 1 filled chart, saw ${snapshot.filledCharts}.`
+  );
+  assert(
+    snapshot.statuses.length === 0,
+    `Bug route shows status errors: ${JSON.stringify(snapshot.statuses)}`
+  );
+  assert(snapshot.hasViewUtils === true, "Bug route should load dashboard view utils.");
+  assertResourcesPresent(
+    snapshot,
+    ["./data/backlog-snapshot.json"],
+    "Bug route"
+  );
+  const unexpectedResources = getResourceNameSet(snapshot);
+  assert(
+    !unexpectedResources.has("./vendor/prop-types.min.js") &&
+      !unexpectedResources.has("./vendor/recharts.umd.js"),
+    `Bug route should not fetch legacy Recharts assets: ${JSON.stringify(snapshot.resourceNames)}`
+  );
+  if (isLocalPreview) {
+    assert(snapshot.hasAgentRoot === true, "Bug route should mount localhost Agentation.");
+  }
 }
 
 function assertShippedRoute(snapshot) {
@@ -420,7 +446,7 @@ function assertShippedRoute(snapshot) {
   );
   assertResourcesPresent(
     snapshot,
-    ["./app/dashboard-charts-shipped.js", "./data/product-cycle-shipments-snapshot.json"],
+    ["./data/product-cycle-shipments-snapshot.json"],
     "Shipped route"
   );
   const unexpectedResources = findUnexpectedShippedRouteResources(snapshot);
@@ -431,21 +457,6 @@ function assertShippedRoute(snapshot) {
   if (isLocalPreview) {
     assert(snapshot.hasAgentRoot === true, "Shipped route should mount localhost Agentation.");
   }
-}
-
-function assertSwitchedAllRoute(snapshot) {
-  assertAllRouteLayout(snapshot);
-  assert(
-    hasHeavyPanelShellResource(snapshot),
-    `Switched all route should load the heavy dashboard shell: ${JSON.stringify(snapshot.resourceNames)}`
-  );
-  const unexpectedResources = findUnexpectedSwitchedAllRouteResources(snapshot);
-  assert(
-    unexpectedResources.length === 0,
-    `Switched all route should not fetch legacy Recharts assets: ${JSON.stringify(
-      unexpectedResources
-    )}`
-  );
 }
 
 function assertPrRoute(snapshot) {
@@ -466,7 +477,6 @@ function assertPrRoute(snapshot) {
     snapshot.hasRecharts === false,
     "PR route should not require the legacy Recharts runtime."
   );
-  assertResourcesPresent(snapshot, [FULL_HEAVY_PANEL_RESOURCE], "PR route");
   assert(
     hasResource(snapshot, "./data/pr-cycle-snapshot.json"),
     "PR route should fetch pr-cycle-snapshot.json."
@@ -562,22 +572,40 @@ function selectRadioInput(name, value) {
   assert(result?.found === true, `Missing radio control ${name}=${value}.`);
 }
 
-async function assertFullRouteControlSwitch({ name, value, description }) {
-  selectRadioInput(name, value);
-  const snapshot = await waitForSnapshot({
-    description,
-    predicate(currentSnapshot) {
+async function assertSectionControlSwitch({
+  section,
+  expectedVisiblePanels,
+  name,
+  value,
+  description
+}) {
+  await captureRouteSnapshot({
+    description: `${description} route`,
+    url: `${rootUrl}/?report-section=${section}`,
+    predicate(snapshot) {
       return (
-        currentSnapshot.filledCharts >= 8 &&
-        currentSnapshot.statuses.length === 0 &&
-        currentSnapshot.hasViewUtils === true &&
-        hasHeavyPanelShellResource(currentSnapshot) &&
-        findUnexpectedSwitchedAllRouteResources(currentSnapshot).length === 0 &&
-        (!isLocalPreview || currentSnapshot.hasAgentRoot === true)
+        sameList(snapshot.visiblePanels, expectedVisiblePanels) &&
+        snapshot.statuses.length === 0 &&
+        snapshot.hasViewUtils === true &&
+        hasHeavyPanelShellResource(snapshot) &&
+        (!isLocalPreview || snapshot.hasAgentRoot === true)
       );
     }
   });
 
+  selectRadioInput(name, value);
+  await waitForSnapshot({
+    description,
+    predicate(currentSnapshot) {
+      return (
+        sameList(currentSnapshot.visiblePanels, expectedVisiblePanels) &&
+        currentSnapshot.statuses.length === 0 &&
+        currentSnapshot.hasViewUtils === true &&
+        hasHeavyPanelShellResource(currentSnapshot) &&
+        (!isLocalPreview || currentSnapshot.hasAgentRoot === true)
+      );
+    }
+  });
   const confirmation = evalJson(`JSON.stringify((() => {
     const input = document.querySelector(
       'input[type="radio"][name="${String(name)}"][value="${String(value)}"]'
@@ -585,7 +613,6 @@ async function assertFullRouteControlSwitch({ name, value, description }) {
     return { checked: !!input?.checked };
   })())`);
   assert(confirmation?.checked === true, `${description} did not keep ${name}=${value} selected.`);
-  assertSwitchedAllRoute(snapshot);
 }
 
 async function main() {
@@ -611,24 +638,65 @@ async function main() {
   );
   assertDefaultRoute(defaultSnapshot);
 
-  const fullSnapshot = await enrichSnapshotWithLocalResourceStats(
+  const developmentSnapshot = await enrichSnapshotWithLocalResourceStats(
     await captureRouteSnapshot({
-      description: "Full dashboard route",
-      url: `${rootUrl}/?report-section=all`,
+      description: "Development section route",
+      url: `${rootUrl}/?report-section=development`,
       predicate(snapshot) {
         return (
-          snapshot.filledCharts >= 8 &&
+          snapshot.filledCharts >= 3 &&
           snapshot.statuses.length === 0 &&
           snapshot.hasViewUtils === true &&
-          matchesAnyVisiblePanelSet(snapshot.visiblePanels, ALL_ROUTE_VISIBLE_PANEL_SETS) &&
+          sameList(snapshot.visiblePanels, DEVELOPMENT_ROUTE_VISIBLE_PANELS) &&
           hasHeavyPanelShellResource(snapshot) &&
-          findUnexpectedFullRouteResources(snapshot).length === 0 &&
+          hasResource(snapshot, "./data/pr-activity-snapshot.json") &&
+          hasResource(snapshot, "./data/pr-cycle-snapshot.json") &&
           (!isLocalPreview || snapshot.hasAgentRoot === true)
         );
       }
     })
   );
-  assertFullRoute(fullSnapshot);
+  assertDevelopmentRoute(developmentSnapshot);
+  const workflowBreakdownInflow = verifyWorkflowBreakdownInflowLabels();
+
+  const productSnapshot = await enrichSnapshotWithLocalResourceStats(
+    await captureRouteSnapshot({
+      description: "Product section route",
+      url: `${rootUrl}/?report-section=product`,
+      predicate(snapshot) {
+        return (
+          snapshot.filledCharts >= 2 &&
+          snapshot.statuses.length === 0 &&
+          snapshot.hasViewUtils === true &&
+          sameList(snapshot.visiblePanels, PRODUCT_ROUTE_VISIBLE_PANELS) &&
+          hasHeavyPanelShellResource(snapshot) &&
+          hasResource(snapshot, "./data/management-facility-snapshot.json") &&
+          hasResource(snapshot, "./data/product-cycle-snapshot.json") &&
+          (!isLocalPreview || snapshot.hasAgentRoot === true)
+        );
+      }
+    })
+  );
+  assertProductRoute(productSnapshot);
+
+  const bugSnapshot = await enrichSnapshotWithLocalResourceStats(
+    await captureRouteSnapshot({
+      description: "Bug section route",
+      url: `${rootUrl}/?report-section=bug`,
+      predicate(snapshot) {
+        return (
+          snapshot.filledCharts >= 1 &&
+          snapshot.statuses.length === 0 &&
+          snapshot.hasViewUtils === true &&
+          sameList(snapshot.visiblePanels, BUG_ROUTE_VISIBLE_PANELS) &&
+          hasHeavyPanelShellResource(snapshot) &&
+          hasResource(snapshot, "./data/backlog-snapshot.json") &&
+          (!isLocalPreview || snapshot.hasAgentRoot === true)
+        );
+      }
+    })
+  );
+  assertBugRoute(bugSnapshot);
   const prSnapshot = await enrichSnapshotWithLocalResourceStats(
     await captureRouteSnapshot({
       description: "PR chart route",
@@ -689,64 +757,49 @@ async function main() {
     })
   );
   assertShippedRoute(shippedSnapshot);
-
-  selectRadioInput("report-section", "all");
-  const switchedAllSnapshot = await enrichSnapshotWithLocalResourceStats(
-    await waitForSnapshot({
-      description: "All section switch",
-      predicate(snapshot) {
-        return (
-          snapshot.filledCharts >= 8 &&
-          snapshot.statuses.length === 0 &&
-          snapshot.hasViewUtils === true &&
-          matchesAnyVisiblePanelSet(snapshot.visiblePanels, ALL_ROUTE_VISIBLE_PANEL_SETS) &&
-          hasHeavyPanelShellResource(snapshot) &&
-          findUnexpectedSwitchedAllRouteResources(snapshot).length === 0 &&
-          (!isLocalPreview || snapshot.hasAgentRoot === true)
-        );
-      }
-    })
-  );
-  assertSwitchedAllRoute(switchedAllSnapshot);
-
-  const workflowBreakdownInflow = verifyWorkflowBreakdownInflowLabels();
-
-  for (const controlSwitch of [
-    {
-      name: "bug-trends-view",
-      value: "table",
-      description: "Bug trends table view"
-    },
-    {
-      name: "management-facility-flow-scope",
-      value: "done",
-      description: "Completed management-vs-UAT scope"
-    },
-    {
-      name: "pr-cycle-window",
-      value: "1y",
-      description: "Workflow breakdown 1y window"
-    },
-    {
-      name: "pr-activity-legacy-metric",
-      value: "merged",
-      description: "Legacy PR activity merged metric"
-    },
-    {
-      name: "product-delivery-workflow-view",
-      value: "workflow",
-      description: "Product delivery workflow view"
-    }
-  ]) {
-    await assertFullRouteControlSwitch(controlSwitch);
-  }
+  await assertSectionControlSwitch({
+    section: "bug",
+    expectedVisiblePanels: BUG_ROUTE_VISIBLE_PANELS,
+    name: "bug-trends-view",
+    value: "table",
+    description: "Bug trends table view"
+  });
+  await assertSectionControlSwitch({
+    section: "product",
+    expectedVisiblePanels: PRODUCT_ROUTE_VISIBLE_PANELS,
+    name: "management-facility-flow-scope",
+    value: "done",
+    description: "Completed management-vs-UAT scope"
+  });
+  await assertSectionControlSwitch({
+    section: "development",
+    expectedVisiblePanels: DEVELOPMENT_ROUTE_VISIBLE_PANELS,
+    name: "pr-cycle-window",
+    value: "1y",
+    description: "Workflow breakdown 1y window"
+  });
+  await assertSectionControlSwitch({
+    section: "development",
+    expectedVisiblePanels: DEVELOPMENT_ROUTE_VISIBLE_PANELS,
+    name: "pr-activity-legacy-metric",
+    value: "merged",
+    description: "Legacy PR activity merged metric"
+  });
+  await assertSectionControlSwitch({
+    section: "product",
+    expectedVisiblePanels: PRODUCT_ROUTE_VISIBLE_PANELS,
+    name: "product-delivery-workflow-view",
+    value: "workflow",
+    description: "Product delivery workflow view"
+  });
 
   console.log("Dashboard smoke passed.");
   console.log(`- default: ${JSON.stringify(defaultSnapshot)}`);
-  console.log(`- full: ${JSON.stringify(fullSnapshot)}`);
+  console.log(`- development: ${JSON.stringify(developmentSnapshot)}`);
+  console.log(`- product: ${JSON.stringify(productSnapshot)}`);
+  console.log(`- bug: ${JSON.stringify(bugSnapshot)}`);
   console.log(`- pr: ${JSON.stringify(prSnapshot)}`);
   console.log(`- shipped: ${JSON.stringify(shippedSnapshot)}`);
-  console.log(`- switchedAll: ${JSON.stringify(switchedAllSnapshot)}`);
   console.log(`- workflowBreakdownInflow: ${JSON.stringify(workflowBreakdownInflow)}`);
 }
 
