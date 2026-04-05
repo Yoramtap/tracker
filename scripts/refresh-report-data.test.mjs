@@ -4,7 +4,8 @@ import test from "node:test";
 import {
   buildPrActivitySnapshotState,
   buildTrendRefreshDateState,
-  resolvePrActivityHistoryPlan
+  resolvePrActivityHistoryPlan,
+  resolvePrCycleRefreshPlan
 } from "./refresh-report-data.mjs";
 
 function makePrActivityRows() {
@@ -31,6 +32,35 @@ function makePrActivityRows() {
       }
     ]
   };
+}
+
+function makePrCycleWindows() {
+  return [
+    {
+      key: "30d",
+      windowDays: 30,
+      windowLabel: "Last 30 days",
+      windowStartDate: "2026-03-07"
+    },
+    {
+      key: "90d",
+      windowDays: 90,
+      windowLabel: "Last 90 days",
+      windowStartDate: "2026-01-07"
+    },
+    {
+      key: "6m",
+      windowDays: 183,
+      windowLabel: "Last 6 months",
+      windowStartDate: "2025-10-05"
+    },
+    {
+      key: "1y",
+      windowDays: 365,
+      windowLabel: "Last year",
+      windowStartDate: "2025-04-05"
+    }
+  ];
 }
 
 test("buildTrendRefreshDateState trims resolved dates to sprint lookback count", () => {
@@ -196,4 +226,58 @@ test("resolvePrActivityHistoryPlan disables reuse during rebuilds and for incomp
   assert.equal(historyPlan.canReuseHistoricalPrActivity, false);
   assert.equal(historyPlan.reuseHistoricalPrActivity, false);
   assert.equal(historyPlan.archivedHistoryWarning, "");
+});
+
+test("resolvePrCycleRefreshPlan reuses older cached windows when history is fresh", () => {
+  const refreshPlan = resolvePrCycleRefreshPlan(
+    makePrCycleWindows(),
+    {
+      updatedAt: "2026-04-04T12:00:00.000Z",
+      windows: {
+        "30d": { id: "30d" },
+        "90d": { id: "90d" },
+        "6m": { id: "6m" },
+        "1y": { id: "1y" }
+      }
+    },
+    {
+      shouldRebuildAllWindows: false,
+      todayIso: "2026-04-05"
+    }
+  );
+
+  assert.equal(refreshPlan.historicalPrCycleSnapshotFreshEnough, true);
+  assert.equal(refreshPlan.canReuseHistoricalPrCycleWindows, true);
+  assert.equal(refreshPlan.reuseHistoricalPrCycleWindows, true);
+  assert.deepEqual(
+    refreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.key),
+    ["30d", "90d"]
+  );
+  assert.equal(refreshPlan.prCycleRangeStartDate, "2026-01-07");
+});
+
+test("resolvePrCycleRefreshPlan refreshes all windows when rebuilding or history is stale", () => {
+  const refreshPlan = resolvePrCycleRefreshPlan(
+    makePrCycleWindows(),
+    {
+      updatedAt: "2026-03-01T00:00:00.000Z",
+      windows: {
+        "30d": { id: "30d" },
+        "90d": { id: "90d" },
+        "6m": { id: "6m" },
+        "1y": { id: "1y" }
+      }
+    },
+    {
+      shouldRebuildAllWindows: true,
+      todayIso: "2026-04-05"
+    }
+  );
+
+  assert.equal(refreshPlan.reuseHistoricalPrCycleWindows, false);
+  assert.deepEqual(
+    refreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.key),
+    ["30d", "90d", "6m", "1y"]
+  );
+  assert.equal(refreshPlan.prCycleRangeStartDate, "2025-04-05");
 });
