@@ -88,6 +88,16 @@ export const PR_ACTIVITY_REPO_TEAM_MAP_PATH = path.join(
   "config",
   "repo-team-map.json"
 );
+export const TREND_DATE_CACHE_PATH = path.join(CACHE_DIR_PATH, "trend-date-cache.json");
+export const TREND_DATE_CACHE_TMP_PATH = path.join(CACHE_DIR_PATH, "trend-date-cache.json.tmp");
+export const PR_CYCLE_CHANGELOG_CACHE_PATH = path.join(
+  CACHE_DIR_PATH,
+  "pr-cycle-changelog-cache.json"
+);
+export const PR_CYCLE_CHANGELOG_CACHE_TMP_PATH = path.join(
+  CACHE_DIR_PATH,
+  "pr-cycle-changelog-cache.json.tmp"
+);
 export const BUSINESS_UNIT_DONE_CACHE_PATH = path.join(
   CACHE_DIR_PATH,
   "business-unit-uat-done-cache.json"
