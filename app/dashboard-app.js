@@ -959,11 +959,11 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     return {
       summaryText:
         metricKey === "merged"
-          ? `${leadTeam.label} merged the most PRs in the latest sprint, while ${slowestMerge?.label || "the slowest team"} is still taking the longest to move from review to merge.`
-          : `${leadTeam.label} opened the most PRs in the latest sprint, while ${slowestMerge?.label || "the slowest team"} is still taking the longest to move from review to merge.`,
+          ? `${leadTeam.label} merged the most PRs in the latest month, while ${slowestMerge?.label || "the slowest team"} is still taking the longest to move from review to merge.`
+          : `${leadTeam.label} opened the most PRs in the latest month, while ${slowestMerge?.label || "the slowest team"} is still taking the longest to move from review to merge.`,
       calloutLabel: metricKey === "merged" ? "PRs merged" : "PRs opened",
       calloutValue: String(leadTeam.count),
-      calloutSubtext: `${leadTeam.label} in the latest sprint`,
+      calloutSubtext: `${leadTeam.label} in the latest month`,
       chips: [
         metricKey === "merged" ? "Merged view" : "Opened view",
         slowestMerge ? `Slowest merge: ${slowestMerge.label}` : ""
@@ -1075,18 +1075,42 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     return clampedPoints.length > 0 ? clampedPoints : safePoints;
   }
 
+  function clampLegacyPrActivityMonthlyPoints(points, prActivitySnapshot) {
+    const safePoints = Array.isArray(points) ? points.filter(Boolean) : [];
+    if (safePoints.length === 0) return [];
+
+    const snapshotDate = isoDateOnlyFromTimestamp(prActivitySnapshot?.updatedAt);
+    const latestPointDate = String(safePoints[safePoints.length - 1]?.date || "").trim();
+    if (!snapshotDate || !latestPointDate) return safePoints;
+
+    const snapshotMonthDate = startOfChartMonth(snapshotDate);
+    if (!snapshotMonthDate || latestPointDate !== snapshotMonthDate) return safePoints;
+
+    return safePoints.filter((point) => String(point?.date || "").trim() < snapshotMonthDate);
+  }
+
   function buildLegacyPrActivityTrendPoints() {
     const prActivitySnapshot = getPrActivitySnapshot();
+    const monthlyPoints = Array.isArray(prActivitySnapshot?.prActivity?.monthlyPoints)
+      ? prActivitySnapshot.prActivity.monthlyPoints.filter(Boolean)
+      : [];
+    if (monthlyPoints.length > 0) {
+      return clampLegacyPrActivityMonthlyPoints(monthlyPoints, prActivitySnapshot);
+    }
     const sprintPoints = Array.isArray(prActivitySnapshot?.prActivity?.points)
       ? prActivitySnapshot.prActivity.points
       : [];
     if (sprintPoints.length > 0) {
       return clampLegacyPrActivityTrendPoints(sprintPoints, prActivitySnapshot);
     }
-    const monthlyPoints = Array.isArray(prActivitySnapshot?.prActivity?.monthlyPoints)
-      ? prActivitySnapshot.prActivity.monthlyPoints
-      : [];
     return clampLegacyPrActivityTrendPoints(monthlyPoints, prActivitySnapshot);
+  }
+
+  function getLegacyPrActivitySourceLabel(prActivity) {
+    const source = String(prActivity?.source || "").trim().toLowerCase();
+    if (source === "github_pull_requests") return "GitHub";
+    if (source === "jira_dev_status_detail") return "Jira";
+    return "PR";
   }
 
   function normalizeDisplayTeamName(name) {
@@ -1238,40 +1262,80 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     return path;
   }
 
-  function buildLegacyPrActivityDisplayedXTicks(rows, compactViewport) {
+  function startOfChartMonth(dateText) {
+    const safeDate = String(dateText || "").trim();
+    if (!safeDate) return "";
+    return `${safeDate.slice(0, 7)}-01`;
+  }
+
+  function nextChartMonthStart(dateText) {
+    const monthStart = startOfChartMonth(dateText);
+    return monthStart ? shiftChartIsoMonths(monthStart, 1) : "";
+  }
+
+  function isLegacyPrActivityMonthlySeries(rows) {
+    const safeRows = Array.isArray(rows) ? rows.filter(Boolean) : [];
+    if (safeRows.length === 0) return false;
+    return safeRows.every((row) => {
+      const date = String(row?.date || "").trim();
+      return date.length >= 10 && date.slice(8, 10) === "01";
+    });
+  }
+
+  function buildLegacyPrActivityXDomain(rows) {
+    const safeRows = Array.isArray(rows)
+      ? rows.filter((row) => row && Number.isFinite(row.dateValue) && row.dateValue > 0)
+      : [];
+    if (safeRows.length === 0) {
+      return { xMin: 0, xMax: 1 };
+    }
+    if (isLegacyPrActivityMonthlySeries(safeRows)) {
+      return {
+        xMin: safeRows[0].dateValue,
+        xMax: safeRows[safeRows.length - 1].dateValue
+      };
+    }
+
+    const firstMonthStartValue = toChartDateValue(startOfChartMonth(safeRows[0]?.date));
+    const lastMonthEndValue = toChartDateValue(
+      nextChartMonthStart(safeRows[safeRows.length - 1]?.date)
+    );
+
+    return {
+      xMin: firstMonthStartValue > 0 ? firstMonthStartValue : safeRows[0].dateValue,
+      xMax: lastMonthEndValue > 0 ? lastMonthEndValue : safeRows[safeRows.length - 1].dateValue
+    };
+  }
+
+  function buildLegacyPrActivityDisplayedXTicks(rows) {
     const safeRows = Array.isArray(rows)
       ? rows.filter((row) => row && Number.isFinite(row.dateValue) && row.dateValue > 0)
       : [];
     if (safeRows.length === 0) return [];
+    if (isLegacyPrActivityMonthlySeries(safeRows)) {
+      return Array.from(new Set(safeRows.map((row) => row.dateValue)));
+    }
+
+    const { xMin, xMax } = buildLegacyPrActivityXDomain(safeRows);
+    if (!Number.isFinite(xMin) || !Number.isFinite(xMax) || xMax <= 0) return [];
 
     const monthTicks = [];
-    let currentMonthKey = "";
-    let monthStartValue = 0;
-    let monthEndValue = 0;
+    let monthStartDate = startOfChartMonth(safeRows[0]?.date);
+    const chartEndDate = startOfChartMonth(safeRows[safeRows.length - 1]?.date);
 
-    const flushMonthTick = () => {
-      if (!currentMonthKey || monthStartValue <= 0 || monthEndValue <= 0) return;
-      monthTicks.push(Math.round((monthStartValue + monthEndValue) / 2));
-    };
-
-    for (const row of safeRows) {
-      const monthKey = String(row?.date || "").slice(0, 7);
-      if (!monthKey) continue;
-      if (monthKey !== currentMonthKey) {
-        flushMonthTick();
-        currentMonthKey = monthKey;
-        monthStartValue = row.dateValue;
+    while (monthStartDate && monthStartDate <= chartEndDate) {
+      const nextMonthStartDate = shiftChartIsoMonths(monthStartDate, 1);
+      const monthStartValue = Math.max(toChartDateValue(monthStartDate), xMin);
+      const monthEndValue = Math.min(toChartDateValue(nextMonthStartDate), xMax);
+      if (monthEndValue > monthStartValue) {
+        monthTicks.push(Math.round((monthStartValue + monthEndValue) / 2));
+      } else if (monthStartValue > 0) {
+        monthTicks.push(monthStartValue);
       }
-      monthEndValue = row.dateValue;
+      monthStartDate = nextMonthStartDate;
     }
-    flushMonthTick();
 
-    if (monthTicks.length <= 3) return monthTicks;
-    const step = compactViewport ? 3 : 2;
-    const ticks = monthTicks.filter(
-      (_, index) => index % step === 0 || index === monthTicks.length - 1
-    );
-    return Array.from(new Set(ticks));
+    return Array.from(new Set(monthTicks));
   }
 
   function roundLegacyPrActivityUpper(yUpper) {
@@ -1315,16 +1379,15 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     const axisLabelOffset = compactViewport ? 34 : 42;
     const axisLabelFontSize = compactViewport ? 9 : 11;
     const xTicks = rows.map((row) => row.dateValue).filter((value) => value > 0);
-    const displayedXTicks = buildLegacyPrActivityDisplayedXTicks(rows, compactViewport);
-    const xMin = xTicks.length > 0 ? xTicks[0] : 0;
-    const xMax = xTicks.length > 0 ? xTicks[xTicks.length - 1] : 1;
+    const displayedXTicks = buildLegacyPrActivityDisplayedXTicks(rows);
+    const { xMin, xMax } = buildLegacyPrActivityXDomain(rows);
     const yTicks = buildLegacyPrActivityTicks(yUpper);
     const visibleDefs = lineDefs.filter((lineDef) => !hiddenKeys.has(lineDef.dataKey));
     const visibleReferenceMarkers =
       xTicks.length > 0
         ? PR_ACTIVITY_REFERENCE_MARKERS.filter((marker) => {
             const markerValue = toChartDateValue(marker.date);
-            return markerValue >= xTicks[0] && markerValue <= xTicks[xTicks.length - 1];
+            return markerValue >= xMin && markerValue <= xMax;
           })
         : [];
     const seriesRows = visibleDefs.map((lineDef) => ({
@@ -1574,8 +1637,9 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
       }
 
       const compactViewport = isCompactViewport();
-      const since = String(points[0]?.date || prActivity?.since || prActivity?.monthlySince || "");
+      const since = String(points[0]?.date || prActivity?.monthlySince || prActivity?.since || "");
       const metricKey = state.prActivityLegacyMetric === "merged" ? "merged" : "offered";
+      const sourceLabel = getLegacyPrActivitySourceLabel(prActivity);
       syncControlValue("pr-activity-legacy-metric", metricKey);
       setPanelContext(
         context,
@@ -1583,8 +1647,8 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
           ? ""
           : formatContextWithFreshness(
               compactViewport
-                ? `Sprint Jira-linked PR activity • ${since || points[0]?.date || ""}`
-                : `Sprint Jira-linked PR activity since ${since || points[0]?.date || ""}`,
+                ? `Monthly ${sourceLabel} PR activity • ${since || points[0]?.date || ""}`
+                : `Monthly ${sourceLabel} PR activity since ${since || points[0]?.date || ""}`,
               getSnapshotContextTimestamp(state)
             )
       );
@@ -1602,11 +1666,12 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
           titanium: toNumber(valueAccessor(point?.titanium))
         }));
       const lineDefs = getPrActivityLineDefs(colors);
-      const offeredRows = buildLegacyRows((teamMetrics) => teamMetrics?.[metricKey]);
+      const openedCountRows = buildLegacyRows((teamMetrics) => teamMetrics?.offered);
+      const selectedCountRows = buildLegacyRows((teamMetrics) => teamMetrics?.[metricKey]);
       const mergedCountRows = buildLegacyRows((teamMetrics) => teamMetrics?.merged);
       const mergeTimeRows = buildLegacyRows((teamMetrics) => teamMetrics?.avgReviewToMergeDays);
       const yAxisUpperOverride = Math.max(
-        getLegacyPrActivityYUpper(offeredRows, lineDefs),
+        getLegacyPrActivityYUpper(openedCountRows, lineDefs),
         getLegacyPrActivityYUpper(mergedCountRows, lineDefs)
       );
       const renderLegacyChart = (containerId, rows, options) => {
@@ -1629,7 +1694,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
         clearPanelStats(config?.summaryId);
         renderPanelLead(config?.panelId, buildLegacyPrActivityLeadModel(points, metricKey));
       }
-      renderLegacyChart("pr-activity-legacy-count-chart", offeredRows, {
+      renderLegacyChart("pr-activity-legacy-count-chart", selectedCountRows, {
         yAxisLabel: metricKey === "merged" ? "PRs merged" : "PRs opened",
         tooltipLabel: metricKey === "merged" ? "PRs merged" : "PRs opened",
         tooltipValueFormatter: (value) =>
