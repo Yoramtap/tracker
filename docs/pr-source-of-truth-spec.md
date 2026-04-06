@@ -10,6 +10,8 @@ Success means:
 
 - `PRs opened` is sourced from real GitHub non-draft PR `createdAt`
 - `PRs merged` is sourced from real GitHub PR `mergedAt`
+- review-to-merge is sourced from the latest submitted non-author GitHub review
+  to `mergedAt`
 - `PRs / sprint` and equivalent inflow metrics in workflow views are derived
   from GitHub PR events rather than Jira-linked ticket proxies
 - team attribution comes from a maintained `repo -> team` mapping, not Jira
@@ -21,26 +23,27 @@ to replace Jira for issue lifecycle, backlog, UAT, or other non-PR metrics.
 
 ## Current State
 
-Today PR activity is derived from Jira dev-status and issue changelogs inside
-`scripts/refresh-report-data.mjs`.
+PR activity is now derived from GitHub pull requests inside
+`scripts/refresh-report-data.mjs`, while Jira still provides backlog, UAT, and
+PR-cycle stage timing.
 
 Primary current seams:
 
-- `fetchPrActivity()` reads Jira issues, dev-status PR details, and Jira review
-  changelogs: [refresh-report-data.mjs](/Users/yoramtap/Documents/AI/tracker/scripts/refresh-report-data.mjs#L1538)
+- `fetchPrActivity()` now reads GitHub PRs and GitHub review data through the
+  shared refresh pipeline
 - `buildPrActivitySprintSnapshot()` buckets `offered` and `merged` counts into
-  sprint points: [refresh-report-data.mjs](/Users/yoramtap/Documents/AI/tracker/scripts/refresh-report-data.mjs#L1721)
+  sprint points
 - `buildPrActivityMonthlySnapshot()` buckets the same Jira-derived records into
-  monthly points: [refresh-report-data.mjs](/Users/yoramtap/Documents/AI/tracker/scripts/refresh-report-data.mjs#L1768)
+  monthly points
 - `attachPrCycleAvgInflow()` injects `avgPrInflow` into `pr-cycle-snapshot.json`
-  from PR activity points: [refresh-report-data.mjs](/Users/yoramtap/Documents/AI/tracker/scripts/refresh-report-data.mjs#L1283)
+  from PR activity points
 
 User-facing PR count surfaces:
 
 - Development workflow trends panel reads `prActivity` for `PRs opened` and
-  `PRs merged`: [dashboard-app.js](/Users/yoramtap/Documents/AI/tracker/app/dashboard-app.js#L1566)
+  `PRs merged`
 - Development workflow breakdown uses `avgPrInflow` / `PRs per sprint`:
-  [workflow-panels.js](/Users/yoramtap/Documents/AI/tracker/app/dashboard-app/workflow-panels.js#L601)
+  [workflow-panels.js](/Users/yoramtap/Documents/AI/tracker/app/dashboard-app/workflow-panels.js)
 
 ## In Scope
 
@@ -56,7 +59,7 @@ User-facing PR count surfaces:
 ## Out Of Scope
 
 - Replacing Jira backlog, UAT, or lifecycle metrics
-- Replacing Jira-based review-to-merge timing in this slice
+- Replacing Jira-based PR-cycle stage timing in this slice
 - Rebuilding all historical snapshot data beyond what is needed for the active
   refresh path
 - Any write access or repo mutations in the `private-github-account` account
@@ -81,6 +84,12 @@ User-facing PR count surfaces:
 - Count only non-draft PRs with non-null `mergedAt`
 - Closed-unmerged PRs do not count as merged
 
+### Review To Merge
+
+- Source fields: latest submitted non-author GitHub review and GitHub `mergedAt`
+- Applies only to merged non-draft PRs
+- Measures the latest review cycle, not the first-ever review on the PR
+
 ### Team Attribution
 
 - Primary mechanism: maintained `repo -> team` map
@@ -93,11 +102,12 @@ User-facing PR count surfaces:
 
 ### Time Bucketing
 
-- Sprint buckets are the primary reporting unit for PR counts and PR inflow
-- Sprint line charts show only closed sprints; the current in-progress sprint is
-  not rendered until rollover
-- Sprint line charts may label the x-axis by month even though the plotted
-  points are individual sprints
+- Monthly buckets are the primary reporting unit for the workflow trends line
+  chart
+- The current in-progress month is hidden from the workflow trends line chart
+  until the month closes
+- Sprint buckets remain the source for `PR / sprint` inflow and trailing-window
+  averages in workflow breakdown views
 - Aggregate views may report trailing-window averages such as last 30 days,
   last months, or last year, as long as they are derived from the same
   GitHub-backed PR events
@@ -205,7 +215,7 @@ Conventions:
 - Unit coverage in `scripts/refresh-report-data.test.mjs` for:
   - GitHub PR normalization
   - sprint bucket derivation from `createdAt` / `mergedAt`
-  - exclusion of the current in-progress sprint from sprint trend outputs
+  - exclusion of the current in-progress month from monthly trend outputs
   - exclusion of draft PRs from opened and inflow metrics
   - `repo -> team` attribution
   - `avgPrInflow` derivation for `pr-cycle`
@@ -224,7 +234,7 @@ Conventions:
 
 - Ask first:
   - changing public JSON field names
-  - replacing the review-to-merge Jira proxy in the same migration
+  - changing review-to-merge semantics again
 
 - Never:
   - write or mutate remote repos using `private-github-account`
@@ -238,6 +248,8 @@ Conventions:
 - `pr-cycle-snapshot.json` inflow metrics no longer depend on Jira proxy counts
 - the development workflow trends panel and workflow breakdown panel show
   GitHub-sourced PR counts
+- the workflow trends review chart shows latest-review-cycle-to-merge from
+  GitHub review events
 - repo ownership is resolved through an explicit map, with majority-vote defaults
   and override support
 - tests cover GitHub normalization and bucketing rules

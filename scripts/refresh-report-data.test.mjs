@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  attachPrCycleAvgInflow,
   buildPrCycleFetchRequest,
   buildPrCycleSnapshotState,
   buildPrActivitySnapshotState,
@@ -743,4 +744,44 @@ test("buildPrCycleSnapshotState preserves cached long windows when reuse is enab
   assert.equal(snapshotState.prCycleSnapshot.windows["1y"].teams[0].marker, "cached-1y");
   assert.equal(snapshotState.prCycleSnapshot.windows["30d"].windowLabel, "Last 30 days");
   assert.equal(snapshotState.prCycleSnapshot.windows["90d"].windowLabel, "Last 90 days");
+});
+
+test("attachPrCycleAvgInflow persists avg PR inflow into PR cycle windows from PR activity points", () => {
+  const snapshot = {
+    windows: {
+      "30d": {
+        windowLabel: "Last 30 days",
+        teams: [
+          { key: "api", label: "API", avgPrInflow: null },
+          { key: "bc", label: "BC", avgPrInflow: null }
+        ]
+      }
+    }
+  };
+  const prActivity = {
+    points: [
+      {
+        date: "2026-03-02",
+        api: { offered: 10 },
+        bc: { offered: 4 }
+      },
+      {
+        date: "2026-03-16",
+        api: { offered: 20 },
+        bc: { offered: 6 }
+      },
+      {
+        date: "2026-03-30",
+        api: { offered: 30 },
+        bc: { offered: 8 }
+      }
+    ]
+  };
+
+  const result = attachPrCycleAvgInflow(snapshot, prActivity);
+  const apiTeam = result.windows["30d"].teams.find((team) => team.key === "api");
+  const bcTeam = result.windows["30d"].teams.find((team) => team.key === "bc");
+
+  assert.equal(apiTeam.avgPrInflow, 20);
+  assert.equal(bcTeam.avgPrInflow, 6);
 });

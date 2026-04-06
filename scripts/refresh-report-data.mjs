@@ -1593,7 +1593,7 @@ function buildPrCycleAvgInflowByTeam(prActivity, windowKey) {
   );
 }
 
-function attachPrCycleAvgInflow(prCycleSnapshot, prActivity) {
+export function attachPrCycleAvgInflow(prCycleSnapshot, prActivity) {
   if (!prCycleSnapshot?.windows || typeof prCycleSnapshot.windows !== "object") return prCycleSnapshot;
   const hasPrActivityPoints = Array.isArray(prActivity?.points) && prActivity.points.length > 0;
   if (!hasPrActivityPoints) return prCycleSnapshot;
@@ -1617,6 +1617,20 @@ function attachPrCycleAvgInflow(prCycleSnapshot, prActivity) {
     ...prCycleSnapshot,
     windows
   };
+}
+
+async function loadPersistedPrActivity() {
+  const directSnapshot = await readJsonFile(PR_ACTIVITY_SNAPSHOT_PATH);
+  if (directSnapshot?.prActivity && typeof directSnapshot.prActivity === "object") {
+    return directSnapshot.prActivity;
+  }
+
+  const primarySnapshot = await readJsonFile(PRIMARY_SNAPSHOT_PATH);
+  if (primarySnapshot?.prActivity && typeof primarySnapshot.prActivity === "object") {
+    return primarySnapshot.prActivity;
+  }
+
+  return null;
 }
 
 function buildPrCycleSnapshot(rows, config) {
@@ -2792,7 +2806,10 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
   console.log(
     `Computed PR cycle stage breakdown (${prCycleRows.length} issue histories across ${config.prCycleProjectKeys.join(", ")} for ${prCycleRefreshPlan.prCycleWindowsToRefresh.length} window${prCycleRefreshPlan.prCycleWindowsToRefresh.length === 1 ? "" : "s"}${prCycleRefreshPlan.reuseHistoricalPrCycleWindows ? "; refreshed 30d and 90d, reused cached 6m and 1y windows" : prCycleRefreshPlan.historicalPrCycleSnapshotFreshEnough ? "" : `; refreshed all windows because cached 6m and 1y data was older than ${PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS} days`}).`
   );
-  return prCycleSnapshotState.prCycleSnapshot;
+  return attachPrCycleAvgInflow(
+    prCycleSnapshotState.prCycleSnapshot,
+    await loadPersistedPrActivity()
+  );
 }
 
 export function resolvePrCycleRefreshPlan(prCycleWindows, existingPrCycleSnapshot, options = {}) {

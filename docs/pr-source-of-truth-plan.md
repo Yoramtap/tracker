@@ -7,24 +7,38 @@ keeping the dashboard contract stable where possible. The migration should first
 establish a trustworthy GitHub ingestion path and explicit repo ownership map,
 then swap downstream snapshots and UI panels to consume that data.
 
+## Status Update
+
+- Tasks 1-6 are complete in the shipped implementation.
+- Task 7 is retired as a required deliverable; Jira-vs-GitHub comparison is now
+  an ad hoc debugging technique, not part of the normal operating model.
+- Task 8 is complete once the local-only refresh docs are in place.
+
 ## Architecture Decisions
 
 - Use GitHub non-draft PR events as the truth for PR counts:
   opened counts come from `createdAt`, merged counts come from `mergedAt`, and
   draft PRs are excluded from PR-count metrics.
+- Use the latest submitted non-author GitHub review to `mergedAt` for
+  review-to-merge timing.
 - Use an explicit `repo -> team` map for attribution, seeded from historical PR
   data and resolved by majority vote.
 - Keep Jira for non-PR concerns only.
 - Preserve existing snapshot file names unless a schema change becomes strictly
   necessary.
-- Keep closed sprint buckets as the primary reporting unit for line charts.
-- Use month labels on the line-chart x-axis when that improves readability,
-  even though the points themselves are sprint-level.
+- Use monthly buckets as the primary reporting unit for the workflow trends line
+  chart.
+- Hide the current in-progress month from the workflow trends line chart until
+  the month closes.
+- Keep sprint buckets for `PR / sprint` inflow and trailing-window averages in
+  workflow breakdown views.
 - Compute summary averages over trailing windows such as last 30 days, months,
   or year from the same GitHub-backed PR events.
 - Store the committed repo ownership config at `scripts/config/repo-team-map.json`.
 - Treat `private-github-account` as read-only for all implementation and refresh
   work.
+- Use local-only refresh automation; do not rely on GitHub-hosted PR refresh
+  credentials.
 
 ## Phase 1: Foundation
 
@@ -121,10 +135,10 @@ GitHub event timestamps instead of Jira proxy dates.
 - [ ] `offered` uses `createdAt` for non-draft PRs
 - [ ] `merged` uses `mergedAt`
 - [ ] sprint points include only closed sprints
-- [ ] sprint points remain the authoritative source for sprint line charts
-- [ ] sprint line charts can render month-based x-axis labels without changing
-  the underlying sprint point data
-- [ ] any retained monthly points are derived from the same GitHub events
+- [ ] monthly trend points are derived from the same GitHub events
+- [ ] the current in-progress month is hidden from workflow trends until close
+- [ ] sprint points remain available for `PR / sprint` inflow and trailing
+  averages
 
 **Verification:**
 - [ ] Tests pass: `node --test scripts/refresh-report-data.test.mjs`
@@ -181,8 +195,8 @@ describe PR counts.
 **Acceptance criteria:**
 - [ ] PR count panels no longer describe Jira as the PR count source
 - [ ] caveat text matches GitHub-backed semantics
-- [ ] line-chart wording is consistent with closed-sprint reporting
-- [ ] line-chart axis wording is consistent with month-labeled sprint points
+- [ ] line-chart wording is consistent with monthly reporting
+- [ ] line-chart wording hides the current in-progress month
 - [ ] aggregate-chart wording is consistent with trailing-window averages
 
 **Verification:**
@@ -206,37 +220,35 @@ describe PR counts.
 
 ## Phase 4: Operator Hardening
 
-### Task 7: Add side-by-side comparison tooling for cutover confidence
+### Task 7: Retired from required scope
 
-**Description:** Provide a local operator path to compare Jira-derived and
-GitHub-derived outputs during rollout, then remove or retire it after confidence
-is established.
+**Description:** Jira-vs-GitHub comparison is now an ad hoc debugging technique,
+not a required committed tool.
 
 **Acceptance criteria:**
-- [ ] A local comparison path exists for sampled windows and teams
-- [ ] Differences can be explained in operator notes
-- [ ] Cutover decision can be made with evidence
+- [ ] No product or operator flow depends on a committed comparison helper
 
 **Verification:**
-- [ ] Manual check: sampled repos and teams compare cleanly
+- [ ] Manual comparison can still be done when investigating suspicious deltas
 
 **Dependencies:** Tasks 3-6
 
 **Files likely touched:**
-- `scripts/dev/`
-- optional docs under `docs/`
+- none required
 
 **Estimated scope:** Small
 
 ### Task 8: Update release/operator docs
 
 **Description:** Document GitHub auth requirements, read-only NEP usage, and
-the new PR count semantics.
+the new PR count semantics plus the local weekly refresh path.
 
 **Acceptance criteria:**
 - [ ] Operator docs explain the GitHub auth requirement
 - [ ] Docs state that NEP account access is read-only
 - [ ] Docs describe where repo ownership mapping lives
+- [ ] Docs explain that PR refreshes run locally, not in GitHub Actions
+- [ ] Docs describe the recommended weekly Monday 09:00 local automation
 
 **Verification:**
 - [ ] Manual doc review
@@ -257,18 +269,18 @@ the new PR count semantics.
 | GitHub auth expires or loses org visibility | High | keep `gh auth status` as an explicit preflight and treat NEP auth as read-only |
 | Repo ownership is wrong for shared repos | High | persist explicit overrides and keep majority-vote evidence in the draft map |
 | GitHub query volume is large across many repos | Medium | fetch incrementally by updated/created windows and add local cache artifacts |
-| Historical Jira and GitHub counts differ materially | Medium | run side-by-side comparison before cutover and explain expected semantic differences |
+| Historical Jira and GitHub counts differ materially | Medium | investigate ad hoc when suspicious deltas appear; GitHub remains the source of truth |
 | Teams expect draft work to appear in PR counts | Medium | document explicitly that draft PRs are excluded from PR-count metrics |
-| Users read partial current sprint points as final | Medium | exclude the in-progress sprint from line-chart outputs until rollover |
+| Users read partial current month points as final | Medium | exclude the in-progress month from workflow trend outputs until month close |
 
 ## Settled Decisions
 
 - Draft PRs are excluded from PR-count metrics.
-- Sprint buckets remain the primary reporting unit for PR-count metrics.
-- Sprint line charts show only closed sprints.
-- Sprint line charts may use month labels on the x-axis while keeping
-  sprint-level points.
+- Workflow trends use monthly points and hide the current in-progress month.
+- Workflow breakdown inflow uses sprint buckets and trailing-window averages.
 - Aggregate PR views may show trailing-window averages such as last 30 days,
   months, or year.
+- Review-to-merge uses latest submitted non-author GitHub review to merge.
+- PR refreshes run locally, not from GitHub Actions.
 - The committed `repo -> team` config lives at
   `scripts/config/repo-team-map.json`.

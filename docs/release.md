@@ -1,5 +1,19 @@
 # Release Guide
 
+## Local Auth Preflight
+
+Before any refresh that touches PR activity:
+
+```bash
+gh auth status -h github.com
+```
+
+Expected operating model:
+
+- Jira credentials live only in ignored local env files
+- `private-github-account` stays read-only and is used only through local `gh` auth
+- PR refreshes are run locally, not from GitHub Actions
+
 ## Default Local Refresh
 
 ```bash
@@ -9,6 +23,11 @@ npm run build
 ```
 
 Use this when you want the normal incremental refresh path.
+
+This command refreshes:
+
+- Jira-backed backlog, UAT, and PR cycle stage timing
+- GitHub-backed PR activity, using local `gh` auth for `example-org`
 
 ## Clean Refresh
 
@@ -49,15 +68,18 @@ This writes a local operator note to `.cache/analysis/latest-analysis.md` and ar
 npm run dev:publish -- --refresh yes --clean --message "Refresh dashboard data" --push
 ```
 
-Use `--clean` when you want the publish helper to refresh from Jira without depending on old local caches.
+Use `--clean` when you want the publish helper to refresh from Jira and GitHub without depending on old local caches.
+
+## Weekly Local Automation
+
+Recommended schedule:
+
+- Monday 09:00 in your local timezone (`Europe/Amsterdam`)
+- Run `npm run data:refresh`, `npm run data:validate`, and `npm run build`
+- Review changed files, then commit and push from your normal `Yoramtap` repo context
 
 ## GitHub Automation
 
 - `.github/workflows/pages.yml` deploys GitHub Pages from `dist/` on pushes to `main`
-- `.github/workflows/refresh-data.yml` refreshes data on a schedule or manual trigger, validates snapshots, and commits updated `data/` back to `main`
-
-Required GitHub secrets for refresh automation:
-
-- `ATLASSIAN_EMAIL`
-- `ATLASSIAN_API_TOKEN`
-- optional `ATLASSIAN_SITE`
+- There is no GitHub-hosted snapshot refresh workflow
+- No NEP GitHub token is stored in repo secrets for PR refreshes

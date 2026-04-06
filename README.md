@@ -22,7 +22,9 @@ This repo has one job: regenerate committed dashboard snapshots and publish a st
 
 - The repo can be public.
 - The Jira API token must never be committed.
-- Keep credentials only in `.env.backlog` or `.env.local`, or in GitHub Actions secrets if you later automate refreshes in GitHub.
+- NEP GitHub access must stay local and read-only.
+- Keep Jira credentials only in `.env.backlog` or `.env.local`.
+- Keep NEP GitHub access in local `gh` auth for `private-github-account`; do not commit tokens and do not rely on GitHub Actions secrets for PR refreshes.
 - `.env*`, `node_modules/`, `.cache/`, and `dist/` are ignored locally.
 
 ## Local Setup
@@ -50,7 +52,7 @@ npm run build
 
 What they do:
 
-- `data:refresh`: refreshes the Jira-backed dashboard data
+- `data:refresh`: refreshes Jira-backed backlog/UAT/stage data and GitHub-backed PR activity
 - `data:validate`: enforces the committed snapshot contract
 - `build`: builds the public Pages artifact into `dist/`
 
@@ -96,13 +98,14 @@ Then open [http://127.0.0.1:4173](http://127.0.0.1:4173).
 Read [docs/release.md](docs/release.md) before shipping.
 
 - Manual release steps are in [docs/release.md](docs/release.md).
-- Scheduled GitHub refresh automation lives in [.github/workflows/refresh-data.yml](.github/workflows/refresh-data.yml).
+- Dashboard data refresh is local-only.
+- Weekly local automation is the recommended way to keep snapshots fresh.
 
 ## GitHub Pages
 
 - GitHub Pages deploys from this repo via [.github/workflows/pages.yml](.github/workflows/pages.yml).
 - The workflow runs `npm ci` and `npm run build`, then publishes `dist/`.
-- Scheduled or manual data refresh automation lives in [.github/workflows/refresh-data.yml](.github/workflows/refresh-data.yml).
+- There is no GitHub-hosted data refresh workflow anymore.
 - The live site stays publicly accessible for Confluence embedding.
 
 ## Notes
