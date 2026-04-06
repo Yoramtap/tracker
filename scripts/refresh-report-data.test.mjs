@@ -138,11 +138,11 @@ test("buildTrendRefreshDateState preserves fallback messaging and full date hist
   );
 });
 
-test("resolveTrendDates reuses the persistent sprint-date cache across refresh runs", async () => {
+test("resolveTrendDates reuses cached sprint dates across days until the active sprint rolls over", async () => {
   let cachedValue = null;
   let fetchBoardsCallCount = 0;
   let fetchSprintsCallCount = 0;
-  const options = {
+  const buildOptions = (todayIso) => ({
     fallbackDates: ["2026-03-16"],
     projectKey: "TFC",
     boardId: "",
@@ -150,7 +150,7 @@ test("resolveTrendDates reuses the persistent sprint-date cache across refresh r
     pointMode: "end",
     includeActive: true,
     mondayAnchor: true,
-    todayIso: "2026-04-06",
+    todayIso,
     readCache: async () => cachedValue,
     writeCache: async (_outputPath, _tmpPath, value) => {
       cachedValue = value;
@@ -174,17 +174,35 @@ test("resolveTrendDates reuses the persistent sprint-date cache across refresh r
         }
       ];
     }
-  };
+  });
 
-  const firstRun = await resolveTrendDates("jira.example.com", "user", "token", options);
-  const secondRun = await resolveTrendDates("jira.example.com", "user", "token", options);
+  const firstRun = await resolveTrendDates(
+    "jira.example.com",
+    "user",
+    "token",
+    buildOptions("2026-04-06")
+  );
+  const secondRun = await resolveTrendDates(
+    "jira.example.com",
+    "user",
+    "token",
+    buildOptions("2026-04-08")
+  );
+  const thirdRun = await resolveTrendDates(
+    "jira.example.com",
+    "user",
+    "token",
+    buildOptions("2026-04-14")
+  );
 
   assert.deepEqual(firstRun.dates, ["2026-03-16", "2026-04-06"]);
   assert.deepEqual(firstRun.closedDates, ["2026-03-16"]);
-  assert.deepEqual(secondRun.dates, ["2026-03-16", "2026-04-06"]);
+  assert.deepEqual(secondRun.dates, ["2026-03-16", "2026-04-08"]);
   assert.deepEqual(secondRun.closedDates, ["2026-03-16"]);
-  assert.equal(fetchBoardsCallCount, 1);
-  assert.equal(fetchSprintsCallCount, 1);
+  assert.deepEqual(thirdRun.dates, ["2026-03-16", "2026-04-13"]);
+  assert.deepEqual(thirdRun.closedDates, ["2026-03-16"]);
+  assert.equal(fetchBoardsCallCount, 2);
+  assert.equal(fetchSprintsCallCount, 2);
   assert.ok(cachedValue?.entries && Object.keys(cachedValue.entries).length === 1);
 });
 

@@ -107,6 +107,7 @@ const GITHUB_PULLS_PAGE_SIZE = 100;
 const UAT_CHANGELOG_CONCURRENCY = 6;
 const PR_CYCLE_CHANGELOG_CONCURRENCY = 6;
 const DEFAULT_TREND_COUNT_CONCURRENCY = 2;
+const TREND_DATE_CACHE_FALLBACK_TTL_DAYS = 14;
 const SNAPSHOT_SCHEMA_VERSION = 3;
 const DEFAULT_SNAPSHOT_RETENTION_COUNT = 26;
 const ALLOW_EMPTY = process.argv.includes("--allow-empty");
@@ -1026,6 +1027,57 @@ async function fetchSprintsForBoard(site, email, token, boardId) {
   return sprints;
 }
 
+function resolveTrendPointDateForSprint(sprint, { pointMode, mondayAnchor, todayIso = "" }) {
+  const pickedDate =
+    pointMode === "start"
+      ? isoDateOnly(sprint?.startDate)
+      : isoDateOnly(sprint?.endDate || sprint?.completeDate || sprint?.startDate);
+  if (!pickedDate) return "";
+  const normalizedDate = mondayAnchor ? toMondayAnchor(pickedDate) : pickedDate;
+  return capIsoDateAt(normalizedDate, todayIso);
+}
+
+function applyTrendDateCap(dates, todayIso = "") {
+  return Array.from(
+    new Set(
+      (Array.isArray(dates) ? dates : [])
+        .map((date) => capIsoDateAt(date, todayIso))
+        .filter(Boolean)
+    )
+  ).sort();
+}
+
+function findLatestActiveTrendDate(
+  sprints,
+  { pointMode, mondayAnchor, sinceDate = "", todayIso = "" }
+) {
+  let latest = "";
+  for (const sprint of Array.isArray(sprints) ? sprints : []) {
+    const state = String(sprint?.state || "").toLowerCase();
+    if (state !== "active") continue;
+    const pointDate = resolveTrendPointDateForSprint(sprint, {
+      pointMode,
+      mondayAnchor,
+      todayIso
+    });
+    if (!pointDate) continue;
+    if (sinceDate && pointDate < sinceDate) continue;
+    if (!latest || pointDate > latest) latest = pointDate;
+  }
+  return latest;
+}
+
+function isTrendDateCacheEntryReusable(entry, todayIso = "") {
+  const safeToday = isoDateOnly(todayIso);
+  if (!safeToday) return true;
+  const activeDate = isoDateOnly(entry?.activeDate);
+  if (activeDate) return safeToday <= activeDate;
+  const updatedAt = isoDateOnly(entry?.updatedAt);
+  if (!updatedAt) return true;
+  const ageDays = daysBetweenIsoDates(updatedAt, safeToday);
+  return ageDays >= 0 && ageDays <= TREND_DATE_CACHE_FALLBACK_TTL_DAYS;
+}
+
 function buildTrendDatesFromSprints(
   sprints,
   { lookbackCount, pointMode, includeActive, mondayAnchor, sinceDate = "", todayIso = "" }
@@ -1038,13 +1090,11 @@ function buildTrendDatesFromSprints(
     const isActive = state === "active";
     if (!isClosed && !(includeActive && isActive)) continue;
 
-    const pickedDate =
-      pointMode === "start"
-        ? isoDateOnly(sprint?.startDate)
-        : isoDateOnly(sprint?.endDate || sprint?.completeDate || sprint?.startDate);
-    if (!pickedDate) continue;
-    const normalizedDate = mondayAnchor ? toMondayAnchor(pickedDate) : pickedDate;
-    const clampedDate = capIsoDateAt(normalizedDate, todayIso);
+    const clampedDate = resolveTrendPointDateForSprint(sprint, {
+      pointMode,
+      mondayAnchor,
+      todayIso
+    });
     if (!clampedDate) continue;
     if (sinceDate && clampedDate < sinceDate) continue;
     dates.push(clampedDate);
@@ -1065,16 +1115,26 @@ function buildTrendDateCacheKey(site, options = {}) {
     pointMode: String(options.pointMode || "").trim(),
     includeActive: Boolean(options.includeActive),
     mondayAnchor: Boolean(options.mondayAnchor),
-    todayIso: String(options.todayIso || "").trim(),
     sinceDate: String(options.sinceDate || "").trim()
   });
 }
 
-function readTrendDateCacheEntry(cacheByKey, cacheKey) {
+function readTrendDateCacheEntry(cacheByKey, cacheKey, todayIso = "") {
   const entry = cacheByKey?.[String(cacheKey || "").trim()];
   if (!entry || typeof entry !== "object") return null;
-  const dates = Array.isArray(entry.dates) ? entry.dates.filter(Boolean) : [];
-  const closedDates = Array.isArray(entry.closedDates) ? entry.closedDates.filter(Boolean) : [];
+  if (!isTrendDateCacheEntryReusable(entry, todayIso)) return null;
+  const rawDates = Array.isArray(entry.rawDates)
+    ? entry.rawDates.filter(Boolean)
+    : Array.isArray(entry.dates)
+      ? entry.dates.filter(Boolean)
+      : [];
+  const rawClosedDates = Array.isArray(entry.rawClosedDates)
+    ? entry.rawClosedDates.filter(Boolean)
+    : Array.isArray(entry.closedDates)
+      ? entry.closedDates.filter(Boolean)
+      : [];
+  const dates = applyTrendDateCap(rawDates, todayIso);
+  const closedDates = applyTrendDateCap(rawClosedDates, todayIso);
   if (dates.length === 0) return null;
   return {
     dates,
@@ -1082,16 +1142,15 @@ function readTrendDateCacheEntry(cacheByKey, cacheKey) {
   };
 }
 
-function createTrendDateCacheEntry(resolvedDates) {
-  const dates = Array.isArray(resolvedDates?.dates) ? resolvedDates.dates.filter(Boolean) : [];
-  if (dates.length === 0) return null;
-  const closedDates = Array.isArray(resolvedDates?.closedDates)
-    ? resolvedDates.closedDates.filter(Boolean)
-    : [];
+function createTrendDateCacheEntry({ rawDates, rawClosedDates, activeDate }) {
+  const safeRawDates = Array.isArray(rawDates) ? rawDates.filter(Boolean) : [];
+  if (safeRawDates.length === 0) return null;
+  const safeRawClosedDates = Array.isArray(rawClosedDates) ? rawClosedDates.filter(Boolean) : [];
   return {
     updatedAt: new Date().toISOString(),
-    dates,
-    closedDates: closedDates.length > 0 ? closedDates : dates
+    rawDates: safeRawDates,
+    rawClosedDates: safeRawClosedDates.length > 0 ? safeRawClosedDates : safeRawDates,
+    activeDate: isoDateOnly(activeDate)
   };
 }
 
@@ -1124,7 +1183,6 @@ export async function resolveTrendDates(site, email, token, options) {
     pointMode,
     includeActive,
     mondayAnchor,
-    todayIso,
     sinceDate
   });
   const trendDateCache = cacheEnabled ? await readCache(TREND_DATE_CACHE_PATH) : null;
@@ -1133,7 +1191,7 @@ export async function resolveTrendDates(site, email, token, options) {
       ? { ...trendDateCache.entries }
       : {};
   const cachedResolvedDates = cacheEnabled
-    ? readTrendDateCacheEntry(trendDateCacheByKey, cacheKey)
+    ? readTrendDateCacheEntry(trendDateCacheByKey, cacheKey, todayIso)
     : null;
   if (cachedResolvedDates) {
     return {
@@ -1169,22 +1227,24 @@ export async function resolveTrendDates(site, email, token, options) {
     }
 
     const sprintValues = Array.from(sprintById.values());
-    const dates = buildTrendDatesFromSprints(sprintValues, {
+    const rawDates = buildTrendDatesFromSprints(sprintValues, {
       lookbackCount,
       pointMode,
       includeActive,
       mondayAnchor,
-      todayIso,
+      todayIso: "",
       sinceDate
     });
-    const closedDates = buildTrendDatesFromSprints(sprintValues, {
+    const rawClosedDates = buildTrendDatesFromSprints(sprintValues, {
       lookbackCount: 0,
       pointMode,
       includeActive: false,
       mondayAnchor,
-      todayIso,
+      todayIso: "",
       sinceDate
     });
+    const dates = applyTrendDateCap(rawDates, todayIso);
+    const closedDates = applyTrendDateCap(rawClosedDates, todayIso);
 
     if (dates.length === 0) {
       throw new Error("No sprint dates resolved from Jira Agile API.");
@@ -1195,7 +1255,17 @@ export async function resolveTrendDates(site, email, token, options) {
       closedDates,
       usedFallback: false
     };
-    const cacheEntry = cacheEnabled ? createTrendDateCacheEntry(resolvedDates) : null;
+    const cacheEntry = cacheEnabled
+      ? createTrendDateCacheEntry({
+          rawDates,
+          rawClosedDates,
+          activeDate: findLatestActiveTrendDate(sprintValues, {
+            pointMode,
+            mondayAnchor,
+            sinceDate
+          })
+        })
+      : null;
     if (cacheEntry) {
       trendDateCacheByKey[cacheKey] = cacheEntry;
       await writeCache(TREND_DATE_CACHE_PATH, TREND_DATE_CACHE_TMP_PATH, {
