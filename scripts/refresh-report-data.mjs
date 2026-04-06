@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
+import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { promisify } from "node:util";
 
 import {
   sanitizeBacklogSnapshot,
@@ -14,6 +16,7 @@ import {
   MANAGEMENT_FACILITY_SNAPSHOT_PATH,
   PR_ACTIVITY_ISSUE_CACHE_PATH,
   PR_ACTIVITY_ISSUE_CACHE_TMP_PATH,
+  PR_ACTIVITY_REPO_TEAM_MAP_PATH,
   PR_ACTIVITY_SNAPSHOT_PATH,
   PR_CYCLE_SNAPSHOT_PATH,
   PRIMARY_SNAPSHOT_PATH,
@@ -95,6 +98,8 @@ const PAGE_SIZE = 100;
 const MAX_RETRIES = 5;
 const JIRA_REQUEST_TIMEOUT_MS = 30000;
 const PR_DETAIL_CONCURRENCY = 12;
+const GITHUB_PR_DETAIL_CONCURRENCY = 6;
+const GITHUB_PULLS_PAGE_SIZE = 100;
 const UAT_CHANGELOG_CONCURRENCY = 6;
 const PR_CYCLE_CHANGELOG_CONCURRENCY = 6;
 const DEFAULT_TREND_COUNT_CONCURRENCY = 2;
@@ -114,6 +119,9 @@ const PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY = "30d";
 const PR_ACTIVITY_HISTORY_FLOOR = "2025-01-01";
 const PR_REVIEW_STATUS = "In Review";
 const PR_ACTIVITY_PROJECT_KEYS = ["TFC", "TFO", "MESO"];
+const PR_ACTIVITY_SOURCE_JIRA = "jira";
+const PR_ACTIVITY_SOURCE_GITHUB = "github";
+const NEPGPE_GITHUB_TOKEN_ENV_NAME = "NEPGPE_GH_TOKEN";
 const PR_ACTIVITY_ARTIFACT_PULL_REQUEST_KEYS = new Set(["TFC-11509|1024649212:#52"]);
 const TEAM_KEYS = ["api", "legacy", "react", "bc", "workers", "titanium"];
 const PR_TEAM_LABELS = {
@@ -131,6 +139,7 @@ const PR_TEAM_LABELS = {
 const PR_TEAM_LABELS_NORMALIZED = Object.fromEntries(
   Object.entries(PR_TEAM_LABELS).map(([label, teamKey]) => [label.toLowerCase(), teamKey])
 );
+const execFileAsync = promisify(execFile);
 const UAT_BUCKETS = [
   { id: "d0_7", label: "0-7 days", minDays: 0, maxDays: 7 },
   { id: "d8_14", label: "8-14 days", minDays: 8, maxDays: 14 },
@@ -390,6 +399,310 @@ async function jiraRequest(site, email, token, url, options = {}) {
   }
 
   throw new Error("Jira request failed after retries.");
+}
+
+function normalizePrActivitySource(value) {
+  return String(value || "").trim().toLowerCase() === PR_ACTIVITY_SOURCE_GITHUB
+    ? PR_ACTIVITY_SOURCE_GITHUB
+    : PR_ACTIVITY_SOURCE_JIRA;
+}
+
+export async function loadPrActivityRepoTeamMapConfig(options = {}) {
+  const payload =
+    options.payload && typeof options.payload === "object"
+      ? options.payload
+      : await readJsonFile(options.path || PR_ACTIVITY_REPO_TEAM_MAP_PATH);
+  const rawRepos = payload?.repos && typeof payload.repos === "object" ? payload.repos : {};
+  return Object.fromEntries(
+    Object.entries(rawRepos)
+      .map(([repo, team]) => [
+        String(repo || "").trim().toLowerCase(),
+        String(team || "").trim().toLowerCase()
+      ])
+      .filter(([repo, team]) => repo && TEAM_KEYS.includes(team))
+  );
+}
+
+async function loadGitHubCliToken() {
+  const { stdout } = await execFileAsync("gh", ["auth", "token"], {
+    cwd: REPO_ROOT_PATH,
+    env: {
+      ...process.env,
+      GH_PAGER: "cat"
+    }
+  });
+  return String(stdout || "").trim();
+}
+
+export async function resolveGitHubAccessToken(options = {}) {
+  const explicitToken = String(options.githubToken || "").trim();
+  if (explicitToken) return explicitToken;
+
+  const envSource = options.env && typeof options.env === "object" ? options.env : process.env;
+  const envToken = String(envSource?.[NEPGPE_GITHUB_TOKEN_ENV_NAME] || "").trim();
+  if (envToken) return envToken;
+
+  if (typeof options.execAuthToken === "function") {
+    return String(await options.execAuthToken()).trim();
+  }
+
+  return loadGitHubCliToken();
+}
+
+async function githubRequest(token, apiPath) {
+  const safeToken = String(token || "").trim();
+  const safeApiPath = String(apiPath || "").trim().replace(/^\/+/, "");
+  if (!safeToken) {
+    throw new Error(
+      `Missing GitHub token. Set ${NEPGPE_GITHUB_TOKEN_ENV_NAME} or authenticate with gh auth login.`
+    );
+  }
+  if (!safeApiPath) throw new Error("Missing GitHub API path.");
+
+  const url = `https://api.github.com/${safeApiPath}`;
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
+    let response;
+    try {
+      response = await fetchWithTimeout(url, {
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${safeToken}`,
+          "User-Agent": "tracker-pr-activity-refresh",
+          "X-GitHub-Api-Version": "2022-11-28"
+        }
+      });
+    } catch (error) {
+      if (attempt === MAX_RETRIES - 1) throw error;
+      await sleep(500 * 2 ** attempt);
+      continue;
+    }
+
+    if (response.ok) return response.json();
+
+    if (response.status === 403 || response.status === 429 || response.status >= 500) {
+      if (attempt === MAX_RETRIES - 1) {
+        const body = await response.text();
+        throw new Error(`GitHub request failed (${response.status}): ${body}`);
+      }
+      const retryAfter = Number(response.headers.get("retry-after") || 0);
+      const waitMs = retryAfter > 0 ? retryAfter * 1000 : 600 * 2 ** attempt;
+      await sleep(waitMs);
+      continue;
+    }
+
+    const body = await response.text();
+    throw new Error(`GitHub request failed (${response.status}): ${body}`);
+  }
+
+  throw new Error("GitHub request failed after retries.");
+}
+
+function githubPullRequestTouchesSinceDate(pullRequest, safeSinceDate) {
+  const createdDate = isoDateOnly(pullRequest?.created_at);
+  const mergedDate = isoDateOnly(pullRequest?.merged_at);
+  return (
+    (createdDate && createdDate >= safeSinceDate) || (mergedDate && mergedDate >= safeSinceDate)
+  );
+}
+
+function isGitHubSubmittedReview(review, authorLogin) {
+  const submittedAt = isoDateTime(review?.submitted_at);
+  const state = String(review?.state || "").trim().toUpperCase();
+  const reviewerLogin = String(review?.user?.login || "").trim().toLowerCase();
+  const safeAuthorLogin = String(authorLogin || "").trim().toLowerCase();
+  if (!submittedAt || !state || state === "PENDING") return false;
+  if (safeAuthorLogin && reviewerLogin && reviewerLogin === safeAuthorLogin) return false;
+  return true;
+}
+
+export function normalizeGitHubReviewToMergeRecord(repo, team, pullRequest, reviews) {
+  const normalizedPullRequest = normalizeGitHubPullRequestRecord(repo, team, pullRequest);
+  if (!normalizedPullRequest || normalizedPullRequest.status !== "MERGED") return null;
+
+  const authorLogin = String(pullRequest?.user?.login || "").trim();
+  const submittedReviews = (Array.isArray(reviews) ? reviews : [])
+    .filter((review) => isGitHubSubmittedReview(review, authorLogin))
+    .map((review) => isoDateOnly(review?.submitted_at))
+    .filter(Boolean)
+    .filter((reviewDate) => reviewDate <= normalizedPullRequest.mergedProxyDate)
+    .sort();
+  const reviewStartedAt = submittedReviews[submittedReviews.length - 1] || "";
+  if (!reviewStartedAt) return null;
+
+  const reviewToMergeDays = daysBetweenIsoDates(
+    reviewStartedAt,
+    normalizedPullRequest.mergedProxyDate
+  );
+  if (reviewToMergeDays < 0) return null;
+
+  return {
+    issueKey: normalizedPullRequest.uniqueKey,
+    team: normalizedPullRequest.team,
+    reviewStartedAt,
+    mergedProxyDate: normalizedPullRequest.mergedProxyDate,
+    reviewToMergeDays
+  };
+}
+
+export function normalizeGitHubPullRequestRecord(repo, team, pullRequest) {
+  const safeRepo = String(repo || "").trim().toLowerCase();
+  const safeTeam = String(team || "").trim().toLowerCase();
+  const number = Number(pullRequest?.number);
+  const createdDate = isoDateOnly(pullRequest?.created_at);
+  const mergedDate = isoDateOnly(pullRequest?.merged_at);
+  const state = String(pullRequest?.state || "").trim().toUpperCase();
+  const isDraft = Boolean(pullRequest?.draft);
+  if (
+    !safeRepo ||
+    !TEAM_KEYS.includes(safeTeam) ||
+    !Number.isFinite(number) ||
+    !createdDate ||
+    isDraft
+  ) {
+    return null;
+  }
+
+  return {
+    uniqueKey: `${safeRepo}#${number}`,
+    team: safeTeam,
+    offeredProxyDate: createdDate,
+    mergedProxyDate: mergedDate,
+    status: mergedDate ? "MERGED" : state,
+    url: String(pullRequest?.html_url || pullRequest?.url || "").trim(),
+    repositoryId: safeRepo,
+    pullRequestId: String(number),
+    issueKey: ""
+  };
+}
+
+async function fetchGitHubPullRequestReviews(repo, pullRequestNumber, options = {}) {
+  const safeRepo = String(repo || "").trim().toLowerCase();
+  const safeNumber = Number(pullRequestNumber);
+  if (!safeRepo || !Number.isFinite(safeNumber)) return [];
+
+  const fetchReviewsPage =
+    typeof options.fetchReviewsPage === "function"
+      ? options.fetchReviewsPage
+      : async (repoName, prNumber, page) =>
+          githubRequest(
+            options.githubToken,
+            `repos/${repoName}/pulls/${prNumber}/reviews?per_page=${GITHUB_PULLS_PAGE_SIZE}&page=${page}`
+          );
+
+  const reviews = [];
+  let page = 1;
+
+  for (;;) {
+    const pageRows = await fetchReviewsPage(safeRepo, safeNumber, page);
+    const safeRows = Array.isArray(pageRows) ? pageRows : [];
+    if (safeRows.length === 0) break;
+    reviews.push(...safeRows);
+    if (safeRows.length < GITHUB_PULLS_PAGE_SIZE) break;
+    page += 1;
+  }
+
+  return reviews;
+}
+
+async function fetchGitHubPullRequestsForRepo(repo, sinceDate, options = {}) {
+  const safeRepo = String(repo || "").trim().toLowerCase();
+  const safeSinceDate = isoDateOnly(sinceDate);
+  if (!safeRepo || !safeSinceDate) return [];
+
+  const fetchRepoPage =
+    typeof options.fetchRepoPage === "function"
+      ? options.fetchRepoPage
+      : async (repoName, page) =>
+          githubRequest(
+            options.githubToken,
+            `repos/${repoName}/pulls?state=all&sort=updated&direction=desc&per_page=${GITHUB_PULLS_PAGE_SIZE}&page=${page}`
+          );
+
+  const pullRequests = [];
+  let page = 1;
+
+  for (;;) {
+    const pageRows = await fetchRepoPage(safeRepo, page);
+    const safeRows = Array.isArray(pageRows) ? pageRows : [];
+    if (safeRows.length === 0) break;
+    pullRequests.push(...safeRows);
+    const lastUpdatedDate = isoDateOnly(safeRows[safeRows.length - 1]?.updated_at);
+    if (
+      !lastUpdatedDate ||
+      lastUpdatedDate < safeSinceDate ||
+      safeRows.length < GITHUB_PULLS_PAGE_SIZE
+    ) {
+      break;
+    }
+    page += 1;
+  }
+
+  return pullRequests.filter((pullRequest) =>
+    githubPullRequestTouchesSinceDate(pullRequest, safeSinceDate)
+  );
+}
+
+export async function fetchGitHubPrActivity(sinceDate, options = {}) {
+  const safeSinceDate = isoDateOnly(sinceDate);
+  const repoTeamMap =
+    options.repoTeamMap && typeof options.repoTeamMap === "object"
+      ? options.repoTeamMap
+      : await loadPrActivityRepoTeamMapConfig();
+  const githubToken = await resolveGitHubAccessToken(options);
+  const repoEntries = Object.entries(repoTeamMap).filter(
+    ([repo, team]) => String(repo || "").trim() && TEAM_KEYS.includes(String(team || "").trim())
+  );
+
+  const perRepoResults = await mapWithConcurrency(
+    repoEntries,
+    GITHUB_PR_DETAIL_CONCURRENCY,
+    async ([repo, team]) => {
+      const pullRequests = await fetchGitHubPullRequestsForRepo(repo, safeSinceDate, {
+        githubToken,
+        fetchRepoPage: options.fetchRepoPage
+      });
+      const records = pullRequests
+        .map((pullRequest) => normalizeGitHubPullRequestRecord(repo, team, pullRequest))
+        .filter(Boolean);
+      const mergedPullRequests = pullRequests.filter(
+        (pullRequest) =>
+          !pullRequest?.draft &&
+          isoDateOnly(pullRequest?.merged_at) &&
+          githubPullRequestTouchesSinceDate(pullRequest, safeSinceDate)
+      );
+      const ticketReviewToMergeRecords = (
+        await mapWithConcurrency(mergedPullRequests, GITHUB_PR_DETAIL_CONCURRENCY, async (pullRequest) => {
+          const reviews = await fetchGitHubPullRequestReviews(repo, pullRequest?.number, {
+            githubToken,
+            fetchReviewsPage: options.fetchReviewsPage
+          });
+          return normalizeGitHubReviewToMergeRecord(repo, team, pullRequest, reviews);
+        })
+      ).filter(Boolean);
+      return {
+        records,
+        ticketReviewToMergeRecords
+      };
+    }
+  );
+
+  const records = perRepoResults.flatMap((result) => result.records || []);
+  const ticketReviewToMergeRecords = perRepoResults.flatMap(
+    (result) => result.ticketReviewToMergeRecords || []
+  );
+  return {
+    source: "github_pull_requests",
+    candidateIssueCount: repoEntries.length,
+    detailIssueCount: repoEntries.length,
+    uniquePrCount: records.length,
+    conflictCount: 0,
+    reviewChangelogIssueCount: ticketReviewToMergeRecords.length,
+    cacheHitCount: 0,
+    cacheWriteCount: 0,
+    records,
+    ticketReviewToMergeRecords
+  };
 }
 
 function emptyCounts() {
@@ -1535,7 +1848,7 @@ function createPrActivityIssueCacheEntry(summaryLastUpdatedAt, issueResult) {
   };
 }
 
-async function fetchPrActivity(site, email, token, sinceDate, options = {}) {
+async function fetchJiraPrActivity(site, email, token, sinceDate, options = {}) {
   const labelClause = Object.keys(PR_TEAM_LABELS)
     .map((label) => quoteJqlValue(label))
     .join(", ");
@@ -1682,6 +1995,7 @@ async function fetchPrActivity(site, email, token, sinceDate, options = {}) {
   const cacheHitCount = issueResults.reduce((sum, result) => sum + (result?.cacheHit ? 1 : 0), 0);
 
   return {
+    source: "jira_dev_status_detail",
     candidateIssueCount: candidateIssues.length,
     detailIssueCount: activeCandidateIssues.length,
     uniquePrCount: filteredRecords.length,
@@ -1692,6 +2006,14 @@ async function fetchPrActivity(site, email, token, sinceDate, options = {}) {
     records: filteredRecords,
     ticketReviewToMergeRecords: filteredReviewToMergeRecords
   };
+}
+
+async function fetchPrActivity(site, email, token, sinceDate, options = {}) {
+  const prActivitySource = normalizePrActivitySource(options.prActivitySource);
+  if (prActivitySource !== PR_ACTIVITY_SOURCE_GITHUB) {
+    return fetchJiraPrActivity(site, email, token, sinceDate, options);
+  }
+  return fetchGitHubPrActivity(sinceDate, options);
 }
 
 function resolveSprintBucketDate(isoDate, sprintDates) {
@@ -1718,30 +2040,70 @@ function buildPrActivityPoints(byDate, dates) {
   );
 }
 
+function buildPrActivityCaveat(source) {
+  const safeSource = String(source || "").trim().toLowerCase();
+  if (safeSource === "github_pull_requests") {
+    return "Counts are sourced from GitHub pull requests and attributed by committed repo-to-team mapping. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the latest submitted GitHub review to mergedAt.";
+  }
+  return "Counts are deduped from Jira dev-status pull request records and attributed by Jira team label. Inflow dates use the earliest available PR lastUpdate and source-branch last commit timestamp, then are bucketed to Jira sprint points. Merged dates use Jira PR lastUpdate as a merge proxy and are bucketed to the corresponding sprint point. Review-to-merge time is a ticket proxy: first Jira In Review status to linked merged PR proxy date. Multiple done Jira tickets can still map to the same underlying PR.";
+}
+
+function buildPrimarySnapshotSourceNote(prActivitySource) {
+  const safeSource = String(prActivitySource || "").trim().toLowerCase();
+  const prActivityNote =
+    safeSource === "github_pull_requests"
+      ? "PR activity is sourced from GitHub pull requests and attributed by committed repo-to-team mapping."
+      : "PR activity is derived from Jira dev-status pull request details.";
+  return `Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. ${prActivityNote}`;
+}
+
 function buildPrActivitySprintSnapshot(result, sinceDate, sprintDates) {
   const dates = Array.from(
     new Set((Array.isArray(sprintDates) ? sprintDates : []).filter(Boolean))
   ).sort();
   const byDate = new Map(dates.map((date) => [date, createEmptyPrActivityBuckets()]));
+  const minimumDate = isoDateOnly(sinceDate);
+  const maximumDate = String(dates[dates.length - 1] || "").trim();
 
   for (const row of result.records ?? []) {
-    const offeredBucketDate = resolveSprintBucketDate(row.offeredProxyDate, dates);
-    const offeredPoint = byDate.get(offeredBucketDate);
-    if (offeredPoint) offeredPoint[row.team].offered += 1;
+    const offeredDate = isoDateOnly(row.offeredProxyDate);
+    const offeredInRange =
+      offeredDate &&
+      (!minimumDate || offeredDate >= minimumDate) &&
+      (!maximumDate || offeredDate <= maximumDate);
+    if (offeredInRange) {
+      const offeredBucketDate = resolveSprintBucketDate(offeredDate, dates);
+      const offeredPoint = byDate.get(offeredBucketDate);
+      if (offeredPoint) offeredPoint[row.team].offered += 1;
+    }
 
     if (row.status === "MERGED") {
-      const mergedBucketDate = resolveSprintBucketDate(row.mergedProxyDate, dates);
-      const mergedPoint = byDate.get(mergedBucketDate);
-      if (mergedPoint) mergedPoint[row.team].merged += 1;
+      const mergedDate = isoDateOnly(row.mergedProxyDate);
+      const mergedInRange =
+        mergedDate &&
+        (!minimumDate || mergedDate >= minimumDate) &&
+        (!maximumDate || mergedDate <= maximumDate);
+      if (mergedInRange) {
+        const mergedBucketDate = resolveSprintBucketDate(mergedDate, dates);
+        const mergedPoint = byDate.get(mergedBucketDate);
+        if (mergedPoint) mergedPoint[row.team].merged += 1;
+      }
     }
   }
 
   for (const row of result.ticketReviewToMergeRecords ?? []) {
-    const mergedBucketDate = resolveSprintBucketDate(row.mergedProxyDate, dates);
-    const mergedPoint = byDate.get(mergedBucketDate);
-    if (mergedPoint) {
-      mergedPoint[row.team].reviewToMergeDaysTotal += row.reviewToMergeDays;
-      mergedPoint[row.team].avgReviewToMergeSampleCount += 1;
+    const mergedDate = isoDateOnly(row.mergedProxyDate);
+    const mergedInRange =
+      mergedDate &&
+      (!minimumDate || mergedDate >= minimumDate) &&
+      (!maximumDate || mergedDate <= maximumDate);
+    if (mergedInRange) {
+      const mergedBucketDate = resolveSprintBucketDate(mergedDate, dates);
+      const mergedPoint = byDate.get(mergedBucketDate);
+      if (mergedPoint) {
+        mergedPoint[row.team].reviewToMergeDaysTotal += row.reviewToMergeDays;
+        mergedPoint[row.team].avgReviewToMergeSampleCount += 1;
+      }
     }
   }
 
@@ -1749,12 +2111,11 @@ function buildPrActivitySprintSnapshot(result, sinceDate, sprintDates) {
     since: sinceDate,
     interval: "sprint",
     monthlyInterval: "month",
-    source: "jira_dev_status_detail",
+    source: String(result?.source || "jira_dev_status_detail").trim() || "jira_dev_status_detail",
     candidateIssueCount: numberOrZero(result.candidateIssueCount),
     uniquePrCount: numberOrZero(result.uniquePrCount),
     conflictCount: numberOrZero(result.conflictCount),
-    caveat:
-      "Counts are deduped from Jira dev-status pull request records and attributed by Jira team label. Inflow dates use the earliest available PR lastUpdate and source-branch last commit timestamp, then are bucketed to Jira sprint points. Merged dates use Jira PR lastUpdate as a merge proxy and are bucketed to the corresponding sprint point. Review-to-merge time is a ticket proxy: first Jira In Review status to linked merged PR proxy date. Multiple done Jira tickets can still map to the same underlying PR.",
+    caveat: buildPrActivityCaveat(result?.source),
     points: buildPrActivityPoints(byDate, dates)
   };
 }
@@ -1783,25 +2144,23 @@ function buildPrActivityMonthlySnapshot(result, sinceDate, options = {}) {
 
   for (const row of result.records ?? []) {
     const offeredBucketDate = monthBucketDate(row.offeredProxyDate);
-    if (minimumBucketDate && offeredBucketDate && offeredBucketDate < minimumBucketDate) {
-      continue;
+    const offeredBucketInRange =
+      (!minimumBucketDate || !offeredBucketDate || offeredBucketDate >= minimumBucketDate) &&
+      (!maximumBucketDate || !offeredBucketDate || offeredBucketDate <= maximumBucketDate);
+    if (offeredBucketInRange) {
+      const offeredPoint = ensureMonthBucket(offeredBucketDate);
+      if (offeredPoint) offeredPoint[row.team].offered += 1;
     }
-    if (maximumBucketDate && offeredBucketDate && offeredBucketDate > maximumBucketDate) {
-      continue;
-    }
-    const offeredPoint = ensureMonthBucket(offeredBucketDate);
-    if (offeredPoint) offeredPoint[row.team].offered += 1;
 
     if (row.status === "MERGED") {
       const mergedBucketDate = monthBucketDate(row.mergedProxyDate);
-      if (minimumBucketDate && mergedBucketDate && mergedBucketDate < minimumBucketDate) {
-        continue;
+      const mergedBucketInRange =
+        (!minimumBucketDate || !mergedBucketDate || mergedBucketDate >= minimumBucketDate) &&
+        (!maximumBucketDate || !mergedBucketDate || mergedBucketDate <= maximumBucketDate);
+      if (mergedBucketInRange) {
+        const mergedPoint = ensureMonthBucket(mergedBucketDate);
+        if (mergedPoint) mergedPoint[row.team].merged += 1;
       }
-      if (maximumBucketDate && mergedBucketDate && mergedBucketDate > maximumBucketDate) {
-        continue;
-      }
-      const mergedPoint = ensureMonthBucket(mergedBucketDate);
-      if (mergedPoint) mergedPoint[row.team].merged += 1;
     }
   }
 
@@ -2046,7 +2405,7 @@ function buildCombinedSnapshot(computed, syncedAt, uatAging, prActivity, chartDa
     source: {
       mode: "mcp_snapshot",
       syncedAt,
-      note: "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. PR activity is derived from Jira dev-status pull request details."
+      note: buildPrimarySnapshotSourceNote(prActivity?.source)
     },
     ...(uatAging && typeof uatAging === "object" ? { uatAging } : {}),
     prActivity,
@@ -2211,7 +2570,8 @@ function updateExistingSnapshotPrActivity(existingSnapshot, prActivity, syncedAt
       ...(existingSnapshot.source && typeof existingSnapshot.source === "object"
         ? existingSnapshot.source
         : {}),
-      syncedAt
+      syncedAt,
+      note: buildPrimarySnapshotSourceNote(prActivity?.source || existingSnapshot?.prActivity?.source)
     },
     prActivity
   };
@@ -2232,7 +2592,8 @@ function updateExistingSnapshotUat(existingSnapshot, { uatAging, chartData, sync
       ...(existingSnapshot.source && typeof existingSnapshot.source === "object"
         ? existingSnapshot.source
         : {}),
-      syncedAt
+      syncedAt,
+      note: buildPrimarySnapshotSourceNote(existingSnapshot?.prActivity?.source)
     },
     ...(uatAging && typeof uatAging === "object" ? { uatAging } : {}),
     ...(chartData && typeof chartData === "object" ? { chartData } : {})
@@ -2291,6 +2652,7 @@ function buildRefreshConfig() {
     sprintMondayAnchor: envBool("SPRINT_MONDAY_ANCHOR", DEFAULT_SPRINT_MONDAY_ANCHOR),
     prCycleRebuildAll: envBool("PR_CYCLE_REBUILD_ALL", false),
     prActivityRebuildAll: envBool("PR_ACTIVITY_REBUILD_ALL", false),
+    prActivitySource: normalizePrActivitySource(env("PR_ACTIVITY_SOURCE", PR_ACTIVITY_SOURCE_GITHUB)),
     trendCountConcurrency: envPositiveInt(
       "TREND_COUNT_CONCURRENCY",
       DEFAULT_TREND_COUNT_CONCURRENCY
@@ -2548,7 +2910,8 @@ async function buildPrActivityRefreshState(config, todayIso, resolvedDates, opti
     "PR activity fetch",
     () =>
       fetchPrActivity(config.site, config.email, config.token, prActivityFetchSinceDate, {
-        useCache: !config.cleanRun
+        useCache: !config.cleanRun,
+        prActivitySource: config.prActivitySource
       }),
     console
   );
@@ -2557,7 +2920,7 @@ async function buildPrActivityRefreshState(config, todayIso, resolvedDates, opti
     reuseHistoricalPrActivity: prActivityHistoryPlan.reuseHistoricalPrActivity
   });
   console.log(
-    `Computed Jira Development PR inflow proxy (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} candidate issues, ${prRows.detailIssueCount} with recent PR summary activity, since ${prActivitySnapshotState.prActivityFetchSinceDate} across ${prActivitySnapshotState.prActivitySprintDates.length} sprint buckets and ${prActivitySnapshotState.refreshedPrActivity.monthlyPoints.length} monthly buckets; fetched ${prRows.reviewChangelogIssueCount} review changelogs, cache hits ${prRows.cacheHitCount}, cache writes ${prRows.cacheWriteCount}${prActivityHistoryPlan.reuseHistoricalPrActivity ? "; reused cached older PR activity buckets" : ""}).`
+    `Computed ${config.prActivitySource === PR_ACTIVITY_SOURCE_GITHUB ? "GitHub Development PR activity" : "Jira Development PR inflow proxy"} (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} ${config.prActivitySource === PR_ACTIVITY_SOURCE_GITHUB ? "mapped repos" : "candidate issues"}, ${prRows.detailIssueCount} ${config.prActivitySource === PR_ACTIVITY_SOURCE_GITHUB ? "repos scanned" : "with recent PR summary activity"}, since ${prActivitySnapshotState.prActivityFetchSinceDate} across ${prActivitySnapshotState.prActivitySprintDates.length} sprint buckets and ${prActivitySnapshotState.refreshedPrActivity.monthlyPoints.length} monthly buckets; fetched ${prRows.reviewChangelogIssueCount} ${config.prActivitySource === PR_ACTIVITY_SOURCE_GITHUB ? "review samples" : "review changelogs"}, cache hits ${prRows.cacheHitCount}, cache writes ${prRows.cacheWriteCount}${prActivityHistoryPlan.reuseHistoricalPrActivity ? "; reused cached older PR activity buckets" : ""}).`
   );
 
   return {
@@ -2598,11 +2961,15 @@ export function buildPrActivitySnapshotState(todayIso, resolvedDates, prRows, op
     reuseHistoricalPrActivity = false
   } = options;
   const allResolvedDates = Array.isArray(resolvedDates?.dates) ? resolvedDates.dates : [];
+  const closedResolvedDates = Array.isArray(resolvedDates?.closedDates)
+    ? resolvedDates.closedDates
+    : [];
   const prActivityWindowKey = reuseHistoricalPrActivity
     ? PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY
     : "1y";
   const prActivityFetchSinceDate = resolvePrActivityFetchSinceDate(todayIso, prActivityWindowKey);
-  const prActivitySprintDates = allResolvedDates.filter(
+  const sprintDatesSource = closedResolvedDates.length > 0 ? closedResolvedDates : allResolvedDates;
+  const prActivitySprintDates = sprintDatesSource.filter(
     (date) => String(date || "") >= prActivityFetchSinceDate
   );
   const latestClosedSprintDate = Array.isArray(resolvedDates?.closedDates)
@@ -2614,7 +2981,7 @@ export function buildPrActivitySnapshotState(todayIso, resolvedDates, prRows, op
     prActivitySprintDates
   );
   const prActivityMonthly = buildPrActivityMonthlySnapshot(prRows, prActivityFetchSinceDate, {
-    ceilingDate: latestClosedSprintDate
+    ceilingDate: todayIso
   });
   refreshedPrActivity.latestClosedSprintDate = latestClosedSprintDate;
   refreshedPrActivity.monthlySince = prActivityMonthly.since;

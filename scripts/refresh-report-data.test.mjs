@@ -6,6 +6,11 @@ import {
   buildPrCycleSnapshotState,
   buildPrActivitySnapshotState,
   buildTrendRefreshDateState,
+  fetchGitHubPrActivity,
+  loadPrActivityRepoTeamMapConfig,
+  normalizeGitHubPullRequestRecord,
+  normalizeGitHubReviewToMergeRecord,
+  resolveGitHubAccessToken,
   resolvePrActivityHistoryPlan,
   resolvePrCycleRefreshPlan
 } from "./refresh-report-data.mjs";
@@ -117,6 +122,230 @@ test("buildTrendRefreshDateState preserves fallback messaging and full date hist
   );
 });
 
+test("loadPrActivityRepoTeamMapConfig reads the committed repo ownership map", async () => {
+  const repoTeamMap = await loadPrActivityRepoTeamMapConfig();
+  assert.equal(repoTeamMap["nepgpe/tfc-functionality-usvc"], "api");
+  assert.equal(repoTeamMap["nepgpe/tfc-app"], "legacy");
+  assert.equal(repoTeamMap["nepgpe/tfc-ui"], "react");
+});
+
+test("resolveGitHubAccessToken prefers the dedicated env token before gh auth", async () => {
+  let execCallCount = 0;
+  const token = await resolveGitHubAccessToken({
+    env: { NEPGPE_GH_TOKEN: "env-token" },
+    execAuthToken: async () => {
+      execCallCount += 1;
+      return "cli-token";
+    }
+  });
+
+  assert.equal(token, "env-token");
+  assert.equal(execCallCount, 0);
+});
+
+test("normalizeGitHubPullRequestRecord excludes drafts and maps non-draft GitHub PRs", () => {
+  assert.equal(
+    normalizeGitHubPullRequestRecord("nepgpe/tfc-functionality-usvc", "api", {
+      number: 153,
+      draft: true,
+      state: "open",
+      created_at: "2026-03-24T02:26:46Z",
+      merged_at: null,
+      html_url: "https://github.com/nepgpe/tfc-functionality-usvc/pull/153"
+    }),
+    null
+  );
+
+  assert.deepEqual(
+    normalizeGitHubPullRequestRecord("nepgpe/tfc-functionality-usvc", "api", {
+      number: 152,
+      draft: false,
+      state: "closed",
+      created_at: "2026-03-13T12:24:00Z",
+      merged_at: "2026-03-19T08:27:29Z",
+      html_url: "https://github.com/nepgpe/tfc-functionality-usvc/pull/152"
+    }),
+    {
+      uniqueKey: "nepgpe/tfc-functionality-usvc#152",
+      team: "api",
+      offeredProxyDate: "2026-03-13",
+      mergedProxyDate: "2026-03-19",
+      status: "MERGED",
+      url: "https://github.com/nepgpe/tfc-functionality-usvc/pull/152",
+      repositoryId: "nepgpe/tfc-functionality-usvc",
+      pullRequestId: "152",
+      issueKey: ""
+    }
+  );
+});
+
+test("fetchGitHubPrActivity builds non-draft PR activity rows from repo mappings", async () => {
+  const prActivity = await fetchGitHubPrActivity("2026-03-01", {
+    repoTeamMap: {
+      "nepgpe/tfc-functionality-usvc": "api",
+      "nepgpe/tfc-ui": "react"
+    },
+    githubToken: "test-token",
+    fetchRepoPage: async (repo, page) => {
+      if (page !== 1) return [];
+      if (repo === "nepgpe/tfc-functionality-usvc") {
+        return [
+          {
+            number: 152,
+            draft: false,
+            state: "closed",
+            created_at: "2026-03-13T12:24:00Z",
+            merged_at: "2026-03-19T08:27:29Z",
+            updated_at: "2026-03-19T08:27:29Z",
+            html_url: "https://github.com/nepgpe/tfc-functionality-usvc/pull/152",
+            user: { login: "author_nepgroup" }
+          },
+          {
+            number: 151,
+            draft: true,
+            state: "closed",
+            created_at: "2026-03-06T09:56:34Z",
+            merged_at: "2026-03-11T11:01:19Z",
+            updated_at: "2026-03-11T11:01:19Z",
+            html_url: "https://github.com/nepgpe/tfc-functionality-usvc/pull/151",
+            user: { login: "author_nepgroup" }
+          }
+        ];
+      }
+      return [
+        {
+          number: 901,
+          draft: false,
+          state: "open",
+          created_at: "2026-03-20T10:00:00Z",
+          merged_at: null,
+          updated_at: "2026-03-20T10:00:00Z",
+          html_url: "https://github.com/nepgpe/tfc-ui/pull/901",
+          user: { login: "ui_author_nepgroup" }
+        }
+      ];
+    },
+    fetchReviewsPage: async (repo, pullNumber, page) => {
+      assert.equal(page, 1);
+      if (repo === "nepgpe/tfc-functionality-usvc" && pullNumber === 152) {
+        return [
+          {
+            state: "COMMENTED",
+            submitted_at: "2026-03-13T13:03:28Z",
+            user: { login: "reviewer_nepgroup" }
+          },
+          {
+            state: "APPROVED",
+            submitted_at: "2026-03-18T10:28:03Z",
+            user: { login: "another-reviewer_nepgroup" }
+          }
+        ];
+      }
+      return [];
+    }
+  });
+
+  assert.equal(prActivity.source, "github_pull_requests");
+  assert.equal(prActivity.candidateIssueCount, 2);
+  assert.equal(prActivity.detailIssueCount, 2);
+  assert.equal(prActivity.uniquePrCount, 2);
+  assert.equal(prActivity.reviewChangelogIssueCount, 1);
+  assert.deepEqual(prActivity.ticketReviewToMergeRecords, [
+    {
+      issueKey: "nepgpe/tfc-functionality-usvc#152",
+      team: "api",
+      reviewStartedAt: "2026-03-18",
+      mergedProxyDate: "2026-03-19",
+      reviewToMergeDays: 1
+    }
+  ]);
+  assert.deepEqual(
+    prActivity.records.map((record) => ({
+      uniqueKey: record.uniqueKey,
+      team: record.team,
+      offeredProxyDate: record.offeredProxyDate,
+      mergedProxyDate: record.mergedProxyDate,
+      status: record.status
+    })),
+    [
+      {
+        uniqueKey: "nepgpe/tfc-functionality-usvc#152",
+        team: "api",
+        offeredProxyDate: "2026-03-13",
+        mergedProxyDate: "2026-03-19",
+        status: "MERGED"
+      },
+      {
+        uniqueKey: "nepgpe/tfc-ui#901",
+        team: "react",
+        offeredProxyDate: "2026-03-20",
+        mergedProxyDate: "",
+        status: "OPEN"
+      }
+    ]
+  );
+});
+
+test("normalizeGitHubReviewToMergeRecord uses the latest submitted non-author review", () => {
+  assert.deepEqual(
+    normalizeGitHubReviewToMergeRecord(
+      "nepgpe/tfc-functionality-usvc",
+      "api",
+      {
+        number: 152,
+        draft: false,
+        state: "closed",
+        created_at: "2026-03-13T12:24:00Z",
+        merged_at: "2026-03-19T08:27:29Z",
+        html_url: "https://github.com/nepgpe/tfc-functionality-usvc/pull/152",
+        user: { login: "author_nepgroup" }
+      },
+      [
+        {
+          state: "COMMENTED",
+          submitted_at: "2026-03-13T12:30:00Z",
+          user: { login: "author_nepgroup" }
+        },
+        {
+          state: "COMMENTED",
+          submitted_at: "2026-03-13T13:03:28Z",
+          user: { login: "reviewer_nepgroup" }
+        },
+        {
+          state: "APPROVED",
+          submitted_at: "2026-03-18T10:28:03Z",
+          user: { login: "another-reviewer_nepgroup" }
+        }
+      ]
+    ),
+    {
+      issueKey: "nepgpe/tfc-functionality-usvc#152",
+      team: "api",
+      reviewStartedAt: "2026-03-18",
+      mergedProxyDate: "2026-03-19",
+      reviewToMergeDays: 1
+    }
+  );
+
+  assert.equal(
+    normalizeGitHubReviewToMergeRecord(
+      "nepgpe/tfc-functionality-usvc",
+      "api",
+      {
+        number: 153,
+        draft: false,
+        state: "closed",
+        created_at: "2026-03-13T12:24:00Z",
+        merged_at: "2026-03-19T08:27:29Z",
+        html_url: "https://github.com/nepgpe/tfc-functionality-usvc/pull/153",
+        user: { login: "author_nepgroup" }
+      },
+      [{ state: "PENDING", submitted_at: null, user: { login: "reviewer_nepgroup" } }]
+    ),
+    null
+  );
+});
+
 test("buildPrActivitySnapshotState reuses cached history but truncates later points in normal mode", () => {
   const prActivityState = buildPrActivitySnapshotState(
     "2026-04-05",
@@ -160,6 +389,86 @@ test("buildPrActivitySnapshotState reuses cached history but truncates later poi
   );
 });
 
+test("buildPrActivitySnapshotState excludes the current in-progress sprint from sprint points", () => {
+  const prActivityState = buildPrActivitySnapshotState(
+    "2026-04-05",
+    {
+      dates: ["2026-03-16", "2026-03-30", "2026-04-13"],
+      closedDates: ["2026-03-16", "2026-03-30"],
+      usedFallback: false
+    },
+    {
+      candidateIssueCount: 1,
+      detailIssueCount: 1,
+      uniquePrCount: 1,
+      reviewChangelogIssueCount: 0,
+      cacheHitCount: 0,
+      cacheWriteCount: 0,
+      records: [
+        {
+          team: "api",
+          status: "OPEN",
+          offeredProxyDate: "2026-04-05",
+          mergedProxyDate: ""
+        }
+      ],
+      ticketReviewToMergeRecords: []
+    }
+  );
+
+  assert.deepEqual(prActivityState.prActivitySprintDates, ["2026-03-16", "2026-03-30"]);
+  assert.deepEqual(
+    prActivityState.refreshedPrActivity.points.map((point) => point.date),
+    ["2026-03-16", "2026-03-30"]
+  );
+  assert.equal(prActivityState.refreshedPrActivity.points[0].api.offered, 0);
+  assert.equal(prActivityState.refreshedPrActivity.points[1].api.offered, 0);
+});
+
+test("buildPrActivitySnapshotState excludes pre-window opens from sprint offered counts but keeps merged counts", () => {
+  const prActivityState = buildPrActivitySnapshotState(
+    "2026-04-05",
+    {
+      dates: ["2026-03-16", "2026-03-30"],
+      closedDates: ["2026-03-16", "2026-03-30"],
+      usedFallback: false
+    },
+    {
+      candidateIssueCount: 2,
+      detailIssueCount: 2,
+      uniquePrCount: 2,
+      reviewChangelogIssueCount: 1,
+      cacheHitCount: 0,
+      cacheWriteCount: 0,
+      records: [
+        {
+          team: "bc",
+          status: "MERGED",
+          offeredProxyDate: "2025-02-25",
+          mergedProxyDate: "2026-03-20"
+        },
+        {
+          team: "bc",
+          status: "MERGED",
+          offeredProxyDate: "2026-03-10",
+          mergedProxyDate: "2026-03-20"
+        }
+      ],
+      ticketReviewToMergeRecords: [
+        {
+          team: "bc",
+          mergedProxyDate: "2026-03-20",
+          reviewToMergeDays: 4
+        }
+      ]
+    }
+  );
+
+  assert.equal(prActivityState.refreshedPrActivity.points[0].bc.offered, 1);
+  assert.equal(prActivityState.refreshedPrActivity.points[1].bc.offered, 0);
+  assert.equal(prActivityState.refreshedPrActivity.points[1].bc.merged, 2);
+});
+
 test("buildPrActivitySnapshotState preserves later cached history when using fallback dates", () => {
   const prActivityState = buildPrActivitySnapshotState(
     "2026-04-05",
@@ -186,6 +495,104 @@ test("buildPrActivitySnapshotState preserves later cached history when using fal
     prActivityState.mergedPrActivity.monthlyPoints.map((point) => point.date),
     ["2025-04-01", "2026-03-01", "2026-04-01"]
   );
+});
+
+test("buildPrActivitySnapshotState includes the current month in monthly points before the next sprint closes", () => {
+  const prActivityState = buildPrActivitySnapshotState(
+    "2026-04-05",
+    {
+      dates: ["2025-02-02", "2025-04-07", "2026-03-16", "2026-03-30"],
+      closedDates: ["2026-03-16", "2026-03-30"],
+      usedFallback: false
+    },
+    {
+      candidateIssueCount: 1,
+      detailIssueCount: 1,
+      uniquePrCount: 1,
+      reviewChangelogIssueCount: 1,
+      cacheHitCount: 0,
+      cacheWriteCount: 0,
+      records: [
+        {
+          team: "api",
+          status: "MERGED",
+          offeredProxyDate: "2026-04-05",
+          mergedProxyDate: "2026-04-05"
+        }
+      ],
+      ticketReviewToMergeRecords: [
+        {
+          team: "api",
+          mergedProxyDate: "2026-04-05",
+          reviewToMergeDays: 1
+        }
+      ]
+    }
+  );
+
+  assert.equal(prActivityState.latestClosedSprintDate, "2026-03-30");
+  assert.equal(prActivityState.refreshedPrActivity.monthlySince, "2026-04-01");
+  assert.deepEqual(
+    prActivityState.refreshedPrActivity.monthlyPoints.map((point) => point.date),
+    ["2026-04-01"]
+  );
+  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].api.offered, 1);
+  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].api.merged, 1);
+});
+
+test("buildPrActivitySnapshotState counts monthly merges even when the PR was opened before the refresh floor", () => {
+  const prActivityState = buildPrActivitySnapshotState(
+    "2026-04-05",
+    {
+      dates: ["2026-03-16", "2026-03-30"],
+      closedDates: ["2026-03-16", "2026-03-30"],
+      usedFallback: false
+    },
+    {
+      candidateIssueCount: 2,
+      detailIssueCount: 2,
+      uniquePrCount: 2,
+      reviewChangelogIssueCount: 2,
+      cacheHitCount: 0,
+      cacheWriteCount: 0,
+      records: [
+        {
+          team: "bc",
+          status: "MERGED",
+          offeredProxyDate: "2025-02-25",
+          mergedProxyDate: "2026-04-05"
+        },
+        {
+          team: "bc",
+          status: "MERGED",
+          offeredProxyDate: "2026-04-01",
+          mergedProxyDate: "2026-04-01"
+        }
+      ],
+      ticketReviewToMergeRecords: [
+        {
+          team: "bc",
+          mergedProxyDate: "2026-04-05",
+          reviewToMergeDays: 404
+        },
+        {
+          team: "bc",
+          mergedProxyDate: "2026-04-01",
+          reviewToMergeDays: 0
+        }
+      ]
+    }
+  );
+
+  assert.equal(prActivityState.refreshedPrActivity.monthlySince, "2026-04-01");
+  assert.deepEqual(
+    prActivityState.refreshedPrActivity.monthlyPoints.map((point) => point.date),
+    ["2026-04-01"]
+  );
+  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].bc.offered, 1);
+  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].bc.merged, 2);
+  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].bc.avgReviewToMergeSampleCount, 2);
+  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].bc.avgReviewToMergeDays, 202);
 });
 
 test("resolvePrActivityHistoryPlan reuses archived history when sprint and monthly buckets exist", () => {

@@ -82,6 +82,12 @@ export const PR_ACTIVITY_ISSUE_CACHE_TMP_PATH = path.join(
   CACHE_DIR_PATH,
   "pr-activity-issue-cache.json.tmp"
 );
+export const PR_ACTIVITY_REPO_TEAM_MAP_PATH = path.join(
+  REPO_ROOT_PATH,
+  "scripts",
+  "config",
+  "repo-team-map.json"
+);
 export const BUSINESS_UNIT_DONE_CACHE_PATH = path.join(
   CACHE_DIR_PATH,
   "business-unit-uat-done-cache.json"
