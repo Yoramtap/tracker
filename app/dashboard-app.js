@@ -1094,16 +1094,12 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     const monthlyPoints = Array.isArray(prActivitySnapshot?.prActivity?.monthlyPoints)
       ? prActivitySnapshot.prActivity.monthlyPoints.filter(Boolean)
       : [];
-    if (monthlyPoints.length > 0) {
-      return clampLegacyPrActivityMonthlyPoints(monthlyPoints, prActivitySnapshot);
-    }
     const sprintPoints = Array.isArray(prActivitySnapshot?.prActivity?.points)
       ? prActivitySnapshot.prActivity.points
       : [];
-    if (sprintPoints.length > 0) {
-      return clampLegacyPrActivityTrendPoints(sprintPoints, prActivitySnapshot);
-    }
-    return clampLegacyPrActivityTrendPoints(monthlyPoints, prActivitySnapshot);
+    return monthlyPoints.length > 0
+      ? clampLegacyPrActivityMonthlyPoints(monthlyPoints, prActivitySnapshot)
+      : clampLegacyPrActivityTrendPoints(sprintPoints, prActivitySnapshot);
   }
 
   function getLegacyPrActivitySourceLabel(prActivity) {
@@ -1274,7 +1270,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
   }
 
   function isLegacyPrActivityMonthlySeries(rows) {
-    const safeRows = Array.isArray(rows) ? rows.filter(Boolean) : [];
+    const safeRows = filterLegacyPrActivityChartRows(rows);
     if (safeRows.length === 0) return false;
     return safeRows.every((row) => {
       const date = String(row?.date || "").trim();
@@ -1282,10 +1278,14 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     });
   }
 
-  function buildLegacyPrActivityXDomain(rows) {
-    const safeRows = Array.isArray(rows)
+  function filterLegacyPrActivityChartRows(rows) {
+    return Array.isArray(rows)
       ? rows.filter((row) => row && Number.isFinite(row.dateValue) && row.dateValue > 0)
       : [];
+  }
+
+  function buildLegacyPrActivityXDomain(rows) {
+    const safeRows = filterLegacyPrActivityChartRows(rows);
     if (safeRows.length === 0) {
       return { xMin: 0, xMax: 1 };
     }
@@ -1308,9 +1308,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
   }
 
   function buildLegacyPrActivityDisplayedXTicks(rows) {
-    const safeRows = Array.isArray(rows)
-      ? rows.filter((row) => row && Number.isFinite(row.dateValue) && row.dateValue > 0)
-      : [];
+    const safeRows = filterLegacyPrActivityChartRows(rows);
     if (safeRows.length === 0) return [];
     if (isLegacyPrActivityMonthlySeries(safeRows)) {
       return Array.from(new Set(safeRows.map((row) => row.dateValue)));

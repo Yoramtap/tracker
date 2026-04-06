@@ -130,17 +130,17 @@ test("loadPrActivityRepoTeamMapConfig reads the committed repo ownership map", a
   assert.equal(repoTeamMap["example-org/tfc-ui"], "react");
 });
 
-test("resolveGitHubAccessToken prefers the dedicated env token before gh auth", async () => {
+test("resolveGitHubAccessToken prefers the explicit override before gh auth", async () => {
   let execCallCount = 0;
   const token = await resolveGitHubAccessToken({
-    env: { PRIVATE_GITHUB_GH_TOKEN: "env-token" },
+    githubToken: "explicit-token",
     execAuthToken: async () => {
       execCallCount += 1;
       return "cli-token";
     }
   });
 
-  assert.equal(token, "env-token");
+  assert.equal(token, "explicit-token");
   assert.equal(execCallCount, 0);
 });
 

@@ -121,7 +121,6 @@ const PR_REVIEW_STATUS = "In Review";
 const PR_ACTIVITY_PROJECT_KEYS = ["TFC", "TFO", "MESO"];
 const PR_ACTIVITY_SOURCE_JIRA = "jira";
 const PR_ACTIVITY_SOURCE_GITHUB = "github";
-const PRIVATE_GITHUB_GITHUB_TOKEN_ENV_NAME = "PRIVATE_GITHUB_GH_TOKEN";
 const PR_ACTIVITY_ARTIFACT_PULL_REQUEST_KEYS = new Set(["TFC-11509|1024649212:#52"]);
 const TEAM_KEYS = ["api", "legacy", "react", "bc", "workers", "titanium"];
 const PR_TEAM_LABELS = {
@@ -438,10 +437,6 @@ export async function resolveGitHubAccessToken(options = {}) {
   const explicitToken = String(options.githubToken || "").trim();
   if (explicitToken) return explicitToken;
 
-  const envSource = options.env && typeof options.env === "object" ? options.env : process.env;
-  const envToken = String(envSource?.[PRIVATE_GITHUB_GITHUB_TOKEN_ENV_NAME] || "").trim();
-  if (envToken) return envToken;
-
   if (typeof options.execAuthToken === "function") {
     return String(await options.execAuthToken()).trim();
   }
@@ -453,9 +448,7 @@ async function githubRequest(token, apiPath) {
   const safeToken = String(token || "").trim();
   const safeApiPath = String(apiPath || "").trim().replace(/^\/+/, "");
   if (!safeToken) {
-    throw new Error(
-      `Missing GitHub token. Set ${PRIVATE_GITHUB_GITHUB_TOKEN_ENV_NAME} or authenticate with gh auth login.`
-    );
+    throw new Error("Missing GitHub auth. Authenticate with gh auth login.");
   }
   if (!safeApiPath) throw new Error("Missing GitHub API path.");
 
@@ -1620,14 +1613,11 @@ export function attachPrCycleAvgInflow(prCycleSnapshot, prActivity) {
 }
 
 async function loadPersistedPrActivity() {
-  const directSnapshot = await readJsonFile(PR_ACTIVITY_SNAPSHOT_PATH);
-  if (directSnapshot?.prActivity && typeof directSnapshot.prActivity === "object") {
-    return directSnapshot.prActivity;
-  }
-
-  const primarySnapshot = await readJsonFile(PRIMARY_SNAPSHOT_PATH);
-  if (primarySnapshot?.prActivity && typeof primarySnapshot.prActivity === "object") {
-    return primarySnapshot.prActivity;
+  for (const snapshotPath of [PR_ACTIVITY_SNAPSHOT_PATH, PRIMARY_SNAPSHOT_PATH]) {
+    const snapshot = await readJsonFile(snapshotPath);
+    if (snapshot?.prActivity && typeof snapshot.prActivity === "object") {
+      return snapshot.prActivity;
+    }
   }
 
   return null;

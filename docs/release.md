@@ -82,4 +82,4 @@ Recommended schedule:
 
 - `.github/workflows/pages.yml` deploys GitHub Pages from `dist/` on pushes to `main`
 - There is no GitHub-hosted snapshot refresh workflow
-- No NEP GitHub token is stored in repo secrets for PR refreshes
+- No NEP GitHub credentials are stored in repo secrets for PR refreshes
