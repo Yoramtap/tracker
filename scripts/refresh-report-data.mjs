@@ -14,13 +14,17 @@ import { validateDashboardSnapshot } from "./validate-dashboard-snapshots.mjs";
 import {
   BACKLOG_SNAPSHOT_PATH,
   MANAGEMENT_FACILITY_SNAPSHOT_PATH,
+  PR_CYCLE_CHANGELOG_CACHE_PATH,
+  PR_CYCLE_CHANGELOG_CACHE_TMP_PATH,
   PR_ACTIVITY_ISSUE_CACHE_PATH,
   PR_ACTIVITY_ISSUE_CACHE_TMP_PATH,
   PR_ACTIVITY_REPO_TEAM_MAP_PATH,
   PR_ACTIVITY_SNAPSHOT_PATH,
   PR_CYCLE_SNAPSHOT_PATH,
   PRIMARY_SNAPSHOT_PATH,
-  REPO_ROOT_PATH
+  REPO_ROOT_PATH,
+  TREND_DATE_CACHE_PATH,
+  TREND_DATE_CACHE_TMP_PATH
 } from "./dashboard-paths.mjs";
 import {
   buildSupplementalWriteArtifacts,
@@ -1052,7 +1056,50 @@ function buildTrendDatesFromSprints(
   return uniqueSorted.slice(-lookbackCount);
 }
 
-async function resolveTrendDates(site, email, token, options) {
+function buildTrendDateCacheKey(site, options = {}) {
+  return JSON.stringify({
+    site: String(site || "").trim(),
+    projectKey: String(options.projectKey || "").trim(),
+    boardId: String(options.boardId || "").trim(),
+    lookbackCount: Number(options.lookbackCount || 0),
+    pointMode: String(options.pointMode || "").trim(),
+    includeActive: Boolean(options.includeActive),
+    mondayAnchor: Boolean(options.mondayAnchor),
+    todayIso: String(options.todayIso || "").trim(),
+    sinceDate: String(options.sinceDate || "").trim()
+  });
+}
+
+function readTrendDateCacheEntry(cacheByKey, cacheKey) {
+  const entry = cacheByKey?.[String(cacheKey || "").trim()];
+  if (!entry || typeof entry !== "object") return null;
+  const dates = Array.isArray(entry.dates) ? entry.dates.filter(Boolean) : [];
+  const closedDates = Array.isArray(entry.closedDates) ? entry.closedDates.filter(Boolean) : [];
+  if (dates.length === 0) return null;
+  return {
+    dates,
+    closedDates: closedDates.length > 0 ? closedDates : dates
+  };
+}
+
+function createTrendDateCacheEntry(resolvedDates) {
+  const dates = Array.isArray(resolvedDates?.dates) ? resolvedDates.dates.filter(Boolean) : [];
+  if (dates.length === 0) return null;
+  const closedDates = Array.isArray(resolvedDates?.closedDates)
+    ? resolvedDates.closedDates.filter(Boolean)
+    : [];
+  return {
+    updatedAt: new Date().toISOString(),
+    dates,
+    closedDates: closedDates.length > 0 ? closedDates : dates
+  };
+}
+
+function readIssueUpdatedAt(issue) {
+  return isoDateTime(issue?.fields?.updated) || String(issue?.fields?.updated || "").trim();
+}
+
+export async function resolveTrendDates(site, email, token, options) {
   const {
     fallbackDates,
     projectKey,
@@ -1062,15 +1109,45 @@ async function resolveTrendDates(site, email, token, options) {
     includeActive,
     mondayAnchor,
     todayIso = "",
-    sinceDate = ""
+    sinceDate = "",
+    useCache = true,
+    readCache = readJsonFile,
+    writeCache = writeJsonAtomic,
+    fetchBoards = fetchScrumBoards,
+    fetchSprints = fetchSprintsForBoard
   } = options;
+  const cacheEnabled = useCache !== false;
+  const cacheKey = buildTrendDateCacheKey(site, {
+    projectKey,
+    boardId,
+    lookbackCount,
+    pointMode,
+    includeActive,
+    mondayAnchor,
+    todayIso,
+    sinceDate
+  });
+  const trendDateCache = cacheEnabled ? await readCache(TREND_DATE_CACHE_PATH) : null;
+  const trendDateCacheByKey =
+    trendDateCache?.entries && typeof trendDateCache.entries === "object"
+      ? { ...trendDateCache.entries }
+      : {};
+  const cachedResolvedDates = cacheEnabled
+    ? readTrendDateCacheEntry(trendDateCacheByKey, cacheKey)
+    : null;
+  if (cachedResolvedDates) {
+    return {
+      ...cachedResolvedDates,
+      usedFallback: false
+    };
+  }
 
   try {
     const boardIds = [];
     if (boardId) {
       boardIds.push(boardId);
     } else {
-      const boards = await fetchScrumBoards(site, email, token, projectKey);
+      const boards = await fetchBoards(site, email, token, projectKey);
       for (const board of boards) {
         if (board?.id !== undefined && board?.id !== null) {
           boardIds.push(String(board.id));
@@ -1084,7 +1161,7 @@ async function resolveTrendDates(site, email, token, options) {
 
     const sprintById = new Map();
     for (const id of boardIds) {
-      const sprints = await fetchSprintsForBoard(site, email, token, id);
+      const sprints = await fetchSprints(site, email, token, id);
       for (const sprint of sprints) {
         if (sprint?.id === undefined || sprint?.id === null) continue;
         sprintById.set(String(sprint.id), sprint);
@@ -1113,11 +1190,21 @@ async function resolveTrendDates(site, email, token, options) {
       throw new Error("No sprint dates resolved from Jira Agile API.");
     }
 
-    return {
+    const resolvedDates = {
       dates,
       closedDates,
       usedFallback: false
     };
+    const cacheEntry = cacheEnabled ? createTrendDateCacheEntry(resolvedDates) : null;
+    if (cacheEntry) {
+      trendDateCacheByKey[cacheKey] = cacheEntry;
+      await writeCache(TREND_DATE_CACHE_PATH, TREND_DATE_CACHE_TMP_PATH, {
+        updatedAt: new Date().toISOString(),
+        entries: trendDateCacheByKey
+      });
+    }
+
+    return resolvedDates;
   } catch (error) {
     const filteredFallbackDates = (Array.isArray(fallbackDates) ? fallbackDates : []).filter(
       (date) => !sinceDate || String(date || "") >= sinceDate
@@ -1173,6 +1260,27 @@ async function fetchIssueChangelog(site, email, token, issueKey) {
 
 function clearIssueChangelogCache() {
   ISSUE_CHANGELOG_CACHE.clear();
+}
+
+function readPrCycleChangelogCacheEntry(cacheByIssueKey, issueKey, issueUpdatedAt) {
+  const safeIssueKey = String(issueKey || "").trim();
+  const safeIssueUpdatedAt = String(issueUpdatedAt || "").trim();
+  if (!safeIssueKey || !safeIssueUpdatedAt) return null;
+
+  const entry = cacheByIssueKey?.[safeIssueKey];
+  if (!entry || typeof entry !== "object") return null;
+  if (String(entry.issueUpdatedAt || "").trim() !== safeIssueUpdatedAt) return null;
+  if (!entry.changelog || typeof entry.changelog !== "object") return null;
+  return entry.changelog;
+}
+
+function createPrCycleChangelogCacheEntry(issueUpdatedAt, changelog) {
+  const safeIssueUpdatedAt = String(issueUpdatedAt || "").trim();
+  if (!safeIssueUpdatedAt || !changelog || typeof changelog !== "object") return null;
+  return {
+    issueUpdatedAt: safeIssueUpdatedAt,
+    changelog
+  };
 }
 
 async function searchJiraIssues(site, email, token, jql, fields) {
@@ -1407,7 +1515,16 @@ function shouldFetchPrCycleIssueBase(issue, config, trackedStatusSet) {
   return terminalDate >= String(config?.windowStartDate || "").trim();
 }
 
-async function fetchPrCycleIssueBreakdown(site, email, token, config) {
+export async function fetchPrCycleIssueBreakdown(site, email, token, config, options = {}) {
+  const {
+    useCache = true,
+    readCache = readJsonFile,
+    writeCache = writeJsonAtomic,
+    searchIssues = searchJiraIssues,
+    fetchChangelog = fetchIssueChangelog,
+    changelogConcurrency = PR_CYCLE_CHANGELOG_CONCURRENCY
+  } = options;
+  const cacheEnabled = useCache !== false;
   const projectClause = config.projectKeys
     .map((projectKey) => quoteJqlValue(projectKey))
     .join(", ");
@@ -1426,7 +1543,7 @@ async function fetchPrCycleIssueBreakdown(site, email, token, config) {
     `AND (${[`status in (${trackedStatuses})`, ...historyClauses].join(" OR ")})`
   ].join(" ");
 
-  const issues = await searchJiraIssues(site, email, token, jql, [
+  const issues = await searchIssues(site, email, token, jql, [
     "labels",
     "status",
     "created",
@@ -1453,22 +1570,67 @@ async function fetchPrCycleIssueBreakdown(site, email, token, config) {
   const issuesToAnalyze = issues.filter((issue) =>
     shouldFetchPrCycleIssueBase(issue, config, trackedStatusSet)
   );
+  const changelogCache = cacheEnabled ? await readCache(PR_CYCLE_CHANGELOG_CACHE_PATH) : null;
+  const changelogCacheByIssueKey =
+    changelogCache?.issues && typeof changelogCache.issues === "object"
+      ? { ...changelogCache.issues }
+      : {};
   const prunedCount = issues.length - issuesToAnalyze.length;
   console.log(
     `PR cycle candidate composition for ${config.windowLabel}: updated-only ${candidateCounts.updatedOnly}, tracked-only ${candidateCounts.trackedOnly}, both ${candidateCounts.both}${prunedCount > 0 ? `; pruned ${prunedCount} stale done issues before changelog fetch` : ""}.`
   );
-  const rows = await mapWithConcurrency(
+  const issueResults = await mapWithConcurrency(
     issuesToAnalyze,
-    PR_CYCLE_CHANGELOG_CONCURRENCY,
+    changelogConcurrency,
     async (issue) => {
       const issueKey = String(issue?.key || "").trim();
       if (!issueKey) return null;
-      const changelog = await fetchIssueChangelog(site, email, token, issueKey);
-      return summarizePrCycleIssueBase(issue, changelog, config);
+      const issueUpdatedAt = readIssueUpdatedAt(issue);
+      const cachedChangelog = readPrCycleChangelogCacheEntry(
+        changelogCacheByIssueKey,
+        issueKey,
+        issueUpdatedAt
+      );
+      if (cachedChangelog) {
+        return {
+          row: summarizePrCycleIssueBase(issue, cachedChangelog, config),
+          cacheHit: true,
+          cacheEntry: null,
+          issueKey
+        };
+      }
+
+      const changelog = await fetchChangelog(site, email, token, issueKey);
+      return {
+        row: summarizePrCycleIssueBase(issue, changelog, config),
+        cacheHit: false,
+        cacheEntry: createPrCycleChangelogCacheEntry(issueUpdatedAt, changelog),
+        issueKey
+      };
     }
   );
+  let changelogCacheWriteCount = 0;
+  for (const issueResult of issueResults) {
+    const safeIssueKey = String(issueResult?.issueKey || "").trim();
+    if (!safeIssueKey || !issueResult?.cacheEntry) continue;
+    changelogCacheByIssueKey[safeIssueKey] = issueResult.cacheEntry;
+    changelogCacheWriteCount += 1;
+  }
+  if (cacheEnabled && changelogCacheWriteCount > 0) {
+    await writeCache(PR_CYCLE_CHANGELOG_CACHE_PATH, PR_CYCLE_CHANGELOG_CACHE_TMP_PATH, {
+      updatedAt: new Date().toISOString(),
+      issues: changelogCacheByIssueKey
+    });
+  }
 
-  return rows.filter(Boolean);
+  return {
+    rows: issueResults.map((result) => result?.row).filter(Boolean),
+    changelogCacheHitCount: issueResults.reduce(
+      (sum, result) => sum + (result?.cacheHit ? 1 : 0),
+      0
+    ),
+    changelogCacheWriteCount
+  };
 }
 
 function summarizePrCycleIssueForWindow(baseRow, config) {
@@ -2781,12 +2943,16 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
     `Fetching PR cycle issue histories for ${prCycleRefreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.windowLabel).join(", ")}.`
   );
   const prCycleFetchRequest = buildPrCycleFetchRequest(config, prCycleRefreshPlan);
-  const prCycleRows = await fetchPrCycleIssueBreakdown(
+  const prCycleBreakdown = await fetchPrCycleIssueBreakdown(
     config.site,
     config.email,
     config.token,
-    prCycleFetchRequest
+    prCycleFetchRequest,
+    {
+      useCache: !config.cleanRun
+    }
   );
+  const prCycleRows = prCycleBreakdown.rows;
   const prCycleSnapshotState = buildPrCycleSnapshotState(
     config,
     existingPrCycleSnapshot,
@@ -2794,7 +2960,7 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
     prCycleRows
   );
   console.log(
-    `Computed PR cycle stage breakdown (${prCycleRows.length} issue histories across ${config.prCycleProjectKeys.join(", ")} for ${prCycleRefreshPlan.prCycleWindowsToRefresh.length} window${prCycleRefreshPlan.prCycleWindowsToRefresh.length === 1 ? "" : "s"}${prCycleRefreshPlan.reuseHistoricalPrCycleWindows ? "; refreshed 30d and 90d, reused cached 6m and 1y windows" : prCycleRefreshPlan.historicalPrCycleSnapshotFreshEnough ? "" : `; refreshed all windows because cached 6m and 1y data was older than ${PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS} days`}).`
+    `Computed PR cycle stage breakdown (${prCycleRows.length} issue histories across ${config.prCycleProjectKeys.join(", ")} for ${prCycleRefreshPlan.prCycleWindowsToRefresh.length} window${prCycleRefreshPlan.prCycleWindowsToRefresh.length === 1 ? "" : "s"}; changelog cache hits ${prCycleBreakdown.changelogCacheHitCount}, writes ${prCycleBreakdown.changelogCacheWriteCount}${prCycleRefreshPlan.reuseHistoricalPrCycleWindows ? "; refreshed 30d and 90d, reused cached 6m and 1y windows" : prCycleRefreshPlan.historicalPrCycleSnapshotFreshEnough ? "" : `; refreshed all windows because cached 6m and 1y data was older than ${PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS} days`}).`
   );
   return attachPrCycleAvgInflow(
     prCycleSnapshotState.prCycleSnapshot,
@@ -3047,7 +3213,8 @@ async function resolveTrendRefreshDates(config, todayIso) {
         pointMode: config.sprintPoint,
         includeActive: config.sprintIncludeActive,
         mondayAnchor: config.sprintMondayAnchor,
-        todayIso
+        todayIso,
+        useCache: !config.cleanRun
       }),
     console
   );

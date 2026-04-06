@@ -7,10 +7,12 @@ import {
   buildPrCycleSnapshotState,
   buildPrActivitySnapshotState,
   buildTrendRefreshDateState,
+  fetchPrCycleIssueBreakdown,
   fetchGitHubPrActivity,
   loadPrActivityRepoTeamMapConfig,
   normalizeGitHubPullRequestRecord,
   normalizeGitHubReviewToMergeRecord,
+  resolveTrendDates,
   resolveGitHubAccessToken,
   resolvePrActivityHistoryPlan,
   resolvePrCycleRefreshPlan
@@ -71,6 +73,19 @@ function makePrCycleWindows() {
   ];
 }
 
+function makePrCycleFetchConfig() {
+  return {
+    projectKeys: ["TFC"],
+    windowLabel: "Last 90 days",
+    windowStartDate: "2026-01-07",
+    windowStartIso: "2026-01-07T00:00:00.000Z",
+    windowEndIso: "2026-04-06T00:00:00.000Z",
+    codingStatuses: ["Coding"],
+    reviewStatuses: ["In Review"],
+    mergeStatuses: ["Merged"]
+  };
+}
+
 test("buildTrendRefreshDateState trims resolved dates to sprint lookback count", () => {
   const trendDateState = buildTrendRefreshDateState(
     {
@@ -121,6 +136,56 @@ test("buildTrendRefreshDateState preserves fallback messaging and full date hist
     trendDateState.logMessage,
     "Using fallback trend dates (2 points, latest 2 used for backlog trend). Reason: Jira sprint lookup failed"
   );
+});
+
+test("resolveTrendDates reuses the persistent sprint-date cache across refresh runs", async () => {
+  let cachedValue = null;
+  let fetchBoardsCallCount = 0;
+  let fetchSprintsCallCount = 0;
+  const options = {
+    fallbackDates: ["2026-03-16"],
+    projectKey: "TFC",
+    boardId: "",
+    lookbackCount: 0,
+    pointMode: "end",
+    includeActive: true,
+    mondayAnchor: true,
+    todayIso: "2026-04-06",
+    readCache: async () => cachedValue,
+    writeCache: async (_outputPath, _tmpPath, value) => {
+      cachedValue = value;
+    },
+    fetchBoards: async () => {
+      fetchBoardsCallCount += 1;
+      return [{ id: 42 }];
+    },
+    fetchSprints: async () => {
+      fetchSprintsCallCount += 1;
+      return [
+        {
+          id: 1001,
+          state: "closed",
+          endDate: "2026-03-16T10:00:00.000Z"
+        },
+        {
+          id: 1002,
+          state: "active",
+          endDate: "2026-04-13T10:00:00.000Z"
+        }
+      ];
+    }
+  };
+
+  const firstRun = await resolveTrendDates("jira.example.com", "user", "token", options);
+  const secondRun = await resolveTrendDates("jira.example.com", "user", "token", options);
+
+  assert.deepEqual(firstRun.dates, ["2026-03-16", "2026-04-06"]);
+  assert.deepEqual(firstRun.closedDates, ["2026-03-16"]);
+  assert.deepEqual(secondRun.dates, ["2026-03-16", "2026-04-06"]);
+  assert.deepEqual(secondRun.closedDates, ["2026-03-16"]);
+  assert.equal(fetchBoardsCallCount, 1);
+  assert.equal(fetchSprintsCallCount, 1);
+  assert.ok(cachedValue?.entries && Object.keys(cachedValue.entries).length === 1);
 });
 
 test("loadPrActivityRepoTeamMapConfig reads the committed repo ownership map", async () => {
@@ -715,6 +780,75 @@ test("buildPrCycleFetchRequest uses the widest window selected by the refresh pl
   assert.deepEqual(fetchRequest.reviewStatuses, ["In Review"]);
   assert.deepEqual(fetchRequest.mergeStatuses, ["Merged"]);
   assert.match(fetchRequest.windowEndIso, /^\d{4}-\d{2}-\d{2}T/);
+});
+
+test("fetchPrCycleIssueBreakdown reuses cached changelogs for unchanged issues", async () => {
+  let cachedValue = null;
+  let fetchChangelogCallCount = 0;
+  const config = makePrCycleFetchConfig();
+  const issues = [
+    {
+      key: "TFC-1",
+      fields: {
+        labels: ["API"],
+        status: { name: "Coding" },
+        created: "2026-03-01T10:00:00.000Z",
+        updated: "2026-04-05T12:00:00.000Z",
+        resolutiondate: null,
+        statuscategorychangedate: "2026-04-05T12:00:00.000Z"
+      }
+    },
+    {
+      key: "TFC-2",
+      fields: {
+        labels: ["Broadcast"],
+        status: { name: "In Review" },
+        created: "2026-03-10T10:00:00.000Z",
+        updated: "2026-04-04T12:00:00.000Z",
+        resolutiondate: null,
+        statuscategorychangedate: "2026-04-04T12:00:00.000Z"
+      }
+    }
+  ];
+
+  const firstRun = await fetchPrCycleIssueBreakdown("jira.example.com", "user", "token", config, {
+    readCache: async () => cachedValue,
+    writeCache: async (_outputPath, _tmpPath, value) => {
+      cachedValue = value;
+    },
+    searchIssues: async () => issues,
+    fetchChangelog: async () => {
+      fetchChangelogCallCount += 1;
+      return { histories: [] };
+    }
+  });
+  const secondRun = await fetchPrCycleIssueBreakdown(
+    "jira.example.com",
+    "user",
+    "token",
+    config,
+    {
+      readCache: async () => cachedValue,
+      writeCache: async (_outputPath, _tmpPath, value) => {
+        cachedValue = value;
+      },
+      searchIssues: async () => issues,
+      fetchChangelog: async () => {
+        fetchChangelogCallCount += 1;
+        return { histories: [] };
+      }
+    }
+  );
+
+  assert.equal(firstRun.rows.length, 2);
+  assert.equal(firstRun.changelogCacheHitCount, 0);
+  assert.equal(firstRun.changelogCacheWriteCount, 2);
+  assert.equal(secondRun.rows.length, 2);
+  assert.equal(secondRun.changelogCacheHitCount, 2);
+  assert.equal(secondRun.changelogCacheWriteCount, 0);
+  assert.equal(fetchChangelogCallCount, 2);
+  assert.ok(cachedValue?.issues?.["TFC-1"]);
+  assert.ok(cachedValue?.issues?.["TFC-2"]);
 });
 
 test("buildPrCycleSnapshotState preserves cached long windows when reuse is enabled", () => {
