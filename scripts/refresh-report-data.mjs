@@ -1061,6 +1061,30 @@ async function fetchActiveSprintsForBoard(site, email, token, boardId) {
   return sprints;
 }
 
+export function selectPrCycleScrumScopeSprints(sprints) {
+  const safeSprints = Array.isArray(sprints) ? sprints.filter(Boolean) : [];
+  const activeSprints = safeSprints.filter(
+    (sprint) => String(sprint?.state || "").trim().toLowerCase() === "active"
+  );
+  if (activeSprints.length > 0) return activeSprints;
+
+  const closedSprints = safeSprints
+    .filter((sprint) => String(sprint?.state || "").trim().toLowerCase() === "closed")
+    .sort((left, right) => {
+      const leftDate = new Date(
+        String(left?.completeDate || left?.endDate || left?.startDate || "").trim()
+      ).getTime();
+      const rightDate = new Date(
+        String(right?.completeDate || right?.endDate || right?.startDate || "").trim()
+      ).getTime();
+      if (Number.isFinite(leftDate) && Number.isFinite(rightDate) && rightDate !== leftDate) {
+        return rightDate - leftDate;
+      }
+      return String(right?.id || "").localeCompare(String(left?.id || ""));
+    });
+  return closedSprints.length > 0 ? [closedSprints[0]] : [];
+}
+
 async function fetchAgileIssueKeys(site, email, token, endpoint) {
   const issueKeys = new Set();
   let startAt = 0;
@@ -1097,8 +1121,14 @@ async function fetchPrCycleTeamActiveIssueKeys(site, email, token, teamKey) {
 
   if (teamScope.boardType === "scrum") {
     const activeSprints = await fetchActiveSprintsForBoard(site, email, token, teamScope.boardId);
+    const sprintsForScope =
+      activeSprints.length > 0
+        ? activeSprints
+        : selectPrCycleScrumScopeSprints(
+            await fetchSprintsForBoard(site, email, token, teamScope.boardId)
+          );
     const sprintIssueKeySets = await Promise.all(
-      activeSprints.map((sprint) =>
+      sprintsForScope.map((sprint) =>
         fetchAgileIssueKeys(
           site,
           email,
@@ -3161,7 +3191,7 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
   );
   if (activeBoardScopeIssueKeysByTeam) {
     console.log(
-      `Resolved active board issue scope for workflow breakdown: ${PR_CYCLE_TEAM_KEYS.map((teamKey) => `${teamKey} ${activeBoardScopeIssueKeysByTeam[teamKey]?.size || 0}`).join(", ")}.`
+      `Resolved current board issue scope for workflow breakdown: ${PR_CYCLE_TEAM_KEYS.map((teamKey) => `${teamKey} ${activeBoardScopeIssueKeysByTeam[teamKey]?.size || 0}`).join(", ")}.`
     );
   }
   const prCycleFetchRequest = buildPrCycleFetchRequest(config, hydratedPrCycleRefreshPlan);
