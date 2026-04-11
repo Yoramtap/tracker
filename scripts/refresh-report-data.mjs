@@ -166,7 +166,6 @@ const DEFAULT_SPRINT_MONDAY_ANCHOR = true;
 const FOURTEEN_DAY_WINDOW_KEY = "14d";
 const PR_CYCLE_WINDOW_DEFAULT_KEY = "30d";
 const PR_CYCLE_REFRESH_WINDOW_KEYS = [FOURTEEN_DAY_WINDOW_KEY, "30d", "90d"];
-const PR_CYCLE_ACTIVE_WORK_SCOPE_WINDOW_KEY = FOURTEEN_DAY_WINDOW_KEY;
 const PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS = 7;
 const DEFAULT_TREND_BOARD_CONCURRENCY = 2;
 const ISSUE_CHANGELOG_CACHE = new Map();
@@ -1039,7 +1038,27 @@ async function fetchSprintsForBoard(site, email, token, boardId) {
   return sprints;
 }
 
-export function selectPrCycleScrumScopeSprints(sprints, windowConfig = {}) {
+function readPrCycleWindowKey(windowConfig) {
+  return String(windowConfig?.key || "").trim();
+}
+
+function cloneScopedIssueKeys(issueKeys) {
+  if (issueKeys instanceof Set) return new Set(issueKeys);
+  if (Array.isArray(issueKeys)) return [...issueKeys];
+  return new Set();
+}
+
+export function buildScopedIssueKeysByWindowMap(windowConfigs, issueKeys = new Set()) {
+  const safeWindowConfigs = Array.isArray(windowConfigs) ? windowConfigs.filter(Boolean) : [];
+  return Object.fromEntries(
+    safeWindowConfigs.map((windowConfig) => [
+      readPrCycleWindowKey(windowConfig),
+      cloneScopedIssueKeys(issueKeys)
+    ])
+  );
+}
+
+export function selectPrCycleScrumWindowSprints(sprints, windowConfig = {}) {
   const safeSprints = Array.isArray(sprints) ? sprints.filter(Boolean) : [];
   const windowStartMs = new Date(String(windowConfig?.windowStartIso || "")).getTime();
   const windowEndMs = new Date(String(windowConfig?.windowEndIso || "")).getTime();
@@ -1095,53 +1114,84 @@ async function fetchAgileIssueKeys(site, email, token, endpoint) {
   return issueKeys;
 }
 
-async function fetchPrCycleTeamScopedIssueKeys(site, email, token, teamKey, windowConfigs) {
-  const teamScope = PR_CYCLE_TEAM_BOARD_SCOPES[String(teamKey || "").trim().toLowerCase()];
+async function fetchPrCycleScrumScopedIssueKeysByWindow(
+  site,
+  email,
+  token,
+  boardId,
+  windowConfigs
+) {
   const safeWindowConfigs = Array.isArray(windowConfigs) ? windowConfigs.filter(Boolean) : [];
-  if (!teamScope?.boardId) return Object.fromEntries(safeWindowConfigs.map((config) => [config.key, new Set()]));
+  const sprints = await fetchSprintsForBoard(site, email, token, boardId);
+  const sprintIssueKeyCache = new Map();
+  const scopedIssueKeysByWindowKey = buildScopedIssueKeysByWindowMap(safeWindowConfigs);
 
-  if (teamScope.boardType === "scrum") {
-    const sprints = await fetchSprintsForBoard(site, email, token, teamScope.boardId);
-    const sprintIssueKeyCache = new Map();
-    const scopedIssueKeysByWindowKey = {};
-
-    for (const windowConfig of safeWindowConfigs) {
-      const sprintsForScope = selectPrCycleScrumScopeSprints(sprints, windowConfig);
-      const sprintIssueKeySets = await Promise.all(
-        sprintsForScope.map(async (sprint) => {
-          const sprintId = String(sprint?.id || "").trim();
-          if (sprintIssueKeyCache.has(sprintId)) return sprintIssueKeyCache.get(sprintId);
-          const issueKeys = await fetchAgileIssueKeys(
-            site,
-            email,
-            token,
-            `/rest/agile/1.0/board/${encodeURIComponent(teamScope.boardId)}/sprint/${encodeURIComponent(
-              sprint?.id
-            )}/issue`
-          );
-          sprintIssueKeyCache.set(sprintId, issueKeys);
-          return issueKeys;
-        })
-      );
-      scopedIssueKeysByWindowKey[String(windowConfig?.key || "").trim()] = sprintIssueKeySets.reduce(
-        (combined, issueKeys) => {
-          for (const issueKey of issueKeys) combined.add(issueKey);
-          return combined;
-        },
-        new Set()
-      );
+  for (const windowConfig of safeWindowConfigs) {
+    const scopedIssueKeys = scopedIssueKeysByWindowKey[readPrCycleWindowKey(windowConfig)];
+    const sprintsForWindow = selectPrCycleScrumWindowSprints(sprints, windowConfig);
+    const sprintIssueKeySets = await Promise.all(
+      sprintsForWindow.map(async (sprint) => {
+        const sprintId = String(sprint?.id || "").trim();
+        if (sprintIssueKeyCache.has(sprintId)) return sprintIssueKeyCache.get(sprintId);
+        const issueKeys = await fetchAgileIssueKeys(
+          site,
+          email,
+          token,
+          `/rest/agile/1.0/board/${encodeURIComponent(boardId)}/sprint/${encodeURIComponent(
+            sprint?.id
+          )}/issue`
+        );
+        sprintIssueKeyCache.set(sprintId, issueKeys);
+        return issueKeys;
+      })
+    );
+    for (const issueKeys of sprintIssueKeySets) {
+      for (const issueKey of issueKeys) scopedIssueKeys.add(issueKey);
     }
-
-    return scopedIssueKeysByWindowKey;
   }
 
+  return scopedIssueKeysByWindowKey;
+}
+
+async function fetchPrCycleKanbanScopedIssueKeysByWindow(
+  site,
+  email,
+  token,
+  boardId,
+  windowConfigs
+) {
+  const safeWindowConfigs = Array.isArray(windowConfigs) ? windowConfigs.filter(Boolean) : [];
   const boardIssueKeys = await fetchAgileIssueKeys(
     site,
     email,
     token,
-    `/rest/agile/1.0/board/${encodeURIComponent(teamScope.boardId)}/issue`
+    `/rest/agile/1.0/board/${encodeURIComponent(boardId)}/issue`
   );
-  return Object.fromEntries(safeWindowConfigs.map((config) => [config.key, boardIssueKeys]));
+  return buildScopedIssueKeysByWindowMap(safeWindowConfigs, boardIssueKeys);
+}
+
+async function fetchPrCycleTeamScopedIssueKeys(site, email, token, teamKey, windowConfigs) {
+  const teamScope = PR_CYCLE_TEAM_BOARD_SCOPES[String(teamKey || "").trim().toLowerCase()];
+  const safeWindowConfigs = Array.isArray(windowConfigs) ? windowConfigs.filter(Boolean) : [];
+  if (!teamScope?.boardId) return buildScopedIssueKeysByWindowMap(safeWindowConfigs, new Set());
+
+  if (teamScope.boardType === "scrum") {
+    return fetchPrCycleScrumScopedIssueKeysByWindow(
+      site,
+      email,
+      token,
+      teamScope.boardId,
+      safeWindowConfigs
+    );
+  }
+
+  return fetchPrCycleKanbanScopedIssueKeysByWindow(
+    site,
+    email,
+    token,
+    teamScope.boardId,
+    safeWindowConfigs
+  );
 }
 
 async function fetchPrCycleScopedIssueKeysByWindow(site, email, token, windowConfigs) {
@@ -1152,15 +1202,43 @@ async function fetchPrCycleScopedIssueKeysByWindow(site, email, token, windowCon
   ]);
   return Object.fromEntries(
     safeWindowConfigs.map((windowConfig) => [
-      String(windowConfig?.key || "").trim(),
+      readPrCycleWindowKey(windowConfig),
       Object.fromEntries(
         teamEntries.map(([teamKey, scopedIssueKeysByWindowKey]) => [
           teamKey,
-          scopedIssueKeysByWindowKey[String(windowConfig?.key || "").trim()] || new Set()
+          scopedIssueKeysByWindowKey[readPrCycleWindowKey(windowConfig)] || new Set()
         ])
       )
     ])
   );
+}
+
+function attachScopedIssueKeysToPrCycleWindows(windowConfigs, scopedIssueKeysByWindowKey) {
+  const safeWindowConfigs = Array.isArray(windowConfigs) ? windowConfigs.filter(Boolean) : [];
+  return safeWindowConfigs.map((windowConfig) =>
+    windowConfig?.scopedToBoardWork
+      ? {
+          ...windowConfig,
+          scopedIssueKeysByTeam:
+            scopedIssueKeysByWindowKey?.[readPrCycleWindowKey(windowConfig)] || null
+        }
+      : windowConfig
+  );
+}
+
+function formatScopedIssueKeysByWindowSummary(scopedIssueKeysByWindowKey) {
+  const safeScopedIssueKeysByWindowKey =
+    scopedIssueKeysByWindowKey && typeof scopedIssueKeysByWindowKey === "object"
+      ? scopedIssueKeysByWindowKey
+      : null;
+  if (!safeScopedIssueKeysByWindowKey) return "";
+
+  return Object.entries(safeScopedIssueKeysByWindowKey)
+    .map(
+      ([windowKey, issueKeysByTeam]) =>
+        `${windowKey} ${PR_CYCLE_TEAM_KEYS.map((teamKey) => `${teamKey} ${issueKeysByTeam?.[teamKey]?.size || 0}`).join(", ")}`
+    )
+    .join(" | ");
 }
 
 function resolveTrendPointDateForSprint(sprint, { pointMode, mondayAnchor, todayIso = "" }) {
@@ -1524,39 +1602,39 @@ function buildPrCycleWindowConfigs(todayIso) {
   const safeToday = String(todayIso || "").trim();
   return [
     {
-      key: PR_CYCLE_ACTIVE_WORK_SCOPE_WINDOW_KEY,
+      key: FOURTEEN_DAY_WINDOW_KEY,
       windowDays: 14,
       windowLabel: "Last 14 days",
       windowStartDate: shiftIsoDate(safeToday, -13),
-      activeBoardScope: true
+      scopedToBoardWork: true
     },
     {
       key: "30d",
       windowDays: 30,
       windowLabel: "Last 30 days",
       windowStartDate: shiftIsoDate(safeToday, -29),
-      activeBoardScope: true
+      scopedToBoardWork: true
     },
     {
       key: "90d",
       windowDays: 90,
       windowLabel: "Last 90 days",
       windowStartDate: shiftIsoDate(safeToday, -89),
-      activeBoardScope: true
+      scopedToBoardWork: true
     },
     {
       key: "6m",
       windowDays: 183,
       windowLabel: "Last 6 months",
       windowStartDate: shiftIsoMonths(safeToday, -6),
-      activeBoardScope: true
+      scopedToBoardWork: true
     },
     {
       key: "1y",
       windowDays: 365,
       windowLabel: "Last year",
       windowStartDate: shiftIsoMonths(safeToday, -12),
-      activeBoardScope: true
+      scopedToBoardWork: true
     }
   ].map((windowConfig) => ({
     ...windowConfig,
@@ -1610,18 +1688,18 @@ function getPrCycleTrackedStatuses(config) {
 }
 
 function shouldIncludePrCycleIssueForWindow(baseRow, config) {
-  if (!config?.activeBoardScope) return true;
-  const activeIssueKeysByTeam =
-    config?.activeIssueKeysByTeam && typeof config.activeIssueKeysByTeam === "object"
-      ? config.activeIssueKeysByTeam
+  if (!config?.scopedToBoardWork) return true;
+  const scopedIssueKeysByTeam =
+    config?.scopedIssueKeysByTeam && typeof config.scopedIssueKeysByTeam === "object"
+      ? config.scopedIssueKeysByTeam
       : null;
-  if (!activeIssueKeysByTeam) return true;
+  if (!scopedIssueKeysByTeam) return true;
 
   const issueKey = String(baseRow?.issueKey || "").trim();
   const teamKey = String(baseRow?.team || "")
     .trim()
     .toLowerCase();
-  const scopedIssueKeys = activeIssueKeysByTeam[teamKey];
+  const scopedIssueKeys = scopedIssueKeysByTeam[teamKey];
   if (scopedIssueKeys instanceof Set) return scopedIssueKeys.has(issueKey);
   if (Array.isArray(scopedIssueKeys)) return scopedIssueKeys.includes(issueKey);
   return false;
@@ -3176,8 +3254,8 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
     shouldRebuildAllWindows,
     todayIso
   });
-  const activeBoardScopeIssueKeysByWindowKey = prCycleRefreshPlan.prCycleWindowsToRefresh.some(
-    (windowConfig) => windowConfig?.activeBoardScope
+  const scopedIssueKeysByWindowKey = prCycleRefreshPlan.prCycleWindowsToRefresh.some(
+    (windowConfig) => windowConfig?.scopedToBoardWork
   )
     ? await fetchPrCycleScopedIssueKeysByWindow(
         config.site,
@@ -3188,29 +3266,19 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
     : null;
   const hydratedPrCycleRefreshPlan = {
     ...prCycleRefreshPlan,
-    prCycleWindowsToRefresh: prCycleRefreshPlan.prCycleWindowsToRefresh.map((windowConfig) =>
-      windowConfig?.activeBoardScope
-        ? {
-            ...windowConfig,
-            activeIssueKeysByTeam:
-              activeBoardScopeIssueKeysByWindowKey?.[String(windowConfig?.key || "").trim()] || null
-          }
-        : windowConfig
+    prCycleWindowsToRefresh: attachScopedIssueKeysToPrCycleWindows(
+      prCycleRefreshPlan.prCycleWindowsToRefresh,
+      scopedIssueKeysByWindowKey
     )
   };
   console.log(
     `Fetching PR cycle issue histories for ${hydratedPrCycleRefreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.windowLabel).join(", ")}.`
   );
-  if (activeBoardScopeIssueKeysByWindowKey) {
+  if (scopedIssueKeysByWindowKey) {
     console.log(
-      `Resolved current board issue scope for workflow breakdown windows: ${Object.entries(
-        activeBoardScopeIssueKeysByWindowKey
-      )
-        .map(
-          ([windowKey, issueKeysByTeam]) =>
-            `${windowKey} ${PR_CYCLE_TEAM_KEYS.map((teamKey) => `${teamKey} ${issueKeysByTeam?.[teamKey]?.size || 0}`).join(", ")}`
-        )
-        .join(" | ")}.`
+      `Resolved board-scoped workflow issue counts: ${formatScopedIssueKeysByWindowSummary(
+        scopedIssueKeysByWindowKey
+      )}.`
     );
   }
   const prCycleFetchRequest = buildPrCycleFetchRequest(config, hydratedPrCycleRefreshPlan);

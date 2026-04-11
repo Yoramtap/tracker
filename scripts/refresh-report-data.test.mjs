@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   attachPrCycleAvgInflow,
   buildPrCycleFetchRequest,
+  buildScopedIssueKeysByWindowMap,
   buildPrCycleSnapshotState,
   buildPrActivitySnapshotState,
   buildTrendRefreshDateState,
@@ -16,7 +17,7 @@ import {
   resolveGitHubAccessToken,
   resolvePrActivityHistoryPlan,
   resolvePrCycleRefreshPlan,
-  selectPrCycleScrumScopeSprints
+  selectPrCycleScrumWindowSprints
 } from "./refresh-report-data.mjs";
 
 function makePrActivityRows() {
@@ -54,7 +55,7 @@ function makePrCycleWindows() {
       windowStartDate: "2026-03-23",
       windowStartIso: "2026-03-23T00:00:00.000Z",
       windowEndIso: "2026-04-05T00:00:00.000Z",
-      activeBoardScope: true
+      scopedToBoardWork: true
     },
     {
       key: "30d",
@@ -63,7 +64,7 @@ function makePrCycleWindows() {
       windowStartDate: "2026-03-07",
       windowStartIso: "2026-03-07T00:00:00.000Z",
       windowEndIso: "2026-04-05T00:00:00.000Z",
-      activeBoardScope: true
+      scopedToBoardWork: true
     },
     {
       key: "90d",
@@ -72,7 +73,7 @@ function makePrCycleWindows() {
       windowStartDate: "2026-01-07",
       windowStartIso: "2026-01-07T00:00:00.000Z",
       windowEndIso: "2026-04-05T00:00:00.000Z",
-      activeBoardScope: true
+      scopedToBoardWork: true
     },
     {
       key: "6m",
@@ -81,7 +82,7 @@ function makePrCycleWindows() {
       windowStartDate: "2025-10-05",
       windowStartIso: "2025-10-05T00:00:00.000Z",
       windowEndIso: "2026-04-05T00:00:00.000Z",
-      activeBoardScope: true
+      scopedToBoardWork: true
     },
     {
       key: "1y",
@@ -90,7 +91,7 @@ function makePrCycleWindows() {
       windowStartDate: "2025-04-05",
       windowStartIso: "2025-04-05T00:00:00.000Z",
       windowEndIso: "2026-04-05T00:00:00.000Z",
-      activeBoardScope: true
+      scopedToBoardWork: true
     }
   ];
 }
@@ -107,6 +108,18 @@ function makePrCycleFetchConfig() {
     mergeStatuses: ["Merged"]
   };
 }
+
+test("buildScopedIssueKeysByWindowMap clones scoped issue collections per window", () => {
+  const scopedIssueKeysByWindow = buildScopedIssueKeysByWindowMap(
+    [{ key: "14d" }, { key: "30d" }],
+    new Set(["TFC-1"])
+  );
+
+  scopedIssueKeysByWindow["14d"].add("TFC-2");
+
+  assert.deepEqual([...scopedIssueKeysByWindow["14d"]].sort(), ["TFC-1", "TFC-2"]);
+  assert.deepEqual([...scopedIssueKeysByWindow["30d"]], ["TFC-1"]);
+});
 
 test("buildTrendRefreshDateState trims resolved dates to sprint lookback count", () => {
   const trendDateState = buildTrendRefreshDateState(
@@ -798,7 +811,7 @@ test("resolvePrCycleRefreshPlan refreshes all windows when rebuilding or history
   assert.equal(refreshPlan.prCycleRangeStartDate, "2025-04-05");
 });
 
-test("selectPrCycleScrumScopeSprints keeps only active or closed sprints that overlap the window", () => {
+test("selectPrCycleScrumWindowSprints keeps only active or closed sprints that overlap the window", () => {
   const sprints = [
     {
       id: 1,
@@ -826,7 +839,7 @@ test("selectPrCycleScrumScopeSprints keeps only active or closed sprints that ov
   ];
 
   assert.deepEqual(
-    selectPrCycleScrumScopeSprints(sprints, {
+    selectPrCycleScrumWindowSprints(sprints, {
       windowStartIso: "2026-03-29T00:00:00.000Z",
       windowEndIso: "2026-04-11T23:59:59.999Z"
     })
@@ -836,7 +849,7 @@ test("selectPrCycleScrumScopeSprints keeps only active or closed sprints that ov
   );
 
   assert.deepEqual(
-    selectPrCycleScrumScopeSprints(sprints, {
+    selectPrCycleScrumWindowSprints(sprints, {
       windowStartIso: "2026-03-01T00:00:00.000Z",
       windowEndIso: "2026-03-24T23:59:59.999Z"
     }).map((sprint) => sprint.id),
@@ -968,7 +981,7 @@ test("buildPrCycleSnapshotState preserves cached long windows when reuse is enab
   assert.equal(snapshotState.prCycleSnapshot.windows["90d"].windowLabel, "Last 90 days");
 });
 
-test("buildPrCycleSnapshotState filters active-board windows to board-scoped issue keys", () => {
+test("buildPrCycleSnapshotState filters board-scoped windows to board-scoped issue keys", () => {
   const snapshotState = buildPrCycleSnapshotState(
     {
       prCycleCodingStatuses: ["Coding"],
@@ -986,8 +999,8 @@ test("buildPrCycleSnapshotState filters active-board windows to board-scoped iss
           windowStartDate: "2026-03-23",
           windowStartIso: "2026-03-23T00:00:00.000Z",
           windowEndIso: "2026-04-05T00:00:00.000Z",
-          activeBoardScope: true,
-          activeIssueKeysByTeam: {
+          scopedToBoardWork: true,
+          scopedIssueKeysByTeam: {
             api: new Set(["TFC-2"])
           }
         }
