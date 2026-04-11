@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-04-06T08:32:45.838Z",
+  "generatedAt": "2026-04-11T11:14:17.119Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-04-01",
-      "totalShipped": 168,
+      "totalShipped": 169,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -1539,9 +1539,21 @@
         {
           "monthStart": "2026-04-01",
           "monthKey": "2026-04",
-          "totalShipped": 2,
-          "teamCount": 2,
+          "totalShipped": 3,
+          "teamCount": 3,
           "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-396",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "TFO: Platform-level data-plane workflows",
+                  "shippedAt": "2026-04-07T13:17:48.092Z"
+                }
+              ]
+            },
             {
               "team": "Frontend",
               "shippedCount": 1,
