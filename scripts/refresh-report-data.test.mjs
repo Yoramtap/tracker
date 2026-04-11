@@ -62,7 +62,8 @@ function makePrCycleWindows() {
       windowLabel: "Last 30 days",
       windowStartDate: "2026-03-07",
       windowStartIso: "2026-03-07T00:00:00.000Z",
-      windowEndIso: "2026-04-05T00:00:00.000Z"
+      windowEndIso: "2026-04-05T00:00:00.000Z",
+      activeBoardScope: true
     },
     {
       key: "90d",
@@ -70,7 +71,8 @@ function makePrCycleWindows() {
       windowLabel: "Last 90 days",
       windowStartDate: "2026-01-07",
       windowStartIso: "2026-01-07T00:00:00.000Z",
-      windowEndIso: "2026-04-05T00:00:00.000Z"
+      windowEndIso: "2026-04-05T00:00:00.000Z",
+      activeBoardScope: true
     },
     {
       key: "6m",
@@ -78,7 +80,8 @@ function makePrCycleWindows() {
       windowLabel: "Last 6 months",
       windowStartDate: "2025-10-05",
       windowStartIso: "2025-10-05T00:00:00.000Z",
-      windowEndIso: "2026-04-05T00:00:00.000Z"
+      windowEndIso: "2026-04-05T00:00:00.000Z",
+      activeBoardScope: true
     },
     {
       key: "1y",
@@ -86,7 +89,8 @@ function makePrCycleWindows() {
       windowLabel: "Last year",
       windowStartDate: "2025-04-05",
       windowStartIso: "2025-04-05T00:00:00.000Z",
-      windowEndIso: "2026-04-05T00:00:00.000Z"
+      windowEndIso: "2026-04-05T00:00:00.000Z",
+      activeBoardScope: true
     }
   ];
 }
@@ -794,23 +798,49 @@ test("resolvePrCycleRefreshPlan refreshes all windows when rebuilding or history
   assert.equal(refreshPlan.prCycleRangeStartDate, "2025-04-05");
 });
 
-test("selectPrCycleScrumScopeSprints prefers active sprints and otherwise falls back to latest closed sprint", () => {
+test("selectPrCycleScrumScopeSprints keeps only active or closed sprints that overlap the window", () => {
+  const sprints = [
+    {
+      id: 1,
+      state: "closed",
+      startDate: "2026-03-10T09:00:00.000Z",
+      completeDate: "2026-03-20T09:00:00.000Z"
+    },
+    {
+      id: 2,
+      state: "closed",
+      startDate: "2026-03-25T09:00:00.000Z",
+      completeDate: "2026-04-06T09:00:00.000Z"
+    },
+    {
+      id: 3,
+      state: "active",
+      startDate: "2026-04-06T09:00:00.000Z",
+      endDate: "2026-04-20T09:00:00.000Z"
+    },
+    {
+      id: 4,
+      state: "future",
+      startDate: "2026-04-21T09:00:00.000Z"
+    }
+  ];
+
   assert.deepEqual(
-    selectPrCycleScrumScopeSprints([
-      { id: 1, state: "closed", completeDate: "2026-04-05T09:00:00.000Z" },
-      { id: 2, state: "active", startDate: "2026-04-06T09:00:00.000Z" },
-      { id: 3, state: "future", startDate: "2026-04-20T09:00:00.000Z" }
-    ]).map((sprint) => sprint.id),
-    [2]
+    selectPrCycleScrumScopeSprints(sprints, {
+      windowStartIso: "2026-03-29T00:00:00.000Z",
+      windowEndIso: "2026-04-11T23:59:59.999Z"
+    })
+      .map((sprint) => sprint.id)
+      .sort((left, right) => left - right),
+    [2, 3]
   );
 
   assert.deepEqual(
-    selectPrCycleScrumScopeSprints([
-      { id: 10, state: "closed", completeDate: "2026-04-01T09:00:00.000Z" },
-      { id: 11, state: "closed", completeDate: "2026-04-08T09:00:00.000Z" },
-      { id: 12, state: "future", startDate: "2026-04-15T09:00:00.000Z" }
-    ]).map((sprint) => sprint.id),
-    [11]
+    selectPrCycleScrumScopeSprints(sprints, {
+      windowStartIso: "2026-03-01T00:00:00.000Z",
+      windowEndIso: "2026-03-24T23:59:59.999Z"
+    }).map((sprint) => sprint.id),
+    [1]
   );
 });
 

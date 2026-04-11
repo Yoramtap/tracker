@@ -1039,50 +1039,30 @@ async function fetchSprintsForBoard(site, email, token, boardId) {
   return sprints;
 }
 
-async function fetchActiveSprintsForBoard(site, email, token, boardId) {
-  const sprints = [];
-  let startAt = 0;
-
-  for (;;) {
-    const payload = await jiraAgileRequest(
-      site,
-      email,
-      token,
-      `/rest/agile/1.0/board/${encodeURIComponent(boardId)}/sprint?state=active&startAt=${startAt}&maxResults=${PAGE_SIZE}`
-    );
-    const values = payload?.values ?? [];
-    sprints.push(...values);
-
-    if (values.length === 0) break;
-    if (Boolean(payload?.isLast)) break;
-    startAt += values.length;
-  }
-
-  return sprints;
-}
-
-export function selectPrCycleScrumScopeSprints(sprints) {
+export function selectPrCycleScrumScopeSprints(sprints, windowConfig = {}) {
   const safeSprints = Array.isArray(sprints) ? sprints.filter(Boolean) : [];
-  const activeSprints = safeSprints.filter(
-    (sprint) => String(sprint?.state || "").trim().toLowerCase() === "active"
-  );
-  if (activeSprints.length > 0) return activeSprints;
+  const windowStartMs = new Date(String(windowConfig?.windowStartIso || "")).getTime();
+  const windowEndMs = new Date(String(windowConfig?.windowEndIso || "")).getTime();
+  if (!Number.isFinite(windowStartMs) || !Number.isFinite(windowEndMs)) return [];
 
-  const closedSprints = safeSprints
-    .filter((sprint) => String(sprint?.state || "").trim().toLowerCase() === "closed")
-    .sort((left, right) => {
-      const leftDate = new Date(
-        String(left?.completeDate || left?.endDate || left?.startDate || "").trim()
-      ).getTime();
-      const rightDate = new Date(
-        String(right?.completeDate || right?.endDate || right?.startDate || "").trim()
-      ).getTime();
-      if (Number.isFinite(leftDate) && Number.isFinite(rightDate) && rightDate !== leftDate) {
-        return rightDate - leftDate;
-      }
-      return String(right?.id || "").localeCompare(String(left?.id || ""));
-    });
-  return closedSprints.length > 0 ? [closedSprints[0]] : [];
+  return safeSprints.filter((sprint) => {
+    const state = String(sprint?.state || "").trim().toLowerCase();
+    if (state !== "active" && state !== "closed") return false;
+
+    const sprintStartMs = new Date(
+      String(sprint?.startDate || sprint?.endDate || sprint?.completeDate || "").trim()
+    ).getTime();
+    const sprintEndMs =
+      state === "active"
+        ? windowEndMs
+        : new Date(
+            String(sprint?.completeDate || sprint?.endDate || sprint?.startDate || "").trim()
+          ).getTime();
+    if (!Number.isFinite(sprintStartMs) || !Number.isFinite(sprintEndMs)) {
+      return state === "active";
+    }
+    return sprintStartMs <= windowEndMs && sprintEndMs >= windowStartMs;
+  });
 }
 
 async function fetchAgileIssueKeys(site, email, token, endpoint) {
@@ -1115,50 +1095,72 @@ async function fetchAgileIssueKeys(site, email, token, endpoint) {
   return issueKeys;
 }
 
-async function fetchPrCycleTeamActiveIssueKeys(site, email, token, teamKey) {
+async function fetchPrCycleTeamScopedIssueKeys(site, email, token, teamKey, windowConfigs) {
   const teamScope = PR_CYCLE_TEAM_BOARD_SCOPES[String(teamKey || "").trim().toLowerCase()];
-  if (!teamScope?.boardId) return new Set();
+  const safeWindowConfigs = Array.isArray(windowConfigs) ? windowConfigs.filter(Boolean) : [];
+  if (!teamScope?.boardId) return Object.fromEntries(safeWindowConfigs.map((config) => [config.key, new Set()]));
 
   if (teamScope.boardType === "scrum") {
-    const activeSprints = await fetchActiveSprintsForBoard(site, email, token, teamScope.boardId);
-    const sprintsForScope =
-      activeSprints.length > 0
-        ? activeSprints
-        : selectPrCycleScrumScopeSprints(
-            await fetchSprintsForBoard(site, email, token, teamScope.boardId)
+    const sprints = await fetchSprintsForBoard(site, email, token, teamScope.boardId);
+    const sprintIssueKeyCache = new Map();
+    const scopedIssueKeysByWindowKey = {};
+
+    for (const windowConfig of safeWindowConfigs) {
+      const sprintsForScope = selectPrCycleScrumScopeSprints(sprints, windowConfig);
+      const sprintIssueKeySets = await Promise.all(
+        sprintsForScope.map(async (sprint) => {
+          const sprintId = String(sprint?.id || "").trim();
+          if (sprintIssueKeyCache.has(sprintId)) return sprintIssueKeyCache.get(sprintId);
+          const issueKeys = await fetchAgileIssueKeys(
+            site,
+            email,
+            token,
+            `/rest/agile/1.0/board/${encodeURIComponent(teamScope.boardId)}/sprint/${encodeURIComponent(
+              sprint?.id
+            )}/issue`
           );
-    const sprintIssueKeySets = await Promise.all(
-      sprintsForScope.map((sprint) =>
-        fetchAgileIssueKeys(
-          site,
-          email,
-          token,
-          `/rest/agile/1.0/board/${encodeURIComponent(teamScope.boardId)}/sprint/${encodeURIComponent(
-            sprint?.id
-          )}/issue`
-        )
-      )
-    );
-    return sprintIssueKeySets.reduce((combined, issueKeys) => {
-      for (const issueKey of issueKeys) combined.add(issueKey);
-      return combined;
-    }, new Set());
+          sprintIssueKeyCache.set(sprintId, issueKeys);
+          return issueKeys;
+        })
+      );
+      scopedIssueKeysByWindowKey[String(windowConfig?.key || "").trim()] = sprintIssueKeySets.reduce(
+        (combined, issueKeys) => {
+          for (const issueKey of issueKeys) combined.add(issueKey);
+          return combined;
+        },
+        new Set()
+      );
+    }
+
+    return scopedIssueKeysByWindowKey;
   }
 
-  return fetchAgileIssueKeys(
+  const boardIssueKeys = await fetchAgileIssueKeys(
     site,
     email,
     token,
     `/rest/agile/1.0/board/${encodeURIComponent(teamScope.boardId)}/issue`
   );
+  return Object.fromEntries(safeWindowConfigs.map((config) => [config.key, boardIssueKeys]));
 }
 
-async function fetchPrCycleActiveIssueKeysByTeam(site, email, token) {
+async function fetchPrCycleScopedIssueKeysByWindow(site, email, token, windowConfigs) {
+  const safeWindowConfigs = Array.isArray(windowConfigs) ? windowConfigs.filter(Boolean) : [];
   const teamEntries = await mapWithConcurrency(PR_CYCLE_TEAM_KEYS, 3, async (teamKey) => [
     teamKey,
-    await fetchPrCycleTeamActiveIssueKeys(site, email, token, teamKey)
+    await fetchPrCycleTeamScopedIssueKeys(site, email, token, teamKey, safeWindowConfigs)
   ]);
-  return Object.fromEntries(teamEntries);
+  return Object.fromEntries(
+    safeWindowConfigs.map((windowConfig) => [
+      String(windowConfig?.key || "").trim(),
+      Object.fromEntries(
+        teamEntries.map(([teamKey, scopedIssueKeysByWindowKey]) => [
+          teamKey,
+          scopedIssueKeysByWindowKey[String(windowConfig?.key || "").trim()] || new Set()
+        ])
+      )
+    ])
+  );
 }
 
 function resolveTrendPointDateForSprint(sprint, { pointMode, mondayAnchor, todayIso = "" }) {
@@ -1532,25 +1534,29 @@ function buildPrCycleWindowConfigs(todayIso) {
       key: "30d",
       windowDays: 30,
       windowLabel: "Last 30 days",
-      windowStartDate: shiftIsoDate(safeToday, -29)
+      windowStartDate: shiftIsoDate(safeToday, -29),
+      activeBoardScope: true
     },
     {
       key: "90d",
       windowDays: 90,
       windowLabel: "Last 90 days",
-      windowStartDate: shiftIsoDate(safeToday, -89)
+      windowStartDate: shiftIsoDate(safeToday, -89),
+      activeBoardScope: true
     },
     {
       key: "6m",
       windowDays: 183,
       windowLabel: "Last 6 months",
-      windowStartDate: shiftIsoMonths(safeToday, -6)
+      windowStartDate: shiftIsoMonths(safeToday, -6),
+      activeBoardScope: true
     },
     {
       key: "1y",
       windowDays: 365,
       windowLabel: "Last year",
-      windowStartDate: shiftIsoMonths(safeToday, -12)
+      windowStartDate: shiftIsoMonths(safeToday, -12),
+      activeBoardScope: true
     }
   ].map((windowConfig) => ({
     ...windowConfig,
@@ -3170,10 +3176,15 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
     shouldRebuildAllWindows,
     todayIso
   });
-  const activeBoardScopeIssueKeysByTeam = prCycleRefreshPlan.prCycleWindowsToRefresh.some(
+  const activeBoardScopeIssueKeysByWindowKey = prCycleRefreshPlan.prCycleWindowsToRefresh.some(
     (windowConfig) => windowConfig?.activeBoardScope
   )
-    ? await fetchPrCycleActiveIssueKeysByTeam(config.site, config.email, config.token)
+    ? await fetchPrCycleScopedIssueKeysByWindow(
+        config.site,
+        config.email,
+        config.token,
+        prCycleRefreshPlan.prCycleWindowsToRefresh
+      )
     : null;
   const hydratedPrCycleRefreshPlan = {
     ...prCycleRefreshPlan,
@@ -3181,7 +3192,8 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
       windowConfig?.activeBoardScope
         ? {
             ...windowConfig,
-            activeIssueKeysByTeam: activeBoardScopeIssueKeysByTeam
+            activeIssueKeysByTeam:
+              activeBoardScopeIssueKeysByWindowKey?.[String(windowConfig?.key || "").trim()] || null
           }
         : windowConfig
     )
@@ -3189,9 +3201,16 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
   console.log(
     `Fetching PR cycle issue histories for ${hydratedPrCycleRefreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.windowLabel).join(", ")}.`
   );
-  if (activeBoardScopeIssueKeysByTeam) {
+  if (activeBoardScopeIssueKeysByWindowKey) {
     console.log(
-      `Resolved current board issue scope for workflow breakdown: ${PR_CYCLE_TEAM_KEYS.map((teamKey) => `${teamKey} ${activeBoardScopeIssueKeysByTeam[teamKey]?.size || 0}`).join(", ")}.`
+      `Resolved current board issue scope for workflow breakdown windows: ${Object.entries(
+        activeBoardScopeIssueKeysByWindowKey
+      )
+        .map(
+          ([windowKey, issueKeysByTeam]) =>
+            `${windowKey} ${PR_CYCLE_TEAM_KEYS.map((teamKey) => `${teamKey} ${issueKeysByTeam?.[teamKey]?.size || 0}`).join(", ")}`
+        )
+        .join(" | ")}.`
     );
   }
   const prCycleFetchRequest = buildPrCycleFetchRequest(config, hydratedPrCycleRefreshPlan);
