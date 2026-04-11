@@ -15,7 +15,8 @@ import {
   resolveTrendDates,
   resolveGitHubAccessToken,
   resolvePrActivityHistoryPlan,
-  resolvePrCycleRefreshPlan
+  resolvePrCycleRefreshPlan,
+  selectPrCycleScrumScopeSprints
 } from "./refresh-report-data.mjs";
 
 function makePrActivityRows() {
@@ -739,10 +740,11 @@ test("resolvePrActivityHistoryPlan disables reuse during rebuilds and for incomp
 });
 
 test("resolvePrCycleRefreshPlan reuses older cached windows when history is fresh", () => {
+  const freshUpdatedAt = new Date().toISOString();
   const refreshPlan = resolvePrCycleRefreshPlan(
     makePrCycleWindows(),
     {
-      updatedAt: "2026-04-04T12:00:00.000Z",
+      updatedAt: freshUpdatedAt,
       windows: {
         "30d": { id: "30d" },
         "90d": { id: "90d" },
@@ -790,6 +792,26 @@ test("resolvePrCycleRefreshPlan refreshes all windows when rebuilding or history
     ["14d", "30d", "90d", "6m", "1y"]
   );
   assert.equal(refreshPlan.prCycleRangeStartDate, "2025-04-05");
+});
+
+test("selectPrCycleScrumScopeSprints prefers active sprints and otherwise falls back to latest closed sprint", () => {
+  assert.deepEqual(
+    selectPrCycleScrumScopeSprints([
+      { id: 1, state: "closed", completeDate: "2026-04-05T09:00:00.000Z" },
+      { id: 2, state: "active", startDate: "2026-04-06T09:00:00.000Z" },
+      { id: 3, state: "future", startDate: "2026-04-20T09:00:00.000Z" }
+    ]).map((sprint) => sprint.id),
+    [2]
+  );
+
+  assert.deepEqual(
+    selectPrCycleScrumScopeSprints([
+      { id: 10, state: "closed", completeDate: "2026-04-01T09:00:00.000Z" },
+      { id: 11, state: "closed", completeDate: "2026-04-08T09:00:00.000Z" },
+      { id: 12, state: "future", startDate: "2026-04-15T09:00:00.000Z" }
+    ]).map((sprint) => sprint.id),
+    [11]
+  );
 });
 
 test("buildPrCycleFetchRequest uses the widest window selected by the refresh plan", () => {
