@@ -28,6 +28,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     "shift",
     "unmapped"
   ];
+  const FOURTEEN_DAY_WINDOW_KEY = "14d";
   const THIRTY_DAY_WINDOW_KEY = "30d";
   const ALL_TEAM_SCOPE_KEY = "all";
   const ALL_TEAMS_LABEL = "All teams";
@@ -46,7 +47,13 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
   const MANAGEMENT_FLOW_SCOPES = ["ongoing", "done"];
   const LIFECYCLE_TEAM_SCOPE_DEFAULT = "all";
   const PRODUCT_CYCLE_TEAM_DEFAULT = "all";
-  const DEVELOPMENT_WORKFLOW_WINDOWS = [THIRTY_DAY_WINDOW_KEY, "90d", "6m", "1y"];
+  const DEVELOPMENT_WORKFLOW_WINDOWS = [
+    FOURTEEN_DAY_WINDOW_KEY,
+    THIRTY_DAY_WINDOW_KEY,
+    "90d",
+    "6m",
+    "1y"
+  ];
   const getSourcePath = (rootKey, relativePath) =>
     dashboardRuntimeContract.getSourcePath(rootKey, relativePath);
   const SECTION_FILTER_DEFAULT = dashboardRuntimeContract.defaultSection || "community";
@@ -487,6 +494,8 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
 
   function getPrActivityWindowLabel(windowKey) {
     switch (windowKey) {
+      case FOURTEEN_DAY_WINDOW_KEY:
+        return "Last 14 days";
       case THIRTY_DAY_WINDOW_KEY:
         return "Last 30 days";
       case "90d":
@@ -511,7 +520,8 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     const latestPoint = safePoints[safePoints.length - 1];
     const latestDate = getPrActivityDisplayDate(latestPoint?.date || "");
     let startDate = latestDate;
-    if (selectedWindowKey === THIRTY_DAY_WINDOW_KEY) startDate = shiftChartIsoDate(latestDate, -29);
+    if (selectedWindowKey === FOURTEEN_DAY_WINDOW_KEY) startDate = shiftChartIsoDate(latestDate, -13);
+    else if (selectedWindowKey === THIRTY_DAY_WINDOW_KEY) startDate = shiftChartIsoDate(latestDate, -29);
     else if (selectedWindowKey === "90d") startDate = shiftChartIsoDate(latestDate, -89);
     else if (selectedWindowKey === "6m") startDate = shiftChartIsoMonths(latestDate, -6);
     else startDate = shiftChartIsoMonths(latestDate, -12);

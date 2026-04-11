@@ -155,8 +155,9 @@ const DEFAULT_SPRINT_PROJECT = "TFC";
 const DEFAULT_SPRINT_LOOKBACK_COUNT = 14;
 const DEFAULT_SPRINT_POINT = "end";
 const DEFAULT_SPRINT_MONDAY_ANCHOR = true;
+const FOURTEEN_DAY_WINDOW_KEY = "14d";
 const PR_CYCLE_WINDOW_DEFAULT_KEY = "30d";
-const PR_CYCLE_REFRESH_WINDOW_KEYS = ["30d", "90d"];
+const PR_CYCLE_REFRESH_WINDOW_KEYS = [FOURTEEN_DAY_WINDOW_KEY, "30d", "90d"];
 const PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS = 7;
 const DEFAULT_TREND_BOARD_CONCURRENCY = 2;
 const ISSUE_CHANGELOG_CACHE = new Map();
@@ -741,6 +742,8 @@ function resolvePrActivitySinceDate(
       .trim()
       .toLowerCase()
   ) {
+    case FOURTEEN_DAY_WINDOW_KEY:
+      return shiftIsoDate(safeToday, -13);
     case "30d":
       return shiftIsoDate(safeToday, -29);
     case "90d":
@@ -1388,6 +1391,12 @@ function buildPrCycleWindowConfigs(todayIso) {
   const safeToday = String(todayIso || "").trim();
   return [
     {
+      key: FOURTEEN_DAY_WINDOW_KEY,
+      windowDays: 14,
+      windowLabel: "Last 14 days",
+      windowStartDate: shiftIsoDate(safeToday, -13)
+    },
+    {
       key: "30d",
       windowDays: 30,
       windowLabel: "Last 30 days",
@@ -1794,7 +1803,8 @@ function getPrActivityWindowPoints(points, windowKey) {
   const latestDate = String(safePoints[safePoints.length - 1]?.date || "").trim();
   if (!latestDate) return safePoints;
   let startDate = latestDate;
-  if (windowKey === "30d") startDate = shiftPrActivityIsoDate(latestDate, -29, 0);
+  if (windowKey === FOURTEEN_DAY_WINDOW_KEY) startDate = shiftPrActivityIsoDate(latestDate, -13, 0);
+  else if (windowKey === "30d") startDate = shiftPrActivityIsoDate(latestDate, -29, 0);
   else if (windowKey === "90d") startDate = shiftPrActivityIsoDate(latestDate, -89, 0);
   else if (windowKey === "6m") startDate = shiftPrActivityIsoDate(latestDate, 0, -6);
   else if (windowKey === "1y") startDate = shiftPrActivityIsoDate(latestDate, 0, -12);
@@ -3030,7 +3040,7 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
     prCycleRows
   );
   console.log(
-    `Computed PR cycle stage breakdown (${prCycleRows.length} issue histories across ${config.prCycleProjectKeys.join(", ")} for ${prCycleRefreshPlan.prCycleWindowsToRefresh.length} window${prCycleRefreshPlan.prCycleWindowsToRefresh.length === 1 ? "" : "s"}; changelog cache hits ${prCycleBreakdown.changelogCacheHitCount}, writes ${prCycleBreakdown.changelogCacheWriteCount}${prCycleRefreshPlan.reuseHistoricalPrCycleWindows ? "; refreshed 30d and 90d, reused cached 6m and 1y windows" : prCycleRefreshPlan.historicalPrCycleSnapshotFreshEnough ? "" : `; refreshed all windows because cached 6m and 1y data was older than ${PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS} days`}).`
+    `Computed PR cycle stage breakdown (${prCycleRows.length} issue histories across ${config.prCycleProjectKeys.join(", ")} for ${prCycleRefreshPlan.prCycleWindowsToRefresh.length} window${prCycleRefreshPlan.prCycleWindowsToRefresh.length === 1 ? "" : "s"}; changelog cache hits ${prCycleBreakdown.changelogCacheHitCount}, writes ${prCycleBreakdown.changelogCacheWriteCount}${prCycleRefreshPlan.reuseHistoricalPrCycleWindows ? `; refreshed ${prCycleRefreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.key).join(", ")}, reused cached 6m and 1y windows` : prCycleRefreshPlan.historicalPrCycleSnapshotFreshEnough ? "" : `; refreshed all windows because cached 6m and 1y data was older than ${PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS} days`}).`
   );
   return attachPrCycleAvgInflow(
     prCycleSnapshotState.prCycleSnapshot,
