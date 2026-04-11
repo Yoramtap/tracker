@@ -408,6 +408,14 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     });
   }
 
+  function formatLegacyPrActivityPointDate(dateText, { monthlySeries = false } = {}) {
+    const safeDate = String(dateText || "").trim();
+    if (!safeDate) return "";
+    return monthlySeries
+      ? formatCompactMonthYear(safeDate.slice(0, 7))
+      : formatCompactChartPointDate(safeDate);
+  }
+
   function shiftChartIsoDate(dateText, deltaDays) {
     const date = new Date(`${String(dateText || "")}T00:00:00Z`);
     if (!Number.isFinite(date.getTime())) return "";
@@ -1360,6 +1368,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
   }) {
     const lineDefs = getPrActivityLineDefs(colors);
     const compactViewport = isCompactViewport();
+    const monthlySeries = isLegacyPrActivityMonthlySeries(rows);
     const rawYUpper = Math.max(yAxisUpperOverride, getLegacyPrActivityYUpper(rows, lineDefs));
     const yUpper =
       Number.isFinite(yAxisFixedUpper) && yAxisFixedUpper > 0
@@ -1408,7 +1417,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     const [tooltipContent, setTooltipContent] = React.useState(null);
 
     function showTooltip(point) {
-      const pointDateLabel = formatCompactChartPointDate(point.date);
+      const pointDateLabel = formatLegacyPrActivityPointDate(point.date, { monthlySeries });
       setTooltipContent(
         h(
           "div",
@@ -1577,12 +1586,20 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
                     r: compactViewport ? 11 : 13,
                     fill: "rgba(255, 255, 255, 0.001)",
                     stroke: "transparent",
-                    "aria-label": `${point.lineDef.name}: ${formatCompactChartPointDate(point.date) || point.date || ""} ${tooltipValueFormatter(point.value)}`
+                    "aria-label": `${point.lineDef.name}: ${
+                      formatLegacyPrActivityPointDate(point.date, { monthlySeries }) ||
+                      point.date ||
+                      ""
+                    } ${tooltipValueFormatter(point.value)}`
                   },
                   h(
                     "title",
                     null,
-                    `${point.lineDef.name} • ${formatCompactChartPointDate(point.date) || point.date || ""} • ${tooltipValueFormatter(point.value)}`
+                    `${point.lineDef.name} • ${
+                      formatLegacyPrActivityPointDate(point.date, { monthlySeries }) ||
+                      point.date ||
+                      ""
+                    } • ${tooltipValueFormatter(point.value)}`
                   )
                 )
               )
@@ -1636,6 +1653,8 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
 
       const compactViewport = isCompactViewport();
       const since = String(points[0]?.date || prActivity?.monthlySince || prActivity?.since || "");
+      const monthlySeries = points.every((point) => startOfChartMonth(point?.date) === point?.date);
+      const sinceLabel = monthlySeries ? formatCompactMonthYear(since.slice(0, 7)) : since;
       const metricKey = state.prActivityLegacyMetric === "merged" ? "merged" : "offered";
       const sourceLabel = getLegacyPrActivitySourceLabel(prActivity);
       syncControlValue("pr-activity-legacy-metric", metricKey);
@@ -1645,8 +1664,8 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
           ? ""
           : formatContextWithFreshness(
               compactViewport
-                ? `Monthly ${sourceLabel} PR activity • ${since || points[0]?.date || ""}`
-                : `Monthly ${sourceLabel} PR activity since ${since || points[0]?.date || ""}`,
+                ? `Monthly ${sourceLabel} PR activity • ${sinceLabel || points[0]?.date || ""}`
+                : `Monthly ${sourceLabel} PR activity since ${sinceLabel || points[0]?.date || ""}`,
               getSnapshotContextTimestamp(state)
             )
       );
