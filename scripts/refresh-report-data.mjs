@@ -143,6 +143,14 @@ const PR_TEAM_LABELS = {
 const PR_TEAM_LABELS_NORMALIZED = Object.fromEntries(
   Object.entries(PR_TEAM_LABELS).map(([label, teamKey]) => [label.toLowerCase(), teamKey])
 );
+const PR_CYCLE_TEAM_BOARD_SCOPES = {
+  api: { boardId: "38", boardType: "scrum" },
+  legacy: { boardId: "39", boardType: "scrum" },
+  react: { boardId: "46", boardType: "scrum" },
+  bc: { boardId: "40", boardType: "scrum" },
+  workers: { boardId: "333", boardType: "kanban" },
+  titanium: { boardId: "399", boardType: "kanban" }
+};
 const execFileAsync = promisify(execFile);
 const UAT_BUCKETS = [
   { id: "d0_7", label: "0-7 days", minDays: 0, maxDays: 7 },
@@ -158,6 +166,7 @@ const DEFAULT_SPRINT_MONDAY_ANCHOR = true;
 const FOURTEEN_DAY_WINDOW_KEY = "14d";
 const PR_CYCLE_WINDOW_DEFAULT_KEY = "30d";
 const PR_CYCLE_REFRESH_WINDOW_KEYS = [FOURTEEN_DAY_WINDOW_KEY, "30d", "90d"];
+const PR_CYCLE_ACTIVE_WORK_SCOPE_WINDOW_KEY = FOURTEEN_DAY_WINDOW_KEY;
 const PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS = 7;
 const DEFAULT_TREND_BOARD_CONCURRENCY = 2;
 const ISSUE_CHANGELOG_CACHE = new Map();
@@ -1030,6 +1039,98 @@ async function fetchSprintsForBoard(site, email, token, boardId) {
   return sprints;
 }
 
+async function fetchActiveSprintsForBoard(site, email, token, boardId) {
+  const sprints = [];
+  let startAt = 0;
+
+  for (;;) {
+    const payload = await jiraAgileRequest(
+      site,
+      email,
+      token,
+      `/rest/agile/1.0/board/${encodeURIComponent(boardId)}/sprint?state=active&startAt=${startAt}&maxResults=${PAGE_SIZE}`
+    );
+    const values = payload?.values ?? [];
+    sprints.push(...values);
+
+    if (values.length === 0) break;
+    if (Boolean(payload?.isLast)) break;
+    startAt += values.length;
+  }
+
+  return sprints;
+}
+
+async function fetchAgileIssueKeys(site, email, token, endpoint) {
+  const issueKeys = new Set();
+  let startAt = 0;
+  const safeEndpoint = String(endpoint || "").trim();
+  if (!safeEndpoint) return issueKeys;
+
+  for (;;) {
+    const separator = safeEndpoint.includes("?") ? "&" : "?";
+    const payload = await jiraAgileRequest(
+      site,
+      email,
+      token,
+      `${safeEndpoint}${separator}startAt=${startAt}&maxResults=${PAGE_SIZE}&fields=key`
+    );
+    const issues = Array.isArray(payload?.issues) ? payload.issues : [];
+    for (const issue of issues) {
+      const issueKey = String(issue?.key || "").trim();
+      if (issueKey) issueKeys.add(issueKey);
+    }
+
+    if (issues.length === 0) break;
+    if (Boolean(payload?.isLast)) break;
+    const total = Number(payload?.total);
+    if (Number.isFinite(total) && startAt + issues.length >= total) break;
+    startAt += issues.length;
+  }
+
+  return issueKeys;
+}
+
+async function fetchPrCycleTeamActiveIssueKeys(site, email, token, teamKey) {
+  const teamScope = PR_CYCLE_TEAM_BOARD_SCOPES[String(teamKey || "").trim().toLowerCase()];
+  if (!teamScope?.boardId) return new Set();
+
+  if (teamScope.boardType === "scrum") {
+    const activeSprints = await fetchActiveSprintsForBoard(site, email, token, teamScope.boardId);
+    const sprintIssueKeySets = await Promise.all(
+      activeSprints.map((sprint) =>
+        fetchAgileIssueKeys(
+          site,
+          email,
+          token,
+          `/rest/agile/1.0/board/${encodeURIComponent(teamScope.boardId)}/sprint/${encodeURIComponent(
+            sprint?.id
+          )}/issue`
+        )
+      )
+    );
+    return sprintIssueKeySets.reduce((combined, issueKeys) => {
+      for (const issueKey of issueKeys) combined.add(issueKey);
+      return combined;
+    }, new Set());
+  }
+
+  return fetchAgileIssueKeys(
+    site,
+    email,
+    token,
+    `/rest/agile/1.0/board/${encodeURIComponent(teamScope.boardId)}/issue`
+  );
+}
+
+async function fetchPrCycleActiveIssueKeysByTeam(site, email, token) {
+  const teamEntries = await mapWithConcurrency(PR_CYCLE_TEAM_KEYS, 3, async (teamKey) => [
+    teamKey,
+    await fetchPrCycleTeamActiveIssueKeys(site, email, token, teamKey)
+  ]);
+  return Object.fromEntries(teamEntries);
+}
+
 function resolveTrendPointDateForSprint(sprint, { pointMode, mondayAnchor, todayIso = "" }) {
   const pickedDate =
     pointMode === "start"
@@ -1391,10 +1492,11 @@ function buildPrCycleWindowConfigs(todayIso) {
   const safeToday = String(todayIso || "").trim();
   return [
     {
-      key: FOURTEEN_DAY_WINDOW_KEY,
+      key: PR_CYCLE_ACTIVE_WORK_SCOPE_WINDOW_KEY,
       windowDays: 14,
       windowLabel: "Last 14 days",
-      windowStartDate: shiftIsoDate(safeToday, -13)
+      windowStartDate: shiftIsoDate(safeToday, -13),
+      activeBoardScope: true
     },
     {
       key: "30d",
@@ -1469,6 +1571,24 @@ function getPrCycleTrackedStatuses(config) {
       buildPrCyclePhaseDefinitions(config, teamKey).flatMap((phase) => phase.statuses || [])
     )
   ]);
+}
+
+function shouldIncludePrCycleIssueForWindow(baseRow, config) {
+  if (!config?.activeBoardScope) return true;
+  const activeIssueKeysByTeam =
+    config?.activeIssueKeysByTeam && typeof config.activeIssueKeysByTeam === "object"
+      ? config.activeIssueKeysByTeam
+      : null;
+  if (!activeIssueKeysByTeam) return true;
+
+  const issueKey = String(baseRow?.issueKey || "").trim();
+  const teamKey = String(baseRow?.team || "")
+    .trim()
+    .toLowerCase();
+  const scopedIssueKeys = activeIssueKeysByTeam[teamKey];
+  if (scopedIssueKeys instanceof Set) return scopedIssueKeys.has(issueKey);
+  if (Array.isArray(scopedIssueKeys)) return scopedIssueKeys.includes(issueKey);
+  return false;
 }
 
 function buildIssueStatusIntervals(issue, changelog, endAtIso) {
@@ -1713,6 +1833,7 @@ export async function fetchPrCycleIssueBreakdown(site, email, token, config, opt
 }
 
 function summarizePrCycleIssueForWindow(baseRow, config) {
+  if (!shouldIncludePrCycleIssueForWindow(baseRow, config)) return null;
   const phaseDefinitions = buildPrCyclePhaseDefinitions(config, baseRow.team);
   const stageDays = Object.fromEntries(phaseDefinitions.map((phase) => [phase.key, 0]));
 
@@ -3019,10 +3140,31 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
     shouldRebuildAllWindows,
     todayIso
   });
+  const activeBoardScopeIssueKeysByTeam = prCycleRefreshPlan.prCycleWindowsToRefresh.some(
+    (windowConfig) => windowConfig?.activeBoardScope
+  )
+    ? await fetchPrCycleActiveIssueKeysByTeam(config.site, config.email, config.token)
+    : null;
+  const hydratedPrCycleRefreshPlan = {
+    ...prCycleRefreshPlan,
+    prCycleWindowsToRefresh: prCycleRefreshPlan.prCycleWindowsToRefresh.map((windowConfig) =>
+      windowConfig?.activeBoardScope
+        ? {
+            ...windowConfig,
+            activeIssueKeysByTeam: activeBoardScopeIssueKeysByTeam
+          }
+        : windowConfig
+    )
+  };
   console.log(
-    `Fetching PR cycle issue histories for ${prCycleRefreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.windowLabel).join(", ")}.`
+    `Fetching PR cycle issue histories for ${hydratedPrCycleRefreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.windowLabel).join(", ")}.`
   );
-  const prCycleFetchRequest = buildPrCycleFetchRequest(config, prCycleRefreshPlan);
+  if (activeBoardScopeIssueKeysByTeam) {
+    console.log(
+      `Resolved active board issue scope for workflow breakdown: ${PR_CYCLE_TEAM_KEYS.map((teamKey) => `${teamKey} ${activeBoardScopeIssueKeysByTeam[teamKey]?.size || 0}`).join(", ")}.`
+    );
+  }
+  const prCycleFetchRequest = buildPrCycleFetchRequest(config, hydratedPrCycleRefreshPlan);
   const prCycleBreakdown = await fetchPrCycleIssueBreakdown(
     config.site,
     config.email,
@@ -3036,11 +3178,11 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
   const prCycleSnapshotState = buildPrCycleSnapshotState(
     config,
     existingPrCycleSnapshot,
-    prCycleRefreshPlan,
+    hydratedPrCycleRefreshPlan,
     prCycleRows
   );
   console.log(
-    `Computed PR cycle stage breakdown (${prCycleRows.length} issue histories across ${config.prCycleProjectKeys.join(", ")} for ${prCycleRefreshPlan.prCycleWindowsToRefresh.length} window${prCycleRefreshPlan.prCycleWindowsToRefresh.length === 1 ? "" : "s"}; changelog cache hits ${prCycleBreakdown.changelogCacheHitCount}, writes ${prCycleBreakdown.changelogCacheWriteCount}${prCycleRefreshPlan.reuseHistoricalPrCycleWindows ? `; refreshed ${prCycleRefreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.key).join(", ")}, reused cached 6m and 1y windows` : prCycleRefreshPlan.historicalPrCycleSnapshotFreshEnough ? "" : `; refreshed all windows because cached 6m and 1y data was older than ${PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS} days`}).`
+    `Computed PR cycle stage breakdown (${prCycleRows.length} issue histories across ${config.prCycleProjectKeys.join(", ")} for ${hydratedPrCycleRefreshPlan.prCycleWindowsToRefresh.length} window${hydratedPrCycleRefreshPlan.prCycleWindowsToRefresh.length === 1 ? "" : "s"}; changelog cache hits ${prCycleBreakdown.changelogCacheHitCount}, writes ${prCycleBreakdown.changelogCacheWriteCount}${hydratedPrCycleRefreshPlan.reuseHistoricalPrCycleWindows ? `; refreshed ${hydratedPrCycleRefreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.key).join(", ")}, reused cached 6m and 1y windows` : hydratedPrCycleRefreshPlan.historicalPrCycleSnapshotFreshEnough ? "" : `; refreshed all windows because cached 6m and 1y data was older than ${PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS} days`}).`
   );
   return attachPrCycleAvgInflow(
     prCycleSnapshotState.prCycleSnapshot,

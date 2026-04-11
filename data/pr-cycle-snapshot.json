@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-11T11:38:48.615Z",
+  "updatedAt": "2026-04-11T11:56:40.729Z",
   "defaultTeam": "bc",
   "defaultWindow": "30d",
   "windows": {
@@ -64,7 +64,7 @@
           "key": "react",
           "label": "React FE",
           "issueCount": 38,
-          "totalCycleDays": 6.4,
+          "totalCycleDays": 6.5,
           "bottleneckLabel": "In Progress",
           "stages": [
             {
@@ -82,7 +82,7 @@
             {
               "key": "merge",
               "label": "QA",
-              "days": 0.8,
+              "days": 0.9,
               "sampleCount": 23
             }
           ]
@@ -677,108 +677,108 @@
         {
           "key": "api",
           "label": "API",
-          "issueCount": 39,
-          "totalCycleDays": 17.7,
+          "issueCount": 18,
+          "totalCycleDays": 8.3,
           "bottleneckLabel": "In Review",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 5.6,
-              "sampleCount": 18
+              "days": 1.7,
+              "sampleCount": 12
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 7.4,
-              "sampleCount": 29
+              "days": 3.4,
+              "sampleCount": 15
             },
             {
               "key": "merge",
               "label": "QA",
-              "days": 4.7,
-              "sampleCount": 13
+              "days": 3.2,
+              "sampleCount": 11
             }
           ]
         },
         {
           "key": "legacy",
           "label": "Legacy FE",
-          "issueCount": 10,
-          "totalCycleDays": 14.9,
+          "issueCount": 5,
+          "totalCycleDays": 12.5,
           "bottleneckLabel": "In Review",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 7.1,
-              "sampleCount": 9
+              "days": 2.4,
+              "sampleCount": 4
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 7.3,
-              "sampleCount": 5
+              "days": 9.2,
+              "sampleCount": 4
             },
             {
               "key": "merge",
               "label": "QA",
-              "days": 0.5,
-              "sampleCount": 2
+              "days": 0.9,
+              "sampleCount": 1
             }
           ]
         },
         {
           "key": "react",
           "label": "React FE",
-          "issueCount": 20,
-          "totalCycleDays": 5.8,
+          "issueCount": 5,
+          "totalCycleDays": 9,
           "bottleneckLabel": "In Progress",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 3,
-              "sampleCount": 14
+              "days": 3.6,
+              "sampleCount": 5
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 1.9,
-              "sampleCount": 14
+              "days": 3.2,
+              "sampleCount": 3
             },
             {
               "key": "merge",
               "label": "QA",
-              "days": 0.9,
-              "sampleCount": 10
+              "days": 2.2,
+              "sampleCount": 2
             }
           ]
         },
         {
           "key": "bc",
           "label": "BC",
-          "issueCount": 42,
-          "totalCycleDays": 15.6,
-          "bottleneckLabel": "In Progress",
+          "issueCount": 31,
+          "totalCycleDays": 11.3,
+          "bottleneckLabel": "QA",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 7.4,
-              "sampleCount": 24
+              "days": 4.8,
+              "sampleCount": 17
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 2,
-              "sampleCount": 19
+              "days": 1.3,
+              "sampleCount": 17
             },
             {
               "key": "merge",
               "label": "QA",
-              "days": 6.2,
-              "sampleCount": 16
+              "days": 5.2,
+              "sampleCount": 14
             }
           ]
         },
@@ -812,7 +812,7 @@
         {
           "key": "titanium",
           "label": "Titanium",
-          "issueCount": 15,
+          "issueCount": 14,
           "totalCycleDays": 8.7,
           "bottleneckLabel": "In Progress",
           "stages": [
@@ -820,7 +820,7 @@
               "key": "coding",
               "label": "In Progress",
               "days": 4.1,
-              "sampleCount": 13
+              "sampleCount": 12
             },
             {
               "key": "review",

@@ -50,31 +50,42 @@ function makePrCycleWindows() {
       key: "14d",
       windowDays: 14,
       windowLabel: "Last 14 days",
-      windowStartDate: "2026-03-23"
+      windowStartDate: "2026-03-23",
+      windowStartIso: "2026-03-23T00:00:00.000Z",
+      windowEndIso: "2026-04-05T00:00:00.000Z",
+      activeBoardScope: true
     },
     {
       key: "30d",
       windowDays: 30,
       windowLabel: "Last 30 days",
-      windowStartDate: "2026-03-07"
+      windowStartDate: "2026-03-07",
+      windowStartIso: "2026-03-07T00:00:00.000Z",
+      windowEndIso: "2026-04-05T00:00:00.000Z"
     },
     {
       key: "90d",
       windowDays: 90,
       windowLabel: "Last 90 days",
-      windowStartDate: "2026-01-07"
+      windowStartDate: "2026-01-07",
+      windowStartIso: "2026-01-07T00:00:00.000Z",
+      windowEndIso: "2026-04-05T00:00:00.000Z"
     },
     {
       key: "6m",
       windowDays: 183,
       windowLabel: "Last 6 months",
-      windowStartDate: "2025-10-05"
+      windowStartDate: "2025-10-05",
+      windowStartIso: "2025-10-05T00:00:00.000Z",
+      windowEndIso: "2026-04-05T00:00:00.000Z"
     },
     {
       key: "1y",
       windowDays: 365,
       windowLabel: "Last year",
-      windowStartDate: "2025-04-05"
+      windowStartDate: "2025-04-05",
+      windowStartIso: "2025-04-05T00:00:00.000Z",
+      windowEndIso: "2026-04-05T00:00:00.000Z"
     }
   ];
 }
@@ -903,6 +914,63 @@ test("buildPrCycleSnapshotState preserves cached long windows when reuse is enab
   assert.equal(snapshotState.prCycleSnapshot.windows["14d"].windowLabel, "Last 14 days");
   assert.equal(snapshotState.prCycleSnapshot.windows["30d"].windowLabel, "Last 30 days");
   assert.equal(snapshotState.prCycleSnapshot.windows["90d"].windowLabel, "Last 90 days");
+});
+
+test("buildPrCycleSnapshotState filters active-board windows to board-scoped issue keys", () => {
+  const snapshotState = buildPrCycleSnapshotState(
+    {
+      prCycleCodingStatuses: ["Coding"],
+      prCycleReviewStatuses: ["In Review"],
+      prCycleMergeStatuses: ["Merged"]
+    },
+    null,
+    {
+      reuseHistoricalPrCycleWindows: false,
+      prCycleWindowsToRefresh: [
+        {
+          key: "14d",
+          windowDays: 14,
+          windowLabel: "Last 14 days",
+          windowStartDate: "2026-03-23",
+          windowStartIso: "2026-03-23T00:00:00.000Z",
+          windowEndIso: "2026-04-05T00:00:00.000Z",
+          activeBoardScope: true,
+          activeIssueKeysByTeam: {
+            api: new Set(["TFC-2"])
+          }
+        }
+      ]
+    },
+    [
+      {
+        issueKey: "TFC-1",
+        team: "api",
+        intervals: [
+          {
+            status: "In Review",
+            start: "2026-03-28T00:00:00.000Z",
+            end: "2026-04-02T00:00:00.000Z"
+          }
+        ]
+      },
+      {
+        issueKey: "TFC-2",
+        team: "api",
+        intervals: [
+          {
+            status: "In Review",
+            start: "2026-03-29T00:00:00.000Z",
+            end: "2026-04-01T00:00:00.000Z"
+          }
+        ]
+      }
+    ]
+  );
+
+  const apiTeam = snapshotState.prCycleSnapshot.windows["14d"].teams.find((team) => team.key === "api");
+  assert.equal(apiTeam.issueCount, 1);
+  assert.equal(apiTeam.totalCycleDays, 3);
+  assert.equal(apiTeam.stages.find((stage) => stage.key === "review").sampleCount, 1);
 });
 
 test("attachPrCycleAvgInflow persists avg PR inflow into PR cycle windows from PR activity points", () => {
