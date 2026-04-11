@@ -47,6 +47,12 @@ function makePrActivityRows() {
 function makePrCycleWindows() {
   return [
     {
+      key: "14d",
+      windowDays: 14,
+      windowLabel: "Last 14 days",
+      windowStartDate: "2026-03-23"
+    },
+    {
       key: "30d",
       windowDays: 30,
       windowLabel: "Last 30 days",
@@ -744,7 +750,7 @@ test("resolvePrCycleRefreshPlan reuses older cached windows when history is fres
   assert.equal(refreshPlan.reuseHistoricalPrCycleWindows, true);
   assert.deepEqual(
     refreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.key),
-    ["30d", "90d"]
+    ["14d", "30d", "90d"]
   );
   assert.equal(refreshPlan.prCycleRangeStartDate, "2026-01-07");
 });
@@ -770,7 +776,7 @@ test("resolvePrCycleRefreshPlan refreshes all windows when rebuilding or history
   assert.equal(refreshPlan.reuseHistoricalPrCycleWindows, false);
   assert.deepEqual(
     refreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.key),
-    ["30d", "90d", "6m", "1y"]
+    ["14d", "30d", "90d", "6m", "1y"]
   );
   assert.equal(refreshPlan.prCycleRangeStartDate, "2025-04-05");
 });
@@ -784,7 +790,7 @@ test("buildPrCycleFetchRequest uses the widest window selected by the refresh pl
       prCycleMergeStatuses: ["Merged"]
     },
     {
-      prCycleWindowsToRefresh: makePrCycleWindows().slice(0, 2),
+      prCycleWindowsToRefresh: makePrCycleWindows().slice(0, 3),
       prCycleRangeStartDate: "2026-01-07"
     }
   );
@@ -885,15 +891,16 @@ test("buildPrCycleSnapshotState preserves cached long windows when reuse is enab
     },
     {
       reuseHistoricalPrCycleWindows: true,
-      prCycleWindowsToRefresh: makePrCycleWindows().slice(0, 2)
+      prCycleWindowsToRefresh: makePrCycleWindows().slice(0, 3)
     },
     []
   );
 
   assert.equal(snapshotState.prCycleSnapshot.defaultWindow, "6m");
-  assert.deepEqual(Object.keys(snapshotState.prCycleSnapshot.windows), ["6m", "1y", "30d", "90d"]);
+  assert.deepEqual(Object.keys(snapshotState.prCycleSnapshot.windows), ["6m", "1y", "14d", "30d", "90d"]);
   assert.equal(snapshotState.prCycleSnapshot.windows["6m"].teams[0].marker, "cached-6m");
   assert.equal(snapshotState.prCycleSnapshot.windows["1y"].teams[0].marker, "cached-1y");
+  assert.equal(snapshotState.prCycleSnapshot.windows["14d"].windowLabel, "Last 14 days");
   assert.equal(snapshotState.prCycleSnapshot.windows["30d"].windowLabel, "Last 30 days");
   assert.equal(snapshotState.prCycleSnapshot.windows["90d"].windowLabel, "Last 90 days");
 });
@@ -901,6 +908,13 @@ test("buildPrCycleSnapshotState preserves cached long windows when reuse is enab
 test("attachPrCycleAvgInflow persists avg PR inflow into PR cycle windows from PR activity points", () => {
   const snapshot = {
     windows: {
+      "14d": {
+        windowLabel: "Last 14 days",
+        teams: [
+          { key: "api", label: "API", avgPrInflow: null },
+          { key: "bc", label: "BC", avgPrInflow: null }
+        ]
+      },
       "30d": {
         windowLabel: "Last 30 days",
         teams: [
@@ -931,9 +945,13 @@ test("attachPrCycleAvgInflow persists avg PR inflow into PR cycle windows from P
   };
 
   const result = attachPrCycleAvgInflow(snapshot, prActivity);
+  const apiTeam14d = result.windows["14d"].teams.find((team) => team.key === "api");
+  const bcTeam14d = result.windows["14d"].teams.find((team) => team.key === "bc");
   const apiTeam = result.windows["30d"].teams.find((team) => team.key === "api");
   const bcTeam = result.windows["30d"].teams.find((team) => team.key === "bc");
 
+  assert.equal(apiTeam14d.avgPrInflow, 30);
+  assert.equal(bcTeam14d.avgPrInflow, 8);
   assert.equal(apiTeam.avgPrInflow, 20);
   assert.equal(bcTeam.avgPrInflow, 6);
 });
