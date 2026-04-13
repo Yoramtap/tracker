@@ -14,6 +14,24 @@ Expected operating model:
 - `yoram-tap_nepgroup` stays read-only and is used only through local `gh` auth
 - PR refreshes are run locally, not from GitHub Actions
 
+## Runtime and Checkout
+
+- Use Node 22 for local installs and CI. The repo pins this via `.nvmrc` / `.node-version`.
+- Run the weekly automation from a dedicated local checkout, not from an ephemeral Codex worktree.
+- Bootstrap that checkout once from your main repo:
+
+```bash
+npm run automation:bootstrap
+```
+
+- The default bootstrap target is a sibling checkout such as `../tracker-automation`.
+- After bootstrapping, point the Codex automation at that persistent checkout and use `execution_environment = "local"`.
+- Sanity-check the automation checkout at any time with:
+
+```bash
+npm run automation:preflight
+```
+
 ## Default Local Refresh
 
 ```bash
@@ -70,13 +88,21 @@ npm run dev:publish -- --refresh yes --clean --message "Refresh dashboard data" 
 
 Use `--clean` when you want the publish helper to refresh from Jira and GitHub without depending on old local caches.
 
+The helper now:
+
+- verifies you are in a full local checkout on `main`
+- validates snapshots before building
+- treats the build as a verification gate only
+- commits only tracked dashboard snapshot files under `data/`
+
 ## Weekly Local Automation
 
 Recommended schedule:
 
 - Monday 09:00 in your local timezone (`Europe/Amsterdam`)
-- Run `npm run data:refresh`, `npm run data:validate`, and `npm run build`
-- Review changed files, then commit and push from your normal `Yoramtap` repo context
+- Run `npm run automation:weekly-refresh`
+- Keep the automation pinned to the dedicated local checkout created by `npm run automation:bootstrap`
+- If preflight fails, fix the checkout first instead of letting the refresh run for several minutes and fail late
 
 ## GitHub Automation
 

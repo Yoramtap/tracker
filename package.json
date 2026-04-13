@@ -23,7 +23,13 @@
     "dev:analyze": "node scripts/dev/analyze-report-data.mjs --output .cache/analysis/latest-analysis.md",
     "dev:smoke": "node scripts/dev/smoke-dashboard.mjs",
     "dev:smoke:render": "node scripts/dev/smoke-dashboard-render.mjs",
-    "dev:publish": "node scripts/dev/publish-tracker.mjs"
+    "dev:publish": "node scripts/dev/publish-tracker.mjs",
+    "automation:bootstrap": "node scripts/dev/bootstrap-automation-checkout.mjs",
+    "automation:preflight": "node scripts/dev/publish-tracker.mjs --refresh no --analyze no --preflight-only",
+    "automation:weekly-refresh": "node scripts/dev/publish-tracker.mjs --refresh yes --analyze no --message \"chore: refresh tracker snapshots\" --push"
+  },
+  "engines": {
+    "node": "22.x"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
