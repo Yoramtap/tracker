@@ -34,7 +34,7 @@ npm install
 npm run auth:setup -- --email "you@company.com"
 ```
 
-Run commands from the repo root. The setup helper prompts for the Jira API token securely and writes a local `.env.backlog` file that stays ignored.
+Run commands from the repo root. The repo is pinned to Node 22 via `.nvmrc` / `.node-version`, so switch your shell to Node 22 before installing. The setup helper prompts for the Jira API token securely and writes a local `.env.backlog` file that stays ignored.
 
 Optional Jira site override:
 
@@ -65,6 +65,9 @@ Operator helpers:
 - `npm run dev:refresh:uat`
 - `npm run dev:analyze`
 - `npm run dev:publish -- --refresh yes --message "Refresh dashboard data" --push`
+- `npm run automation:bootstrap`
+- `npm run automation:preflight`
+- `npm run automation:weekly-refresh`
 
 Use `dev:publish` only as a convenience helper when the repo is already clean. The canonical release instructions live in `docs/release.md`.
 
@@ -100,6 +103,7 @@ Read [docs/release.md](docs/release.md) before shipping.
 - Manual release steps are in [docs/release.md](docs/release.md).
 - Dashboard data refresh is local-only.
 - Weekly local automation is the recommended way to keep snapshots fresh.
+- Run automation from a dedicated local checkout, not from an ephemeral Codex worktree.
 
 ## GitHub Pages
 
