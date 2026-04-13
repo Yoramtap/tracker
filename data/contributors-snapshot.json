@@ -1,19 +1,19 @@
 {
-  "updatedAt": "2026-04-11T11:13:36.676Z",
+  "updatedAt": "2026-04-13T22:49:22.992Z",
   "summary": {
     "total_issues": 29,
-    "active_issues": 5,
-    "done_issues": 24,
+    "active_issues": 4,
+    "done_issues": 25,
     "total_contributors": 6,
-    "linked_issues": 19
+    "linked_issues": 20
   },
   "chartData": {
     "rows": [
       {
         "contributor": "Daniel Davis",
         "totalIssues": 10,
-        "doneIssues": 8,
-        "activeIssues": 2
+        "doneIssues": 9,
+        "activeIssues": 1
       },
       {
         "contributor": "Tesoro Fedel",

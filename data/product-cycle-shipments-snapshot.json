@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-04-11T11:14:17.119Z",
+  "generatedAt": "2026-04-13T22:50:02.634Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-04-01",
-      "totalShipped": 169,
+      "totalShipped": 170,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -1539,18 +1539,24 @@
         {
           "monthStart": "2026-04-01",
           "monthKey": "2026-04",
-          "totalShipped": 3,
+          "totalShipped": 4,
           "teamCount": 3,
           "teams": [
             {
               "team": "Multi team",
-              "shippedCount": 1,
+              "shippedCount": 2,
               "ideas": [
                 {
                   "issueKey": "TPS-396",
                   "productAreaLabel": "NEP Platform",
                   "summary": "TFO: Platform-level data-plane workflows",
                   "shippedAt": "2026-04-07T13:17:48.092Z"
+                },
+                {
+                  "issueKey": "TPS-409",
+                  "productAreaLabel": "TFC",
+                  "summary": "Hardening flow \"missing\" process on device on-/offline",
+                  "shippedAt": "2026-04-13T08:52:03.059Z"
                 }
               ]
             },
