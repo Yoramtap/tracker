@@ -17,6 +17,7 @@ Expected operating model:
 ## Runtime and Checkout
 
 - Use Node 22 for local installs and CI. The repo pins this via `.nvmrc` / `.node-version`.
+- On this machine, the automation scripts invoke the Homebrew Node 22 binary directly from `/opt/homebrew/opt/node@22/bin/node`.
 - Run the weekly automation from a dedicated local checkout, not from an ephemeral Codex worktree.
 - Bootstrap that checkout once from your main repo:
 

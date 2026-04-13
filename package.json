@@ -24,9 +24,9 @@
     "dev:smoke": "node scripts/dev/smoke-dashboard.mjs",
     "dev:smoke:render": "node scripts/dev/smoke-dashboard-render.mjs",
     "dev:publish": "node scripts/dev/publish-tracker.mjs",
-    "automation:bootstrap": "node scripts/dev/bootstrap-automation-checkout.mjs",
-    "automation:preflight": "node scripts/dev/publish-tracker.mjs --refresh no --analyze no --preflight-only",
-    "automation:weekly-refresh": "node scripts/dev/publish-tracker.mjs --refresh yes --analyze no --message \"chore: refresh tracker snapshots\" --push"
+    "automation:bootstrap": "sh scripts/dev/run-with-pinned-node.sh scripts/dev/bootstrap-automation-checkout.mjs",
+    "automation:preflight": "sh scripts/dev/run-with-pinned-node.sh scripts/dev/publish-tracker.mjs --refresh no --analyze no --preflight-only",
+    "automation:weekly-refresh": "sh scripts/dev/run-with-pinned-node.sh scripts/dev/publish-tracker.mjs --refresh yes --analyze no --message \"chore: refresh tracker snapshots\" --push"
   },
   "engines": {
     "node": "22.x"
