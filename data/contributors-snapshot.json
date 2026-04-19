@@ -1,11 +1,11 @@
 {
-  "updatedAt": "2026-04-13T22:49:22.992Z",
+  "updatedAt": "2026-04-19T11:19:38.416Z",
   "summary": {
     "total_issues": 29,
-    "active_issues": 4,
-    "done_issues": 25,
+    "active_issues": 3,
+    "done_issues": 26,
     "total_contributors": 6,
-    "linked_issues": 20
+    "linked_issues": 21
   },
   "chartData": {
     "rows": [
@@ -16,16 +16,16 @@
         "activeIssues": 1
       },
       {
-        "contributor": "Tesoro Fedel",
+        "contributor": "Mitchell Kalika",
         "totalIssues": 6,
         "doneIssues": 6,
         "activeIssues": 0
       },
       {
-        "contributor": "Mitchell Kalika",
+        "contributor": "Tesoro Fedel",
         "totalIssues": 6,
-        "doneIssues": 5,
-        "activeIssues": 1
+        "doneIssues": 6,
+        "activeIssues": 0
       },
       {
         "contributor": "Sven Kommers",

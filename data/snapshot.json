@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-04-13T22:50:02.644Z",
+  "updatedAt": "2026-04-19T11:20:18.848Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-04-13T22:50:02.644Z",
+    "syncedAt": "2026-04-19T11:20:18.848Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. PR activity is sourced from GitHub pull requests and attributed by committed repo-to-team mapping."
   },
   "prActivity": {
@@ -12,7 +12,7 @@
     "monthlyInterval": "month",
     "source": "github_pull_requests",
     "candidateIssueCount": 117,
-    "uniquePrCount": 480,
+    "uniquePrCount": 534,
     "conflictCount": 0,
     "caveat": "Counts are sourced from GitHub pull requests and attributed by committed repo-to-team mapping. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the latest submitted GitHub review to mergedAt.",
     "points": [
@@ -1051,7 +1051,7 @@
           "avgReviewToMergeSampleCount": 28
         },
         "bc": {
-          "offered": 26,
+          "offered": 27,
           "merged": 24,
           "avgReviewToMergeDays": 4,
           "avgReviewToMergeSampleCount": 24
@@ -1072,7 +1072,7 @@
       {
         "date": "2026-04-13",
         "api": {
-          "offered": 17,
+          "offered": 18,
           "merged": 19,
           "avgReviewToMergeDays": 3,
           "avgReviewToMergeSampleCount": 19
@@ -1102,7 +1102,7 @@
           "avgReviewToMergeSampleCount": 23
         },
         "titanium": {
-          "offered": 6,
+          "offered": 7,
           "merged": 7,
           "avgReviewToMergeDays": 1,
           "avgReviewToMergeSampleCount": 7
@@ -1561,7 +1561,7 @@
           "avgReviewToMergeSampleCount": 52
         },
         "bc": {
-          "offered": 63,
+          "offered": 64,
           "merged": 66,
           "avgReviewToMergeDays": 10,
           "avgReviewToMergeSampleCount": 66
@@ -1582,40 +1582,40 @@
       {
         "date": "2026-04-01",
         "api": {
-          "offered": 14,
-          "merged": 18,
+          "offered": 41,
+          "merged": 47,
           "avgReviewToMergeDays": 3,
-          "avgReviewToMergeSampleCount": 18
+          "avgReviewToMergeSampleCount": 38
         },
         "legacy": {
-          "offered": 2,
-          "merged": 2,
+          "offered": 3,
+          "merged": 3,
           "avgReviewToMergeDays": 0,
-          "avgReviewToMergeSampleCount": 2
+          "avgReviewToMergeSampleCount": 3
         },
         "react": {
-          "offered": 30,
-          "merged": 23,
+          "offered": 35,
+          "merged": 26,
           "avgReviewToMergeDays": 3,
-          "avgReviewToMergeSampleCount": 22
+          "avgReviewToMergeSampleCount": 24
         },
         "bc": {
-          "offered": 16,
-          "merged": 17,
-          "avgReviewToMergeDays": 6,
-          "avgReviewToMergeSampleCount": 17
+          "offered": 26,
+          "merged": 22,
+          "avgReviewToMergeDays": 5,
+          "avgReviewToMergeSampleCount": 22
         },
         "workers": {
-          "offered": 22,
-          "merged": 19,
-          "avgReviewToMergeDays": 0,
-          "avgReviewToMergeSampleCount": 19
+          "offered": 29,
+          "merged": 30,
+          "avgReviewToMergeDays": 1,
+          "avgReviewToMergeSampleCount": 30
         },
         "titanium": {
-          "offered": 6,
-          "merged": 6,
+          "offered": 9,
+          "merged": 8,
           "avgReviewToMergeDays": 1,
-          "avgReviewToMergeSampleCount": 6
+          "avgReviewToMergeSampleCount": 8
         }
       }
     ],
@@ -1629,15 +1629,14 @@
           "rows": [
             {
               "label": "ANZJ",
-              "devAvg": 9.66,
-              "uatAvg": 13.9,
-              "devCount": 3,
-              "uatCount": 3,
-              "sampleCount": 3,
+              "devAvg": 7.92,
+              "uatAvg": 24.33,
+              "devCount": 2,
+              "uatCount": 2,
+              "sampleCount": 2,
               "issueIds": [
                 "TFC-16151",
-                "TFC-16160",
-                "TFC-16205"
+                "TFC-16160"
               ],
               "issueItems": [
                 {
@@ -1647,24 +1646,19 @@
                 {
                   "issueId": "TFC-16160",
                   "facilityLabel": "Facility AU AHS"
-                },
-                {
-                  "issueId": "TFC-16205",
-                  "facilityLabel": "Facility AU AHS"
                 }
               ],
               "facilities": [
                 {
                   "label": "AU AHS",
-                  "devAvg": 9.66,
-                  "uatAvg": 13.9,
-                  "devCount": 3,
-                  "uatCount": 3,
-                  "sampleCount": 3,
+                  "devAvg": 7.92,
+                  "uatAvg": 24.33,
+                  "devCount": 2,
+                  "uatCount": 2,
+                  "sampleCount": 2,
                   "issueIds": [
                     "TFC-16151",
-                    "TFC-16160",
-                    "TFC-16205"
+                    "TFC-16160"
                   ]
                 }
               ]
@@ -1672,7 +1666,7 @@
             {
               "label": "EU",
               "devAvg": 0.04,
-              "uatAvg": 88.92,
+              "uatAvg": 94.45,
               "devCount": 1,
               "uatCount": 1,
               "sampleCount": 1,
@@ -1689,7 +1683,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.04,
-                  "uatAvg": 88.92,
+                  "uatAvg": 94.45,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -1702,7 +1696,7 @@
             {
               "label": "MEA",
               "devAvg": 1.1,
-              "uatAvg": 67.59,
+              "uatAvg": 73.11,
               "devCount": 1,
               "uatCount": 1,
               "sampleCount": 1,
@@ -1719,7 +1713,7 @@
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 67.59,
+                  "uatAvg": 73.11,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -1732,7 +1726,7 @@
             {
               "label": "US",
               "devAvg": 0.68,
-              "uatAvg": 62.17,
+              "uatAvg": 67.69,
               "devCount": 4,
               "uatCount": 4,
               "sampleCount": 4,
@@ -1764,7 +1758,7 @@
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 117.83,
+                  "uatAvg": 123.35,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -1775,7 +1769,7 @@
                 {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 69.01,
+                  "uatAvg": 74.53,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -1786,7 +1780,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.43,
-                  "uatAvg": 30.91,
+                  "uatAvg": 36.43,
                   "devCount": 2,
                   "uatCount": 2,
                   "sampleCount": 2,
@@ -1800,7 +1794,7 @@
             {
               "label": "Tech Debt",
               "devAvg": 28.75,
-              "uatAvg": 122.76,
+              "uatAvg": 128.28,
               "devCount": 1,
               "uatCount": 1,
               "sampleCount": 1,
@@ -1817,7 +1811,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 122.76,
+                  "uatAvg": 128.28,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -1833,11 +1827,11 @@
           "rows": [
             {
               "label": "ANZJ",
-              "devAvg": 31.73,
-              "uatAvg": 30.75,
-              "devCount": 19,
-              "uatCount": 19,
-              "sampleCount": 19,
+              "devAvg": 30.8,
+              "uatAvg": 29.53,
+              "devCount": 20,
+              "uatCount": 20,
+              "sampleCount": 20,
               "issueIds": [
                 "TFC-12976",
                 "TFC-13109",
@@ -1856,6 +1850,7 @@
                 "TFC-15977",
                 "TFC-16088",
                 "TFC-16090",
+                "TFC-16205",
                 "TFC-16216",
                 "TFC-16291"
               ],
@@ -1870,6 +1865,10 @@
                 },
                 {
                   "issueId": "TFC-15659",
+                  "facilityLabel": "Facility AU AHS"
+                },
+                {
+                  "issueId": "TFC-16205",
                   "facilityLabel": "Facility AU AHS"
                 },
                 {
@@ -1940,15 +1939,16 @@
               "facilities": [
                 {
                   "label": "AU AHS",
-                  "devAvg": 2.81,
-                  "uatAvg": 26.74,
-                  "devCount": 3,
-                  "uatCount": 3,
-                  "sampleCount": 3,
+                  "devAvg": 5.4,
+                  "uatAvg": 21.64,
+                  "devCount": 4,
+                  "uatCount": 4,
+                  "sampleCount": 4,
                   "issueIds": [
                     "TFC-14929",
                     "TFC-15598",
-                    "TFC-15659"
+                    "TFC-15659",
+                    "TFC-16205"
                   ]
                 },
                 {
@@ -2457,59 +2457,6 @@
     }
   },
   "combinedPoints": [
-    {
-      "date": "2025-10-13",
-      "api": {
-        "date": "2025-10-13",
-        "highest": 1,
-        "high": 2,
-        "medium": 4,
-        "low": 2,
-        "lowest": 0
-      },
-      "legacy": {
-        "date": "2025-10-13",
-        "highest": 0,
-        "high": 1,
-        "medium": 12,
-        "low": 45,
-        "lowest": 2
-      },
-      "react": {
-        "date": "2025-10-13",
-        "highest": 0,
-        "high": 0,
-        "medium": 2,
-        "low": 0,
-        "lowest": 0
-      },
-      "bc": {
-        "date": "2025-10-13",
-        "highest": 1,
-        "high": 58,
-        "medium": 96,
-        "low": 9,
-        "lowest": 0,
-        "longstanding_30d_plus": 148,
-        "longstanding_60d_plus": 140
-      },
-      "workers": {
-        "date": "2025-10-13",
-        "highest": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "lowest": 0
-      },
-      "titanium": {
-        "date": "2025-10-13",
-        "highest": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "lowest": 0
-      }
-    },
     {
       "date": "2025-10-27",
       "api": {
@@ -3192,6 +3139,59 @@
       },
       "titanium": {
         "date": "2026-04-13",
+        "highest": 1,
+        "high": 1,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2026-04-19",
+      "api": {
+        "date": "2026-04-19",
+        "highest": 0,
+        "high": 2,
+        "medium": 11,
+        "low": 4,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2026-04-19",
+        "highest": 0,
+        "high": 2,
+        "medium": 9,
+        "low": 21,
+        "lowest": 0
+      },
+      "react": {
+        "date": "2026-04-19",
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2026-04-19",
+        "highest": 5,
+        "high": 78,
+        "medium": 131,
+        "low": 8,
+        "lowest": 0,
+        "longstanding_30d_plus": 204,
+        "longstanding_60d_plus": 186
+      },
+      "workers": {
+        "date": "2026-04-19",
+        "highest": 0,
+        "high": 1,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2026-04-19",
         "highest": 1,
         "high": 1,
         "medium": 0,
