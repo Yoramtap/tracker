@@ -4,6 +4,8 @@ import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import { loadLocalEnvFiles, resolveGitHubEnvToken } from "../local-env.mjs";
+
 function getArg(flag) {
   const index = process.argv.indexOf(flag);
   if (index === -1) return "";
@@ -145,6 +147,19 @@ async function ensureLocalEnv(sourceDir, targetDir) {
   }
 }
 
+async function reportGitHubAutomationAuth(targetDir) {
+  const env = {};
+  await loadLocalEnvFiles({ repoRoot: targetDir, env });
+  if (resolveGitHubEnvToken(env)) {
+    console.log("Detected GH_TOKEN/GITHUB_TOKEN in automation checkout env files");
+    return;
+  }
+
+  console.log(
+    "No GH_TOKEN/GITHUB_TOKEN found in automation checkout env files; weekly refreshes will fall back to interactive gh auth."
+  );
+}
+
 async function ensureNodeModules(sourceDir, targetDir) {
   const targetEsbuildPath = path.join(targetDir, "node_modules", "esbuild", "package.json");
   if (await pathExists(targetEsbuildPath)) {
@@ -188,6 +203,7 @@ async function main() {
   await cloneIfMissing(sourceDir, targetDir);
   await alignOriginRemote(sourceDir, targetDir);
   await ensureLocalEnv(sourceDir, targetDir);
+  await reportGitHubAutomationAuth(targetDir);
   await ensureNodeModules(sourceDir, targetDir);
 
   console.log("\nAutomation checkout is ready:");

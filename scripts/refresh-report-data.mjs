@@ -2,7 +2,6 @@
 
 import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
-import path from "node:path";
 import { promisify } from "node:util";
 
 import {
@@ -26,6 +25,7 @@ import {
   TREND_DATE_CACHE_PATH,
   TREND_DATE_CACHE_TMP_PATH
 } from "./dashboard-paths.mjs";
+import { loadLocalEnvFiles, resolveGitHubEnvToken } from "./local-env.mjs";
 import {
   buildSupplementalWriteArtifacts,
   commitSnapshotRefresh,
@@ -281,53 +281,7 @@ function isPlaceholderSite(value) {
 }
 
 async function loadLocalEnv() {
-  const candidateSet = new Set([
-    path.resolve(REPO_ROOT_PATH, ".env.backlog"),
-    path.resolve(REPO_ROOT_PATH, ".env.local")
-  ]);
-
-  try {
-    const gitFile = await fs.readFile(path.resolve(REPO_ROOT_PATH, ".git"), "utf8");
-    const gitDirLine = gitFile.trim();
-    if (gitDirLine.startsWith("gitdir:")) {
-      const gitDirPath = gitDirLine.slice("gitdir:".length).trim();
-      const worktreesMarker = `${path.sep}.git${path.sep}worktrees${path.sep}`;
-      const markerIndex = gitDirPath.indexOf(worktreesMarker);
-      if (markerIndex !== -1) {
-        const inferredRepoRoot = gitDirPath.slice(0, markerIndex);
-        candidateSet.add(path.join(inferredRepoRoot, ".env.backlog"));
-        candidateSet.add(path.join(inferredRepoRoot, ".env.local"));
-      }
-    }
-  } catch {
-    // Ignore missing or unreadable .git metadata.
-  }
-
-  const candidates = [...candidateSet];
-
-  for (const filePath of candidates) {
-    let raw = "";
-    try {
-      raw = await fs.readFile(filePath, "utf8");
-    } catch {
-      continue;
-    }
-
-    for (const line of raw.split(/\r?\n/)) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      const eqIndex = trimmed.indexOf("=");
-      if (eqIndex === -1) continue;
-      const key = trimmed.slice(0, eqIndex).trim();
-      const value = trimmed
-        .slice(eqIndex + 1)
-        .trim()
-        .replace(/^['"]|['"]$/g, "");
-      if (!(key in process.env)) {
-        process.env[key] = value;
-      }
-    }
-  }
+  await loadLocalEnvFiles({ repoRoot: REPO_ROOT_PATH });
 }
 
 function asOfDateTime(date) {
@@ -450,6 +404,9 @@ async function loadGitHubCliToken() {
 export async function resolveGitHubAccessToken(options = {}) {
   const explicitToken = String(options.githubToken || "").trim();
   if (explicitToken) return explicitToken;
+
+  const envToken = resolveGitHubEnvToken(options.env || process.env);
+  if (envToken) return envToken;
 
   if (typeof options.execAuthToken === "function") {
     return String(await options.execAuthToken()).trim();
@@ -1105,7 +1062,7 @@ async function fetchAgileIssueKeys(site, email, token, endpoint) {
     }
 
     if (issues.length === 0) break;
-    if (Boolean(payload?.isLast)) break;
+    if (payload?.isLast) break;
     const total = Number(payload?.total);
     if (Number.isFinite(total) && startAt + issues.length >= total) break;
     startAt += issues.length;
