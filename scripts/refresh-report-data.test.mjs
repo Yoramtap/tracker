@@ -262,6 +262,22 @@ test("resolveGitHubAccessToken prefers the explicit override before gh auth", as
   assert.equal(execCallCount, 0);
 });
 
+test("resolveGitHubAccessToken prefers env tokens before gh auth", async () => {
+  let execCallCount = 0;
+  const token = await resolveGitHubAccessToken({
+    env: {
+      GH_TOKEN: "env-token"
+    },
+    execAuthToken: async () => {
+      execCallCount += 1;
+      return "cli-token";
+    }
+  });
+
+  assert.equal(token, "env-token");
+  assert.equal(execCallCount, 0);
+});
+
 test("normalizeGitHubPullRequestRecord excludes drafts and maps non-draft GitHub PRs", () => {
   assert.equal(
     normalizeGitHubPullRequestRecord("nepgpe/tfc-functionality-usvc", "api", {

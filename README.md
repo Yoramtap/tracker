@@ -22,9 +22,9 @@ This repo has one job: regenerate committed dashboard snapshots and publish a st
 
 - The repo can be public.
 - The Jira API token must never be committed.
-- NEP GitHub access must stay local and read-only.
 - Keep Jira credentials only in `.env.backlog` or `.env.local`.
-- Keep NEP GitHub access in local `gh` auth for `yoram-tap_nepgroup`; do not commit tokens and do not rely on GitHub Actions secrets for PR refreshes.
+- Keep tracker automation GitHub credentials local only. For headless automation, store `GH_TOKEN` or `GITHUB_TOKEN` only in ignored `.env.backlog` / `.env.local` files and never commit it.
+- Interactive local runs may still use `gh` auth for `yoram-tap_nepgroup`; do not rely on GitHub Actions secrets for PR refreshes.
 - `.env*`, `node_modules/`, `.cache/`, and `dist/` are ignored locally.
 
 ## Local Setup
@@ -35,6 +35,8 @@ npm run auth:setup -- --email "you@company.com"
 ```
 
 Run commands from the repo root. The repo is pinned to Node 22 via `.nvmrc` / `.node-version`, so switch your shell to Node 22 before installing. The setup helper prompts for the Jira API token securely and writes a local `.env.backlog` file that stays ignored.
+
+For the weekly headless automation, add a GitHub token to the automation checkout's ignored env file as `GH_TOKEN=` or `GITHUB_TOKEN=` so PR refreshes and `git push` do not depend on interactive Keychain-backed auth.
 
 Optional Jira site override:
 
@@ -70,6 +72,7 @@ Operator helpers:
 - `npm run automation:weekly-refresh`
 
 Use `dev:publish` only as a convenience helper when the repo is already clean. The canonical release instructions live in `docs/release.md`.
+`automation:weekly-refresh` is more forgiving: if the automation checkout has tracked edits, it now publishes from a temporary clean clone for that run so local work does not block the schedule.
 
 ## Cache Behavior
 

@@ -5,14 +5,21 @@
 Before any refresh that touches PR activity:
 
 ```bash
-gh auth status -h github.com
+npm run automation:preflight
 ```
 
 Expected operating model:
 
 - Jira credentials live only in ignored local env files
-- `yoram-tap_nepgroup` stays read-only and is used only through local `gh` auth
+- Headless automation should read `GH_TOKEN` / `GITHUB_TOKEN` from ignored local env files
+- Interactive local runs can still fall back to `gh auth` for `yoram-tap_nepgroup`
 - PR refreshes are run locally, not from GitHub Actions
+
+If you are running manually without a local token-backed env file, sanity-check `gh` too:
+
+```bash
+gh auth status -h github.com
+```
 
 ## Runtime and Checkout
 
@@ -27,6 +34,7 @@ npm run automation:bootstrap
 
 - The default bootstrap target is a sibling checkout such as `../tracker-automation`.
 - After bootstrapping, point the Codex automation at that persistent checkout and use `execution_environment = "local"`.
+- Put `GH_TOKEN=` or `GITHUB_TOKEN=` in that checkout's `.env.backlog` or `.env.local` so refresh + push do not depend on interactive Keychain state.
 - Sanity-check the automation checkout at any time with:
 
 ```bash
@@ -46,7 +54,7 @@ Use this when you want the normal incremental refresh path.
 This command refreshes:
 
 - Jira-backed backlog, UAT, and PR cycle stage timing
-- GitHub-backed PR activity, using local `gh` auth for `nepgpe`
+- GitHub-backed PR activity, using a local env token when present and otherwise falling back to local `gh` auth
 
 ## Clean Refresh
 
@@ -92,8 +100,12 @@ Use `--clean` when you want the publish helper to refresh from Jira and GitHub w
 The helper now:
 
 - verifies you are in a full local checkout on `main`
+- loads ignored local env files before GitHub auth preflight
+- fast-forwards a clean automation checkout to `origin/main` before refreshing
 - validates snapshots before building
 - treats the build as a verification gate only
+- uses `GH_TOKEN` / `GITHUB_TOKEN` for headless `git push` when present
+- falls back to a temporary clean clone when the automation checkout has tracked edits
 - commits only tracked dashboard snapshot files under `data/`
 
 ## Weekly Local Automation
