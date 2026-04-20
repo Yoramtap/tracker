@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-19T11:20:18.848Z",
+  "updatedAt": "2026-04-20T17:48:35.925Z",
   "chartData": {
     "managementBusinessUnit": {
       "scopeLabel": "Broadcast",
@@ -12,7 +12,7 @@
               "sampleCount": 2,
               "devCount": 2,
               "uatCount": 2,
-              "uatAvg": 24.33,
+              "uatAvg": 25.6,
               "issueItems": [
                 {
                   "issueId": "TFC-16151",
@@ -27,7 +27,7 @@
                 {
                   "label": "AU AHS",
                   "devAvg": 7.92,
-                  "uatAvg": 24.33,
+                  "uatAvg": 25.6,
                   "devCount": 2,
                   "uatCount": 2,
                   "sampleCount": 2,
@@ -44,7 +44,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 94.45,
+              "uatAvg": 95.71,
               "issueItems": [
                 {
                   "issueId": "TFC-11526",
@@ -55,7 +55,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.04,
-                  "uatAvg": 94.45,
+                  "uatAvg": 95.71,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -71,7 +71,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 73.11,
+              "uatAvg": 74.38,
               "issueItems": [
                 {
                   "issueId": "TFC-15925",
@@ -82,7 +82,7 @@
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 73.11,
+                  "uatAvg": 74.38,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -98,7 +98,7 @@
               "sampleCount": 4,
               "devCount": 4,
               "uatCount": 4,
-              "uatAvg": 67.69,
+              "uatAvg": 68.95,
               "issueItems": [
                 {
                   "issueId": "TFC-14425",
@@ -121,7 +121,7 @@
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 123.35,
+                  "uatAvg": 124.62,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -132,7 +132,7 @@
                 {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 74.53,
+                  "uatAvg": 75.8,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -143,7 +143,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.43,
-                  "uatAvg": 36.43,
+                  "uatAvg": 37.7,
                   "devCount": 2,
                   "uatCount": 2,
                   "sampleCount": 2,
@@ -160,7 +160,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 128.28,
+              "uatAvg": 129.55,
               "issueItems": [
                 {
                   "issueId": "TFC-14540",
@@ -171,7 +171,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 128.28,
+                  "uatAvg": 129.55,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-19T11:20:18.848Z",
+  "updatedAt": "2026-04-20T17:48:35.925Z",
   "combinedPoints": [
     {
       "date": "2025-10-27",
@@ -613,11 +613,11 @@
       }
     },
     {
-      "date": "2026-04-19",
+      "date": "2026-04-20",
       "api": {
         "highest": 0,
         "high": 2,
-        "medium": 11,
+        "medium": 14,
         "low": 4,
         "lowest": 0
       },
@@ -638,7 +638,7 @@
       "bc": {
         "highest": 5,
         "high": 78,
-        "medium": 131,
+        "medium": 132,
         "low": 8,
         "lowest": 0,
         "longstanding_30d_plus": 204,
