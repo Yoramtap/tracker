@@ -74,3 +74,41 @@ test("loadLocalEnvFiles also reads the parent checkout env for worktree-style gi
     await fs.rm(tempDir, { recursive: true, force: true });
   }
 });
+
+test("loadLocalEnvFiles can override selected inherited values from repo env files", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "tracker-local-env-override-"));
+
+  try {
+    await fs.writeFile(
+      path.join(tempDir, ".env.local"),
+      [
+        "ATLASSIAN_EMAIL=repo@example.com",
+        "ATLASSIAN_API_TOKEN=repo-jira-token",
+        "GH_TOKEN=repo-github-token",
+        ""
+      ].join("\n"),
+      "utf8"
+    );
+    await fs.mkdir(path.join(tempDir, ".git"));
+
+    const env = {
+      ATLASSIAN_EMAIL: "runner@example.com",
+      ATLASSIAN_API_TOKEN: "runner-jira-token",
+      GH_TOKEN: "runner-github-token",
+      UNRELATED_KEY: "keep-me"
+    };
+
+    await loadLocalEnvFiles({
+      repoRoot: tempDir,
+      env,
+      overrideKeys: ["ATLASSIAN_EMAIL", "ATLASSIAN_API_TOKEN", "GH_TOKEN"]
+    });
+
+    assert.equal(env.ATLASSIAN_EMAIL, "repo@example.com");
+    assert.equal(env.ATLASSIAN_API_TOKEN, "repo-jira-token");
+    assert.equal(env.GH_TOKEN, "repo-github-token");
+    assert.equal(env.UNRELATED_KEY, "keep-me");
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+});

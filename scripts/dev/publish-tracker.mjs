@@ -18,6 +18,15 @@ const EXPECTED_AUTOMATION_UPSTREAM = `origin/${EXPECTED_AUTOMATION_BRANCH}`;
 const PINNED_NODE_MAJOR = "22";
 const ALLOWED_COMMIT_PATHS = new Set(ALL_DASHBOARD_SNAPSHOT_PATHS);
 const GIT_ASKPASS_TOKEN_ENV = "TRACKER_GIT_AUTH_TOKEN";
+const GITHUB_AUTH_VALIDATION_RETRIES = 3;
+const GITHUB_AUTH_VALIDATION_TIMEOUT_MS = 10000;
+const LOCAL_AUTOMATION_ENV_OVERRIDE_KEYS = Object.freeze([
+  "ATLASSIAN_SITE",
+  "ATLASSIAN_EMAIL",
+  "ATLASSIAN_API_TOKEN",
+  "GH_TOKEN",
+  "GITHUB_TOKEN"
+]);
 const OPTIONAL_ISOLATED_STATE_PATHS = Object.freeze([
   path.join(".cache", "business-unit-uat-done-cache.json"),
   path.join(".cache", "pr-activity-issue-cache.json"),
@@ -278,7 +287,10 @@ async function ensureLocalEnv(repoDir) {
     throw new Error(`Expected ${repoDir} to contain .env.backlog or .env.local for Jira auth.`);
   }
 
-  await loadLocalEnvFiles({ repoRoot: repoDir });
+  await loadLocalEnvFiles({
+    repoRoot: repoDir,
+    overrideKeys: LOCAL_AUTOMATION_ENV_OVERRIDE_KEYS
+  });
 }
 
 async function ensureBuildDependency(repoDir) {
@@ -343,30 +355,91 @@ function buildGitHubApiHeaders(token) {
   };
 }
 
-async function ensureGitHubTokenAuth(token) {
-  const response = await fetch("https://api.github.com/user", {
-    headers: buildGitHubApiHeaders(token)
-  });
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-  if (response.ok) {
-    return;
-  }
+function describeGitHubProbeError(error) {
+  const errorName = String(error?.name || "").trim();
+  const errorMessage = String(error?.message || "").trim();
+  const causeCode = String(error?.cause?.code || "").trim();
+  const causeMessage = String(error?.cause?.message || "").trim();
+  const detail = [errorName, errorMessage, causeCode || causeMessage]
+    .filter(Boolean)
+    .filter((value, index, values) => values.indexOf(value) === index)
+    .join(": ");
+  return detail || "unknown transport error";
+}
 
-  let errorDetail = "";
+function buildGitHubValidationWarning(detail) {
+  const safeDetail = String(detail || "").trim();
+  return `Warning: GitHub token preflight validation could not be confirmed${
+    safeDetail ? ` (${safeDetail})` : ""
+  }. Proceeding because live GitHub requests during refresh will still verify access.`;
+}
+
+async function fetchGitHubValidationProbe(token) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), GITHUB_AUTH_VALIDATION_TIMEOUT_MS);
+
   try {
-    const payload = await response.json();
-    if (payload?.message) {
-      errorDetail = ` ${payload.message}`.trimEnd();
+    return await fetch("https://api.github.com/user", {
+      headers: buildGitHubApiHeaders(token),
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function ensureGitHubTokenAuth(token) {
+  for (let attempt = 0; attempt < GITHUB_AUTH_VALIDATION_RETRIES; attempt += 1) {
+    let response;
+    try {
+      response = await fetchGitHubValidationProbe(token);
+    } catch (error) {
+      if (attempt === GITHUB_AUTH_VALIDATION_RETRIES - 1) {
+        return buildGitHubValidationWarning(describeGitHubProbeError(error));
+      }
+      await sleep(500 * 2 ** attempt);
+      continue;
     }
-  } catch {
-    // Ignore non-JSON responses.
+
+    if (response.ok) {
+      return "";
+    }
+
+    let errorDetail = "";
+    try {
+      const payload = await response.json();
+      if (payload?.message) {
+        errorDetail = String(payload.message).trim();
+      }
+    } catch {
+      // Ignore non-JSON responses.
+    }
+
+    if (response.status === 401) {
+      throw new Error(
+        `GitHub token from GH_TOKEN/GITHUB_TOKEN failed validation (${response.status} ${response.statusText}).${
+          errorDetail ? ` ${errorDetail}` : ""
+        } Remove the stale token from local env files or replace it with a valid repo-scoped token.`
+      );
+    }
+
+    if (
+      attempt === GITHUB_AUTH_VALIDATION_RETRIES - 1 ||
+      !(response.status === 403 || response.status === 429 || response.status >= 500)
+    ) {
+      return buildGitHubValidationWarning(
+        [response.status, response.statusText, errorDetail].filter(Boolean).join(" ")
+      );
+    }
+
+    await sleep(500 * 2 ** attempt);
   }
 
-  throw new Error(
-    `GitHub token from GH_TOKEN/GITHUB_TOKEN failed validation (${response.status} ${response.statusText}).${
-      errorDetail ? ` ${errorDetail}` : ""
-    } Remove the stale token from local env files or replace it with a valid repo-scoped token.`
-  );
+  return buildGitHubValidationWarning("exhausted validation retries");
 }
 
 async function runGitWithCredentialEnv(cwd, args, options = {}) {
