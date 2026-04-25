@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-04-20T17:48:35.917Z",
+  "generatedAt": "2026-04-25T20:07:33.363Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-04-01",
-      "totalShipped": 170,
+      "totalShipped": 172,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -1539,7 +1539,7 @@
         {
           "monthStart": "2026-04-01",
           "monthKey": "2026-04",
-          "totalShipped": 4,
+          "totalShipped": 6,
           "teamCount": 3,
           "teams": [
             {
@@ -1574,13 +1574,25 @@
             },
             {
               "team": "Orchestration",
-              "shippedCount": 1,
+              "shippedCount": 3,
               "ideas": [
                 {
                   "issueKey": "TPS-94",
                   "productAreaLabel": "NEP Platform",
                   "summary": "Grass Valley AMPP",
                   "shippedAt": "2026-04-01T02:40:41.034Z"
+                },
+                {
+                  "issueKey": "TPS-369",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Launch Snaplist for NEP platform launch",
+                  "shippedAt": "2026-04-23T03:03:58.791Z"
+                },
+                {
+                  "issueKey": "TPS-92",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Sony M2L-X",
+                  "shippedAt": "2026-04-23T05:00:42.491Z"
                 }
               ]
             }

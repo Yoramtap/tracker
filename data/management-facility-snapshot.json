@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-20T17:48:35.925Z",
+  "updatedAt": "2026-04-25T20:07:33.376Z",
   "chartData": {
     "managementBusinessUnit": {
       "scopeLabel": "Broadcast",
@@ -8,16 +8,12 @@
           "rows": [
             {
               "label": "ANZJ",
-              "devAvg": 7.92,
-              "sampleCount": 2,
-              "devCount": 2,
-              "uatCount": 2,
-              "uatAvg": 25.6,
+              "devAvg": 7.01,
+              "sampleCount": 1,
+              "devCount": 1,
+              "uatCount": 1,
+              "uatAvg": 30.69,
               "issueItems": [
-                {
-                  "issueId": "TFC-16151",
-                  "facilityLabel": "Facility AU AHS"
-                },
                 {
                   "issueId": "TFC-16160",
                   "facilityLabel": "Facility AU AHS"
@@ -26,13 +22,12 @@
               "facilities": [
                 {
                   "label": "AU AHS",
-                  "devAvg": 7.92,
-                  "uatAvg": 25.6,
-                  "devCount": 2,
-                  "uatCount": 2,
-                  "sampleCount": 2,
+                  "devAvg": 7.01,
+                  "uatAvg": 30.69,
+                  "devCount": 1,
+                  "uatCount": 1,
+                  "sampleCount": 1,
                   "issueIds": [
-                    "TFC-16151",
                     "TFC-16160"
                   ]
                 }
@@ -44,7 +39,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 95.71,
+              "uatAvg": 100.81,
               "issueItems": [
                 {
                   "issueId": "TFC-11526",
@@ -55,7 +50,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.04,
-                  "uatAvg": 95.71,
+                  "uatAvg": 100.81,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -71,7 +66,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 74.38,
+              "uatAvg": 79.48,
               "issueItems": [
                 {
                   "issueId": "TFC-15925",
@@ -82,7 +77,7 @@
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 74.38,
+                  "uatAvg": 79.48,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -98,7 +93,7 @@
               "sampleCount": 4,
               "devCount": 4,
               "uatCount": 4,
-              "uatAvg": 68.95,
+              "uatAvg": 74.06,
               "issueItems": [
                 {
                   "issueId": "TFC-14425",
@@ -121,7 +116,7 @@
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 124.62,
+                  "uatAvg": 129.72,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -132,7 +127,7 @@
                 {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 75.8,
+                  "uatAvg": 80.9,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -143,7 +138,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.43,
-                  "uatAvg": 37.7,
+                  "uatAvg": 42.8,
                   "devCount": 2,
                   "uatCount": 2,
                   "sampleCount": 2,
@@ -160,7 +155,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 129.55,
+              "uatAvg": 134.65,
               "issueItems": [
                 {
                   "issueId": "TFC-14540",
@@ -171,7 +166,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 129.55,
+                  "uatAvg": 134.65,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -187,11 +182,11 @@
           "rows": [
             {
               "label": "ANZJ",
-              "devAvg": 30.8,
-              "sampleCount": 20,
-              "devCount": 20,
-              "uatCount": 20,
-              "uatAvg": 29.53,
+              "devAvg": 29.75,
+              "sampleCount": 21,
+              "devCount": 21,
+              "uatCount": 21,
+              "uatAvg": 29.44,
               "issueItems": [
                 {
                   "issueId": "TFC-14929",
@@ -203,6 +198,10 @@
                 },
                 {
                   "issueId": "TFC-15659",
+                  "facilityLabel": "Facility AU AHS"
+                },
+                {
+                  "issueId": "TFC-16151",
                   "facilityLabel": "Facility AU AHS"
                 },
                 {
@@ -277,15 +276,16 @@
               "facilities": [
                 {
                   "label": "AU AHS",
-                  "devAvg": 5.4,
-                  "uatAvg": 21.64,
-                  "devCount": 4,
-                  "uatCount": 4,
-                  "sampleCount": 4,
+                  "devAvg": 6.08,
+                  "uatAvg": 22.83,
+                  "devCount": 5,
+                  "uatCount": 5,
+                  "sampleCount": 5,
                   "issueIds": [
                     "TFC-14929",
                     "TFC-15598",
                     "TFC-15659",
+                    "TFC-16151",
                     "TFC-16205"
                   ]
                 },
