@@ -63,3 +63,21 @@ test("prepareAutomationGitHubAuth throws when neither env nor gh provide a token
     new RegExp(escapedGuidance)
   );
 });
+
+test("prepareAutomationGitHubAuth includes validator warnings without failing auth setup", async () => {
+  const env = {
+    GH_TOKEN: "env-token"
+  };
+
+  const result = await prepareAutomationGitHubAuth({
+    env,
+    resolveAccessToken: async () => "env-token",
+    validateAccessToken: async () =>
+      "Warning: GitHub token preflight validation could not be confirmed because the network probe failed."
+  });
+
+  assert.equal(result.token, "env-token");
+  assert.equal(result.source, "env");
+  assert.equal(result.seededEnv, false);
+  assert.match(result.warning, /preflight validation could not be confirmed/i);
+});

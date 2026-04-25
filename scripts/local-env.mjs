@@ -11,11 +11,22 @@ export function resolveGitHubEnvToken(env = process.env) {
   return "";
 }
 
-export async function loadLocalEnvFiles({ repoRoot, env = process.env } = {}) {
+export async function loadLocalEnvFiles({
+  repoRoot,
+  env = process.env,
+  overrideKeys = []
+} = {}) {
   const safeRepoRoot = String(repoRoot || "").trim();
   if (!safeRepoRoot) {
     throw new Error("Missing repoRoot for local env loading.");
   }
+  const overrideKeySet = new Set(
+    Array.isArray(overrideKeys)
+      ? overrideKeys
+          .map((key) => String(key || "").trim())
+          .filter(Boolean)
+      : []
+  );
 
   const candidateSet = new Set([
     path.resolve(safeRepoRoot, ".env.backlog"),
@@ -61,7 +72,7 @@ export async function loadLocalEnvFiles({ repoRoot, env = process.env } = {}) {
         .slice(eqIndex + 1)
         .trim()
         .replace(/^['"]|['"]$/g, "");
-      if (!(key in env)) {
+      if (!(key in env) || overrideKeySet.has(key)) {
         env[key] = value;
       }
     }

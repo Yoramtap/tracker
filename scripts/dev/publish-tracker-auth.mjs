@@ -24,7 +24,7 @@ export async function prepareAutomationGitHubAuth(options = {}) {
     );
   }
 
-  await validateAccessToken(token);
+  const validationWarning = String((await validateAccessToken(token)) || "").trim();
 
   let seededEnv = false;
   if (!envToken && !env.GH_TOKEN && !env.GITHUB_TOKEN) {
@@ -32,12 +32,20 @@ export async function prepareAutomationGitHubAuth(options = {}) {
     seededEnv = true;
   }
 
+  const warningParts = [];
+  if (!envToken) {
+    warningParts.push(
+      `Warning: using gh auth token fallback for this automation run. ${HEADLESS_GITHUB_TOKEN_GUIDANCE}`
+    );
+  }
+  if (validationWarning) {
+    warningParts.push(validationWarning);
+  }
+
   return {
     token,
     source: envToken ? "env" : "gh",
     seededEnv,
-    warning: envToken
-      ? ""
-      : `Warning: using gh auth token fallback for this automation run. ${HEADLESS_GITHUB_TOKEN_GUIDANCE}`
+    warning: warningParts.join("\n")
   };
 }
