@@ -10,6 +10,10 @@ import {
   ANALYSIS_REPORT_PATH,
   DIST_DIR
 } from "../dashboard-contract.mjs";
+import {
+  describeRetryableGitRemoteFailure,
+  runRetryableGitRemoteCommand
+} from "./git-remote-retry.mjs";
 import { loadLocalEnvFiles, resolveGitHubEnvToken } from "../local-env.mjs";
 import { prepareAutomationGitHubAuth } from "./publish-tracker-auth.mjs";
 
@@ -454,6 +458,20 @@ async function runGitWithCredentialEnv(cwd, args, options = {}) {
   });
 }
 
+async function runRetryableGitRemoteOperation(operationName, run) {
+  return await runRetryableGitRemoteCommand({
+    operationName,
+    async onRetry({ attempt, maxAttempts, waitMs, error }) {
+      console.warn(
+        `${operationName} hit a retryable network error (attempt ${attempt}/${maxAttempts}): ${describeRetryableGitRemoteFailure(
+          error
+        )}. Retrying in ${Math.ceil(waitMs / 1000)}s.`
+      );
+    },
+    run
+  });
+}
+
 async function ensureGhAuth() {
   const auth = await prepareAutomationGitHubAuth({
     env: process.env,
@@ -553,12 +571,17 @@ async function commitRepo(cwd, message, changedSnapshotPaths) {
 
 async function syncRepoWithOrigin(repoDir) {
   console.log(`\n=== Syncing ${EXPECTED_AUTOMATION_BRANCH} with ${EXPECTED_AUTOMATION_UPSTREAM} ===`);
-  await runGitWithCredentialEnv(repoDir, [
-    "pull",
-    "--ff-only",
-    "origin",
-    EXPECTED_AUTOMATION_BRANCH
-  ]);
+  await runRetryableGitRemoteOperation(
+    `git pull --ff-only origin ${EXPECTED_AUTOMATION_BRANCH}`,
+    async () => {
+      await runGitWithCredentialEnv(repoDir, [
+        "pull",
+        "--ff-only",
+        "origin",
+        EXPECTED_AUTOMATION_BRANCH
+      ]);
+    }
+  );
 }
 
 function buildGitAskpassScript() {
@@ -602,7 +625,9 @@ async function withGitCredentialEnv(githubToken, work) {
 
 async function pushRepo(cwd) {
   console.log("\n=== Pushing repo ===");
-  await runGitWithCredentialEnv(cwd, ["push"]);
+  await runRetryableGitRemoteOperation("git push", async () => {
+    await runGitWithCredentialEnv(cwd, ["push"]);
+  });
 }
 
 async function prepareIsolatedPublishWorkspace(sourceRepoDir) {
