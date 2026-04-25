@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-25T20:05:36.758Z",
+  "updatedAt": "2026-04-25T21:39:47.975Z",
   "defaultTeam": "bc",
   "defaultWindow": "30d",
   "windows": {
@@ -10,13 +10,13 @@
           "key": "api",
           "label": "API",
           "issueCount": 33,
-          "totalCycleDays": 5.6,
+          "totalCycleDays": 5.7,
           "bottleneckLabel": "In Review",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 0.9,
+              "days": 1,
               "sampleCount": 13
             },
             {
@@ -37,7 +37,7 @@
           "key": "legacy",
           "label": "Legacy FE",
           "issueCount": 8,
-          "totalCycleDays": 10.4,
+          "totalCycleDays": 10.5,
           "bottleneckLabel": "In Review",
           "stages": [
             {
@@ -49,7 +49,7 @@
             {
               "key": "review",
               "label": "In Review",
-              "days": 6.4,
+              "days": 6.5,
               "sampleCount": 5
             },
             {
@@ -91,7 +91,7 @@
           "key": "bc",
           "label": "BC",
           "issueCount": 47,
-          "totalCycleDays": 10.7,
+          "totalCycleDays": 10.8,
           "bottleneckLabel": "QA",
           "stages": [
             {
@@ -109,7 +109,7 @@
             {
               "key": "merge",
               "label": "QA",
-              "days": 5.1,
+              "days": 5.2,
               "sampleCount": 16
             }
           ]
@@ -258,13 +258,13 @@
           "key": "bc",
           "label": "BC",
           "issueCount": 64,
-          "totalCycleDays": 13.2,
+          "totalCycleDays": 13.4,
           "bottleneckLabel": "QA",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 5,
+              "days": 5.1,
               "sampleCount": 40
             },
             {
@@ -276,7 +276,7 @@
             {
               "key": "merge",
               "label": "QA",
-              "days": 6.2,
+              "days": 6.3,
               "sampleCount": 27
             }
           ]
@@ -425,7 +425,7 @@
           "key": "bc",
           "label": "BC",
           "issueCount": 151,
-          "totalCycleDays": 13.4,
+          "totalCycleDays": 13.5,
           "bottleneckLabel": "QA",
           "stages": [
             {
@@ -443,7 +443,7 @@
             {
               "key": "merge",
               "label": "QA",
-              "days": 6.7,
+              "days": 6.8,
               "sampleCount": 76
             }
           ]
