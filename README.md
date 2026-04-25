@@ -36,7 +36,7 @@ npm run auth:setup -- --email "you@company.com"
 
 Run commands from the repo root. The repo is pinned to Node 22 via `.nvmrc` / `.node-version`, so switch your shell to Node 22 before installing. The setup helper prompts for the Jira API token securely and writes a local `.env.backlog` file that stays ignored.
 
-For the weekly headless automation, add a GitHub token to the automation checkout's ignored env file as `GH_TOKEN=` or `GITHUB_TOKEN=` so PR refreshes and `git push` do not depend on interactive Keychain-backed auth.
+For the weekly headless automation, add a GitHub token to the automation checkout's ignored env file as `GH_TOKEN=` or `GITHUB_TOKEN=` so PR refreshes and `git push` do not depend on interactive `gh` or Keychain-backed auth. The weekly wrapper can now reuse `gh auth token` for the current run when no env token is present, but that fallback is still less reliable than a dedicated local token.
 
 Optional Jira site override:
 

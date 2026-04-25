@@ -156,7 +156,7 @@ async function reportGitHubAutomationAuth(targetDir) {
   }
 
   console.log(
-    "No GH_TOKEN/GITHUB_TOKEN found in automation checkout env files; weekly refreshes will fall back to interactive gh auth."
+    "No GH_TOKEN/GITHUB_TOKEN found in automation checkout env files; weekly refreshes can fall back to gh auth token extraction, but adding a local token is still recommended."
   );
 }
 

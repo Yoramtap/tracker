@@ -12,7 +12,7 @@ Expected operating model:
 
 - Jira credentials live only in ignored local env files
 - Headless automation should read `GH_TOKEN` / `GITHUB_TOKEN` from ignored local env files
-- Interactive local runs can still fall back to `gh auth` for `private-github-account`
+- Interactive local runs can still fall back to `gh auth token` for `private-github-account`
 - PR refreshes are run locally, not from GitHub Actions
 
 If you are running manually without a local token-backed env file, sanity-check `gh` too:
@@ -34,7 +34,7 @@ npm run automation:bootstrap
 
 - The default bootstrap target is a sibling checkout such as `../tracker-automation`.
 - After bootstrapping, point the Codex automation at that persistent checkout and use `execution_environment = "local"`.
-- Put `GH_TOKEN=` or `GITHUB_TOKEN=` in that checkout's `.env.backlog` or `.env.local` so refresh + push do not depend on interactive Keychain state.
+- Put `GH_TOKEN=` or `GITHUB_TOKEN=` in that checkout's `.env.backlog` or `.env.local` so refresh + push do not depend on interactive `gh` or Keychain state.
 - Sanity-check the automation checkout at any time with:
 
 ```bash
@@ -101,6 +101,7 @@ The helper now:
 
 - verifies you are in a full local checkout on `main`
 - loads ignored local env files before GitHub auth preflight
+- seeds `GH_TOKEN` for the current run from `gh auth token` when no env token is present, so refresh + push share the same resolved credential path
 - fast-forwards a clean automation checkout to `origin/main` before refreshing
 - validates snapshots before building
 - treats the build as a verification gate only

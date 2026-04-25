@@ -11,6 +11,7 @@ import {
   DIST_DIR
 } from "../dashboard-contract.mjs";
 import { loadLocalEnvFiles, resolveGitHubEnvToken } from "../local-env.mjs";
+import { prepareAutomationGitHubAuth } from "./publish-tracker-auth.mjs";
 
 const EXPECTED_AUTOMATION_BRANCH = (process.env.TRACKER_AUTOMATION_BRANCH || "main").trim();
 const EXPECTED_AUTOMATION_UPSTREAM = `origin/${EXPECTED_AUTOMATION_BRANCH}`;
@@ -380,21 +381,15 @@ async function runGitWithCredentialEnv(cwd, args, options = {}) {
   });
 }
 
-async function ensureGhAuth(repoDir) {
-  const githubToken = resolveGitHubEnvToken();
-  if (githubToken) {
-    await ensureGitHubTokenAuth(githubToken);
-    return;
-  }
-
-  await runCommand("gh", ["auth", "status", "-h", "github.com"], {
-    cwd: repoDir,
-    stdio: "pipe",
-    env: {
-      ...process.env,
-      GH_PAGER: "cat"
-    }
+async function ensureGhAuth() {
+  const auth = await prepareAutomationGitHubAuth({
+    env: process.env,
+    validateAccessToken: ensureGitHubTokenAuth
   });
+
+  if (auth.warning) {
+    console.warn(auth.warning);
+  }
 }
 
 async function runPreflight(repoDir, { refresh, shouldPush, preflightOnly }) {
@@ -407,7 +402,7 @@ async function runPreflight(repoDir, { refresh, shouldPush, preflightOnly }) {
   warnOnNodeVersionMismatch();
 
   if (refresh || shouldPush || preflightOnly) {
-    await ensureGhAuth(repoDir);
+    await ensureGhAuth();
   }
 }
 
