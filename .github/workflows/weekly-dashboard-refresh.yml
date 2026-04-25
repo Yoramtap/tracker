@@ -1,0 +1,96 @@
+name: Weekly Dashboard Refresh
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * 1"
+    - cron: "0 8 * * 1"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-dashboard-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check local schedule
+        id: schedule
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$(TZ=Europe/Amsterdam date +%u)" = "1" ] && [ "$(TZ=Europe/Amsterdam date +%H)" = "09" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.schedule.outputs.should_run == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Node
+        if: steps.schedule.outputs.should_run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.schedule.outputs.should_run == 'true'
+        run: npm ci
+
+      - name: Refresh dashboard data
+        if: steps.schedule.outputs.should_run == 'true'
+        env:
+          ATLASSIAN_SITE: ${{ secrets.ATLASSIAN_SITE }}
+          ATLASSIAN_EMAIL: ${{ secrets.ATLASSIAN_EMAIL }}
+          ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$ATLASSIAN_SITE" ] || [ -z "$ATLASSIAN_EMAIL" ] || [ -z "$ATLASSIAN_API_TOKEN" ]; then
+            echo "Missing one or more required Jira secrets: ATLASSIAN_SITE, ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN." >&2
+            exit 1
+          fi
+
+          npm run data:refresh
+
+      - name: Validate dashboard snapshots
+        if: steps.schedule.outputs.should_run == 'true'
+        run: npm run data:validate
+
+      - name: Build dashboard
+        if: steps.schedule.outputs.should_run == 'true'
+        run: npm run build
+
+      - name: Commit snapshot changes
+        if: steps.schedule.outputs.should_run == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            data/snapshot.json \
+            data/backlog-snapshot.json \
+            data/contributors-snapshot.json \
+            data/management-facility-snapshot.json \
+            data/pr-activity-snapshot.json \
+            data/pr-cycle-snapshot.json \
+            data/product-cycle-shipments-snapshot.json \
+            data/product-cycle-snapshot.json
+
+          if git diff --cached --quiet; then
+            echo "No dashboard snapshot changes to commit."
+            exit 0
+          fi
+
+          git commit -m "chore: refresh tracker snapshots"
+          git push origin HEAD:main
