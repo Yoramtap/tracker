@@ -83,7 +83,7 @@ const BOARDS = [
   {
     constName: "BOARD_40_TREND",
     baseJql: "project = TFC AND type = Bug AND labels = Broadcast",
-    doneStatuses: '(Done, "Won\'t Fix")',
+    doneStatuses: '(Done, "Won\'t Fix", Duplicate)',
     includeLongstandingCounts: true
   },
   {
