@@ -491,7 +491,7 @@ export function normalizeGitHubReviewToMergeRecord(repo, team, pullRequest, revi
     .filter(Boolean)
     .filter((reviewDate) => reviewDate <= normalizedPullRequest.mergedProxyDate)
     .sort();
-  const reviewStartedAt = submittedReviews[submittedReviews.length - 1] || "";
+  const reviewStartedAt = submittedReviews[0] || "";
   if (!reviewStartedAt) return null;
 
   const reviewToMergeDays = daysBetweenIsoDates(
@@ -2481,7 +2481,7 @@ function buildPrActivityPoints(byDate, dates) {
 function buildPrActivityCaveat(source) {
   const safeSource = String(source || "").trim().toLowerCase();
   if (safeSource === "github_pull_requests") {
-    return "Counts are sourced from GitHub pull requests and attributed by committed repo-to-team mapping. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the latest submitted GitHub review to mergedAt.";
+    return "Counts are sourced from GitHub pull requests and attributed by committed repo-to-team mapping. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the first submitted non-author GitHub review to mergedAt.";
   }
   return "Counts are deduped from Jira dev-status pull request records and attributed by Jira team label. Inflow dates use the earliest available PR lastUpdate and source-branch last commit timestamp, then are bucketed to Jira sprint points. Merged dates use Jira PR lastUpdate as a merge proxy and are bucketed to the corresponding sprint point. Review-to-merge time is a ticket proxy: first Jira In Review status to linked merged PR proxy date. Multiple done Jira tickets can still map to the same underlying PR.";
 }

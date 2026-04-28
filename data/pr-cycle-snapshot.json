@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-28T20:05:32.025Z",
+  "updatedAt": "2026-04-28T20:52:12.357Z",
   "defaultTeam": "bc",
   "defaultWindow": "30d",
   "windows": {
@@ -204,7 +204,7 @@
           "key": "legacy",
           "label": "Legacy FE",
           "issueCount": 11,
-          "totalCycleDays": 12.4,
+          "totalCycleDays": 12.5,
           "bottleneckLabel": "In Review",
           "stages": [
             {
@@ -216,7 +216,7 @@
             {
               "key": "review",
               "label": "In Review",
-              "days": 8.6,
+              "days": 8.7,
               "sampleCount": 9
             },
             {

@@ -10,7 +10,7 @@ Success means:
 
 - `PRs opened` is sourced from real GitHub non-draft PR `createdAt`
 - `PRs merged` is sourced from real GitHub PR `mergedAt`
-- review-to-merge is sourced from the latest submitted non-author GitHub review
+- review-to-merge is sourced from the first submitted non-author GitHub review
   to `mergedAt`
 - `PRs / sprint` and equivalent inflow metrics in workflow views are derived
   from GitHub PR events rather than Jira-linked ticket proxies
@@ -86,9 +86,9 @@ User-facing PR count surfaces:
 
 ### Review To Merge
 
-- Source fields: latest submitted non-author GitHub review and GitHub `mergedAt`
+- Source fields: first submitted non-author GitHub review and GitHub `mergedAt`
 - Applies only to merged non-draft PRs
-- Measures the latest review cycle, not the first-ever review on the PR
+- Measures from the first observed review activity through merge
 
 ### Team Attribution
 
@@ -248,7 +248,7 @@ Conventions:
 - `pr-cycle-snapshot.json` inflow metrics no longer depend on Jira proxy counts
 - the development workflow trends panel and workflow breakdown panel show
   GitHub-sourced PR counts
-- the workflow trends review chart shows latest-review-cycle-to-merge from
+- the workflow trends review chart shows first-review-to-merge from
   GitHub review events
 - repo ownership is resolved through an explicit map, with majority-vote defaults
   and override support
