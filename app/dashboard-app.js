@@ -395,11 +395,16 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
 
   function formatCompactChartDateTick(value) {
     if (!Number.isFinite(value) || value <= 0) return "";
-    return new Date(value).toLocaleDateString("en-US", {
+    const date = new Date(value);
+    const month = date.toLocaleDateString("en-US", {
       month: "short",
+      timeZone: "UTC"
+    });
+    const year = date.toLocaleDateString("en-US", {
       year: "2-digit",
       timeZone: "UTC"
     });
+    return `${month} '${year}`;
   }
 
   function formatCompactChartPointDate(dateText) {
