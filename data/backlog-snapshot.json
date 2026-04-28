@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-28T09:25:40.221Z",
+  "updatedAt": "2026-04-28T10:51:46.204Z",
   "combinedPoints": [
     {
       "date": "2025-11-10",
@@ -370,7 +370,7 @@
         "lowest": 0
       },
       "titanium": {
-        "highest": 2,
+        "highest": 1,
         "high": 0,
         "medium": 0,
         "low": 0,
@@ -403,7 +403,7 @@
       "bc": {
         "highest": 3,
         "high": 70,
-        "medium": 108,
+        "medium": 107,
         "low": 8,
         "lowest": 0,
         "longstanding_30d_plus": 168,
@@ -417,7 +417,7 @@
         "lowest": 0
       },
       "titanium": {
-        "highest": 1,
+        "highest": 0,
         "high": 2,
         "medium": 0,
         "low": 0,
@@ -450,7 +450,7 @@
       "bc": {
         "highest": 6,
         "high": 70,
-        "medium": 113,
+        "medium": 112,
         "low": 8,
         "lowest": 0,
         "longstanding_30d_plus": 169,
@@ -464,7 +464,7 @@
         "lowest": 0
       },
       "titanium": {
-        "highest": 1,
+        "highest": 0,
         "high": 2,
         "medium": 0,
         "low": 0,
@@ -497,10 +497,10 @@
       "bc": {
         "highest": 8,
         "high": 72,
-        "medium": 114,
+        "medium": 113,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 176,
+        "longstanding_30d_plus": 175,
         "longstanding_60d_plus": 164
       },
       "workers": {
@@ -511,7 +511,7 @@
         "lowest": 0
       },
       "titanium": {
-        "highest": 1,
+        "highest": 0,
         "high": 1,
         "medium": 0,
         "low": 0,
@@ -544,10 +544,10 @@
       "bc": {
         "highest": 3,
         "high": 70,
-        "medium": 120,
+        "medium": 119,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 187,
+        "longstanding_30d_plus": 186,
         "longstanding_60d_plus": 167
       },
       "workers": {
@@ -558,7 +558,7 @@
         "lowest": 0
       },
       "titanium": {
-        "highest": 1,
+        "highest": 0,
         "high": 1,
         "medium": 0,
         "low": 0,
@@ -591,10 +591,10 @@
       "bc": {
         "highest": 4,
         "high": 70,
-        "medium": 119,
+        "medium": 118,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 183,
+        "longstanding_30d_plus": 182,
         "longstanding_60d_plus": 169
       },
       "workers": {
@@ -605,7 +605,7 @@
         "lowest": 0
       },
       "titanium": {
-        "highest": 1,
+        "highest": 0,
         "high": 1,
         "medium": 0,
         "low": 0,
@@ -638,11 +638,11 @@
       "bc": {
         "highest": 3,
         "high": 69,
-        "medium": 114,
+        "medium": 113,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 179,
-        "longstanding_60d_plus": 166
+        "longstanding_30d_plus": 178,
+        "longstanding_60d_plus": 165
       },
       "workers": {
         "highest": 0,
@@ -652,7 +652,7 @@
         "lowest": 0
       },
       "titanium": {
-        "highest": 1,
+        "highest": 0,
         "high": 1,
         "medium": 0,
         "low": 0,

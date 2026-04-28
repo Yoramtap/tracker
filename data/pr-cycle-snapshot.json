@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-28T09:18:12.410Z",
+  "updatedAt": "2026-04-28T10:49:32.683Z",
   "defaultTeam": "bc",
   "defaultWindow": "30d",
   "windows": {
@@ -37,13 +37,13 @@
           "key": "legacy",
           "label": "Legacy FE",
           "issueCount": 9,
-          "totalCycleDays": 7.4,
+          "totalCycleDays": 7.5,
           "bottleneckLabel": "In Review",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 1.9,
+              "days": 2,
               "sampleCount": 8
             },
             {
@@ -91,7 +91,7 @@
           "key": "bc",
           "label": "BC",
           "issueCount": 49,
-          "totalCycleDays": 12.2,
+          "totalCycleDays": 12.3,
           "bottleneckLabel": "QA",
           "stages": [
             {
@@ -109,7 +109,7 @@
             {
               "key": "merge",
               "label": "QA",
-              "days": 6.9,
+              "days": 7,
               "sampleCount": 13
             }
           ]
@@ -258,13 +258,13 @@
           "key": "bc",
           "label": "BC",
           "issueCount": 73,
-          "totalCycleDays": 12.3,
+          "totalCycleDays": 12.4,
           "bottleneckLabel": "QA",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 4.5,
+              "days": 4.6,
               "sampleCount": 45
             },
             {

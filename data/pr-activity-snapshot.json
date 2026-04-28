@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-28T09:25:40.221Z",
+  "updatedAt": "2026-04-28T10:51:46.204Z",
   "prActivity": {
     "since": "2025-03-31",
     "interval": "sprint",
@@ -1613,9 +1613,9 @@
         "date": "2026-04-01",
         "api": {
           "offered": 70,
-          "merged": 65,
+          "merged": 66,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 55
+          "avgReviewToMergeSampleCount": 56
         },
         "legacy": {
           "offered": 6,

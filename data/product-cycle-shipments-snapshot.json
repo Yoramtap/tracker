@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-04-28T09:25:40.206Z",
+  "generatedAt": "2026-04-28T10:51:46.194Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-04-01",
-      "totalShipped": 172,
+      "totalShipped": 173,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -1539,7 +1539,7 @@
         {
           "monthStart": "2026-04-01",
           "monthKey": "2026-04",
-          "totalShipped": 6,
+          "totalShipped": 7,
           "teamCount": 3,
           "teams": [
             {
@@ -1574,7 +1574,7 @@
             },
             {
               "team": "Orchestration",
-              "shippedCount": 3,
+              "shippedCount": 4,
               "ideas": [
                 {
                   "issueKey": "TPS-94",
@@ -1593,6 +1593,12 @@
                   "productAreaLabel": "NEP Platform",
                   "summary": "Sony M2L-X",
                   "shippedAt": "2026-04-23T05:00:42.491Z"
+                },
+                {
+                  "issueKey": "TPS-390",
+                  "productAreaLabel": "",
+                  "summary": "Integrate Panasonic Kairos into NEP platform",
+                  "shippedAt": "2026-04-28T10:44:46.964Z"
                 }
               ]
             }
