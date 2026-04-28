@@ -49,11 +49,20 @@
   function formatTrendTickLabel(dateText) {
     const timestamp = new Date(`${String(dateText || "")}T00:00:00Z`).getTime();
     if (!Number.isFinite(timestamp) || timestamp <= 0) return "";
-    return new Date(timestamp).toLocaleDateString("en-US", {
+    const date = new Date(timestamp);
+    const month = date.toLocaleDateString("en-US", {
       month: "short",
+      timeZone: "UTC"
+    });
+    const day = date.toLocaleDateString("en-US", {
       day: "numeric",
       timeZone: "UTC"
     });
+    const year = date.toLocaleDateString("en-US", {
+      year: "2-digit",
+      timeZone: "UTC"
+    });
+    return `${month} ${day} '${year}`;
   }
 
   function getCycleFillWidth(value, upperBound) {
