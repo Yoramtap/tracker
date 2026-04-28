@@ -19,7 +19,7 @@ then swap downstream snapshots and UI panels to consume that data.
 - Use GitHub non-draft PR events as the truth for PR counts:
   opened counts come from `createdAt`, merged counts come from `mergedAt`, and
   draft PRs are excluded from PR-count metrics.
-- Use the latest submitted non-author GitHub review to `mergedAt` for
+- Use the first submitted non-author GitHub review to `mergedAt` for
   review-to-merge timing.
 - Use an explicit `repo -> team` map for attribution, seeded from historical PR
   data and resolved by majority vote.
@@ -280,7 +280,7 @@ the new PR count semantics plus the local weekly refresh path.
 - Workflow breakdown inflow uses sprint buckets and trailing-window averages.
 - Aggregate PR views may show trailing-window averages such as last 30 days,
   months, or year.
-- Review-to-merge uses latest submitted non-author GitHub review to merge.
+- Review-to-merge uses first submitted non-author GitHub review to merge.
 - PR refreshes run locally, not from GitHub Actions.
 - The committed `repo -> team` config lives at
   `scripts/config/repo-team-map.json`.

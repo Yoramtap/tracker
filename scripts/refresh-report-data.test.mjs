@@ -389,9 +389,9 @@ test("fetchGitHubPrActivity builds non-draft PR activity rows from repo mappings
     {
       issueKey: "nepgpe/tfc-functionality-usvc#152",
       team: "api",
-      reviewStartedAt: "2026-03-18",
+      reviewStartedAt: "2026-03-13",
       mergedProxyDate: "2026-03-19",
-      reviewToMergeDays: 1
+      reviewToMergeDays: 6
     }
   ]);
   assert.deepEqual(
@@ -421,7 +421,7 @@ test("fetchGitHubPrActivity builds non-draft PR activity rows from repo mappings
   );
 });
 
-test("normalizeGitHubReviewToMergeRecord uses the latest submitted non-author review", () => {
+test("normalizeGitHubReviewToMergeRecord uses the first submitted non-author review", () => {
   assert.deepEqual(
     normalizeGitHubReviewToMergeRecord(
       "nepgpe/tfc-functionality-usvc",
@@ -456,9 +456,9 @@ test("normalizeGitHubReviewToMergeRecord uses the latest submitted non-author re
     {
       issueKey: "nepgpe/tfc-functionality-usvc#152",
       team: "api",
-      reviewStartedAt: "2026-03-18",
+      reviewStartedAt: "2026-03-13",
       mergedProxyDate: "2026-03-19",
-      reviewToMergeDays: 1
+      reviewToMergeDays: 6
     }
   );
 
