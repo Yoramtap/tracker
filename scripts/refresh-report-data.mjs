@@ -73,12 +73,12 @@ const BOARDS = [
   {
     constName: "BOARD_39_TREND",
     baseJql: "project = TFC AND type = Bug AND labels = Frontend",
-    doneStatuses: '(Done, "Won\'t Fix")'
+    doneStatuses: '(Done, "Won\'t Fix", Duplicate)'
   },
   {
     constName: "BOARD_46_TREND",
     baseJql: "project = TFC AND type = Bug AND labels = NewFrontend",
-    doneStatuses: '(Done, "Won\'t Fix")'
+    doneStatuses: '(Done, "Won\'t Fix", Duplicate)'
   },
   {
     constName: "BOARD_40_TREND",
@@ -89,12 +89,12 @@ const BOARDS = [
   {
     constName: "BOARD_333_TREND",
     baseJql: "project = TFO AND type = Bug AND labels = Workers",
-    doneStatuses: '(Done, "Won\'t Fix")'
+    doneStatuses: '(Done, "Won\'t Fix", Duplicate)'
   },
   {
     constName: "BOARD_399_TREND",
     baseJql: 'project = MESO AND type = Bug AND labels = "READY"',
-    doneStatuses: "(Done)"
+    doneStatuses: '(Done, "Won\'t Fix", Duplicate)'
   }
 ];
 
