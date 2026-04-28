@@ -1,53 +1,6 @@
 {
-  "updatedAt": "2026-04-28T09:13:29.432Z",
+  "updatedAt": "2026-04-28T09:25:40.221Z",
   "combinedPoints": [
-    {
-      "date": "2025-10-27",
-      "api": {
-        "highest": 0,
-        "high": 2,
-        "medium": 4,
-        "low": 2,
-        "lowest": 0
-      },
-      "legacy": {
-        "highest": 0,
-        "high": 1,
-        "medium": 12,
-        "low": 45,
-        "lowest": 2
-      },
-      "react": {
-        "highest": 0,
-        "high": 0,
-        "medium": 4,
-        "low": 0,
-        "lowest": 0
-      },
-      "bc": {
-        "highest": 1,
-        "high": 57,
-        "medium": 100,
-        "low": 9,
-        "lowest": 0,
-        "longstanding_30d_plus": 148,
-        "longstanding_60d_plus": 141
-      },
-      "workers": {
-        "highest": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "lowest": 0
-      },
-      "titanium": {
-        "highest": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "lowest": 0
-      }
-    },
     {
       "date": "2025-11-10",
       "api": {
@@ -575,8 +528,8 @@
         "lowest": 0
       },
       "legacy": {
-        "highest": 0,
-        "high": 2,
+        "highest": 1,
+        "high": 1,
         "medium": 8,
         "low": 21,
         "lowest": 0
@@ -613,17 +566,17 @@
       }
     },
     {
-      "date": "2026-04-25",
+      "date": "2026-04-27",
       "api": {
         "highest": 0,
-        "high": 1,
+        "high": 2,
         "medium": 11,
         "low": 5,
         "lowest": 2
       },
       "legacy": {
-        "highest": 0,
-        "high": 2,
+        "highest": 1,
+        "high": 1,
         "medium": 7,
         "low": 21,
         "lowest": 0
@@ -636,12 +589,12 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 8,
+        "highest": 4,
         "high": 70,
-        "medium": 123,
+        "medium": 119,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 186,
+        "longstanding_30d_plus": 183,
         "longstanding_60d_plus": 169
       },
       "workers": {
@@ -663,44 +616,44 @@
       "date": "2026-04-28",
       "api": {
         "highest": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "lowest": 0
+        "high": 2,
+        "medium": 11,
+        "low": 5,
+        "lowest": 2
       },
       "legacy": {
-        "highest": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
+        "highest": 1,
+        "high": 1,
+        "medium": 7,
+        "low": 21,
         "lowest": 0
       },
       "react": {
         "highest": 0,
         "high": 0,
-        "medium": 0,
+        "medium": 2,
         "low": 0,
         "lowest": 0
       },
       "bc": {
         "highest": 3,
-        "high": 68,
-        "medium": 113,
+        "high": 69,
+        "medium": 114,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 177,
-        "longstanding_60d_plus": 164
+        "longstanding_30d_plus": 179,
+        "longstanding_60d_plus": 166
       },
       "workers": {
         "highest": 0,
-        "high": 0,
-        "medium": 0,
+        "high": 1,
+        "medium": 1,
         "low": 0,
         "lowest": 0
       },
       "titanium": {
-        "highest": 0,
-        "high": 0,
+        "highest": 1,
+        "high": 1,
         "medium": 0,
         "low": 0,
         "lowest": 0
