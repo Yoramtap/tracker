@@ -19,13 +19,27 @@ jobs:
     steps:
       - name: Check local schedule
         id: schedule
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          if [ "$(TZ=Europe/Amsterdam date +%u)" = "1" ] && [ "$(TZ=Europe/Amsterdam date +%H)" = "09" ]; then
+          amsterdam_offset="$(TZ=Europe/Amsterdam date +%z)"
+
+          if [ "$amsterdam_offset" = "+0200" ]; then
+            expected_schedule="0 7 * * 1"
+          else
+            expected_schedule="0 8 * * 1"
+          fi
+
+          echo "GitHub triggered schedule: $EVENT_SCHEDULE"
+          echo "Expected schedule for Europe/Amsterdam offset $amsterdam_offset: $expected_schedule"
+
+          if [ "$EVENT_SCHEDULE" = "$expected_schedule" ]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
