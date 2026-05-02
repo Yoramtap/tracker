@@ -1,10 +1,10 @@
-name: Weekly Dashboard Refresh
+name: Weekday Dashboard Refresh
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 7 * * 1"
-    - cron: "0 8 * * 1"
+    - cron: "0 7 * * 1-5"
+    - cron: "0 8 * * 1-5"
 
 permissions:
   contents: write
@@ -31,9 +31,9 @@ jobs:
           amsterdam_offset="$(TZ=Europe/Amsterdam date +%z)"
 
           if [ "$amsterdam_offset" = "+0200" ]; then
-            expected_schedule="0 7 * * 1"
+            expected_schedule="0 7 * * 1-5"
           else
-            expected_schedule="0 8 * * 1"
+            expected_schedule="0 8 * * 1-5"
           fi
 
           echo "GitHub triggered schedule: $EVENT_SCHEDULE"
