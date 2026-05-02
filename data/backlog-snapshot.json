@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-28T20:54:24.230Z",
+  "updatedAt": "2026-05-02T12:31:31.070Z",
   "combinedPoints": [
     {
       "date": "2025-11-10",
@@ -589,8 +589,8 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 4,
-        "high": 70,
+        "highest": 5,
+        "high": 69,
         "medium": 118,
         "low": 7,
         "lowest": 0,
@@ -613,7 +613,7 @@
       }
     },
     {
-      "date": "2026-04-28",
+      "date": "2026-05-02",
       "api": {
         "highest": 0,
         "high": 2,
@@ -622,7 +622,7 @@
         "lowest": 2
       },
       "legacy": {
-        "highest": 1,
+        "highest": 0,
         "high": 1,
         "medium": 7,
         "low": 21,
@@ -636,18 +636,18 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 4,
-        "high": 69,
-        "medium": 113,
+        "highest": 3,
+        "high": 68,
+        "medium": 111,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 178,
-        "longstanding_60d_plus": 165
+        "longstanding_30d_plus": 181,
+        "longstanding_60d_plus": 168
       },
       "workers": {
         "highest": 0,
-        "high": 1,
-        "medium": 1,
+        "high": 2,
+        "medium": 4,
         "low": 0,
         "lowest": 0
       },
