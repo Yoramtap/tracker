@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-02T12:31:31.070Z",
+  "updatedAt": "2026-05-04T07:18:38.128Z",
   "chartData": {
     "managementBusinessUnit": {
       "scopeLabel": "Broadcast",
@@ -12,7 +12,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 37.38,
+              "uatAvg": 39.16,
               "issueItems": [
                 {
                   "issueId": "TFC-16160",
@@ -23,7 +23,7 @@
                 {
                   "label": "AU AHS",
                   "devAvg": 7.01,
-                  "uatAvg": 37.38,
+                  "uatAvg": 39.16,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -35,12 +35,16 @@
             },
             {
               "label": "EU",
-              "devAvg": 0.04,
-              "sampleCount": 1,
-              "devCount": 1,
-              "uatCount": 1,
-              "uatAvg": 107.49,
+              "devAvg": 0.57,
+              "sampleCount": 2,
+              "devCount": 2,
+              "uatCount": 2,
+              "uatAvg": 54.69,
               "issueItems": [
+                {
+                  "issueId": "TFC-16519",
+                  "facilityLabel": "Facility NEBULA"
+                },
                 {
                   "issueId": "TFC-11526",
                   "facilityLabel": "Facility unmapped"
@@ -48,9 +52,20 @@
               ],
               "facilities": [
                 {
+                  "label": "NEBULA",
+                  "devAvg": 1.09,
+                  "uatAvg": 0.1,
+                  "devCount": 1,
+                  "uatCount": 1,
+                  "sampleCount": 1,
+                  "issueIds": [
+                    "TFC-16519"
+                  ]
+                },
+                {
                   "label": "Unspecified",
                   "devAvg": 0.04,
-                  "uatAvg": 107.49,
+                  "uatAvg": 109.28,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -66,7 +81,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 86.16,
+              "uatAvg": 87.95,
               "issueItems": [
                 {
                   "issueId": "TFC-15925",
@@ -77,7 +92,7 @@
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 86.16,
+                  "uatAvg": 87.95,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -93,7 +108,7 @@
               "sampleCount": 4,
               "devCount": 4,
               "uatCount": 4,
-              "uatAvg": 80.73,
+              "uatAvg": 82.52,
               "issueItems": [
                 {
                   "issueId": "TFC-14425",
@@ -116,7 +131,7 @@
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 136.4,
+                  "uatAvg": 138.19,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -127,7 +142,7 @@
                 {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 87.58,
+                  "uatAvg": 89.36,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -138,7 +153,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.43,
-                  "uatAvg": 49.48,
+                  "uatAvg": 51.27,
                   "devCount": 2,
                   "uatCount": 2,
                   "sampleCount": 2,
@@ -155,7 +170,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 141.33,
+              "uatAvg": 143.11,
               "issueItems": [
                 {
                   "issueId": "TFC-14540",
@@ -166,7 +181,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 141.33,
+                  "uatAvg": 143.11,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
