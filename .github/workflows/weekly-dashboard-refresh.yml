@@ -5,6 +5,7 @@ on:
   schedule:
     - cron: "17 7 * * 1-5"
     - cron: "17 8 * * 1-5"
+    - cron: "17 9 * * 1-5"
 
 permissions:
   contents: write
@@ -31,19 +32,22 @@ jobs:
           amsterdam_offset="$(TZ=Europe/Amsterdam date +%z)"
 
           if [ "$amsterdam_offset" = "+0200" ]; then
-            expected_schedule="17 7 * * 1-5"
+            expected_schedules="17 7 * * 1-5|17 8 * * 1-5"
           else
-            expected_schedule="17 8 * * 1-5"
+            expected_schedules="17 8 * * 1-5|17 9 * * 1-5"
           fi
 
           echo "GitHub triggered schedule: $EVENT_SCHEDULE"
-          echo "Expected schedule for Europe/Amsterdam offset $amsterdam_offset: $expected_schedule"
+          echo "Expected schedules for Europe/Amsterdam offset $amsterdam_offset: $expected_schedules"
 
-          if [ "$EVENT_SCHEDULE" = "$expected_schedule" ]; then
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-          fi
+          case "|$expected_schedules|" in
+            *"|$EVENT_SCHEDULE|"*)
+              echo "should_run=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
 
       - name: Checkout
         if: steps.schedule.outputs.should_run == 'true'
@@ -51,19 +55,57 @@ jobs:
         with:
           ref: main
 
-      - name: Set up Node
+      - name: Check snapshot freshness
+        id: freshness
         if: steps.schedule.outputs.should_run == 'true'
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "should_refresh=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          today="$(TZ=Europe/Amsterdam date +%F)"
+          snapshot_date="$(
+            node -e '
+              const fs = require("fs");
+              const snapshot = JSON.parse(fs.readFileSync("data/snapshot.json", "utf8"));
+              const timestamp = snapshot.updatedAt || snapshot.generatedAt || "";
+              if (!timestamp) process.exit(0);
+              const formatter = new Intl.DateTimeFormat("en-CA", {
+                timeZone: "Europe/Amsterdam",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit"
+              });
+              console.log(formatter.format(new Date(timestamp)));
+            '
+          )"
+
+          echo "Today in Europe/Amsterdam: $today"
+          echo "Current snapshot date in Europe/Amsterdam: $snapshot_date"
+
+          if [ "$snapshot_date" = "$today" ]; then
+            echo "Dashboard snapshot is already fresh for today."
+            echo "should_refresh=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_refresh=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node
+        if: steps.freshness.outputs.should_refresh == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
       - name: Install dependencies
-        if: steps.schedule.outputs.should_run == 'true'
+        if: steps.freshness.outputs.should_refresh == 'true'
         run: npm ci
 
       - name: Refresh dashboard data
-        if: steps.schedule.outputs.should_run == 'true'
+        if: steps.freshness.outputs.should_refresh == 'true'
         env:
           ATLASSIAN_SITE: ${{ secrets.ATLASSIAN_SITE }}
           ATLASSIAN_EMAIL: ${{ secrets.ATLASSIAN_EMAIL }}
@@ -78,15 +120,15 @@ jobs:
           npm run data:refresh
 
       - name: Validate dashboard snapshots
-        if: steps.schedule.outputs.should_run == 'true'
+        if: steps.freshness.outputs.should_refresh == 'true'
         run: npm run data:validate
 
       - name: Build dashboard
-        if: steps.schedule.outputs.should_run == 'true'
+        if: steps.freshness.outputs.should_refresh == 'true'
         run: npm run build
 
       - name: Commit snapshot changes
-        if: steps.schedule.outputs.should_run == 'true'
+        if: steps.freshness.outputs.should_refresh == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
