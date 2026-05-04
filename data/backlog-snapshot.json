@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-02T12:31:31.070Z",
+  "updatedAt": "2026-05-04T07:18:38.128Z",
   "combinedPoints": [
     {
       "date": "2025-11-10",
@@ -25,7 +25,7 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 5,
+        "highest": 6,
         "high": 60,
         "medium": 103,
         "low": 9,
@@ -72,7 +72,7 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 5,
+        "highest": 6,
         "high": 63,
         "medium": 105,
         "low": 9,
@@ -119,12 +119,12 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 7,
+        "highest": 8,
         "high": 63,
         "medium": 112,
         "low": 9,
         "lowest": 0,
-        "longstanding_30d_plus": 168,
+        "longstanding_30d_plus": 169,
         "longstanding_60d_plus": 150
       },
       "workers": {
@@ -166,12 +166,12 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 5,
+        "highest": 6,
         "high": 66,
         "medium": 107,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 164,
+        "longstanding_30d_plus": 165,
         "longstanding_60d_plus": 146
       },
       "workers": {
@@ -213,13 +213,13 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 5,
+        "highest": 6,
         "high": 68,
         "medium": 109,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 174,
-        "longstanding_60d_plus": 158
+        "longstanding_30d_plus": 175,
+        "longstanding_60d_plus": 159
       },
       "workers": {
         "highest": 0,
@@ -260,13 +260,13 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 4,
+        "highest": 5,
         "high": 63,
         "medium": 106,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 170,
-        "longstanding_60d_plus": 155
+        "longstanding_30d_plus": 171,
+        "longstanding_60d_plus": 156
       },
       "workers": {
         "highest": 0,
@@ -307,13 +307,13 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 4,
+        "highest": 5,
         "high": 63,
         "medium": 105,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 163,
-        "longstanding_60d_plus": 154
+        "longstanding_30d_plus": 164,
+        "longstanding_60d_plus": 155
       },
       "workers": {
         "highest": 0,
@@ -354,13 +354,13 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 6,
+        "highest": 7,
         "high": 63,
         "medium": 106,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 167,
-        "longstanding_60d_plus": 157
+        "longstanding_30d_plus": 168,
+        "longstanding_60d_plus": 158
       },
       "workers": {
         "highest": 0,
@@ -401,13 +401,13 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 3,
+        "highest": 4,
         "high": 70,
         "medium": 107,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 168,
-        "longstanding_60d_plus": 155
+        "longstanding_30d_plus": 169,
+        "longstanding_60d_plus": 156
       },
       "workers": {
         "highest": 0,
@@ -448,13 +448,13 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 6,
+        "highest": 7,
         "high": 70,
         "medium": 112,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 169,
-        "longstanding_60d_plus": 158
+        "longstanding_30d_plus": 170,
+        "longstanding_60d_plus": 159
       },
       "workers": {
         "highest": 0,
@@ -495,13 +495,13 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 8,
+        "highest": 9,
         "high": 72,
         "medium": 113,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 175,
-        "longstanding_60d_plus": 164
+        "longstanding_30d_plus": 176,
+        "longstanding_60d_plus": 165
       },
       "workers": {
         "highest": 0,
@@ -542,13 +542,13 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 3,
-        "high": 70,
+        "highest": 4,
+        "high": 71,
         "medium": 119,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 186,
-        "longstanding_60d_plus": 167
+        "longstanding_30d_plus": 187,
+        "longstanding_60d_plus": 168
       },
       "workers": {
         "highest": 0,
@@ -589,13 +589,13 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 5,
-        "high": 69,
+        "highest": 6,
+        "high": 70,
         "medium": 118,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 182,
-        "longstanding_60d_plus": 169
+        "longstanding_30d_plus": 183,
+        "longstanding_60d_plus": 170
       },
       "workers": {
         "highest": 0,
@@ -613,7 +613,7 @@
       }
     },
     {
-      "date": "2026-05-02",
+      "date": "2026-05-04",
       "api": {
         "highest": 0,
         "high": 2,
@@ -637,23 +637,23 @@
       },
       "bc": {
         "highest": 3,
-        "high": 68,
+        "high": 69,
         "medium": 111,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 181,
-        "longstanding_60d_plus": 168
+        "longstanding_30d_plus": 183,
+        "longstanding_60d_plus": 169
       },
       "workers": {
         "highest": 0,
         "high": 2,
-        "medium": 4,
+        "medium": 5,
         "low": 0,
         "lowest": 0
       },
       "titanium": {
         "highest": 0,
-        "high": 1,
+        "high": 2,
         "medium": 0,
         "low": 0,
         "lowest": 0
