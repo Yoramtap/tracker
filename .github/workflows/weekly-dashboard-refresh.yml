@@ -18,46 +18,26 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - name: Check local schedule
-        id: schedule
+      - name: Log schedule trigger
         env:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_SCHEDULE: ${{ github.event.schedule }}
         run: |
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "Manual refresh requested."
             exit 0
           fi
 
-          amsterdam_offset="$(TZ=Europe/Amsterdam date +%z)"
-
-          if [ "$amsterdam_offset" = "+0200" ]; then
-            expected_schedules="17 7 * * 1-5|17 8 * * 1-5"
-          else
-            expected_schedules="17 8 * * 1-5|17 9 * * 1-5"
-          fi
-
           echo "GitHub triggered schedule: $EVENT_SCHEDULE"
-          echo "Expected schedules for Europe/Amsterdam offset $amsterdam_offset: $expected_schedules"
-
-          case "|$expected_schedules|" in
-            *"|$EVENT_SCHEDULE|"*)
-              echo "should_run=true" >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              echo "should_run=false" >> "$GITHUB_OUTPUT"
-              ;;
-          esac
+          echo "Current Europe/Amsterdam time: $(TZ=Europe/Amsterdam date '+%Y-%m-%d %H:%M:%S %Z')"
 
       - name: Checkout
-        if: steps.schedule.outputs.should_run == 'true'
         uses: actions/checkout@v4
         with:
           ref: main
 
       - name: Check snapshot freshness
         id: freshness
-        if: steps.schedule.outputs.should_run == 'true'
         env:
           EVENT_NAME: ${{ github.event_name }}
         run: |
