@@ -2,8 +2,10 @@ name: Daily Dashboard Refresh
 
 on:
   workflow_dispatch:
-  repository_dispatch:
-    types: [daily-dashboard-refresh]
+  schedule:
+    - cron: "13 7 * * *"
+    - cron: "43 7 * * *"
+    - cron: "13 8 * * *"
 
 permissions:
   contents: write
@@ -19,13 +21,14 @@ jobs:
       - name: Log refresh trigger
         env:
           EVENT_NAME: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
         run: |
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             echo "Manual refresh requested."
             exit 0
           fi
 
-          echo "External refresh requested via $EVENT_NAME."
+          echo "GitHub triggered schedule: $EVENT_SCHEDULE"
           echo "Current Europe/Amsterdam time: $(TZ=Europe/Amsterdam date '+%Y-%m-%d %H:%M:%S %Z')"
 
       - name: Checkout
