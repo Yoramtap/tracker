@@ -1,8 +1,8 @@
 # Release Guide
 
-## Local Auth Preflight
+## Manual Local Auth Preflight
 
-Before any refresh that touches PR activity:
+Before any manual local refresh that touches PR activity:
 
 ```bash
 npm run automation:preflight
@@ -10,10 +10,11 @@ npm run automation:preflight
 
 Expected operating model:
 
-- Jira credentials live only in ignored local env files
-- Headless automation should read `GH_TOKEN` / `GITHUB_TOKEN` from ignored local env files
+- Cloud refresh credentials live in GitHub Actions secrets
+- Manual local Jira credentials live only in ignored local env files
+- Manual local runs should read `GH_TOKEN` / `GITHUB_TOKEN` from ignored local env files
 - Interactive local runs can still fall back to `gh auth token` for `yoram-tap_nepgroup`
-- PR refreshes are run locally, not from GitHub Actions
+- Daily refreshes run in GitHub Actions
 
 If you are running manually without a local token-backed env file, sanity-check `gh` too:
 
@@ -25,8 +26,8 @@ gh auth status -h github.com
 
 - Use Node 22 for local installs and CI. The repo pins this via `.nvmrc` / `.node-version`.
 - On this machine, the automation scripts invoke the Homebrew Node 22 binary directly from `/opt/homebrew/opt/node@22/bin/node`.
-- Run the weekly automation from a dedicated local checkout, not from an ephemeral Codex worktree.
-- Bootstrap that checkout once from your main repo:
+- Legacy local weekly automation can still run from a dedicated local checkout, not from an ephemeral Codex worktree.
+- Bootstrap that checkout once from your main repo when you need the local fallback:
 
 ```bash
 npm run automation:bootstrap
@@ -109,17 +110,17 @@ The helper now:
 - falls back to a temporary clean clone when the automation checkout has tracked edits
 - commits only tracked dashboard snapshot files under `data/`
 
-## Weekly Local Automation
+## Daily Cloud Automation
 
-Recommended schedule:
+Recommended operating model:
 
-- Monday 09:00 in your local timezone (`Europe/Amsterdam`)
-- Run `npm run automation:weekly-refresh`
-- Keep the automation pinned to the dedicated local checkout created by `npm run automation:bootstrap`
-- If preflight fails, fix the checkout first instead of letting the refresh run for several minutes and fail late
+- GitHub Actions attempts the refresh daily via `.github/workflows/weekly-dashboard-refresh.yml`
+- A hosted cron job should call the workflow dispatch API once per day as the fail-safe trigger
+- Keep the hosted cron setup documented in `docs/daily-refresh-failsafe.md`
+- Duplicate cloud triggers are safe because the workflow skips when today's Amsterdam-date snapshot already exists
 
 ## GitHub Automation
 
 - `.github/workflows/pages.yml` deploys GitHub Pages from `dist/` on pushes to `main`
-- There is no GitHub-hosted snapshot refresh workflow
-- No NEP GitHub credentials are stored in repo secrets for PR refreshes
+- `.github/workflows/weekly-dashboard-refresh.yml` refreshes dashboard snapshots
+- GitHub Actions secrets must include Jira credentials and a GitHub token for PR refreshes

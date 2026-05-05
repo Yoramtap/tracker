@@ -104,15 +104,14 @@ Then open [http://127.0.0.1:4173](http://127.0.0.1:4173).
 Read [docs/release.md](docs/release.md) before shipping.
 
 - Manual release steps are in [docs/release.md](docs/release.md).
-- Dashboard data refresh is local-only.
-- Weekly local automation is the recommended way to keep snapshots fresh.
-- Run automation from a dedicated local checkout, not from an ephemeral Codex worktree.
+- Dashboard data refresh is cloud-owned by `Daily Dashboard Refresh`.
+- Daily cloud refresh fail-safe setup is in [docs/daily-refresh-failsafe.md](docs/daily-refresh-failsafe.md).
 
 ## GitHub Pages
 
 - GitHub Pages deploys from this repo via [.github/workflows/pages.yml](.github/workflows/pages.yml).
 - The workflow runs `npm ci` and `npm run build`, then publishes `dist/`.
-- There is no GitHub-hosted data refresh workflow anymore.
+- Dashboard snapshots refresh in GitHub Actions via [.github/workflows/weekly-dashboard-refresh.yml](.github/workflows/weekly-dashboard-refresh.yml).
 - The live site stays publicly accessible for Confluence embedding.
 
 ## Notes
