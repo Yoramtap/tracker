@@ -1,8 +1,8 @@
 {
-  "updatedAt": "2026-05-04T07:17:50.019Z",
+  "updatedAt": "2026-05-05T13:22:16.789Z",
   "summary": {
-    "total_issues": 29,
-    "active_issues": 3,
+    "total_issues": 30,
+    "active_issues": 4,
     "done_issues": 26,
     "total_contributors": 6,
     "linked_issues": 21
@@ -35,9 +35,9 @@
       },
       {
         "contributor": "David Oxe",
-        "totalIssues": 2,
+        "totalIssues": 3,
         "doneIssues": 2,
-        "activeIssues": 0
+        "activeIssues": 1
       },
       {
         "contributor": "Jack Woodgate",
