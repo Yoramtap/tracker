@@ -2,6 +2,12 @@ name: Daily Dashboard Refresh
 
 on:
   workflow_dispatch:
+    inputs:
+      force:
+        description: "Refresh even when today's snapshot already exists"
+        required: false
+        default: false
+        type: boolean
   schedule:
     - cron: "13 7 * * *"
     - cron: "43 7 * * *"
@@ -22,9 +28,10 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_SCHEDULE: ${{ github.event.schedule }}
+          FORCE_REFRESH: ${{ inputs.force || false }}
         run: |
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            echo "Manual refresh requested."
+            echo "Manual refresh requested (force=$FORCE_REFRESH)."
             exit 0
           fi
 
@@ -40,8 +47,10 @@ jobs:
         id: freshness
         env:
           EVENT_NAME: ${{ github.event_name }}
+          FORCE_REFRESH: ${{ inputs.force || false }}
         run: |
-          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+          if [ "$FORCE_REFRESH" = "true" ]; then
+            echo "Force refresh requested."
             echo "should_refresh=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
