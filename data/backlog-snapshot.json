@@ -1,11 +1,11 @@
 {
-  "updatedAt": "2026-05-05T13:22:38.910Z",
+  "updatedAt": "2026-05-06T07:27:41.568Z",
   "combinedPoints": [
     {
       "date": "2025-11-10",
       "api": {
         "highest": 0,
-        "high": 0,
+        "high": 2,
         "medium": 4,
         "low": 5,
         "lowest": 0
@@ -26,12 +26,12 @@
       },
       "bc": {
         "highest": 6,
-        "high": 60,
+        "high": 58,
         "medium": 103,
         "low": 9,
         "lowest": 0,
-        "longstanding_30d_plus": 155,
-        "longstanding_60d_plus": 142
+        "longstanding_30d_plus": 153,
+        "longstanding_60d_plus": 140
       },
       "workers": {
         "highest": 0,
@@ -52,7 +52,7 @@
       "date": "2025-11-24",
       "api": {
         "highest": 0,
-        "high": 0,
+        "high": 2,
         "medium": 4,
         "low": 5,
         "lowest": 0
@@ -73,12 +73,12 @@
       },
       "bc": {
         "highest": 6,
-        "high": 63,
+        "high": 61,
         "medium": 105,
         "low": 9,
         "lowest": 0,
-        "longstanding_30d_plus": 158,
-        "longstanding_60d_plus": 144
+        "longstanding_30d_plus": 156,
+        "longstanding_60d_plus": 142
       },
       "workers": {
         "highest": 0,
@@ -99,7 +99,7 @@
       "date": "2025-12-08",
       "api": {
         "highest": 0,
-        "high": 0,
+        "high": 2,
         "medium": 5,
         "low": 5,
         "lowest": 0
@@ -120,12 +120,12 @@
       },
       "bc": {
         "highest": 8,
-        "high": 63,
+        "high": 61,
         "medium": 112,
         "low": 9,
         "lowest": 0,
-        "longstanding_30d_plus": 169,
-        "longstanding_60d_plus": 150
+        "longstanding_30d_plus": 167,
+        "longstanding_60d_plus": 148
       },
       "workers": {
         "highest": 0,
@@ -146,7 +146,7 @@
       "date": "2025-12-22",
       "api": {
         "highest": 0,
-        "high": 0,
+        "high": 2,
         "medium": 5,
         "low": 5,
         "lowest": 0
@@ -167,12 +167,12 @@
       },
       "bc": {
         "highest": 6,
-        "high": 66,
+        "high": 64,
         "medium": 107,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 165,
-        "longstanding_60d_plus": 146
+        "longstanding_30d_plus": 163,
+        "longstanding_60d_plus": 144
       },
       "workers": {
         "highest": 0,
@@ -193,7 +193,7 @@
       "date": "2026-01-05",
       "api": {
         "highest": 0,
-        "high": 1,
+        "high": 3,
         "medium": 4,
         "low": 5,
         "lowest": 0
@@ -214,12 +214,12 @@
       },
       "bc": {
         "highest": 6,
-        "high": 68,
+        "high": 66,
         "medium": 109,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 175,
-        "longstanding_60d_plus": 159
+        "longstanding_30d_plus": 173,
+        "longstanding_60d_plus": 157
       },
       "workers": {
         "highest": 0,
@@ -240,7 +240,7 @@
       "date": "2026-01-19",
       "api": {
         "highest": 0,
-        "high": 0,
+        "high": 2,
         "medium": 6,
         "low": 5,
         "lowest": 0
@@ -261,12 +261,12 @@
       },
       "bc": {
         "highest": 5,
-        "high": 63,
+        "high": 61,
         "medium": 106,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 171,
-        "longstanding_60d_plus": 156
+        "longstanding_30d_plus": 169,
+        "longstanding_60d_plus": 154
       },
       "workers": {
         "highest": 0,
@@ -287,7 +287,7 @@
       "date": "2026-02-02",
       "api": {
         "highest": 0,
-        "high": 0,
+        "high": 2,
         "medium": 6,
         "low": 5,
         "lowest": 0
@@ -308,12 +308,12 @@
       },
       "bc": {
         "highest": 5,
-        "high": 63,
+        "high": 61,
         "medium": 105,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 164,
-        "longstanding_60d_plus": 155
+        "longstanding_30d_plus": 162,
+        "longstanding_60d_plus": 153
       },
       "workers": {
         "highest": 0,
@@ -334,7 +334,7 @@
       "date": "2026-02-16",
       "api": {
         "highest": 0,
-        "high": 1,
+        "high": 3,
         "medium": 7,
         "low": 5,
         "lowest": 0
@@ -355,12 +355,12 @@
       },
       "bc": {
         "highest": 7,
-        "high": 63,
+        "high": 61,
         "medium": 106,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 168,
-        "longstanding_60d_plus": 158
+        "longstanding_30d_plus": 166,
+        "longstanding_60d_plus": 156
       },
       "workers": {
         "highest": 0,
@@ -381,7 +381,7 @@
       "date": "2026-03-02",
       "api": {
         "highest": 0,
-        "high": 1,
+        "high": 3,
         "medium": 9,
         "low": 5,
         "lowest": 0
@@ -402,12 +402,12 @@
       },
       "bc": {
         "highest": 4,
-        "high": 70,
+        "high": 68,
         "medium": 107,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 169,
-        "longstanding_60d_plus": 156
+        "longstanding_30d_plus": 167,
+        "longstanding_60d_plus": 154
       },
       "workers": {
         "highest": 0,
@@ -428,7 +428,7 @@
       "date": "2026-03-16",
       "api": {
         "highest": 0,
-        "high": 1,
+        "high": 3,
         "medium": 9,
         "low": 5,
         "lowest": 0
@@ -449,12 +449,12 @@
       },
       "bc": {
         "highest": 7,
-        "high": 70,
+        "high": 68,
         "medium": 112,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 170,
-        "longstanding_60d_plus": 159
+        "longstanding_30d_plus": 168,
+        "longstanding_60d_plus": 157
       },
       "workers": {
         "highest": 0,
@@ -475,7 +475,7 @@
       "date": "2026-03-30",
       "api": {
         "highest": 0,
-        "high": 2,
+        "high": 4,
         "medium": 9,
         "low": 4,
         "lowest": 0
@@ -496,12 +496,12 @@
       },
       "bc": {
         "highest": 9,
-        "high": 72,
+        "high": 70,
         "medium": 113,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 176,
-        "longstanding_60d_plus": 165
+        "longstanding_30d_plus": 174,
+        "longstanding_60d_plus": 163
       },
       "workers": {
         "highest": 0,
@@ -522,7 +522,7 @@
       "date": "2026-04-13",
       "api": {
         "highest": 0,
-        "high": 2,
+        "high": 4,
         "medium": 9,
         "low": 4,
         "lowest": 0
@@ -543,12 +543,12 @@
       },
       "bc": {
         "highest": 4,
-        "high": 71,
+        "high": 69,
         "medium": 119,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 187,
-        "longstanding_60d_plus": 168
+        "longstanding_30d_plus": 185,
+        "longstanding_60d_plus": 166
       },
       "workers": {
         "highest": 0,
@@ -569,7 +569,7 @@
       "date": "2026-04-27",
       "api": {
         "highest": 0,
-        "high": 2,
+        "high": 4,
         "medium": 11,
         "low": 5,
         "lowest": 2
@@ -590,12 +590,12 @@
       },
       "bc": {
         "highest": 6,
-        "high": 70,
+        "high": 68,
         "medium": 118,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 183,
-        "longstanding_60d_plus": 170
+        "longstanding_30d_plus": 181,
+        "longstanding_60d_plus": 168
       },
       "workers": {
         "highest": 0,
@@ -613,10 +613,10 @@
       }
     },
     {
-      "date": "2026-05-05",
+      "date": "2026-05-06",
       "api": {
         "highest": 0,
-        "high": 2,
+        "high": 4,
         "medium": 12,
         "low": 5,
         "lowest": 2
@@ -637,12 +637,12 @@
       },
       "bc": {
         "highest": 4,
-        "high": 69,
+        "high": 67,
         "medium": 111,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 181,
-        "longstanding_60d_plus": 168
+        "longstanding_30d_plus": 179,
+        "longstanding_60d_plus": 166
       },
       "workers": {
         "highest": 0,
@@ -652,7 +652,7 @@
         "lowest": 0
       },
       "titanium": {
-        "highest": 0,
+        "highest": 1,
         "high": 2,
         "medium": 0,
         "low": 0,

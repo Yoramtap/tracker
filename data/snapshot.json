@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-05-05T13:22:38.910Z",
+  "updatedAt": "2026-05-06T07:27:41.568Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-05-05T13:22:38.910Z",
+    "syncedAt": "2026-05-06T07:27:41.568Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. PR activity is sourced from GitHub pull requests and attributed by committed repo-to-team mapping."
   },
   "prActivity": {
@@ -12,7 +12,7 @@
     "monthlyInterval": "month",
     "source": "github_pull_requests",
     "candidateIssueCount": 117,
-    "uniquePrCount": 363,
+    "uniquePrCount": 383,
     "conflictCount": 0,
     "caveat": "Counts are sourced from GitHub pull requests and attributed by committed repo-to-team mapping. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the first submitted non-author GitHub review to mergedAt.",
     "points": [
@@ -1972,40 +1972,40 @@
       {
         "date": "2026-05-01",
         "api": {
-          "offered": 24,
-          "merged": 22,
+          "offered": 25,
+          "merged": 23,
           "avgReviewToMergeDays": 3,
-          "avgReviewToMergeSampleCount": 20
+          "avgReviewToMergeSampleCount": 21
         },
         "legacy": {
-          "offered": 0,
+          "offered": 1,
           "merged": 1,
           "avgReviewToMergeDays": 5,
           "avgReviewToMergeSampleCount": 1
         },
         "react": {
-          "offered": 6,
-          "merged": 5,
+          "offered": 8,
+          "merged": 6,
           "avgReviewToMergeDays": 3,
-          "avgReviewToMergeSampleCount": 4
+          "avgReviewToMergeSampleCount": 5
         },
         "bc": {
-          "offered": 15,
-          "merged": 17,
-          "avgReviewToMergeDays": 14,
-          "avgReviewToMergeSampleCount": 17
+          "offered": 22,
+          "merged": 24,
+          "avgReviewToMergeDays": 10,
+          "avgReviewToMergeSampleCount": 24
         },
         "workers": {
-          "offered": 5,
-          "merged": 3,
+          "offered": 13,
+          "merged": 7,
           "avgReviewToMergeDays": 4,
-          "avgReviewToMergeSampleCount": 3
+          "avgReviewToMergeSampleCount": 7
         },
         "titanium": {
-          "offered": 1,
-          "merged": 0,
-          "avgReviewToMergeDays": 0,
-          "avgReviewToMergeSampleCount": 0
+          "offered": 2,
+          "merged": 1,
+          "avgReviewToMergeDays": 2,
+          "avgReviewToMergeSampleCount": 1
         }
       }
     ],
@@ -2020,7 +2020,7 @@
             {
               "label": "ANZJ",
               "devAvg": 7.01,
-              "uatAvg": 40.41,
+              "uatAvg": 41.16,
               "devCount": 1,
               "uatCount": 1,
               "sampleCount": 1,
@@ -2037,7 +2037,7 @@
                 {
                   "label": "AU AHS",
                   "devAvg": 7.01,
-                  "uatAvg": 40.41,
+                  "uatAvg": 41.16,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -2048,9 +2048,39 @@
               ]
             },
             {
+              "label": "Business unit unmapped",
+              "devAvg": 1,
+              "uatAvg": 0.32,
+              "devCount": 1,
+              "uatCount": 1,
+              "sampleCount": 1,
+              "issueIds": [
+                "TFC-15885"
+              ],
+              "issueItems": [
+                {
+                  "issueId": "TFC-15885",
+                  "facilityLabel": "Facility NL NLCP"
+                }
+              ],
+              "facilities": [
+                {
+                  "label": "NL NLCP",
+                  "devAvg": 1,
+                  "uatAvg": 0.32,
+                  "devCount": 1,
+                  "uatCount": 1,
+                  "sampleCount": 1,
+                  "issueIds": [
+                    "TFC-15885"
+                  ]
+                }
+              ]
+            },
+            {
               "label": "EU",
               "devAvg": 0.57,
-              "uatAvg": 55.94,
+              "uatAvg": 56.69,
               "devCount": 2,
               "uatCount": 2,
               "sampleCount": 2,
@@ -2072,7 +2102,7 @@
                 {
                   "label": "NEBULA",
                   "devAvg": 1.09,
-                  "uatAvg": 1.35,
+                  "uatAvg": 2.1,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -2083,7 +2113,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.04,
-                  "uatAvg": 110.53,
+                  "uatAvg": 111.28,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -2096,7 +2126,7 @@
             {
               "label": "MEA",
               "devAvg": 1.1,
-              "uatAvg": 89.2,
+              "uatAvg": 89.95,
               "devCount": 1,
               "uatCount": 1,
               "sampleCount": 1,
@@ -2113,7 +2143,7 @@
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 89.2,
+                  "uatAvg": 89.95,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -2126,7 +2156,7 @@
             {
               "label": "US",
               "devAvg": 0.68,
-              "uatAvg": 83.77,
+              "uatAvg": 84.53,
               "devCount": 4,
               "uatCount": 4,
               "sampleCount": 4,
@@ -2158,7 +2188,7 @@
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 139.44,
+                  "uatAvg": 140.19,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -2169,7 +2199,7 @@
                 {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 90.61,
+                  "uatAvg": 91.37,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -2180,7 +2210,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.43,
-                  "uatAvg": 52.52,
+                  "uatAvg": 53.27,
                   "devCount": 2,
                   "uatCount": 2,
                   "sampleCount": 2,
@@ -2194,7 +2224,7 @@
             {
               "label": "Tech Debt",
               "devAvg": 28.75,
-              "uatAvg": 144.36,
+              "uatAvg": 145.12,
               "devCount": 1,
               "uatCount": 1,
               "sampleCount": 1,
@@ -2211,7 +2241,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 144.36,
+                  "uatAvg": 145.12,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -2914,7 +2944,7 @@
       "api": {
         "date": "2025-11-10",
         "highest": 0,
-        "high": 0,
+        "high": 2,
         "medium": 4,
         "low": 5,
         "lowest": 0
@@ -2938,12 +2968,12 @@
       "bc": {
         "date": "2025-11-10",
         "highest": 6,
-        "high": 60,
+        "high": 58,
         "medium": 103,
         "low": 9,
         "lowest": 0,
-        "longstanding_30d_plus": 155,
-        "longstanding_60d_plus": 142
+        "longstanding_30d_plus": 153,
+        "longstanding_60d_plus": 140
       },
       "workers": {
         "date": "2025-11-10",
@@ -2967,7 +2997,7 @@
       "api": {
         "date": "2025-11-24",
         "highest": 0,
-        "high": 0,
+        "high": 2,
         "medium": 4,
         "low": 5,
         "lowest": 0
@@ -2991,12 +3021,12 @@
       "bc": {
         "date": "2025-11-24",
         "highest": 6,
-        "high": 63,
+        "high": 61,
         "medium": 105,
         "low": 9,
         "lowest": 0,
-        "longstanding_30d_plus": 158,
-        "longstanding_60d_plus": 144
+        "longstanding_30d_plus": 156,
+        "longstanding_60d_plus": 142
       },
       "workers": {
         "date": "2025-11-24",
@@ -3020,7 +3050,7 @@
       "api": {
         "date": "2025-12-08",
         "highest": 0,
-        "high": 0,
+        "high": 2,
         "medium": 5,
         "low": 5,
         "lowest": 0
@@ -3044,12 +3074,12 @@
       "bc": {
         "date": "2025-12-08",
         "highest": 8,
-        "high": 63,
+        "high": 61,
         "medium": 112,
         "low": 9,
         "lowest": 0,
-        "longstanding_30d_plus": 169,
-        "longstanding_60d_plus": 150
+        "longstanding_30d_plus": 167,
+        "longstanding_60d_plus": 148
       },
       "workers": {
         "date": "2025-12-08",
@@ -3073,7 +3103,7 @@
       "api": {
         "date": "2025-12-22",
         "highest": 0,
-        "high": 0,
+        "high": 2,
         "medium": 5,
         "low": 5,
         "lowest": 0
@@ -3097,12 +3127,12 @@
       "bc": {
         "date": "2025-12-22",
         "highest": 6,
-        "high": 66,
+        "high": 64,
         "medium": 107,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 165,
-        "longstanding_60d_plus": 146
+        "longstanding_30d_plus": 163,
+        "longstanding_60d_plus": 144
       },
       "workers": {
         "date": "2025-12-22",
@@ -3126,7 +3156,7 @@
       "api": {
         "date": "2026-01-05",
         "highest": 0,
-        "high": 1,
+        "high": 3,
         "medium": 4,
         "low": 5,
         "lowest": 0
@@ -3150,12 +3180,12 @@
       "bc": {
         "date": "2026-01-05",
         "highest": 6,
-        "high": 68,
+        "high": 66,
         "medium": 109,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 175,
-        "longstanding_60d_plus": 159
+        "longstanding_30d_plus": 173,
+        "longstanding_60d_plus": 157
       },
       "workers": {
         "date": "2026-01-05",
@@ -3179,7 +3209,7 @@
       "api": {
         "date": "2026-01-19",
         "highest": 0,
-        "high": 0,
+        "high": 2,
         "medium": 6,
         "low": 5,
         "lowest": 0
@@ -3203,12 +3233,12 @@
       "bc": {
         "date": "2026-01-19",
         "highest": 5,
-        "high": 63,
+        "high": 61,
         "medium": 106,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 171,
-        "longstanding_60d_plus": 156
+        "longstanding_30d_plus": 169,
+        "longstanding_60d_plus": 154
       },
       "workers": {
         "date": "2026-01-19",
@@ -3232,7 +3262,7 @@
       "api": {
         "date": "2026-02-02",
         "highest": 0,
-        "high": 0,
+        "high": 2,
         "medium": 6,
         "low": 5,
         "lowest": 0
@@ -3256,12 +3286,12 @@
       "bc": {
         "date": "2026-02-02",
         "highest": 5,
-        "high": 63,
+        "high": 61,
         "medium": 105,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 164,
-        "longstanding_60d_plus": 155
+        "longstanding_30d_plus": 162,
+        "longstanding_60d_plus": 153
       },
       "workers": {
         "date": "2026-02-02",
@@ -3285,7 +3315,7 @@
       "api": {
         "date": "2026-02-16",
         "highest": 0,
-        "high": 1,
+        "high": 3,
         "medium": 7,
         "low": 5,
         "lowest": 0
@@ -3309,12 +3339,12 @@
       "bc": {
         "date": "2026-02-16",
         "highest": 7,
-        "high": 63,
+        "high": 61,
         "medium": 106,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 168,
-        "longstanding_60d_plus": 158
+        "longstanding_30d_plus": 166,
+        "longstanding_60d_plus": 156
       },
       "workers": {
         "date": "2026-02-16",
@@ -3338,7 +3368,7 @@
       "api": {
         "date": "2026-03-02",
         "highest": 0,
-        "high": 1,
+        "high": 3,
         "medium": 9,
         "low": 5,
         "lowest": 0
@@ -3362,12 +3392,12 @@
       "bc": {
         "date": "2026-03-02",
         "highest": 4,
-        "high": 70,
+        "high": 68,
         "medium": 107,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 169,
-        "longstanding_60d_plus": 156
+        "longstanding_30d_plus": 167,
+        "longstanding_60d_plus": 154
       },
       "workers": {
         "date": "2026-03-02",
@@ -3391,7 +3421,7 @@
       "api": {
         "date": "2026-03-16",
         "highest": 0,
-        "high": 1,
+        "high": 3,
         "medium": 9,
         "low": 5,
         "lowest": 0
@@ -3415,12 +3445,12 @@
       "bc": {
         "date": "2026-03-16",
         "highest": 7,
-        "high": 70,
+        "high": 68,
         "medium": 112,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 170,
-        "longstanding_60d_plus": 159
+        "longstanding_30d_plus": 168,
+        "longstanding_60d_plus": 157
       },
       "workers": {
         "date": "2026-03-16",
@@ -3444,7 +3474,7 @@
       "api": {
         "date": "2026-03-30",
         "highest": 0,
-        "high": 2,
+        "high": 4,
         "medium": 9,
         "low": 4,
         "lowest": 0
@@ -3468,12 +3498,12 @@
       "bc": {
         "date": "2026-03-30",
         "highest": 9,
-        "high": 72,
+        "high": 70,
         "medium": 113,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 176,
-        "longstanding_60d_plus": 165
+        "longstanding_30d_plus": 174,
+        "longstanding_60d_plus": 163
       },
       "workers": {
         "date": "2026-03-30",
@@ -3497,7 +3527,7 @@
       "api": {
         "date": "2026-04-13",
         "highest": 0,
-        "high": 2,
+        "high": 4,
         "medium": 9,
         "low": 4,
         "lowest": 0
@@ -3521,12 +3551,12 @@
       "bc": {
         "date": "2026-04-13",
         "highest": 4,
-        "high": 71,
+        "high": 69,
         "medium": 119,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 187,
-        "longstanding_60d_plus": 168
+        "longstanding_30d_plus": 185,
+        "longstanding_60d_plus": 166
       },
       "workers": {
         "date": "2026-04-13",
@@ -3550,7 +3580,7 @@
       "api": {
         "date": "2026-04-27",
         "highest": 0,
-        "high": 2,
+        "high": 4,
         "medium": 11,
         "low": 5,
         "lowest": 2
@@ -3574,12 +3604,12 @@
       "bc": {
         "date": "2026-04-27",
         "highest": 6,
-        "high": 70,
+        "high": 68,
         "medium": 118,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 183,
-        "longstanding_60d_plus": 170
+        "longstanding_30d_plus": 181,
+        "longstanding_60d_plus": 168
       },
       "workers": {
         "date": "2026-04-27",
@@ -3599,17 +3629,17 @@
       }
     },
     {
-      "date": "2026-05-05",
+      "date": "2026-05-06",
       "api": {
-        "date": "2026-05-05",
+        "date": "2026-05-06",
         "highest": 0,
-        "high": 2,
+        "high": 4,
         "medium": 12,
         "low": 5,
         "lowest": 2
       },
       "legacy": {
-        "date": "2026-05-05",
+        "date": "2026-05-06",
         "highest": 0,
         "high": 1,
         "medium": 6,
@@ -3617,7 +3647,7 @@
         "lowest": 0
       },
       "react": {
-        "date": "2026-05-05",
+        "date": "2026-05-06",
         "highest": 0,
         "high": 0,
         "medium": 2,
@@ -3625,17 +3655,17 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2026-05-05",
+        "date": "2026-05-06",
         "highest": 4,
-        "high": 69,
+        "high": 67,
         "medium": 111,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 181,
-        "longstanding_60d_plus": 168
+        "longstanding_30d_plus": 179,
+        "longstanding_60d_plus": 166
       },
       "workers": {
-        "date": "2026-05-05",
+        "date": "2026-05-06",
         "highest": 0,
         "high": 2,
         "medium": 5,
@@ -3643,8 +3673,8 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2026-05-05",
-        "highest": 0,
+        "date": "2026-05-06",
+        "highest": 1,
         "high": 2,
         "medium": 0,
         "low": 0,
