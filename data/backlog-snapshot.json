@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-07T07:27:06.967Z",
+  "updatedAt": "2026-05-08T07:27:33.690Z",
   "combinedPoints": [
     {
       "date": "2025-11-10",
@@ -613,7 +613,7 @@
       }
     },
     {
-      "date": "2026-05-07",
+      "date": "2026-05-08",
       "api": {
         "highest": 0,
         "high": 4,
@@ -631,18 +631,18 @@
       "react": {
         "highest": 0,
         "high": 0,
-        "medium": 3,
+        "medium": 2,
         "low": 0,
         "lowest": 0
       },
       "bc": {
-        "highest": 4,
-        "high": 68,
+        "highest": 3,
+        "high": 66,
         "medium": 111,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 177,
-        "longstanding_60d_plus": 166
+        "longstanding_30d_plus": 174,
+        "longstanding_60d_plus": 164
       },
       "workers": {
         "highest": 0,
@@ -652,7 +652,7 @@
         "lowest": 0
       },
       "titanium": {
-        "highest": 1,
+        "highest": 0,
         "high": 2,
         "medium": 0,
         "low": 0,
