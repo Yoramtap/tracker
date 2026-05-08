@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-05-07T07:27:06.959Z",
+  "generatedAt": "2026-05-08T07:27:33.680Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
-      "timelineEnd": "2026-04-01",
-      "totalShipped": 173,
+      "timelineEnd": "2026-05-01",
+      "totalShipped": 174,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -1599,6 +1599,26 @@
                   "productAreaLabel": "",
                   "summary": "Integrate Panasonic Kairos into NEP platform",
                   "shippedAt": "2026-04-28T10:44:46.964Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2026-05-01",
+          "monthKey": "2026-05",
+          "totalShipped": 1,
+          "teamCount": 1,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-419",
+                  "productAreaLabel": "TFC",
+                  "summary": "Multiviewer: 16 clocks & text boxes per head",
+                  "shippedAt": "2026-05-07T11:05:29.550Z"
                 }
               ]
             }
