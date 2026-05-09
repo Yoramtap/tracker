@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-05-08T07:27:33.680Z",
+  "generatedAt": "2026-05-09T07:27:23.274Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-05-01",
-      "totalShipped": 174,
+      "totalShipped": 178,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -1607,18 +1607,48 @@
         {
           "monthStart": "2026-05-01",
           "monthKey": "2026-05",
-          "totalShipped": 1,
-          "teamCount": 1,
+          "totalShipped": 5,
+          "teamCount": 2,
           "teams": [
             {
               "team": "Multi team",
-              "shippedCount": 1,
+              "shippedCount": 3,
               "ideas": [
                 {
                   "issueKey": "TPS-419",
                   "productAreaLabel": "TFC",
                   "summary": "Multiviewer: 16 clocks & text boxes per head",
                   "shippedAt": "2026-05-07T11:05:29.550Z"
+                },
+                {
+                  "issueKey": "TPS-399",
+                  "productAreaLabel": "TFC",
+                  "summary": "Panel Builder slice 1: Canvas Foundations + public alpha",
+                  "shippedAt": "2026-05-08T11:06:08.474Z"
+                },
+                {
+                  "issueKey": "TPS-430",
+                  "productAreaLabel": "TFC",
+                  "summary": "Roadmap: Panel Builder POC",
+                  "shippedAt": "2026-05-08T13:52:46.950Z"
+                }
+              ]
+            },
+            {
+              "team": "Frontend",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-402",
+                  "productAreaLabel": "TFC",
+                  "summary": "UI Porting: Routing: Advanced Routing",
+                  "shippedAt": "2026-05-08T10:52:12.358Z"
+                },
+                {
+                  "issueKey": "TPS-415",
+                  "productAreaLabel": "TFC",
+                  "summary": "UI Porting: Routing: Super Steals",
+                  "shippedAt": "2026-05-08T10:55:31.627Z"
                 }
               ]
             }

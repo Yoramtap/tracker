@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-08T07:27:33.690Z",
+  "updatedAt": "2026-05-09T07:27:23.283Z",
   "combinedPoints": [
     {
       "date": "2025-11-10",
@@ -354,8 +354,8 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 7,
-        "high": 61,
+        "highest": 6,
+        "high": 62,
         "medium": 106,
         "low": 8,
         "lowest": 0,
@@ -401,8 +401,8 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 4,
-        "high": 68,
+        "highest": 3,
+        "high": 69,
         "medium": 107,
         "low": 8,
         "lowest": 0,
@@ -448,8 +448,8 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 7,
-        "high": 68,
+        "highest": 6,
+        "high": 69,
         "medium": 112,
         "low": 8,
         "lowest": 0,
@@ -495,8 +495,8 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 9,
-        "high": 70,
+        "highest": 8,
+        "high": 71,
         "medium": 113,
         "low": 8,
         "lowest": 0,
@@ -542,8 +542,8 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 4,
-        "high": 69,
+        "highest": 3,
+        "high": 70,
         "medium": 119,
         "low": 8,
         "lowest": 0,
@@ -589,8 +589,8 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 6,
-        "high": 68,
+        "highest": 5,
+        "high": 69,
         "medium": 118,
         "low": 7,
         "lowest": 0,
@@ -613,10 +613,10 @@
       }
     },
     {
-      "date": "2026-05-08",
+      "date": "2026-05-09",
       "api": {
         "highest": 0,
-        "high": 4,
+        "high": 3,
         "medium": 12,
         "low": 5,
         "lowest": 2
@@ -624,7 +624,7 @@
       "legacy": {
         "highest": 0,
         "high": 1,
-        "medium": 7,
+        "medium": 6,
         "low": 21,
         "lowest": 0
       },
@@ -636,13 +636,13 @@
         "lowest": 0
       },
       "bc": {
-        "highest": 3,
-        "high": 66,
-        "medium": 111,
+        "highest": 2,
+        "high": 67,
+        "medium": 110,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 174,
-        "longstanding_60d_plus": 164
+        "longstanding_30d_plus": 173,
+        "longstanding_60d_plus": 163
       },
       "workers": {
         "highest": 0,
