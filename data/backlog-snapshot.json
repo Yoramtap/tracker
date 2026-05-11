@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-10T07:27:25.156Z",
+  "updatedAt": "2026-05-11T07:27:45.487Z",
   "combinedPoints": [
     {
       "date": "2025-11-10",
@@ -591,7 +591,7 @@
       "bc": {
         "highest": 5,
         "high": 69,
-        "medium": 118,
+        "medium": 119,
         "low": 7,
         "lowest": 0,
         "longstanding_30d_plus": 181,
@@ -613,7 +613,7 @@
       }
     },
     {
-      "date": "2026-05-10",
+      "date": "2026-05-11",
       "api": {
         "highest": 0,
         "high": 3,
@@ -637,12 +637,12 @@
       },
       "bc": {
         "highest": 2,
-        "high": 67,
-        "medium": 110,
+        "high": 66,
+        "medium": 109,
         "low": 7,
         "lowest": 0,
         "longstanding_30d_plus": 173,
-        "longstanding_60d_plus": 163
+        "longstanding_60d_plus": 166
       },
       "workers": {
         "highest": 0,

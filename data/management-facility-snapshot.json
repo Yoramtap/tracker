@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-10T07:27:25.156Z",
+  "updatedAt": "2026-05-11T07:27:45.487Z",
   "chartData": {
     "managementBusinessUnit": {
       "scopeLabel": "Broadcast",
@@ -7,71 +7,12 @@
         "ongoing": {
           "rows": [
             {
-              "label": "ANZJ",
-              "devAvg": 7.01,
-              "sampleCount": 1,
-              "devCount": 1,
-              "uatCount": 1,
-              "uatAvg": 45.16,
-              "issueItems": [
-                {
-                  "issueId": "TFC-16160",
-                  "facilityLabel": "Facility AU AHS"
-                }
-              ],
-              "facilities": [
-                {
-                  "label": "AU AHS",
-                  "devAvg": 7.01,
-                  "uatAvg": 45.16,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-16160"
-                  ]
-                }
-              ]
-            },
-            {
-              "label": "Business unit unmapped",
-              "devAvg": 1.1,
-              "sampleCount": 2,
-              "devCount": 2,
-              "uatCount": 2,
-              "uatAvg": 2.16,
-              "issueItems": [
-                {
-                  "issueId": "TFC-16563",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16590",
-                  "facilityLabel": "Facility unmapped"
-                }
-              ],
-              "facilities": [
-                {
-                  "label": "Unspecified",
-                  "devAvg": 1.1,
-                  "uatAvg": 2.16,
-                  "devCount": 2,
-                  "uatCount": 2,
-                  "sampleCount": 2,
-                  "issueIds": [
-                    "TFC-16563",
-                    "TFC-16590"
-                  ]
-                }
-              ]
-            },
-            {
               "label": "MEA",
               "devAvg": 1.1,
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 93.95,
+              "uatAvg": 94.95,
               "issueItems": [
                 {
                   "issueId": "TFC-15925",
@@ -82,7 +23,7 @@
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 93.95,
+                  "uatAvg": 94.95,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -98,7 +39,7 @@
               "sampleCount": 4,
               "devCount": 4,
               "uatCount": 4,
-              "uatAvg": 88.53,
+              "uatAvg": 89.53,
               "issueItems": [
                 {
                   "issueId": "TFC-14425",
@@ -121,7 +62,7 @@
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 144.19,
+                  "uatAvg": 145.19,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -132,7 +73,7 @@
                 {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 95.37,
+                  "uatAvg": 96.37,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -143,7 +84,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.43,
-                  "uatAvg": 57.27,
+                  "uatAvg": 58.27,
                   "devCount": 2,
                   "uatCount": 2,
                   "sampleCount": 2,
@@ -160,7 +101,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 149.12,
+              "uatAvg": 150.12,
               "issueItems": [
                 {
                   "issueId": "TFC-14540",
@@ -171,7 +112,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 149.12,
+                  "uatAvg": 150.12,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -389,11 +330,11 @@
             },
             {
               "label": "Business unit unmapped",
-              "devAvg": 15.78,
-              "sampleCount": 8,
-              "devCount": 8,
-              "uatCount": 8,
-              "uatAvg": 7.33,
+              "devAvg": 12.77,
+              "sampleCount": 10,
+              "devCount": 10,
+              "uatCount": 10,
+              "uatAvg": 6.12,
               "issueItems": [
                 {
                   "issueId": "TFC-16159",
@@ -426,6 +367,14 @@
                 {
                   "issueId": "TFC-16498",
                   "facilityLabel": "Facility unmapped"
+                },
+                {
+                  "issueId": "TFC-16563",
+                  "facilityLabel": "Facility unmapped"
+                },
+                {
+                  "issueId": "TFC-16627",
+                  "facilityLabel": "Facility unmapped"
                 }
               ],
               "facilities": [
@@ -453,18 +402,20 @@
                 },
                 {
                   "label": "Unspecified",
-                  "devAvg": 20.36,
-                  "uatAvg": 7.63,
-                  "devCount": 6,
-                  "uatCount": 6,
-                  "sampleCount": 6,
+                  "devAvg": 15.45,
+                  "uatAvg": 6.04,
+                  "devCount": 8,
+                  "uatCount": 8,
+                  "sampleCount": 8,
                   "issueIds": [
                     "TFC-14244",
                     "TFC-15597",
                     "TFC-15758",
                     "TFC-16408",
                     "TFC-16488",
-                    "TFC-16498"
+                    "TFC-16498",
+                    "TFC-16563",
+                    "TFC-16627"
                   ]
                 }
               ]

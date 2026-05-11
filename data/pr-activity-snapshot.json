@@ -1,9 +1,9 @@
 {
-  "updatedAt": "2026-05-10T07:27:25.156Z",
+  "updatedAt": "2026-05-11T07:27:45.487Z",
   "prActivity": {
     "since": "2025-01-06",
     "interval": "sprint",
-    "latestClosedSprintDate": "2026-04-27",
+    "latestClosedSprintDate": "2026-05-11",
     "monthlySince": "2025-05-01",
     "monthlyInterval": "month",
     "caveat": "Counts are sourced from GitHub pull requests and attributed by committed repo-to-team mapping. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the first submitted non-author GitHub review to mergedAt.",
@@ -1489,6 +1489,45 @@
           "avgReviewToMergeDays": 0,
           "avgReviewToMergeSampleCount": 5
         }
+      },
+      {
+        "date": "2026-05-11",
+        "api": {
+          "offered": 58,
+          "merged": 62,
+          "avgReviewToMergeDays": 5,
+          "avgReviewToMergeSampleCount": 56
+        },
+        "legacy": {
+          "offered": 5,
+          "merged": 6,
+          "avgReviewToMergeDays": 1,
+          "avgReviewToMergeSampleCount": 6
+        },
+        "react": {
+          "offered": 32,
+          "merged": 19,
+          "avgReviewToMergeDays": 2,
+          "avgReviewToMergeSampleCount": 15
+        },
+        "bc": {
+          "offered": 63,
+          "merged": 62,
+          "avgReviewToMergeDays": 5,
+          "avgReviewToMergeSampleCount": 61
+        },
+        "workers": {
+          "offered": 24,
+          "merged": 18,
+          "avgReviewToMergeDays": 2,
+          "avgReviewToMergeSampleCount": 18
+        },
+        "titanium": {
+          "offered": 2,
+          "merged": 2,
+          "avgReviewToMergeDays": 2,
+          "avgReviewToMergeSampleCount": 2
+        }
       }
     ],
     "monthlyPoints": [
@@ -1963,7 +2002,7 @@
       {
         "date": "2026-05-01",
         "api": {
-          "offered": 38,
+          "offered": 39,
           "merged": 49,
           "avgReviewToMergeDays": 5,
           "avgReviewToMergeSampleCount": 45
@@ -1981,16 +2020,16 @@
           "avgReviewToMergeSampleCount": 13
         },
         "bc": {
-          "offered": 39,
-          "merged": 44,
-          "avgReviewToMergeDays": 7,
-          "avgReviewToMergeSampleCount": 44
+          "offered": 52,
+          "merged": 53,
+          "avgReviewToMergeDays": 6,
+          "avgReviewToMergeSampleCount": 52
         },
         "workers": {
           "offered": 17,
-          "merged": 12,
+          "merged": 13,
           "avgReviewToMergeDays": 3,
-          "avgReviewToMergeSampleCount": 12
+          "avgReviewToMergeSampleCount": 13
         },
         "titanium": {
           "offered": 2,
