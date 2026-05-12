@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-05-11T07:27:45.478Z",
+  "generatedAt": "2026-05-12T07:26:37.506Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-05-01",
-      "totalShipped": 178,
+      "totalShipped": 179,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -1607,7 +1607,7 @@
         {
           "monthStart": "2026-05-01",
           "monthKey": "2026-05",
-          "totalShipped": 5,
+          "totalShipped": 6,
           "teamCount": 2,
           "teams": [
             {
@@ -1636,7 +1636,7 @@
             },
             {
               "team": "Frontend",
-              "shippedCount": 2,
+              "shippedCount": 3,
               "ideas": [
                 {
                   "issueKey": "TPS-402",
@@ -1649,6 +1649,12 @@
                   "productAreaLabel": "TFC",
                   "summary": "UI Porting: Routing: Super Steals",
                   "shippedAt": "2026-05-08T10:55:31.627Z"
+                },
+                {
+                  "issueKey": "TPS-405",
+                  "productAreaLabel": "TFC",
+                  "summary": "UI Porting: Audit Logs (Tags)",
+                  "shippedAt": "2026-05-11T10:58:47.031Z"
                 }
               ]
             }
