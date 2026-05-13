@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-05-12T07:26:37.515Z",
+  "updatedAt": "2026-05-13T07:28:07.208Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-05-12T07:26:37.515Z",
+    "syncedAt": "2026-05-13T07:28:07.207Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. PR activity is sourced from GitHub pull requests and attributed by committed repo-to-team mapping."
   },
   "prActivity": {
@@ -12,7 +12,7 @@
     "monthlyInterval": "month",
     "source": "github_pull_requests",
     "candidateIssueCount": 117,
-    "uniquePrCount": 456,
+    "uniquePrCount": 470,
     "conflictCount": 0,
     "caveat": "Counts are sourced from GitHub pull requests and attributed by committed repo-to-team mapping. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the first submitted non-author GitHub review to mergedAt.",
     "points": [
@@ -2011,34 +2011,34 @@
       {
         "date": "2026-05-01",
         "api": {
-          "offered": 40,
-          "merged": 51,
+          "offered": 44,
+          "merged": 54,
           "avgReviewToMergeDays": 5,
-          "avgReviewToMergeSampleCount": 47
+          "avgReviewToMergeSampleCount": 49
         },
         "legacy": {
           "offered": 4,
-          "merged": 3,
-          "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 3
+          "merged": 5,
+          "avgReviewToMergeDays": 1,
+          "avgReviewToMergeSampleCount": 5
         },
         "react": {
-          "offered": 23,
-          "merged": 14,
+          "offered": 24,
+          "merged": 15,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 13
+          "avgReviewToMergeSampleCount": 14
         },
         "bc": {
-          "offered": 58,
-          "merged": 62,
+          "offered": 65,
+          "merged": 67,
           "avgReviewToMergeDays": 5,
-          "avgReviewToMergeSampleCount": 60
+          "avgReviewToMergeSampleCount": 64
         },
         "workers": {
-          "offered": 17,
-          "merged": 14,
+          "offered": 19,
+          "merged": 16,
           "avgReviewToMergeDays": 3,
-          "avgReviewToMergeSampleCount": 14
+          "avgReviewToMergeSampleCount": 16
         },
         "titanium": {
           "offered": 2,
@@ -2059,7 +2059,7 @@
             {
               "label": "MEA",
               "devAvg": 1.1,
-              "uatAvg": 95.95,
+              "uatAvg": 96.95,
               "devCount": 1,
               "uatCount": 1,
               "sampleCount": 1,
@@ -2076,7 +2076,7 @@
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 95.95,
+                  "uatAvg": 96.95,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -2089,7 +2089,7 @@
             {
               "label": "US",
               "devAvg": 0.68,
-              "uatAvg": 90.53,
+              "uatAvg": 91.53,
               "devCount": 4,
               "uatCount": 4,
               "sampleCount": 4,
@@ -2121,7 +2121,7 @@
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 146.19,
+                  "uatAvg": 147.19,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -2132,7 +2132,7 @@
                 {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 97.37,
+                  "uatAvg": 98.37,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -2143,7 +2143,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.43,
-                  "uatAvg": 59.27,
+                  "uatAvg": 60.27,
                   "devCount": 2,
                   "uatCount": 2,
                   "sampleCount": 2,
@@ -2157,7 +2157,7 @@
             {
               "label": "Tech Debt",
               "devAvg": 28.75,
-              "uatAvg": 151.12,
+              "uatAvg": 152.12,
               "devCount": 1,
               "uatCount": 1,
               "sampleCount": 1,
@@ -2174,7 +2174,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 151.12,
+                  "uatAvg": 152.12,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -3628,9 +3628,9 @@
       }
     },
     {
-      "date": "2026-05-12",
+      "date": "2026-05-13",
       "api": {
-        "date": "2026-05-12",
+        "date": "2026-05-13",
         "highest": 0,
         "high": 3,
         "medium": 12,
@@ -3638,15 +3638,15 @@
         "lowest": 2
       },
       "legacy": {
-        "date": "2026-05-12",
+        "date": "2026-05-13",
         "highest": 0,
         "high": 1,
-        "medium": 6,
+        "medium": 5,
         "low": 21,
         "lowest": 0
       },
       "react": {
-        "date": "2026-05-12",
+        "date": "2026-05-13",
         "highest": 0,
         "high": 0,
         "medium": 2,
@@ -3654,17 +3654,17 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2026-05-12",
-        "highest": 2,
+        "date": "2026-05-13",
+        "highest": 3,
         "high": 66,
         "medium": 109,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 173,
+        "longstanding_30d_plus": 174,
         "longstanding_60d_plus": 166
       },
       "workers": {
-        "date": "2026-05-12",
+        "date": "2026-05-13",
         "highest": 0,
         "high": 2,
         "medium": 5,
@@ -3672,7 +3672,7 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2026-05-12",
+        "date": "2026-05-13",
         "highest": 0,
         "high": 1,
         "medium": 0,
