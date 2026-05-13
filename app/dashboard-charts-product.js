@@ -536,7 +536,7 @@
               fontWeight: 700,
               textAnchor: "middle"
             },
-            "Sprint start date"
+            "Sprint end date"
           )
         )
       )

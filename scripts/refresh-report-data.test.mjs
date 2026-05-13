@@ -241,6 +241,37 @@ test("resolveTrendDates reuses cached sprint dates across days until the active 
   assert.ok(cachedValue?.entries && Object.keys(cachedValue.entries).length === 1);
 });
 
+test("resolveTrendDates excludes active sprint points when includeActive is false", async () => {
+  const result = await resolveTrendDates("jira.example.com", "user", "token", {
+    fallbackDates: ["2026-03-16"],
+    projectKey: "TFC",
+    boardId: "",
+    lookbackCount: 0,
+    pointMode: "end",
+    includeActive: false,
+    mondayAnchor: true,
+    todayIso: "2026-04-08",
+    useCache: false,
+    fetchBoards: async () => [{ id: 42 }],
+    fetchSprints: async () => [
+      {
+        id: 1001,
+        state: "closed",
+        endDate: "2026-03-16T10:00:00.000Z"
+      },
+      {
+        id: 1002,
+        state: "active",
+        endDate: "2026-04-13T10:00:00.000Z"
+      }
+    ]
+  });
+
+  assert.deepEqual(result.dates, ["2026-03-16"]);
+  assert.deepEqual(result.closedDates, ["2026-03-16"]);
+  assert.equal(result.usedFallback, false);
+});
+
 test("loadPrActivityRepoTeamMapConfig reads the committed repo ownership map", async () => {
   const repoTeamMap = await loadPrActivityRepoTeamMapConfig();
   assert.equal(repoTeamMap["nepgpe/tfc-functionality-usvc"], "api");
