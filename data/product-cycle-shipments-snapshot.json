@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-05-14T07:26:37.086Z",
+  "generatedAt": "2026-05-15T07:26:54.256Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-05-01",
-      "totalShipped": 179,
+      "totalShipped": 180,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -1607,8 +1607,8 @@
         {
           "monthStart": "2026-05-01",
           "monthKey": "2026-05",
-          "totalShipped": 6,
-          "teamCount": 2,
+          "totalShipped": 7,
+          "teamCount": 3,
           "teams": [
             {
               "team": "Multi team",
@@ -1655,6 +1655,18 @@
                   "productAreaLabel": "TFC",
                   "summary": "UI Porting: Audit Logs (Tags)",
                   "shippedAt": "2026-05-11T10:58:47.031Z"
+                }
+              ]
+            },
+            {
+              "team": "Orchestration",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-433",
+                  "productAreaLabel": "NEP Platform",
+                  "summary": "Destroy data plane for LAWO",
+                  "shippedAt": "2026-05-14T09:54:07.888Z"
                 }
               ]
             }

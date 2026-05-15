@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-14T07:26:37.096Z",
+  "updatedAt": "2026-05-15T07:26:54.266Z",
   "chartData": {
     "managementBusinessUnit": {
       "scopeLabel": "Broadcast",
@@ -12,7 +12,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 97.95,
+              "uatAvg": 98.95,
               "issueItems": [
                 {
                   "issueId": "TFC-15925",
@@ -23,7 +23,7 @@
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 97.95,
+                  "uatAvg": 98.95,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -39,7 +39,7 @@
               "sampleCount": 4,
               "devCount": 4,
               "uatCount": 4,
-              "uatAvg": 92.53,
+              "uatAvg": 93.53,
               "issueItems": [
                 {
                   "issueId": "TFC-14425",
@@ -62,7 +62,7 @@
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 148.19,
+                  "uatAvg": 149.19,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -73,7 +73,7 @@
                 {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 99.37,
+                  "uatAvg": 100.37,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -84,7 +84,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.43,
-                  "uatAvg": 61.27,
+                  "uatAvg": 62.27,
                   "devCount": 2,
                   "uatCount": 2,
                   "sampleCount": 2,
@@ -101,7 +101,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 153.12,
+              "uatAvg": 154.12,
               "issueItems": [
                 {
                   "issueId": "TFC-14540",
@@ -112,7 +112,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 153.12,
+                  "uatAvg": 154.12,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,

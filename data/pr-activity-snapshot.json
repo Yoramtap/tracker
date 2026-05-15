@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-14T07:26:37.096Z",
+  "updatedAt": "2026-05-15T07:26:54.266Z",
   "prActivity": {
     "since": "2025-01-06",
     "interval": "sprint",
@@ -1964,9 +1964,9 @@
         "date": "2026-05-01",
         "api": {
           "offered": 46,
-          "merged": 55,
+          "merged": 56,
           "avgReviewToMergeDays": 5,
-          "avgReviewToMergeSampleCount": 50
+          "avgReviewToMergeSampleCount": 51
         },
         "legacy": {
           "offered": 4,
@@ -1975,19 +1975,19 @@
           "avgReviewToMergeSampleCount": 5
         },
         "react": {
-          "offered": 32,
-          "merged": 18,
+          "offered": 33,
+          "merged": 21,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 17
+          "avgReviewToMergeSampleCount": 20
         },
         "bc": {
           "offered": 71,
-          "merged": 69,
+          "merged": 70,
           "avgReviewToMergeDays": 5,
-          "avgReviewToMergeSampleCount": 66
+          "avgReviewToMergeSampleCount": 67
         },
         "workers": {
-          "offered": 21,
+          "offered": 23,
           "merged": 16,
           "avgReviewToMergeDays": 3,
           "avgReviewToMergeSampleCount": 16
