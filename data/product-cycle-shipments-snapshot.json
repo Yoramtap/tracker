@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-05-15T07:26:54.256Z",
+  "generatedAt": "2026-05-16T07:27:51.457Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-05-01",
-      "totalShipped": 180,
+      "totalShipped": 181,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -1607,12 +1607,12 @@
         {
           "monthStart": "2026-05-01",
           "monthKey": "2026-05",
-          "totalShipped": 7,
+          "totalShipped": 8,
           "teamCount": 3,
           "teams": [
             {
               "team": "Multi team",
-              "shippedCount": 3,
+              "shippedCount": 4,
               "ideas": [
                 {
                   "issueKey": "TPS-419",
@@ -1629,8 +1629,14 @@
                 {
                   "issueKey": "TPS-430",
                   "productAreaLabel": "TFC",
-                  "summary": "Roadmap: Panel Builder POC",
+                  "summary": "Panel Builder POC",
                   "shippedAt": "2026-05-08T13:52:46.950Z"
+                },
+                {
+                  "issueKey": "TPS-431",
+                  "productAreaLabel": "TFC",
+                  "summary": "Panel Builder slice 2: Resolutions & out of bounds sections",
+                  "shippedAt": "2026-05-15T14:55:03.875Z"
                 }
               ]
             },
