@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-15T07:26:54.266Z",
+  "updatedAt": "2026-05-16T07:27:51.465Z",
   "chartData": {
     "managementBusinessUnit": {
       "scopeLabel": "Broadcast",
@@ -12,7 +12,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 98.95,
+              "uatAvg": 99.95,
               "issueItems": [
                 {
                   "issueId": "TFC-15925",
@@ -23,7 +23,7 @@
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 98.95,
+                  "uatAvg": 99.95,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -39,7 +39,7 @@
               "sampleCount": 4,
               "devCount": 4,
               "uatCount": 4,
-              "uatAvg": 93.53,
+              "uatAvg": 94.53,
               "issueItems": [
                 {
                   "issueId": "TFC-14425",
@@ -62,7 +62,7 @@
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 149.19,
+                  "uatAvg": 150.19,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -73,7 +73,7 @@
                 {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 100.37,
+                  "uatAvg": 101.37,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -84,7 +84,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.43,
-                  "uatAvg": 62.27,
+                  "uatAvg": 63.27,
                   "devCount": 2,
                   "uatCount": 2,
                   "sampleCount": 2,
@@ -101,7 +101,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 154.12,
+              "uatAvg": 155.12,
               "issueItems": [
                 {
                   "issueId": "TFC-14540",
@@ -112,7 +112,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 154.12,
+                  "uatAvg": 155.12,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -330,11 +330,11 @@
             },
             {
               "label": "Business unit unmapped",
-              "devAvg": 12.77,
-              "sampleCount": 10,
-              "devCount": 10,
-              "uatCount": 10,
-              "uatAvg": 6.12,
+              "devAvg": 11.71,
+              "sampleCount": 11,
+              "devCount": 11,
+              "uatCount": 11,
+              "uatAvg": 5.83,
               "issueItems": [
                 {
                   "issueId": "TFC-16159",
@@ -373,6 +373,10 @@
                   "facilityLabel": "Facility unmapped"
                 },
                 {
+                  "issueId": "TFC-16590",
+                  "facilityLabel": "Facility unmapped"
+                },
+                {
                   "issueId": "TFC-16627",
                   "facilityLabel": "Facility unmapped"
                 }
@@ -402,11 +406,11 @@
                 },
                 {
                   "label": "Unspecified",
-                  "devAvg": 15.45,
-                  "uatAvg": 6.04,
-                  "devCount": 8,
-                  "uatCount": 8,
-                  "sampleCount": 8,
+                  "devAvg": 13.86,
+                  "uatAvg": 5.69,
+                  "devCount": 9,
+                  "uatCount": 9,
+                  "sampleCount": 9,
                   "issueIds": [
                     "TFC-14244",
                     "TFC-15597",
@@ -415,6 +419,7 @@
                     "TFC-16488",
                     "TFC-16498",
                     "TFC-16563",
+                    "TFC-16590",
                     "TFC-16627"
                   ]
                 }
