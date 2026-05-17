@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-05-16T07:27:51.465Z",
+  "updatedAt": "2026-05-17T07:27:43.715Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-05-16T07:27:51.465Z",
+    "syncedAt": "2026-05-17T07:27:43.715Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. PR activity is sourced from GitHub pull requests and attributed by committed repo-to-team mapping."
   },
   "prActivity": {
@@ -2020,7 +2020,7 @@
             {
               "label": "MEA",
               "devAvg": 1.1,
-              "uatAvg": 99.95,
+              "uatAvg": 100.95,
               "devCount": 1,
               "uatCount": 1,
               "sampleCount": 1,
@@ -2037,7 +2037,7 @@
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 99.95,
+                  "uatAvg": 100.95,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -2050,7 +2050,7 @@
             {
               "label": "US",
               "devAvg": 0.68,
-              "uatAvg": 94.53,
+              "uatAvg": 95.53,
               "devCount": 4,
               "uatCount": 4,
               "sampleCount": 4,
@@ -2082,7 +2082,7 @@
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 150.19,
+                  "uatAvg": 151.19,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -2093,7 +2093,7 @@
                 {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 101.37,
+                  "uatAvg": 102.37,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -2104,7 +2104,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.43,
-                  "uatAvg": 63.27,
+                  "uatAvg": 64.27,
                   "devCount": 2,
                   "uatCount": 2,
                   "sampleCount": 2,
@@ -2118,7 +2118,7 @@
             {
               "label": "Tech Debt",
               "devAvg": 28.75,
-              "uatAvg": 155.12,
+              "uatAvg": 156.12,
               "devCount": 1,
               "uatCount": 1,
               "sampleCount": 1,
@@ -2135,7 +2135,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 155.12,
+                  "uatAvg": 156.12,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
