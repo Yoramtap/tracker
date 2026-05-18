@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-05-17T07:27:43.706Z",
+  "generatedAt": "2026-05-18T07:27:25.678Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-05-01",
-      "totalShipped": 181,
+      "totalShipped": 182,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -1607,12 +1607,12 @@
         {
           "monthStart": "2026-05-01",
           "monthKey": "2026-05",
-          "totalShipped": 8,
+          "totalShipped": 9,
           "teamCount": 3,
           "teams": [
             {
               "team": "Multi team",
-              "shippedCount": 4,
+              "shippedCount": 5,
               "ideas": [
                 {
                   "issueKey": "TPS-419",
@@ -1637,6 +1637,12 @@
                   "productAreaLabel": "TFC",
                   "summary": "Panel Builder slice 2: Resolutions & out of bounds sections",
                   "shippedAt": "2026-05-15T14:55:03.875Z"
+                },
+                {
+                  "issueKey": "TPS-408",
+                  "productAreaLabel": "TFC",
+                  "summary": "Legacy UI: default to New UI features when on parity",
+                  "shippedAt": "2026-05-18T05:06:52.522Z"
                 }
               ]
             },
