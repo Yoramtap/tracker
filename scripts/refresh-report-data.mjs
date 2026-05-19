@@ -121,7 +121,8 @@ const FULL_REFRESH_STAGE_ORDER = Object.freeze([
 const PRIORITY_ORDER = ["highest", "high", "medium", "low", "lowest"];
 const PR_SUMMARY_FIELD = "customfield_10000";
 const PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY = "30d";
-const PR_ACTIVITY_HISTORY_FLOOR = "2025-01-01";
+const PR_ACTIVITY_HISTORY_WINDOW_KEY = "history";
+const PR_ACTIVITY_HISTORY_FLOOR = "2024-01-01";
 const PR_REVIEW_STATUS = "In Review";
 const PR_ACTIVITY_PROJECT_KEYS = ["TFC", "TFO", "MESO"];
 const PR_ACTIVITY_SOURCE_JIRA = "jira";
@@ -701,12 +702,12 @@ function resolvePrActivitySinceDate(
   maxWindowKey = PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY
 ) {
   const safeToday = String(todayIso || "").trim();
+  const safeWindowKey = String(maxWindowKey || PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY)
+    .trim()
+    .toLowerCase();
+  if (safeWindowKey === PR_ACTIVITY_HISTORY_WINDOW_KEY) return PR_ACTIVITY_HISTORY_FLOOR;
   if (!safeToday) return "";
-  switch (
-    String(maxWindowKey || PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY)
-      .trim()
-      .toLowerCase()
-  ) {
+  switch (safeWindowKey) {
     case FOURTEEN_DAY_WINDOW_KEY:
       return shiftIsoDate(safeToday, -13);
     case "30d":
@@ -2564,6 +2565,22 @@ function monthBucketDate(isoDate) {
   return `${safeDate.slice(0, 7)}-01`;
 }
 
+function enumerateMonthBucketDates(startDate, endDate) {
+  const startBucket = monthBucketDate(startDate);
+  const endBucket = monthBucketDate(endDate);
+  const start = new Date(`${startBucket}T00:00:00Z`);
+  const end = new Date(`${endBucket}T00:00:00Z`);
+  if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || start > end) {
+    return [];
+  }
+
+  const dates = [];
+  for (const cursor = start; cursor <= end; cursor.setUTCMonth(cursor.getUTCMonth() + 1)) {
+    dates.push(cursor.toISOString().slice(0, 10));
+  }
+  return dates;
+}
+
 function buildPrActivityMonthlySnapshot(result, sinceDate, options = {}) {
   const minimumBucketDate = monthBucketDate(sinceDate);
   const maximumBucketDate = monthBucketDate(options.ceilingDate);
@@ -2578,6 +2595,12 @@ function buildPrActivityMonthlySnapshot(result, sinceDate, options = {}) {
     }
     dates.add(safeDate);
     return byDate.get(safeDate);
+  }
+
+  if (options.fillEmptyMonths) {
+    for (const date of enumerateMonthBucketDates(minimumBucketDate, maximumBucketDate)) {
+      ensureMonthBucket(date);
+    }
   }
 
   for (const row of result.records ?? []) {
@@ -3373,7 +3396,7 @@ async function buildPrActivityRefreshState(config, todayIso, resolvedDates, opti
 
   const prActivityWindowKey = prActivityHistoryPlan.reuseHistoricalPrActivity
     ? PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY
-    : "1y";
+    : PR_ACTIVITY_HISTORY_WINDOW_KEY;
   const prActivityFetchSinceDate = resolvePrActivityFetchSinceDate(todayIso, prActivityWindowKey);
   const prRows = await withTiming(
     "PR activity fetch",
@@ -3402,10 +3425,12 @@ export function resolvePrActivityHistoryPlan(prActivityHistoryState, options = {
   const { shouldRebuildPrActivityHistory = false } = options;
   const existingSnapshotForPrActivity = prActivityHistoryState?.currentSnapshot || null;
   const existingPrActivityForMerge = prActivityHistoryState?.bestPrActivity || null;
-  const canReuseHistoricalPrActivity = Boolean(
+  const hasReusablePrActivitySeries = Boolean(
     countPrActivitySeriesPoints(existingPrActivityForMerge, "points") > 0 &&
       countPrActivitySeriesPoints(existingPrActivityForMerge, "monthlyPoints") > 0
   );
+  const canReuseHistoricalPrActivity =
+    hasReusablePrActivitySeries && prActivityHistoryCoversFloor(existingPrActivityForMerge);
   const reuseHistoricalPrActivity =
     !shouldRebuildPrActivityHistory && canReuseHistoricalPrActivity;
   const archivedHistoryWarning =
@@ -3419,9 +3444,27 @@ export function resolvePrActivityHistoryPlan(prActivityHistoryState, options = {
     existingSnapshotForPrActivity,
     existingPrActivityForMerge,
     canReuseHistoricalPrActivity,
+    hasReusablePrActivitySeries,
     reuseHistoricalPrActivity,
     archivedHistoryWarning
   };
+}
+
+function readFirstSeriesPointDate(prActivity, key) {
+  const points = Array.isArray(prActivity?.[key]) ? prActivity[key].filter(Boolean) : [];
+  return String(points[0]?.date || "").trim();
+}
+
+function prActivityHistoryCoversFloor(prActivity) {
+  const floorMonth = monthBucketDate(PR_ACTIVITY_HISTORY_FLOOR);
+  const monthlySince = monthBucketDate(prActivity?.monthlySince);
+  const firstMonthlyPointDate = monthBucketDate(
+    readFirstSeriesPointDate(prActivity, "monthlyPoints")
+  );
+  return Boolean(
+    (monthlySince && monthlySince <= floorMonth) ||
+      (firstMonthlyPointDate && firstMonthlyPointDate <= floorMonth)
+  );
 }
 
 export function buildPrActivitySnapshotState(todayIso, resolvedDates, prRows, options = {}) {
@@ -3435,7 +3478,7 @@ export function buildPrActivitySnapshotState(todayIso, resolvedDates, prRows, op
     : [];
   const prActivityWindowKey = reuseHistoricalPrActivity
     ? PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY
-    : "1y";
+    : PR_ACTIVITY_HISTORY_WINDOW_KEY;
   const prActivityFetchSinceDate = resolvePrActivityFetchSinceDate(todayIso, prActivityWindowKey);
   const sprintDatesSource = closedResolvedDates.length > 0 ? closedResolvedDates : allResolvedDates;
   const prActivitySprintDates = sprintDatesSource.filter(
@@ -3450,7 +3493,8 @@ export function buildPrActivitySnapshotState(todayIso, resolvedDates, prRows, op
     prActivitySprintDates
   );
   const prActivityMonthly = buildPrActivityMonthlySnapshot(prRows, prActivityFetchSinceDate, {
-    ceilingDate: todayIso
+    ceilingDate: todayIso,
+    fillEmptyMonths: prActivityWindowKey === PR_ACTIVITY_HISTORY_WINDOW_KEY
   });
   refreshedPrActivity.latestClosedSprintDate = latestClosedSprintDate;
   refreshedPrActivity.monthlySince = prActivityMonthly.since;
@@ -3459,7 +3503,7 @@ export function buildPrActivitySnapshotState(todayIso, resolvedDates, prRows, op
     ? mergePrActivitySnapshots(existingPrActivityForMerge, refreshedPrActivity, {
         truncateAfterRefreshedLatest: !resolvedDates.usedFallback,
         ceilingDate: todayIso,
-        monthlyFloorDate: resolvePrActivityFetchSinceDate(todayIso, "1y")
+        monthlyFloorDate: PR_ACTIVITY_HISTORY_FLOOR
       })
     : refreshedPrActivity;
 

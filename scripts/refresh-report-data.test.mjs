@@ -610,7 +610,7 @@ test("buildPrActivitySnapshotState excludes pre-window opens from sprint offered
         {
           team: "bc",
           status: "MERGED",
-          offeredProxyDate: "2025-02-25",
+          offeredProxyDate: "2023-12-25",
           mergedProxyDate: "2026-03-20"
         },
         {
@@ -697,13 +697,14 @@ test("buildPrActivitySnapshotState includes the current month in monthly points 
   );
 
   assert.equal(prActivityState.latestClosedSprintDate, "2026-03-30");
-  assert.equal(prActivityState.refreshedPrActivity.monthlySince, "2026-04-01");
-  assert.deepEqual(
-    prActivityState.refreshedPrActivity.monthlyPoints.map((point) => point.date),
-    ["2026-04-01"]
+  const aprilPoint = prActivityState.refreshedPrActivity.monthlyPoints.find(
+    (point) => point.date === "2026-04-01"
   );
-  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].api.offered, 1);
-  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].api.merged, 1);
+  assert.equal(prActivityState.refreshedPrActivity.monthlySince, "2024-01-01");
+  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].date, "2024-01-01");
+  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints.at(-1).date, "2026-04-01");
+  assert.equal(aprilPoint.api.offered, 1);
+  assert.equal(aprilPoint.api.merged, 1);
 });
 
 test("buildPrActivitySnapshotState counts monthly merges even when the PR was opened before the refresh floor", () => {
@@ -725,7 +726,7 @@ test("buildPrActivitySnapshotState counts monthly merges even when the PR was op
         {
           team: "bc",
           status: "MERGED",
-          offeredProxyDate: "2025-02-25",
+          offeredProxyDate: "2023-12-25",
           mergedProxyDate: "2026-04-05"
         },
         {
@@ -750,27 +751,29 @@ test("buildPrActivitySnapshotState counts monthly merges even when the PR was op
     }
   );
 
-  assert.equal(prActivityState.refreshedPrActivity.monthlySince, "2026-04-01");
-  assert.deepEqual(
-    prActivityState.refreshedPrActivity.monthlyPoints.map((point) => point.date),
-    ["2026-04-01"]
+  const aprilPoint = prActivityState.refreshedPrActivity.monthlyPoints.find(
+    (point) => point.date === "2026-04-01"
   );
-  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].bc.offered, 1);
-  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].bc.merged, 2);
-  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].bc.avgReviewToMergeSampleCount, 2);
-  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].bc.avgReviewToMergeDays, 202);
+  assert.equal(prActivityState.refreshedPrActivity.monthlySince, "2024-01-01");
+  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].date, "2024-01-01");
+  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints.at(-1).date, "2026-04-01");
+  assert.equal(aprilPoint.bc.offered, 1);
+  assert.equal(aprilPoint.bc.merged, 2);
+  assert.equal(aprilPoint.bc.avgReviewToMergeSampleCount, 2);
+  assert.equal(aprilPoint.bc.avgReviewToMergeDays, 202);
 });
 
-test("resolvePrActivityHistoryPlan reuses archived history when sprint and monthly buckets exist", () => {
+test("resolvePrActivityHistoryPlan reuses archived history when monthly buckets reach the history floor", () => {
   const historyPlan = resolvePrActivityHistoryPlan(
     {
       currentSnapshot: { updatedAt: "2026-04-05T10:00:00.000Z" },
       bestPrActivity: {
         points: [{ date: "2026-03-16" }],
-        monthlyPoints: [{ date: "2026-03-01" }]
+        monthlySince: "2024-01-01",
+        monthlyPoints: [{ date: "2024-01-01" }, { date: "2026-03-01" }]
       },
       bestSource: "/tmp/archive-snapshot.json",
-      bestMetrics: { pointsCount: 1, monthlyPointsCount: 1 }
+      bestMetrics: { pointsCount: 1, monthlyPointsCount: 2 }
     },
     { shouldRebuildPrActivityHistory: false }
   );
@@ -780,7 +783,7 @@ test("resolvePrActivityHistoryPlan reuses archived history when sprint and month
   assert.equal(historyPlan.existingSnapshotForPrActivity.updatedAt, "2026-04-05T10:00:00.000Z");
   assert.equal(
     historyPlan.archivedHistoryWarning,
-    "Using archived PR activity history from /tmp/archive-snapshot.json (1 sprint buckets, 1 monthly buckets) because current snapshot.json is missing older monthly history."
+    "Using archived PR activity history from /tmp/archive-snapshot.json (1 sprint buckets, 2 monthly buckets) because current snapshot.json is missing older monthly history."
   );
 });
 
@@ -801,6 +804,26 @@ test("resolvePrActivityHistoryPlan disables reuse during rebuilds and for incomp
   assert.equal(historyPlan.canReuseHistoricalPrActivity, false);
   assert.equal(historyPlan.reuseHistoricalPrActivity, false);
   assert.equal(historyPlan.archivedHistoryWarning, "");
+});
+
+test("resolvePrActivityHistoryPlan rebuilds cached history that starts after 2024", () => {
+  const historyPlan = resolvePrActivityHistoryPlan(
+    {
+      currentSnapshot: null,
+      bestPrActivity: {
+        points: [{ date: "2025-01-06" }],
+        monthlySince: "2025-05-01",
+        monthlyPoints: [{ date: "2025-05-01" }]
+      },
+      bestSource: "/tmp/archive-snapshot.json",
+      bestMetrics: { pointsCount: 1, monthlyPointsCount: 1 }
+    },
+    { shouldRebuildPrActivityHistory: false }
+  );
+
+  assert.equal(historyPlan.hasReusablePrActivitySeries, true);
+  assert.equal(historyPlan.canReuseHistoricalPrActivity, false);
+  assert.equal(historyPlan.reuseHistoricalPrActivity, false);
 });
 
 test("resolvePrCycleRefreshPlan reuses older cached windows when history is fresh", () => {

@@ -383,9 +383,11 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     { dataKey: "workers", name: "Workers", colorKey: "workers" },
     { dataKey: "titanium", name: "Titanium", colorKey: "titanium" }
   ];
-  const PR_ACTIVITY_REFERENCE_MARKERS = [
-    { date: "2025-04-01", label: "NAB" },
-    { date: "2025-09-01", label: "IBC" },
+  const PR_ACTIVITY_RECURRING_REFERENCE_MARKERS = [
+    { month: "04", label: "NAB" },
+    { month: "09", label: "IBC" }
+  ];
+  const PR_ACTIVITY_ONE_TIME_REFERENCE_MARKERS = [
     { date: "2026-01-01", label: "Codex" }
   ];
   function toChartDateValue(dateText) {
@@ -1334,7 +1336,18 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     const safeRows = filterLegacyPrActivityChartRows(rows);
     if (safeRows.length === 0) return [];
     if (isLegacyPrActivityMonthlySeries(safeRows)) {
-      return Array.from(new Set(safeRows.map((row) => row.dateValue)));
+      const maxTickCount = 10;
+      const tickInterval = Math.max(1, Math.ceil(safeRows.length / maxTickCount));
+      return Array.from(
+        new Set(
+          safeRows
+            .filter(
+              (_row, index) =>
+                index === 0 || index === safeRows.length - 1 || index % tickInterval === 0
+            )
+            .map((row) => row.dateValue)
+        )
+      );
     }
 
     const { xMin, xMax } = buildLegacyPrActivityXDomain(safeRows);
@@ -1357,6 +1370,30 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     }
 
     return Array.from(new Set(monthTicks));
+  }
+
+  function buildPrActivityReferenceMarkers(xMin, xMax) {
+    if (!Number.isFinite(xMin) || !Number.isFinite(xMax) || xMax <= 0) return [];
+    const minDate = new Date(xMin);
+    const maxDate = new Date(xMax);
+    if (!Number.isFinite(minDate.getTime()) || !Number.isFinite(maxDate.getTime())) return [];
+
+    const firstYear = minDate.getUTCFullYear();
+    const lastYear = maxDate.getUTCFullYear();
+    const markers = [];
+    for (let year = firstYear; year <= lastYear; year += 1) {
+      for (const marker of PR_ACTIVITY_RECURRING_REFERENCE_MARKERS) {
+        markers.push({ date: `${year}-${marker.month}-01`, label: marker.label });
+      }
+    }
+    markers.push(...PR_ACTIVITY_ONE_TIME_REFERENCE_MARKERS);
+
+    return markers
+      .filter((marker) => {
+        const markerValue = toChartDateValue(marker.date);
+        return markerValue >= xMin && markerValue <= xMax;
+      })
+      .sort((left, right) => String(left.date).localeCompare(String(right.date)));
   }
 
   function roundLegacyPrActivityUpper(yUpper) {
@@ -1406,12 +1443,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     const yTicks = buildLegacyPrActivityTicks(yUpper);
     const visibleDefs = lineDefs.filter((lineDef) => !hiddenKeys.has(lineDef.dataKey));
     const visibleReferenceMarkers =
-      xTicks.length > 0
-        ? PR_ACTIVITY_REFERENCE_MARKERS.filter((marker) => {
-            const markerValue = toChartDateValue(marker.date);
-            return markerValue >= xMin && markerValue <= xMax;
-          })
-        : [];
+      xTicks.length > 0 ? buildPrActivityReferenceMarkers(xMin, xMax) : [];
     const seriesRows = visibleDefs.map((lineDef) => ({
       ...lineDef,
       points: rows

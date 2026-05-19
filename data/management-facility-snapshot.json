@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-19T07:28:22.629Z",
+  "updatedAt": "2026-05-19T11:17:39.454Z",
   "chartData": {
     "managementBusinessUnit": {
       "scopeLabel": "Broadcast",
@@ -7,39 +7,12 @@
         "ongoing": {
           "rows": [
             {
-              "label": "Business unit unmapped",
-              "devAvg": 1.04,
-              "sampleCount": 1,
-              "devCount": 1,
-              "uatCount": 1,
-              "uatAvg": 0.06,
-              "issueItems": [
-                {
-                  "issueId": "TFC-14376",
-                  "facilityLabel": "Facility unmapped"
-                }
-              ],
-              "facilities": [
-                {
-                  "label": "Unspecified",
-                  "devAvg": 1.04,
-                  "uatAvg": 0.06,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-14376"
-                  ]
-                }
-              ]
-            },
-            {
               "label": "MEA",
               "devAvg": 1.1,
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 102.95,
+              "uatAvg": 97.39,
               "issueItems": [
                 {
                   "issueId": "TFC-15925",
@@ -50,7 +23,7 @@
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 102.95,
+                  "uatAvg": 97.39,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -66,7 +39,7 @@
               "sampleCount": 4,
               "devCount": 4,
               "uatCount": 4,
-              "uatAvg": 97.53,
+              "uatAvg": 91.97,
               "issueItems": [
                 {
                   "issueId": "TFC-14425",
@@ -89,7 +62,7 @@
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 153.19,
+                  "uatAvg": 147.63,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -100,7 +73,7 @@
                 {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 104.37,
+                  "uatAvg": 98.81,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -111,7 +84,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.43,
-                  "uatAvg": 66.27,
+                  "uatAvg": 60.71,
                   "devCount": 2,
                   "uatCount": 2,
                   "sampleCount": 2,
@@ -128,7 +101,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 158.12,
+              "uatAvg": 152.56,
               "issueItems": [
                 {
                   "issueId": "TFC-14540",
@@ -139,7 +112,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 158.12,
+                  "uatAvg": 152.56,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -357,11 +330,11 @@
             },
             {
               "label": "Business unit unmapped",
-              "devAvg": 11.71,
-              "sampleCount": 11,
-              "devCount": 11,
-              "uatCount": 11,
-              "uatAvg": 5.83,
+              "devAvg": 12.77,
+              "sampleCount": 10,
+              "devCount": 10,
+              "uatCount": 10,
+              "uatAvg": 6.12,
               "issueItems": [
                 {
                   "issueId": "TFC-16159",
@@ -400,10 +373,6 @@
                   "facilityLabel": "Facility unmapped"
                 },
                 {
-                  "issueId": "TFC-16590",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
                   "issueId": "TFC-16627",
                   "facilityLabel": "Facility unmapped"
                 }
@@ -433,11 +402,11 @@
                 },
                 {
                   "label": "Unspecified",
-                  "devAvg": 13.86,
-                  "uatAvg": 5.69,
-                  "devCount": 9,
-                  "uatCount": 9,
-                  "sampleCount": 9,
+                  "devAvg": 15.45,
+                  "uatAvg": 6.04,
+                  "devCount": 8,
+                  "uatCount": 8,
+                  "sampleCount": 8,
                   "issueIds": [
                     "TFC-14244",
                     "TFC-15597",
@@ -446,7 +415,6 @@
                     "TFC-16488",
                     "TFC-16498",
                     "TFC-16563",
-                    "TFC-16590",
                     "TFC-16627"
                   ]
                 }
