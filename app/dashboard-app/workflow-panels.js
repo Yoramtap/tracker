@@ -151,7 +151,11 @@ export function createWorkflowPanels(deps) {
       teamColor: "var(--chart-active)",
       accentColor: "var(--chart-active)",
       stats: [
-        { label: "UAT average", value: formatCycleMonthsText(weightedUatAverage, { short: true }) },
+        {
+          label: "UAT average",
+          value: formatCycleMonthsText(weightedUatAverage, { short: true }),
+          className: "dashboard-utility-layout__stat--primary"
+        },
         ...(scopeKey === "done"
           ? []
           : [
