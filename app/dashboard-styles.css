@@ -2317,39 +2317,28 @@ main {
 
 .shipped-timeline__detail {
   display: grid;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
   margin-inline: 0;
-  padding: 4px 0 0;
+  padding: 12px 0 0;
   border-top: 0;
 }
 
 .shipped-timeline__detail-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  padding-bottom: 8px;
-}
-
-.shipped-timeline__detail-copy {
-  min-width: 0;
-}
-
-.shipped-timeline__detail-eyebrow {
-  color: rgba(31, 51, 71, 0.6);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  align-items: center;
+  min-height: 20px;
 }
 
 .shipped-timeline__detail-title {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.3rem, 1.6vw, 1.8rem);
-  line-height: 1.05;
-  color: rgba(31, 51, 71, 0.96);
+  color: rgba(31, 51, 71, 0.62);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.1;
+  text-transform: uppercase;
 }
 
 .shipped-team-list {
@@ -3535,14 +3524,12 @@ a.shipped-team-list__idea-key:focus-visible {
   }
 
   .shipped-timeline__detail {
-    gap: 14px;
-    padding: 10px 0 0;
+    gap: 12px;
+    padding: 12px 0 0;
   }
 
   .shipped-timeline__detail-header {
-    flex-direction: column;
-    gap: 12px;
-    padding-bottom: 6px;
+    min-height: 18px;
   }
 
   .shipped-team-list__team-copy {
@@ -4071,10 +4058,6 @@ a.shipped-team-list__idea-key:focus-visible {
 
   .shipped-timeline__detail {
     padding: 8px 0 0;
-  }
-
-  .shipped-timeline__detail-title {
-    font-size: 1.55rem;
   }
 
   .shipped-team-list {

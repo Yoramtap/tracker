@@ -237,11 +237,9 @@
             formatShipmentMonthLabel(String(selectedMonth?.monthStart || "").trim())
           )} shipped ideas">
             <div class="shipped-timeline__detail-header">
-              <div class="shipped-timeline__detail-copy">
-                <h3 class="shipped-timeline__detail-title">${escapeHtml(
-                  formatShipmentMonthLabel(String(selectedMonth?.monthStart || "").trim())
-                )}</h3>
-              </div>
+              <h3 class="shipped-timeline__detail-title">${escapeHtml(
+                formatShipmentMonthLabel(String(selectedMonth?.monthStart || "").trim())
+              )}</h3>
             </div>
             <div class="shipped-team-list" aria-label="Teams with shipped ideas">
               ${teamSectionsMarkup || emptyMonthMarkup}
