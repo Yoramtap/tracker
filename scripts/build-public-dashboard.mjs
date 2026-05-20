@@ -23,7 +23,7 @@ const JS_SOURCE_PATHS = [
 const DASHBOARD_APP_ENTRY_PATH = "app/dashboard-app.js";
 const PANEL_SHELL_PATH = "app/dashboard-heavy-panels.html";
 const INDEX_PATH = "index.html";
-const STYLESHEET_PATH = "app/dashboard-styles.css";
+const STYLESHEET_PATHS = ["app/dashboard-styles.css", "app/dashboard-utility-layout.css"];
 const FONT_STYLESHEET_PATH = "app/dashboard-fonts.css";
 const PRETEXT_MODULE_PATH = "vendor/pretext.mjs";
 
@@ -124,7 +124,9 @@ async function buildJsBundle(sourceDir) {
 }
 
 async function buildCssBundle(sourceDir) {
-  const styles = await readUtf8(sourceDir, STYLESHEET_PATH);
+  const styles = (await Promise.all(STYLESHEET_PATHS.map((stylePath) => readUtf8(sourceDir, stylePath)))).join(
+    "\n\n"
+  );
   const fontStyles = await readUtf8(sourceDir, FONT_STYLESHEET_PATH);
   const normalizedFontStyles = fontStyles.replaceAll("../assets/", "./assets/");
   const transformed = await transform(`${normalizedFontStyles}\n\n${styles}`, {
@@ -138,7 +140,7 @@ async function buildCssBundle(sourceDir) {
 function buildBundledIndexHtml(indexHtml, panelShellHtml, { cssHash, jsHash }) {
   let output = indexHtml;
   output = output.replace(
-    /<link rel="stylesheet" href="\.\/app\/dashboard-styles\.css[^"]*" \/>\s*\n\s*<link rel="stylesheet" href="\.\/app\/dashboard-fonts\.css[^"]*" \/>/,
+    /<link rel="stylesheet" href="\.\/app\/dashboard-styles\.css[^"]*" \/>\s*\n\s*(?:<link rel="stylesheet" href="\.\/app\/dashboard-utility-layout\.css[^"]*" \/>\s*\n\s*)?<link rel="stylesheet" href="\.\/app\/dashboard-fonts\.css[^"]*" \/>/,
     `<link rel="stylesheet" href="./${CSS_BUNDLE_PATH}?v=${cssHash}" />`
   );
   output = output.replace(

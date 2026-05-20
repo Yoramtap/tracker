@@ -579,6 +579,59 @@ function verifyWorkflowBreakdownInflowLabels() {
   return breakdownState;
 }
 
+function readUtilityStats(selector) {
+  return evalJson(`JSON.stringify((() => {
+    const root = document.querySelector(${JSON.stringify(selector)});
+    const stats = Array.from(root?.querySelectorAll(".dashboard-utility-layout__stat") || []);
+    const rows = Array.from(root?.querySelectorAll(".dashboard-utility-layout__row") || []);
+    return {
+      hasRoot: Boolean(root),
+      statLabels: stats.map((node) => node.querySelector("dt")?.textContent?.trim() || ""),
+      statValues: stats.map((node) => node.querySelector("dd")?.textContent?.trim() || ""),
+      primaryLabels: stats
+        .filter((node) => node.classList.contains("dashboard-utility-layout__stat--primary"))
+        .map((node) => node.querySelector("dt")?.textContent?.trim() || ""),
+      rowCount: rows.length,
+      primaryMetaCount: Array.from(
+        root?.querySelectorAll(".dashboard-utility-layout__meta-bit--primary") || []
+      ).length
+    };
+  })())`);
+}
+
+function assertUtilityStats({
+  description,
+  selector,
+  expectedLabels,
+  primaryLabel,
+  valuePattern,
+  minRows = 1
+}) {
+  const state = readUtilityStats(selector);
+  assert(state.hasRoot === true, `${description} utility stats root was not found.`);
+  assert(
+    sameList(state.statLabels, expectedLabels),
+    `${description} utility stat labels changed: ${JSON.stringify(state.statLabels)}`
+  );
+  if (primaryLabel) {
+    assert(
+      state.primaryLabels.includes(primaryLabel),
+      `${description} should highlight ${primaryLabel}: ${JSON.stringify(state.primaryLabels)}`
+    );
+  }
+  if (valuePattern) {
+    assert(
+      state.statValues.some((value) => valuePattern.test(value)),
+      `${description} should show a matching stat value: ${JSON.stringify(state.statValues)}`
+    );
+  }
+  assert(
+    state.rowCount >= minRows,
+    `${description} should render at least ${minRows} utility rows, saw ${state.rowCount}.`
+  );
+  return state;
+}
+
 function selectRadioInput(name, value) {
   const result = evalJson(`JSON.stringify((() => {
     const input = document.querySelector(
@@ -698,6 +751,45 @@ async function main() {
     })
   );
   assertProductRoute(productSnapshot);
+  assertUtilityStats({
+    description: "UAT acceptance panel",
+    selector: "#development-vs-uat-by-facility-chart",
+    expectedLabels: ["UAT average", "Action needed", "Slowest avg", "Sample"],
+    primaryLabel: "UAT average",
+    valuePattern: /months?$/
+  });
+  assertUtilityStats({
+    description: "Product delivery panel",
+    selector: "#cycle-time-parking-lot-to-done-chart",
+    expectedLabels: ["Avg delivery", "Fastest team", "Teams", "Sample"],
+    valuePattern: /ideas$/
+  });
+
+  const productWorkflowSnapshot = await enrichSnapshotWithLocalResourceStats(
+    await captureRouteSnapshot({
+      description: "Product workflow section route",
+      url: `${rootUrl}/?report-section=product&product-delivery-workflow-view=workflow`,
+      predicate(snapshot) {
+        return (
+          snapshot.filledCharts >= 2 &&
+          snapshot.statuses.length === 0 &&
+          snapshot.hasViewUtils === true &&
+          sameList(snapshot.visiblePanels, PRODUCT_ROUTE_VISIBLE_PANELS) &&
+          hasHeavyPanelShellResource(snapshot) &&
+          hasResource(snapshot, "./data/management-facility-snapshot.json") &&
+          hasResource(snapshot, "./data/product-cycle-snapshot.json") &&
+          (!isLocalPreview || snapshot.hasAgentRoot === true)
+        );
+      }
+    })
+  );
+  assertProductRoute(productWorkflowSnapshot);
+  assertUtilityStats({
+    description: "Product workflow panel",
+    selector: "#cycle-time-parking-lot-to-done-chart",
+    expectedLabels: ["Longest hold", "Slowest stage", "Sample", "Scope"],
+    valuePattern: /open ideas$/
+  });
 
   const bugSnapshot = await enrichSnapshotWithLocalResourceStats(
     await captureRouteSnapshot({
@@ -777,6 +869,13 @@ async function main() {
     })
   );
   assertShippedRoute(shippedSnapshot);
+  assertUtilityStats({
+    description: "Shipped panel summary",
+    selector: "#product-cycle-shipments-summary",
+    expectedLabels: ["Month", "Shipped", "Top team", "Year total"],
+    valuePattern: /^\d+ ideas$/,
+    minRows: 0
+  });
   await assertSectionControlSwitch({
     section: "bug",
     expectedVisiblePanels: BUG_ROUTE_VISIBLE_PANELS,
