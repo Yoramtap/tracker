@@ -31,12 +31,12 @@
     getSourcePath("vendor", "react.production.min.js"),
     getSourcePath("vendor", "react-dom.production.min.js"),
     getSourcePath("runtime", "dashboard-chart-core.js"),
-    getVersionedSourcePath("runtime", "dashboard-pretext-layout.js", "local8")
+    getVersionedSourcePath("runtime", "dashboard-pretext-layout.js", "local9")
   ];
   const DASHBOARD_APP_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-app.js",
-    "local47"
+    "local48"
   );
   const SHIPPED_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
@@ -555,10 +555,12 @@
       })
       .catch((error) => {
         bootstrapState.heavyStackPromise = null;
-        setStatusMessage(
-          "actions-required-status",
-          `Failed to load full dashboard: ${error instanceof Error ? error.message : String(error)}`
-        );
+        if (!options.suppressStatus) {
+          setStatusMessage(
+            "actions-required-status",
+            `Failed to load full dashboard: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
         throw error;
       });
     return bootstrapState.heavyStackPromise;
@@ -599,7 +601,10 @@
     applyDefaultCommunityVisibility();
     renderActionsPanel();
     bindSectionFilter();
-    void loadHeavyDashboard("all", DEFAULT_SECTION, { preloadAllSections: true }).catch(() => {});
+    void loadHeavyDashboard("all", DEFAULT_SECTION, {
+      preloadAllSections: true,
+      suppressStatus: true
+    }).catch(() => {});
 
     try {
       bootstrapState.contributorsSnapshot = await loadContributorsSnapshot();

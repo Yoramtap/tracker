@@ -84,6 +84,12 @@ async function openWithRetry(url, retries = 3) {
   throw lastError;
 }
 
+function withSmokeCacheBust(url) {
+  const nextUrl = new URL(url);
+  nextUrl.searchParams.set("_smoke", `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  return nextUrl.href;
+}
+
 function lastNonEmptyLine(text) {
   const lines = String(text || "")
     .split(/\r?\n/)
@@ -294,7 +300,7 @@ async function captureRouteSnapshot({
 
   for (let attempt = 1; attempt <= retries; attempt += 1) {
     try {
-      await openWithRetry(url);
+      await openWithRetry(withSmokeCacheBust(url));
       return await waitForSnapshot({ description, predicate });
     } catch (error) {
       lastError = error;
@@ -482,8 +488,8 @@ function assertPrRoute(snapshot) {
     "PR route should fetch pr-cycle-snapshot.json."
   );
   assert(
-    !hasResource(snapshot, "./data/pr-activity-snapshot.json"),
-    "PR route should not fetch pr-activity-snapshot.json."
+    hasResource(snapshot, "./data/pr-activity-snapshot.json"),
+    "PR route should fetch pr-activity-snapshot.json so PRs / sprint can render."
   );
   assert(
     !hasResource(snapshot, "./data/backlog-snapshot.json"),
@@ -543,6 +549,20 @@ function verifyWorkflowBreakdownInflowLabels() {
       (breakdownState.utilityStatCount >= 2 && breakdownState.utilityRowCount >= 1),
     `Development workflow breakdown should render either legacy metrics or the utility layout card: ${JSON.stringify(breakdownState)}`
   );
+  if (breakdownState.utilityStatCount > 0) {
+    assert(
+      breakdownState.utilityStatLabels.includes("PRs / sprint"),
+      `Development workflow breakdown should keep PRs / sprint as the primary utility metric: ${JSON.stringify(breakdownState.utilityStatLabels)}`
+    );
+    assert(
+      !breakdownState.utilityStatLabels.includes("Window"),
+      `Development workflow breakdown should not fall back to the Window utility metric: ${JSON.stringify(breakdownState.utilityStatLabels)}`
+    );
+    assert(
+      breakdownState.utilityStatValues.some((value) => /PRs \/ sprint$/.test(value)),
+      `Development workflow breakdown should show PRs / sprint in utility values: ${JSON.stringify(breakdownState.utilityStatValues)}`
+    );
+  }
   if (breakdownState.metricValueCount >= 2) {
     assert(
       breakdownState.firstMetricColor === breakdownState.secondMetricColor,

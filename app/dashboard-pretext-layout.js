@@ -20,6 +20,30 @@
       .replace(/"/g, "&quot;");
   }
 
+  function sanitizeUtilityHref(value) {
+    const rawHref = String(value || "").trim();
+    if (!rawHref) return "";
+    try {
+      const url = new URL(rawHref, window.location.origin);
+      if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+      return url.href;
+    } catch {
+      return "";
+    }
+  }
+
+  function renderUtilityRowLabel(row) {
+    const rowHref = sanitizeUtilityHref(row?.href || row?.rowHref);
+    if (!rowHref) return escapeHtml(row?.label);
+
+    const rowLinkAriaLabel = String(row?.linkAriaLabel || "").trim();
+    return `<a class="dashboard-utility-layout__label-link" href="${escapeHtml(rowHref)}" target="_blank" rel="noopener noreferrer"${
+      rowLinkAriaLabel ? ` aria-label="${escapeHtml(rowLinkAriaLabel)}"` : ""
+    }><span class="dashboard-utility-layout__label-link-text">${escapeHtml(
+      row?.label
+    )}</span><svg class="dashboard-utility-layout__label-link-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2.5h4v4"></path><path d="M13.5 2.5L7.75 8.25"></path><path d="M6 4.5H3.5v8h8V10"></path></svg></a>`;
+  }
+
   function isLayoutEnabled(search = window.location.search) {
     try {
       const params = new URLSearchParams(search);
@@ -86,15 +110,7 @@
           ? ` style="width:${width}%;background:${escapeHtml(rowAccent)}"`
           : ` style="width:${width}%;"`;
         const detailText = String(row?.detailText || row?.description || "").trim();
-        const rowHref = String(row?.href || row?.rowHref || "").trim();
-        const rowLinkAriaLabel = String(row?.linkAriaLabel || "").trim();
-        const labelMarkup = rowHref
-          ? `<a class="dashboard-utility-layout__label-link" href="${escapeHtml(rowHref)}" target="_blank" rel="noopener noreferrer"${
-              rowLinkAriaLabel ? ` aria-label="${escapeHtml(rowLinkAriaLabel)}"` : ""
-            }><span class="dashboard-utility-layout__label-link-text">${escapeHtml(
-              row?.label
-            )}</span><svg class="dashboard-utility-layout__label-link-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2.5h4v4"></path><path d="M13.5 2.5L7.75 8.25"></path><path d="M6 4.5H3.5v8h8V10"></path></svg></a>`
-          : escapeHtml(row?.label);
+        const labelMarkup = renderUtilityRowLabel(row);
         const metaBits = (Array.isArray(row?.metaBits) ? row.metaBits : [])
           .map((item) => {
             if (item && typeof item === "object") {

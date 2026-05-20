@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "python3 -m http.server 4173",
+    "test": "node --test scripts/*.test.mjs scripts/dev/*.test.mjs",
     "lint": "eslint . --ext .js,.mjs",
     "lint:fix": "eslint . --ext .js,.mjs --fix",
     "format": "prettier \"**/*.{js,mjs,css,html,json}\" --write",
