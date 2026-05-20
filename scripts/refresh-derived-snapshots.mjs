@@ -1659,6 +1659,19 @@ function buildMonthRange(startIso, endIso) {
   return months;
 }
 
+function compareShippedIdeasBySummary(left, right) {
+  const summaryCompare = String(left?.summary || "").localeCompare(
+    String(right?.summary || ""),
+    undefined,
+    { numeric: true, sensitivity: "base" }
+  );
+  if (summaryCompare !== 0) return summaryCompare;
+  return String(left?.issueKey || "").localeCompare(String(right?.issueKey || ""), undefined, {
+    numeric: true,
+    sensitivity: "base"
+  });
+}
+
 function buildProductCycleShippedTimelineSnapshot(ideas, teams, nowIso) {
   const doneMonthStarts = (Array.isArray(ideas) ? ideas : [])
     .filter((idea) => String(idea?.currentStage || "").trim() === "done")
@@ -1734,12 +1747,7 @@ function buildProductCycleShippedTimelineSnapshot(ideas, teams, nowIso) {
           shippedCount: toCount(teamBucket.shippedCount),
           ideas: (Array.isArray(teamBucket.ideas) ? teamBucket.ideas : [])
             .slice()
-            .sort((left, right) => {
-              const leftAt = String(left?.shippedAt || "").trim();
-              const rightAt = String(right?.shippedAt || "").trim();
-              if (leftAt !== rightAt) return leftAt.localeCompare(rightAt);
-              return String(left?.summary || "").localeCompare(String(right?.summary || ""));
-            })
+            .sort(compareShippedIdeasBySummary)
         };
       })
       .filter((teamRow) => teamRow.shippedCount > 0);

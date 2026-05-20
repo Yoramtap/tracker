@@ -75,6 +75,19 @@
     return `<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="${path}"></path></svg>`;
   }
 
+  function compareShipmentIdeasByTitle(left, right) {
+    const summaryCompare = String(left?.summary || "").localeCompare(
+      String(right?.summary || ""),
+      undefined,
+      { numeric: true, sensitivity: "base" }
+    );
+    if (summaryCompare !== 0) return summaryCompare;
+    return String(left?.issueKey || "").localeCompare(String(right?.issueKey || ""), undefined, {
+      numeric: true,
+      sensitivity: "base"
+    });
+  }
+
   function renderProductCycleShipmentsTimeline({
     containerId,
     timelineSnapshot,
@@ -141,7 +154,8 @@
         const teamName = normalizeDisplayTeamName(normalizedTeamKey);
         const shippedCount = toCount(teamRow?.shippedCount);
         const teamColor = getPrCycleTeamColor(normalizedTeamKey);
-        const ideasMarkup = (Array.isArray(teamRow?.ideas) ? teamRow.ideas : [])
+        const ideasMarkup = (Array.isArray(teamRow?.ideas) ? teamRow.ideas.slice() : [])
+          .sort(compareShipmentIdeasByTitle)
           .map((idea) => {
             const issueKey = String(idea?.issueKey || "").trim();
             const productAreaLabel = formatShipmentAreaLabel(idea?.productAreaLabel);

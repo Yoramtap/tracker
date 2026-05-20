@@ -2142,13 +2142,17 @@ main {
 
 .shipped-timeline {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .shipped-timeline__controls {
   display: grid;
-  gap: 6px;
+  gap: 4px;
   justify-items: center;
+}
+
+#product-cycle-shipments-panel .chart {
+  padding-top: 4px;
 }
 
 .shipped-timeline__year-switch {
