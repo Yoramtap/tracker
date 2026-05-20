@@ -2157,7 +2157,6 @@ main {
 
 .shipped-timeline__controls {
   display: grid;
-  gap: 2px;
   justify-items: center;
 }
 
@@ -2165,16 +2164,37 @@ main {
   padding-top: 0;
 }
 
+.shipped-timeline__selector {
+  --shipment-selector-border: rgba(17, 17, 17, 0.22);
+  --shipment-selector-hover: color-mix(in srgb, var(--chart-active) 4%, white);
+  --shipment-selector-active: color-mix(in srgb, var(--chart-active) 10%, white);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
+  width: min(100%, 900px);
+}
+
 .shipped-timeline__year-switch {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-inline: auto;
+  min-height: 38px;
+  border: 1px solid var(--shipment-selector-border);
+  border-radius: 6px;
+  background: #ffffff;
+  overflow: hidden;
 }
 
 .shipped-timeline__year-label {
-  min-width: 72px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  min-width: 70px;
+  padding: 0 14px;
+  border-left: 1px solid var(--shipment-selector-border);
+  border-right: 1px solid var(--shipment-selector-border);
   text-align: center;
   color: rgba(31, 51, 71, 0.9);
   font-size: 0.78rem;
@@ -2184,11 +2204,11 @@ main {
 }
 
 .shipped-timeline__nav {
-  width: 26px;
-  height: 26px;
-  border: 1px solid rgba(31, 51, 71, 0.1);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.74);
+  width: 34px;
+  min-height: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: rgba(31, 51, 71, 0.72);
   display: inline-flex;
   align-items: center;
@@ -2202,13 +2222,12 @@ main {
 }
 
 .shipped-timeline__nav:hover:not(:disabled) {
-  transform: translateY(-1px);
-  background: color-mix(in srgb, var(--chart-active) 3%, white);
-  border-color: rgba(31, 51, 71, 0.16);
+  background: var(--shipment-selector-hover);
+  color: rgba(31, 51, 71, 0.92);
 }
 
 .shipped-timeline__nav:disabled {
-  opacity: 0.42;
+  color: rgba(31, 51, 71, 0.28);
   cursor: default;
   box-shadow: none;
 }
@@ -2225,21 +2244,12 @@ main {
   fill: none;
 }
 
-.shipped-timeline__nav-placeholder {
-  width: 26px;
-  height: 26px;
-  flex: 0 0 26px;
-}
-
 .shipped-month-picker {
-  --segmented-border: rgba(17, 17, 17, 0.26);
-  --segmented-hover: color-mix(in srgb, var(--chart-active) 4%, white);
-  --segmented-active: color-mix(in srgb, var(--chart-active) 10%, white);
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 0;
-  width: min(100%, 760px);
-  border: 1px solid var(--segmented-border);
+  width: 100%;
+  border: 1px solid var(--shipment-selector-border);
   border-radius: 6px;
   background: #ffffff;
   overflow: hidden;
@@ -2248,7 +2258,7 @@ main {
 .shipped-month-picker__button {
   min-height: 38px;
   border: 0;
-  border-left: 1px solid var(--segmented-border);
+  border-left: 1px solid var(--shipment-selector-border);
   border-radius: 0;
   background: transparent;
   color: rgba(17, 17, 17, 0.92);
@@ -2274,7 +2284,7 @@ main {
 }
 
 .shipped-month-picker__button:hover:not(:disabled) {
-  background: var(--segmented-hover);
+  background: var(--shipment-selector-hover);
   color: rgba(31, 51, 71, 0.92);
 }
 
@@ -2285,7 +2295,7 @@ main {
 }
 
 .shipped-month-picker__button.is-active {
-  background: var(--segmented-active);
+  background: var(--shipment-selector-active);
   color: rgba(31, 51, 71, 0.96);
 }
 
@@ -3521,6 +3531,10 @@ a.shipped-team-list__idea-key:focus-visible {
     align-items: center;
   }
 
+  .shipped-timeline__selector {
+    width: 100%;
+  }
+
   .shipped-month-picker {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
@@ -4038,8 +4052,13 @@ a.shipped-team-list__idea-key:focus-visible {
     gap: 8px;
   }
 
-  .shipped-timeline__year-switch {
+  .shipped-timeline__selector {
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
+  }
+
+  .shipped-timeline__year-switch {
+    justify-self: start;
   }
 
   .shipped-timeline__year-label {

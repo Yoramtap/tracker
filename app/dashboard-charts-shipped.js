@@ -206,39 +206,31 @@
       <div class="product-cycle-shipments">
         <div class="shipped-timeline">
           <div class="shipped-timeline__controls">
-            <div class="shipped-timeline__year-switch" aria-label="Shipment year">
-              ${
-                previousYear
-                  ? `
+            <div class="shipped-timeline__selector">
+              <div class="shipped-timeline__year-switch" aria-label="Shipment year">
               <button
                 type="button"
                 class="shipped-timeline__nav"
-                data-shipped-year-target="${escapeHtml(previousYear)}"
-                aria-label="Show previous year"
+                ${previousYear ? `data-shipped-year-target="${escapeHtml(previousYear)}"` : ""}
+                ${previousYear ? "" : "disabled"}
+                aria-label="${previousYear ? `Show ${escapeHtml(previousYear)}` : "No previous year"}"
               >
                 ${renderShippedNavIcon("previous")}
               </button>
-              `
-                  : '<span class="shipped-timeline__nav-placeholder" aria-hidden="true"></span>'
-              }
               <div class="shipped-timeline__year-label">${escapeHtml(activeYear)}</div>
-              ${
-                nextYear
-                  ? `
               <button
                 type="button"
                 class="shipped-timeline__nav"
-                data-shipped-year-target="${escapeHtml(nextYear)}"
-                aria-label="Show next year"
+                ${nextYear ? `data-shipped-year-target="${escapeHtml(nextYear)}"` : ""}
+                ${nextYear ? "" : "disabled"}
+                aria-label="${nextYear ? `Show ${escapeHtml(nextYear)}` : "No next year"}"
               >
                 ${renderShippedNavIcon("next")}
               </button>
-              `
-                  : '<span class="shipped-timeline__nav-placeholder" aria-hidden="true"></span>'
-              }
-            </div>
-            <div class="shipped-month-picker" role="group" aria-label="Months in ${escapeHtml(activeYear)}">
-              ${monthButtonsMarkup}
+              </div>
+              <div class="shipped-month-picker" role="group" aria-label="Months in ${escapeHtml(activeYear)}">
+                ${monthButtonsMarkup}
+              </div>
             </div>
           </div>
           <section class="shipped-timeline__detail" aria-label="${escapeHtml(

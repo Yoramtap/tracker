@@ -817,13 +817,11 @@ export function createProductPanels(deps) {
         return String(left?.team || "").localeCompare(String(right?.team || ""));
       }
     )[0];
-    const monthLabel = formatCompactMonthYear(selectedMonth?.monthKey);
     const yearTotal = months.reduce((sum, month) => sum + toCount(month?.totalShipped), 0);
 
     return {
       accentColor: "var(--team-react)",
       stats: [
-        { label: "Month", value: monthLabel || String(selectedYear || "") },
         { label: "Shipped", value: formatCountLabel(selectedMonth?.totalShipped, "idea") },
         { label: "Top team", value: normalizeDisplayTeamName(topTeam?.team || "None") },
         { label: "Year total", value: formatCountLabel(yearTotal, "idea") }
