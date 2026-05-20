@@ -46,7 +46,7 @@
   const PRODUCT_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-charts-product.js",
-    "local10"
+    "local11"
   );
   const FULL_HEAVY_PANEL_SHELL_SRC = getVersionedSourcePath(
     "app",
@@ -324,68 +324,85 @@
     );
   }
 
-  function buildContributorRowMarkup({
-    contributor = "",
-    totalIssues = 0,
-    doneIssues = 0,
-    activeIssues = 0,
-    width = 0
-  }) {
-    return `
-      <div class="pr-cycle-stage-row contributors-card__row">
-        <div class="pr-cycle-stage-row__label">
-          <span class="pr-cycle-stage-row__label-text">${escapeHtml(contributor)}</span>
-          <span class="pr-cycle-stage-row__sample">done ${doneIssues}${
-            activeIssues > 0 ? ` • active ${activeIssues}` : ""
-          }</span>
-        </div>
-        <div class="pr-cycle-stage-row__track contributors-card__track" aria-hidden="true">
-          <div class="pr-cycle-stage-row__fill contributors-card__fill" style="width:${width}%"></div>
-        </div>
-        <div class="pr-cycle-stage-row__value"><span class="pr-cycle-stage-row__value-frame">${totalIssues}</span></div>
-      </div>
-    `;
+  function buildContributorsUtilityModel(rows, summary) {
+    const safeRows = Array.isArray(rows) ? rows : [];
+    if (safeRows.length === 0) return null;
+    const totalIssues = toCount(summary?.totalIssues);
+    const topContributor = safeRows[0] || null;
+    const maxTotal = Math.max(1, ...safeRows.map((row) => toCount(row?.totalIssues)));
+
+    return {
+      accentColor: "var(--team-react)",
+      stats: [
+        { label: "Included issues", value: `${totalIssues}` },
+        {
+          label: "Top contributor",
+          value: String(topContributor?.contributor || "").trim() || "None"
+        },
+        { label: "Active", value: `${toCount(summary?.activeIssues)}` },
+        { label: "Done", value: `${toCount(summary?.doneIssues)}` }
+      ],
+      rows: safeRows.map((row) => {
+        const total = toCount(row?.totalIssues);
+        const done = toCount(row?.doneIssues);
+        const active = toCount(row?.activeIssues);
+        return {
+          label: String(row?.contributor || "").trim(),
+          metaBits: [`${done} done`, active > 0 ? `${active} active` : ""].filter(Boolean),
+          valueText: `${total}`,
+          width: total > 0 ? Math.max(10, Math.round((total / maxTotal) * 100)) : 10
+        };
+      })
+    };
   }
 
   function renderTopContributorsCard(rows, summary) {
     const container = document.getElementById("top-contributors-chart");
     if (!container) return;
 
-    const safeRows = Array.isArray(rows) ? rows : [];
-    const maxTotal = Math.max(1, ...safeRows.map((row) => toCount(row?.totalIssues)));
-    const totalIssues = toCount(summary?.totalIssues);
-    const totalContributors = Math.max(toCount(summary?.totalContributors), safeRows.length);
-    const rowsMarkup = safeRows
+    const model = buildContributorsUtilityModel(rows, summary);
+    if (!model) return;
+    const statsMarkup = model.stats
+      .map(
+        (stat) => `
+          <div class="dashboard-utility-layout__stat">
+            <dt>${escapeHtml(stat.label)}</dt>
+            <dd>${escapeHtml(stat.value)}</dd>
+          </div>
+        `
+      )
+      .join("");
+    const rowsMarkup = model.rows
       .map((row) => {
-        const total = toCount(row?.totalIssues);
-        const done = toCount(row?.doneIssues);
-        const active = toCount(row?.activeIssues);
-        const width = total > 0 ? Math.max(10, Math.round((total / maxTotal) * 100)) : 0;
-        return buildContributorRowMarkup({
-          contributor: String(row?.contributor || "").trim(),
-          totalIssues: total,
-          doneIssues: done,
-          activeIssues: active,
-          width
-        });
+        const metaMarkup = row.metaBits
+          .map((item) => `<span class="dashboard-utility-layout__meta-bit">${escapeHtml(item)}</span>`)
+          .join("");
+        return `
+          <div class="dashboard-utility-layout__row" style="--row-accent:${model.accentColor}">
+            <div class="dashboard-utility-layout__row-head">
+              <div class="dashboard-utility-layout__label-group">
+                <span class="dashboard-utility-layout__label">${escapeHtml(row.label)}</span>
+              </div>
+              <span class="dashboard-utility-layout__value">${escapeHtml(row.valueText)}</span>
+            </div>
+            <div class="dashboard-utility-layout__meta">${metaMarkup}</div>
+            <div class="dashboard-utility-layout__rail" aria-hidden="true">
+              <div class="dashboard-utility-layout__fill" style="width:${row.width}%;background:${model.accentColor}"></div>
+            </div>
+          </div>
+        `;
       })
       .join("");
 
     container.innerHTML = `
-      <div class="product-cycle-team-card-wrap">
-        <article class="pr-cycle-stage-card contributors-card">
-          <div class="pr-cycle-stage-card__header">
-            <div class="pr-cycle-stage-card__meta">
-              <div class="pr-cycle-stage-card__team">Community contributors</div>
-              <div class="pr-cycle-stage-card__total">${totalIssues}</div>
-            </div>
-          </div>
-          <div class="pr-cycle-stage-list">${rowsMarkup}</div>
-          <div class="pr-cycle-stage-card__footer">
-            <span><strong>${totalContributors} contributors ranked</strong> • ${totalIssues} included issues</span>
-          </div>
-        </article>
-      </div>
+      <section class="dashboard-utility-layout" style="--utility-accent:${model.accentColor};--utility-stat-columns:${model.stats.length};">
+        <dl class="dashboard-utility-layout__stats">${statsMarkup}</dl>
+        <div class="dashboard-utility-layout__columns" aria-hidden="true">
+          <span>Contributor</span>
+          <span>Included issues</span>
+        </div>
+        <div class="dashboard-utility-layout__list">${rowsMarkup}</div>
+      </section>
     `;
   }
 
@@ -413,13 +430,7 @@
 
     const summary = summarizeContributorRows(rows);
     renderTopContributorsCard(rows, summary);
-    setPanelContext(
-      contextNode,
-      formatContextWithFreshness(
-        `${summary.totalIssues} total • ${summary.doneIssues} done • ${summary.activeIssues} active`,
-        snapshot?.updatedAt || ""
-      )
-    );
+    setPanelContext(contextNode, "");
     setStatusMessage("contributors-status", "");
   }
 

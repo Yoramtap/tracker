@@ -1232,71 +1232,12 @@
     });
   }
 
-  function summarizeContributorRows(rows) {
-    const safeRows = Array.isArray(rows) ? rows : [];
-    return safeRows.reduce(
-      (summary, row) => ({
-        totalIssues: summary.totalIssues + toNumber(row?.totalIssues),
-        doneIssues: summary.doneIssues + toNumber(row?.doneIssues),
-        activeIssues: summary.activeIssues + toNumber(row?.activeIssues),
-        totalContributors: summary.totalContributors + 1
-      }),
-      { totalIssues: 0, doneIssues: 0, activeIssues: 0, totalContributors: 0 }
-    );
-  }
-
-  function renderTopContributorsCard(containerId, rows, summary) {
-    if (!Array.isArray(rows)) return;
-    const compactViewport = isCompactViewport();
-    const safeRows = Array.isArray(rows) ? rows : [];
-    const maxTotal = Math.max(1, ...safeRows.map((row) => toNumber(row?.totalIssues)));
-    const totalIssues = toNumber(summary?.totalIssues);
-    const totalContributors = Math.max(toNumber(summary?.totalContributors), safeRows.length);
-
-    const rowsMarkup = safeRows
-      .map((row) => {
-        const contributor = String(row?.contributor || "").trim();
-        const total = toNumber(row?.totalIssues);
-        const done = toNumber(row?.doneIssues);
-        const active = toNumber(row?.activeIssues);
-        const totalWidth = total > 0 ? Math.max(10, Math.round((total / maxTotal) * 100)) : 0;
-        return buildRowMarkup({
-          rowClassName: "contributors-card__row",
-          trackClassName: "contributors-card__track",
-          fillClassName: "contributors-card__fill",
-          label: contributor,
-          sampleMarkup: `done ${done}${active > 0 ? ` • active ${active}` : ""}`,
-          width: totalWidth,
-          valueMarkup: String(total)
-        });
-      })
-      .join("");
-
-    renderProductCycleCard(containerId, {
-      className: "contributors-card",
-      headerMarkup: `
-        <div class="pr-cycle-stage-card__team">Community contributors</div>
-        <div class="pr-cycle-stage-card__total">${totalIssues}</div>
-      `,
-      rowsMarkup,
-      footerMarkup: `
-        <div class="pr-cycle-stage-card__footer">
-          <span><strong>${totalContributors} contributors ranked</strong>${
-            compactViewport ? ` • ${totalIssues} issues` : ` • ${totalIssues} included issues`
-          }</span>
-        </div>
-      `
-    });
-  }
-
   Object.assign(window.DashboardCharts || (window.DashboardCharts = {}), {
     renderBugBacklogTrendByTeamChart,
     renderBugCompositionByPriorityChart,
     renderDevelopmentVsUatByFacilityChart,
     renderLifecycleTimeSpentPerStageChart,
     renderProductCycleSingleTeamCard,
-    renderProductCycleComparisonCard,
-    renderTopContributorsCard,
-    summarizeContributorRows
+    renderProductCycleComparisonCard
   });
 })();

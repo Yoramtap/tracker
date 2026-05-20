@@ -736,6 +736,12 @@ async function main() {
     })
   );
   assertDefaultRoute(defaultSnapshot);
+  assertUtilityStats({
+    description: "Default community contributors panel",
+    selector: "#top-contributors-chart",
+    expectedLabels: ["Included issues", "Top contributor", "Active", "Done"],
+    valuePattern: /^\d+$/
+  });
 
   const developmentSnapshot = await enrichSnapshotWithLocalResourceStats(
     await captureRouteSnapshot({

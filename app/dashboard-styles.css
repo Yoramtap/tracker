@@ -1987,35 +1987,9 @@ main {
   background: color-mix(in srgb, var(--pr-cycle-accent) 42%, white);
 }
 
-.contributors-card {
-  --pr-cycle-accent: var(--team-react);
-  width: min(100%, 720px);
-  min-height: 0;
-}
-
 .workflow-breakdown-card {
   width: min(100%, 720px);
   min-height: 0;
-}
-
-.contributors-card__track {
-  background: rgba(91, 168, 150, 0.14);
-}
-
-.contributors-card__fill {
-  background: color-mix(in srgb, var(--team-react) 90%, white);
-}
-
-.contributors-card .pr-cycle-stage-card__total::after {
-  content: " total";
-  color: rgba(31, 51, 71, 0.62);
-  font-size: 0.82rem;
-  font-weight: 700;
-  margin-left: 4px;
-}
-
-.contributors-card .pr-cycle-stage-card__footer {
-  justify-content: flex-end;
 }
 
 .product-cycle-shipments {
@@ -2438,11 +2412,6 @@ a.shipped-team-list__idea-key:focus-visible {
   gap: 12px;
 }
 
-.contributors-card .pr-cycle-stage-row {
-  grid-template-columns: 146px minmax(0, 1fr) 28px;
-  gap: 16px;
-}
-
 .product-cycle-compare-card .pr-cycle-stage-row {
   grid-template-columns: 86px minmax(0, 1fr) 108px;
 }
@@ -2703,10 +2672,6 @@ a.shipped-team-list__idea-key:focus-visible {
 
 .workflow-breakdown-metric--inflow .workflow-breakdown-metric__value {
   color: rgba(31, 51, 71, 0.96);
-}
-
-.contributors-card .pr-cycle-stage-row__value {
-  justify-content: flex-start;
 }
 
 .product-cycle-team-card .pr-cycle-stage-row__value-frame,
@@ -3228,11 +3193,6 @@ a.shipped-team-list__idea-key:focus-visible {
 
   .product-cycle-team-card .pr-cycle-stage-row {
     grid-template-columns: 76px minmax(0, 1fr) 46px;
-  }
-
-  .contributors-card .pr-cycle-stage-row {
-    grid-template-columns: 100px minmax(0, 1fr) 22px;
-    gap: 10px;
   }
 
   .product-cycle-compare-card .pr-cycle-stage-row {

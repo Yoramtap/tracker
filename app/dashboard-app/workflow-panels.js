@@ -822,27 +822,6 @@ export function createWorkflowPanels(deps) {
     );
   }
 
-  function buildContributorsLeadModel(rows, summary) {
-    const topRow = (Array.isArray(rows) ? rows : [])[0] || null;
-    if (!topRow) return null;
-    return {
-      summaryText: `${String(topRow?.contributor || "The top contributor").trim()} leads the community queue with ${toCount(
-        topRow?.totalIssues
-      )} included issues, while the wider contributor set is carrying ${toCount(
-        summary?.activeIssues
-      )} active issues in total.`,
-      calloutLabel: "Top contributor",
-      calloutValue: String(toCount(topRow?.totalIssues)),
-      calloutSubtext: String(topRow?.contributor || "").trim(),
-      chips: [
-        `${toCount(summary?.totalContributors)} contributors`,
-        `${toCount(summary?.doneIssues)} done`,
-        `${toCount(summary?.activeIssues)} active`
-      ],
-      accentColor: "rgba(98, 153, 140, 0.22)"
-    };
-  }
-
   function buildPretextContributorsModel(rows, summary) {
     const safeRows = Array.isArray(rows) ? rows : [];
     if (safeRows.length === 0) return null;
@@ -879,45 +858,6 @@ export function createWorkflowPanels(deps) {
     };
   }
 
-  function renderTopContributorsCard(containerId, rows, summary) {
-    if (!containerId || !Array.isArray(rows)) return;
-    const safeRows = Array.isArray(rows) ? rows : [];
-    const totalIssues = toCount(summary?.totalIssues);
-    const totalContributors = Math.max(toCount(summary?.totalContributors), safeRows.length);
-    const maxTotal = Math.max(1, ...safeRows.map((row) => toCount(row?.totalIssues)));
-    const rowsMarkup = safeRows
-      .map((row) => {
-        const total = toCount(row?.totalIssues);
-        const done = toCount(row?.doneIssues);
-        const active = toCount(row?.activeIssues);
-        const width = total > 0 ? Math.max(10, Math.round((total / maxTotal) * 100)) : 0;
-        return buildRowMarkup({
-          rowClassName: "contributors-card__row",
-          trackClassName: "contributors-card__track",
-          fillClassName: "contributors-card__fill",
-          label: String(row?.contributor || "").trim(),
-          sampleMarkup: `done ${done}${active > 0 ? ` • active ${active}` : ""}`,
-          width,
-          valueMarkup: String(total)
-        });
-      })
-      .join("");
-
-    renderProductCycleCard(containerId, {
-      className: "contributors-card",
-      headerMarkup: `
-      <div class="pr-cycle-stage-card__team">Community contributors</div>
-      <div class="pr-cycle-stage-card__total">${totalIssues}</div>
-    `,
-      rowsMarkup,
-      footerMarkup: `
-      <div class="pr-cycle-stage-card__footer">
-        <span><strong>${totalContributors} contributors ranked</strong> • ${totalIssues} included issues</span>
-      </div>
-    `
-    });
-  }
-
   function renderTopContributorsChart() {
     withChart("contributors", getConfig, ({ status, context, config }) => {
       const contributorsSnapshot = state.contributors;
@@ -943,17 +883,16 @@ export function createWorkflowPanels(deps) {
       const displaySummary = summarizeContributorRows(rows);
       setPanelContext(context, "");
       const pretextLayout = getDashboardPretextLayout();
-      if (isPretextLayoutActive() && pretextLayout) {
-        clearPanelLead(config.panelId);
-        const model = buildPretextContributorsModel(rows, displaySummary);
-        const rendered =
-          pretextLayout.renderPretextCard?.(config.containerId, model) ||
-          pretextLayout.renderWorkflowBreakdownCard?.(config.containerId, model);
-        if (rendered) return;
-      } else {
-        renderPanelLead(config.panelId, buildContributorsLeadModel(rows, displaySummary));
+      clearPanelLead(config.panelId);
+      const model = buildPretextContributorsModel(rows, displaySummary);
+      const rendered =
+        pretextLayout?.renderPretextCard?.(config.containerId, model) ||
+        pretextLayout?.renderWorkflowBreakdownCard?.(config.containerId, model);
+      if (!rendered) {
+        showPanelStatus(status, "Contributor chart unavailable: renderer missing.", {
+          containerId: config.containerId
+        });
       }
-      renderTopContributorsCard(config.containerId, rows, displaySummary);
     });
   }
 
