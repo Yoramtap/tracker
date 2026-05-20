@@ -406,19 +406,24 @@ export function createProductPanels(deps) {
       }
       return String(left?.team || "").localeCompare(String(right?.team || ""));
     });
-    const fastestRow = rankedRows[0] || null;
+    const shippedCount = rankedRows.reduce((sum, row) => sum + toCount(row?.cycleDoneCount), 0);
+    const ongoingCount = rankedRows.reduce(
+      (sum, row) => sum + toCount(row?.cycleOngoingCount),
+      0
+    );
 
     return {
       teamKey: ALL_TEAM_SCOPE_KEY,
       teamColor: getPrCycleTeamColor(ALL_TEAM_SCOPE_KEY),
       accentColor: "var(--product-cycle-cycle)",
       stats: [
-        { label: "Avg delivery", value: formatCycleMonthsText(weightedCycleDays, { short: true }) },
         {
-          label: "Fastest team",
-          value: normalizeDisplayTeamName(fastestRow?.team || "") || "N/A"
+          label: "Avg delivery",
+          value: formatCycleMonthsText(weightedCycleDays, { short: true }),
+          className: "dashboard-utility-layout__stat--primary"
         },
-        { label: "Teams", value: `${rankedRows.length}` },
+        { label: "Shipped", value: `${toCount(shippedCount)} ideas` },
+        { label: "Ongoing", value: `${toCount(ongoingCount)} ideas` },
         { label: "Sample", value: `${toCount(cycleSampleCount)} ideas` }
       ],
       columnStartLabel: "Team",
@@ -433,9 +438,13 @@ export function createProductPanels(deps) {
         return {
           label: normalizeDisplayTeamName(row?.team || ""),
           metaBits: [
-            `${toCount(row?.meta_cycle?.n)} ideas`,
-            doneCount > 0 ? `${doneCount} shipped` : "",
-            ongoingCount > 0 ? `${ongoingCount} ongoing` : ""
+            { text: `${toCount(row?.meta_cycle?.n)} ideas` },
+            doneCount > 0
+              ? { text: `${doneCount} shipped`, className: "dashboard-utility-layout__meta-bit--primary" }
+              : null,
+            ongoingCount > 0
+              ? { text: `${ongoingCount} ongoing`, className: "dashboard-utility-layout__meta-bit--muted" }
+              : null
           ].filter(Boolean),
           valueText: formatCycleMonthsText(row?.cycle, { short: true }),
           width: Math.max(12, Math.round((toNumber(row?.cycle) / maxCycleDays) * 100)),
