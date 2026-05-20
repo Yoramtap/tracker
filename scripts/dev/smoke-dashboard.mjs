@@ -27,7 +27,19 @@ const PRODUCT_ROUTE_VISIBLE_PANELS = [
   "cycle-time-to-ship-panel"
 ];
 const BUG_ROUTE_VISIBLE_PANELS = ["actions-required-panel", "bug-trends-panel"];
+const DEFAULT_ROUTE_FORBIDDEN_RESOURCES = [
+  "./app/dashboard-heavy-panels.html",
+  "./app/dashboard-view-utils.js",
+  "./app/dashboard-chart-core.js",
+  "./app/dashboard-pretext-layout.js",
+  "./app/dashboard-app.js",
+  "./app/dashboard-charts-shipped.js",
+  "./app/dashboard-charts-product.js",
+  "./vendor/react.production.min.js",
+  "./vendor/react-dom.production.min.js"
+];
 const PR_ROUTE_FORBIDDEN_RESOURCES = [
+  "./data/pr-activity-snapshot.json",
   "./app/dashboard-charts-shipped.js",
   "./app/dashboard-charts-product.js",
   "./vendor/prop-types.min.js",
@@ -187,6 +199,14 @@ function findUnexpectedPrRouteResources(snapshot) {
   );
 }
 
+function findUnexpectedDefaultRouteResources(snapshot) {
+  const loaded = getResourceNameSet(snapshot);
+  return normalizeExpectedResources(DEFAULT_ROUTE_FORBIDDEN_RESOURCES).filter((resource) =>
+    loaded.has(resource) &&
+      (!isLocalPreview || !DEFAULT_ROUTE_LOCAL_ONLY_RUNTIME_RESOURCES.has(resource))
+  );
+}
+
 function findUnexpectedShippedRouteResources(snapshot) {
   const loaded = getResourceNameSet(snapshot);
   return normalizeExpectedResources(SHIPPED_ROUTE_FORBIDDEN_RESOURCES).filter((resource) =>
@@ -326,12 +346,17 @@ function assertDefaultRoute(snapshot) {
     `Default route shows status errors: ${JSON.stringify(snapshot.statuses)}`
   );
   assert(
-    snapshot.hasViewUtils === true,
-    "Default route should eagerly load the heavy dashboard stack."
+    snapshot.hasViewUtils === false,
+    "Default route should not load dashboard view utils before a dashboard section is opened."
   );
   assert(
-    hasHeavyPanelShellResource(snapshot),
-    `Default route should load the heavy dashboard shell in the background: ${JSON.stringify(snapshot.resourceNames)}`
+    !hasHeavyPanelShellResource(snapshot),
+    `Default route should not load the heavy dashboard shell in the background: ${JSON.stringify(snapshot.resourceNames)}`
+  );
+  const unexpectedResources = findUnexpectedDefaultRouteResources(snapshot);
+  assert(
+    unexpectedResources.length === 0,
+    `Default route should not preload heavy dashboard assets: ${JSON.stringify(unexpectedResources)}`
   );
   if (isLocalPreview) {
     assert(
@@ -488,8 +513,8 @@ function assertPrRoute(snapshot) {
     "PR route should fetch pr-cycle-snapshot.json."
   );
   assert(
-    hasResource(snapshot, "./data/pr-activity-snapshot.json"),
-    "PR route should fetch pr-activity-snapshot.json so PRs / sprint can render."
+    !hasResource(snapshot, "./data/pr-activity-snapshot.json"),
+    "PR route should use avgPrInflow from pr-cycle-snapshot.json instead of fetching pr-activity-snapshot.json."
   );
   assert(
     !hasResource(snapshot, "./data/backlog-snapshot.json"),
@@ -498,7 +523,7 @@ function assertPrRoute(snapshot) {
   const unexpectedResources = findUnexpectedPrRouteResources(snapshot);
   assert(
     unexpectedResources.length === 0,
-    `PR route should not fetch legacy Recharts assets: ${JSON.stringify(unexpectedResources)}`
+    `PR route should not fetch unrelated heavy assets: ${JSON.stringify(unexpectedResources)}`
   );
   if (isLocalPreview) {
     assert(snapshot.hasAgentRoot === true, "PR route should mount localhost Agentation.");
@@ -702,8 +727,9 @@ async function main() {
             "actions-required-panel",
             "community-contributors-panel"
           ]) &&
-          snapshot.hasViewUtils === true &&
-          hasHeavyPanelShellResource(snapshot) &&
+          snapshot.hasViewUtils === false &&
+          !hasHeavyPanelShellResource(snapshot) &&
+          findUnexpectedDefaultRouteResources(snapshot).length === 0 &&
           (!isLocalPreview || snapshot.hasAgentRoot === true)
         );
       }
@@ -821,6 +847,7 @@ async function main() {
           snapshot.hasRecharts === false &&
           hasHeavyPanelShellResource(snapshot) &&
           sameList(snapshot.visiblePanels, ["development-workflow-breakdown-panel"]) &&
+          hasResource(snapshot, "./data/pr-cycle-snapshot.json") &&
           findUnexpectedPrRouteResources(snapshot).length === 0 &&
           (!isLocalPreview || snapshot.hasAgentRoot === true)
         );
@@ -841,8 +868,9 @@ async function main() {
           "actions-required-panel",
           "community-contributors-panel"
         ]) &&
-        snapshot.hasViewUtils === true &&
-        hasHeavyPanelShellResource(snapshot) &&
+        snapshot.hasViewUtils === false &&
+        !hasHeavyPanelShellResource(snapshot) &&
+        findUnexpectedDefaultRouteResources(snapshot).length === 0 &&
         (!isLocalPreview || snapshot.hasAgentRoot === true)
       );
     }

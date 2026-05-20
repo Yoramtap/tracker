@@ -40,7 +40,7 @@ const routePayloadSpecs = [
     label: "Direct workflow route total",
     scripts: deferredPrOnlyScriptPaths,
     panels: deferredHeavyPanelPaths,
-    data: ["data/pr-activity-snapshot.json", "data/pr-cycle-snapshot.json"],
+    data: ["data/pr-cycle-snapshot.json"],
     extra: pretextLayoutPaths
   },
   {

@@ -191,6 +191,10 @@ function sanitizePrCycleTeam(team) {
     label: sanitizeText(team?.label),
     issueCount: sanitizeNumber(team?.issueCount),
     totalCycleDays: sanitizeNumber(team?.totalCycleDays),
+    avgPrInflow:
+      team?.avgPrInflow === null || team?.avgPrInflow === undefined
+        ? null
+        : sanitizeNumber(team?.avgPrInflow),
     bottleneckLabel: sanitizeText(team?.bottleneckLabel),
     stages: Array.isArray(team?.stages) ? team.stages.map(sanitizePrCycleStage) : []
   };

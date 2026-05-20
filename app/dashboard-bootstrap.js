@@ -36,7 +36,7 @@
   const DASHBOARD_APP_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-app.js",
-    "local48"
+    "local49"
   );
   const SHIPPED_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
@@ -601,10 +601,6 @@
     applyDefaultCommunityVisibility();
     renderActionsPanel();
     bindSectionFilter();
-    void loadHeavyDashboard("all", DEFAULT_SECTION, {
-      preloadAllSections: true,
-      suppressStatus: true
-    }).catch(() => {});
 
     try {
       bootstrapState.contributorsSnapshot = await loadContributorsSnapshot();

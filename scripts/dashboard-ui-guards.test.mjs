@@ -72,10 +72,10 @@ test("utility list rows do not link unsafe href schemes", () => {
   assert.match(container.innerHTML, />Unsafe</);
 });
 
-test("default community background heavy preload suppresses user-facing failure status", () => {
-  assert.match(
-    BOOTSTRAP_SOURCE,
-    /loadHeavyDashboard\("all",\s*DEFAULT_SECTION,\s*\{\s*preloadAllSections:\s*true,\s*suppressStatus:\s*true\s*\}\)/
-  );
+test("default community route does not background preload the heavy dashboard stack", () => {
+  const defaultCommunityBootstrap = BOOTSTRAP_SOURCE.match(
+    /async function bootstrapDefaultCommunity\(\) \{[\s\S]*?\n {2}\}/
+  )?.[0] || "";
+  assert.doesNotMatch(defaultCommunityBootstrap, /loadHeavyDashboard\(/);
   assert.match(BOOTSTRAP_SOURCE, /if \(!options\.suppressStatus\)/);
 });

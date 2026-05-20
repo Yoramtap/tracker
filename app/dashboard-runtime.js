@@ -122,9 +122,7 @@
     if (mode === "management-facility") return ["managementFacility"];
     if (mode === "pr-activity-legacy") return ["prActivity"];
     if (mode === "workflow-breakdown" || mode === "pr-cycle-experiment") {
-      return ["prCycle", "prActivity"].filter((sourceKey) =>
-        availableSourceKeys.includes(sourceKey)
-      );
+      return ["prCycle"].filter((sourceKey) => availableSourceKeys.includes(sourceKey));
     }
     if (mode === "product-cycle" || mode === "lifecycle-days") return ["productCycle"];
     return ["snapshot"];

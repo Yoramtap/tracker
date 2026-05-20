@@ -201,7 +201,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js";
     contributors: ["contributors"],
     "product-cycle-shipments": ["productCycleShipments"],
     "product-cycle": ["productCycle"],
-    "workflow-breakdown": ["prCycle", "prActivity"]
+    "workflow-breakdown": ["prCycle"]
   };
   let CHART_RENDERERS = {};
 
