@@ -170,7 +170,12 @@ export function createWorkflowPanels(deps) {
         rowHref: buildIssueItemsSearchUrl(row?.issueItems),
         linkAriaLabel: `Open ${String(row?.label || "").trim()} Jira issues in new tab`,
         metaBits: [
-          `${toCount(row?.sampleCount)} ${toCount(row?.sampleCount) === 1 ? "issue" : "issues"}`
+          {
+            text: `${toCount(row?.sampleCount)} ${
+              toCount(row?.sampleCount) === 1 ? "issue" : "issues"
+            }`,
+            className: "dashboard-utility-layout__meta-bit--primary"
+          }
         ],
         valueText: formatCycleMonthsText(row?.uatAvg, { short: true }),
         width: getPretextFillWidth(row?.uatAvg, maxUatDays),
