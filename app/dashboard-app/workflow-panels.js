@@ -14,10 +14,7 @@ export function createWorkflowPanels(deps) {
       getPrActivitySnapshot,
       getPrActivityWindowedPoints
     },
-    ui: {
-      isPretextLayoutActive,
-      getDashboardPretextLayout
-    },
+    ui: { isPretextLayoutActive, getDashboardPretextLayout },
     helpers: {
       buildIssueItemsSearchUrl,
       buildRowMarkup,
@@ -240,6 +237,12 @@ export function createWorkflowPanels(deps) {
     return `${days.toFixed(1)} ${Math.abs(days - 1) < 0.05 ? "day" : "days"}`;
   }
 
+  function formatWorkflowPrsPerSprintText(value) {
+    const inflow = toNumber(value);
+    if (!Number.isFinite(inflow) || inflow <= 0) return "";
+    return `≈ ${Math.round(inflow)} PRs / sprint`;
+  }
+
   function normalizeWorkflowBottleneckLabel(value) {
     const raw = String(value || "").trim();
     const normalized = raw.toLowerCase();
@@ -261,6 +264,7 @@ export function createWorkflowPanels(deps) {
       stages.reduce((highest, stage) => Math.max(highest, toNumber(stage?.days)), 0) || 1;
     const issueCount = toCount(team?.issueCount || team?.pullRequestCount);
     const inflow = toNumber(team?.avgPrInflow);
+    const inflowText = formatWorkflowPrsPerSprintText(inflow);
     const bottleneckLabel = normalizeWorkflowBottleneckLabel(team?.bottleneckLabel);
 
     return {
@@ -268,12 +272,16 @@ export function createWorkflowPanels(deps) {
       teamColor,
       accentColor: teamColor,
       stats: [
+        inflowText
+          ? {
+              label: "PRs / sprint",
+              value: inflowText,
+              className: "dashboard-utility-layout__stat--primary"
+            }
+          : { label: "Window", value: String(snapshot?.windowLabel || "").trim() },
+        { label: "Bottleneck", value: bottleneckLabel || "None" },
         { label: "Cycle time", value: formatWorkflowDaysText(team?.totalCycleDays) },
-        { label: "Main blocker", value: bottleneckLabel || "None" },
-        { label: "Sample", value: `${issueCount} ${issueCount === 1 ? "issue" : "issues"}` },
-        inflow > 0
-          ? { label: "PRs / sprint", value: `≈ ${Math.round(inflow)}` }
-          : { label: "Window", value: String(snapshot?.windowLabel || "").trim() }
+        { label: "Sample", value: `${issueCount} ${issueCount === 1 ? "issue" : "issues"}` }
       ],
       columnStartLabel: "Stage",
       columnEndLabel: "Avg time",
@@ -303,37 +311,56 @@ export function createWorkflowPanels(deps) {
       orderedRows.reduce((highest, row) => Math.max(highest, toNumber(row?.totalCycleDays)), 0) ||
       1;
     const inflowSummary =
-      toNumber(team?.avgPrInflow) > 0
-        ? `≈ ${Math.round(toNumber(team?.avgPrInflow))} PRs per sprint`
-        : "";
+      toNumber(team?.avgPrInflow) > 0 ? formatWorkflowPrsPerSprintText(team?.avgPrInflow) : "";
+    const bottleneckLabel = normalizeWorkflowBottleneckLabel(team?.bottleneckLabel);
 
     return {
       teamKey: ALL_TEAM_SCOPE_KEY,
       teamColor: getPrCycleTeamColor(ALL_TEAM_SCOPE_KEY),
       accentColor: "var(--chart-active)",
       stats: [
-        { label: "Cycle time", value: formatWorkflowDaysText(team?.totalCycleDays) },
-        {
-          label: "Main blocker",
-          value: normalizeWorkflowBottleneckLabel(team?.bottleneckLabel) || "None"
-        },
-        { label: "Teams", value: `${toCount(team?.teamCount)} teams` },
         inflowSummary
-          ? { label: "PRs / sprint", value: `≈ ${Math.round(toNumber(team?.avgPrInflow))}` }
-          : { label: "Sample", value: footerPrimary }
+          ? {
+              label: "PRs / sprint",
+              value: inflowSummary,
+              className: "dashboard-utility-layout__stat--primary"
+            }
+          : { label: "Sample", value: footerPrimary },
+        { label: "Bottleneck", value: bottleneckLabel || "None" },
+        { label: "Cycle time", value: formatWorkflowDaysText(team?.totalCycleDays) },
+        { label: "Teams", value: `${toCount(team?.teamCount)} teams` },
+        ...(inflowSummary
+          ? []
+          : [
+              {
+                label: "Window",
+                value: String(snapshot?.windowLabel || "").trim(),
+                className: "dashboard-utility-layout__stat--muted"
+              }
+            ])
       ],
       columnStartLabel: "Team",
       columnEndLabel: "Avg cycle",
       footerBits: [footerSecondary].filter(Boolean),
       rows: orderedRows.map((row) => {
         const bottleneck = normalizeWorkflowBottleneckLabel(row?.bottleneckLabel);
-        const inflow = toNumber(row?.avgPrInflow);
+        const inflowText = formatWorkflowPrsPerSprintText(row?.avgPrInflow);
         return {
           label: normalizeDisplayTeamName(row?.label || ""),
           metaBits: [
-            `${toCount(row?.issueCount)} ${toCount(row?.issueCount) === 1 ? "issue" : "issues"}`,
-            bottleneck ? `${bottleneck} blocker` : "",
-            Number.isFinite(inflow) && inflow > 0 ? `≈ ${Math.round(inflow)} PRs / sprint` : ""
+            inflowText
+              ? {
+                  text: inflowText,
+                  className: "dashboard-utility-layout__meta-bit--primary"
+                }
+              : "",
+            bottleneck ? `Bottleneck: ${bottleneck}` : "",
+            {
+              text: `${toCount(row?.issueCount)} ${
+                toCount(row?.issueCount) === 1 ? "issue" : "issues"
+              }`,
+              className: "dashboard-utility-layout__meta-bit--muted"
+            }
           ].filter(Boolean),
           valueText: formatWorkflowDaysText(row?.totalCycleDays),
           width: Math.max(12, Math.round((toNumber(row?.totalCycleDays) / maxDays) * 100)),
@@ -498,21 +525,24 @@ export function createWorkflowPanels(deps) {
         .filter(Boolean)
     );
     return Object.fromEntries(
-      prActivityLineDefs.map((lineDef) => {
-        if (!availableTeamKeys.has(lineDef.dataKey)) return null;
-        const inflowValues = safePoints
-          .map((point) => toNumber(point?.[lineDef.dataKey]?.offered))
-          .filter((value) => Number.isFinite(value));
-        if (inflowValues.length === 0) return null;
-        return [
-          lineDef.dataKey,
-          Number(
-            (
-              inflowValues.reduce((sum, value) => sum + value, 0) / Math.max(1, inflowValues.length)
-            ).toFixed(1)
-          )
-        ];
-      }).filter(Boolean)
+      prActivityLineDefs
+        .map((lineDef) => {
+          if (!availableTeamKeys.has(lineDef.dataKey)) return null;
+          const inflowValues = safePoints
+            .map((point) => toNumber(point?.[lineDef.dataKey]?.offered))
+            .filter((value) => Number.isFinite(value));
+          if (inflowValues.length === 0) return null;
+          return [
+            lineDef.dataKey,
+            Number(
+              (
+                inflowValues.reduce((sum, value) => sum + value, 0) /
+                Math.max(1, inflowValues.length)
+              ).toFixed(1)
+            )
+          ];
+        })
+        .filter(Boolean)
     );
   }
 

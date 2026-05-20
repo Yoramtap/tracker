@@ -2577,6 +2577,11 @@ a.shipped-team-list__idea-key:focus-visible {
   min-width: 0;
 }
 
+.dashboard-utility-layout__stat--primary {
+  padding-left: 10px;
+  border-left: 3px solid var(--utility-accent);
+}
+
 .management-acceptance-layout__stat dt,
 .dashboard-utility-layout__stat dt {
   margin: 0;
@@ -2598,6 +2603,20 @@ a.shipped-team-list__idea-key:focus-visible {
   line-height: 1.12;
   letter-spacing: -0.015em;
   font-variant-numeric: tabular-nums;
+}
+
+.dashboard-utility-layout__stat--primary dt {
+  color: rgba(31, 51, 71, 0.68);
+}
+
+.dashboard-utility-layout__stat--primary dd {
+  color: rgba(22, 41, 61, 0.96);
+  font-weight: 700;
+}
+
+.dashboard-utility-layout__stat--muted dt,
+.dashboard-utility-layout__stat--muted dd {
+  color: rgba(31, 51, 71, 0.5);
 }
 
 .management-acceptance-layout__columns,
@@ -2728,6 +2747,16 @@ a.shipped-team-list__idea-key:focus-visible {
 
 .dashboard-utility-layout__meta-bit {
   white-space: nowrap;
+}
+
+.dashboard-utility-layout__meta-bit--primary {
+  color: rgba(31, 51, 71, 0.82);
+  font-weight: 750;
+}
+
+.dashboard-utility-layout__meta-bit--muted {
+  color: rgba(31, 51, 71, 0.48);
+  font-weight: 600;
 }
 
 .management-acceptance-layout__rail,

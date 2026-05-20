@@ -61,14 +61,15 @@
       (item) => String(item?.value || "").trim().length > 0
     );
     const statsMarkup = statsItems
-      .map(
-        (item) => `
-          <div class="dashboard-utility-layout__stat">
+      .map((item) => {
+        const statClassName = String(item?.className || "").trim();
+        return `
+          <div class="dashboard-utility-layout__stat${statClassName ? ` ${escapeHtml(statClassName)}` : ""}">
             <dt>${escapeHtml(item?.label)}</dt>
             <dd>${escapeHtml(item?.value)}</dd>
           </div>
-        `
-      )
+        `;
+      })
       .join("");
 
     const footerBitsMarkup = (Array.isArray(model.footerBits) ? model.footerBits : [])
@@ -95,8 +96,19 @@
             )}</span><svg class="dashboard-utility-layout__label-link-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2.5h4v4"></path><path d="M13.5 2.5L7.75 8.25"></path><path d="M6 4.5H3.5v8h8V10"></path></svg></a>`
           : escapeHtml(row?.label);
         const metaBits = (Array.isArray(row?.metaBits) ? row.metaBits : [])
-          .map((item) => String(item || "").trim())
-          .filter(Boolean);
+          .map((item) => {
+            if (item && typeof item === "object") {
+              return {
+                text: String(item.text || item.label || item.value || "").trim(),
+                className: String(item.className || "").trim()
+              };
+            }
+            return {
+              text: String(item || "").trim(),
+              className: ""
+            };
+          })
+          .filter((item) => item.text);
         return `
           <div class="dashboard-utility-layout__row"${rowStyle}>
             <div class="dashboard-utility-layout__row-head">
@@ -120,7 +132,7 @@
                 ? `<div class="dashboard-utility-layout__meta">${metaBits
                     .map(
                       (item) =>
-                        `<span class="dashboard-utility-layout__meta-bit">${escapeHtml(item)}</span>`
+                        `<span class="dashboard-utility-layout__meta-bit${item.className ? ` ${escapeHtml(item.className)}` : ""}">${escapeHtml(item.text)}</span>`
                     )
                     .join("")}</div>`
                 : ""
