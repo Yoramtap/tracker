@@ -281,13 +281,15 @@ export function createWorkflowPanels(deps) {
       teamColor,
       accentColor: teamColor,
       stats: [
-        inflowText
-          ? {
-              label: "PRs / sprint",
-              value: inflowText,
-              className: "dashboard-utility-layout__stat--primary"
-            }
-          : { label: "Window", value: String(snapshot?.windowLabel || "").trim() },
+        ...(inflowText
+          ? [
+              {
+                label: "PRs / sprint",
+                value: inflowText,
+                className: "dashboard-utility-layout__stat--primary"
+              }
+            ]
+          : []),
         { label: "Bottleneck", value: bottleneckLabel || "None" },
         { label: "Cycle time", value: formatWorkflowDaysText(team?.totalCycleDays) },
         { label: "Sample", value: `${issueCount} ${issueCount === 1 ? "issue" : "issues"}` }
@@ -328,25 +330,18 @@ export function createWorkflowPanels(deps) {
       teamColor: getPrCycleTeamColor(ALL_TEAM_SCOPE_KEY),
       accentColor: "var(--chart-active)",
       stats: [
-        inflowSummary
-          ? {
-              label: "PRs / sprint",
-              value: inflowSummary,
-              className: "dashboard-utility-layout__stat--primary"
-            }
-          : { label: "Sample", value: footerPrimary },
+        ...(inflowSummary
+          ? [
+              {
+                label: "PRs / sprint",
+                value: inflowSummary,
+                className: "dashboard-utility-layout__stat--primary"
+              }
+            ]
+          : []),
         { label: "Bottleneck", value: bottleneckLabel || "None" },
         { label: "Cycle time", value: formatWorkflowDaysText(team?.totalCycleDays) },
-        { label: "Teams", value: `${toCount(team?.teamCount)} teams` },
-        ...(inflowSummary
-          ? []
-          : [
-              {
-                label: "Window",
-                value: String(snapshot?.windowLabel || "").trim(),
-                className: "dashboard-utility-layout__stat--muted"
-              }
-            ])
+        { label: "Teams", value: `${toCount(team?.teamCount)} teams` }
       ],
       columnStartLabel: "Team",
       columnEndLabel: "Avg cycle",
