@@ -822,7 +822,6 @@ export function createProductPanels(deps) {
     return {
       accentColor: "var(--team-react)",
       stats: [
-        { label: "Shipped", value: formatCountLabel(selectedMonth?.totalShipped, "idea") },
         { label: "Top team", value: normalizeDisplayTeamName(topTeam?.team || "None") },
         { label: "Year total", value: formatCountLabel(yearTotal, "idea") }
       ]
