@@ -2151,12 +2151,17 @@ main {
 }
 
 #product-cycle-shipments-summary .dashboard-utility-layout__stats {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   padding-bottom: 0;
   border-bottom: 0;
 }
 
 #product-cycle-shipments-summary .dashboard-utility-layout__stat:nth-child(2) {
+  justify-items: center;
+  text-align: center;
+}
+
+#product-cycle-shipments-summary .dashboard-utility-layout__stat:nth-child(3) {
   justify-items: end;
   text-align: right;
 }
@@ -2345,33 +2350,6 @@ main {
   font-size: clamp(1.3rem, 1.6vw, 1.8rem);
   line-height: 1.05;
   color: rgba(31, 51, 71, 0.96);
-}
-
-.shipped-timeline__detail-callout {
-  display: grid;
-  gap: 2px;
-  align-self: start;
-  justify-items: end;
-  color: rgba(31, 51, 71, 0.52);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.shipped-timeline__detail-callout strong {
-  font-family: var(--font-display);
-  color: rgba(31, 51, 71, 0.92);
-  font-weight: 700;
-  font-size: 1.08rem;
-  letter-spacing: 0;
-  text-transform: none;
-  line-height: 1;
-}
-
-.shipped-timeline__detail-callout span {
-  display: block;
 }
 
 .shipped-team-list {
@@ -3567,12 +3545,6 @@ a.shipped-team-list__idea-key:focus-visible {
     padding-bottom: 6px;
   }
 
-  .shipped-timeline__detail-callout {
-    width: 100%;
-    white-space: normal;
-    justify-items: start;
-  }
-
   .shipped-team-list__team-copy {
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;
@@ -4103,10 +4075,6 @@ a.shipped-team-list__idea-key:focus-visible {
 
   .shipped-timeline__detail-title {
     font-size: 1.55rem;
-  }
-
-  .shipped-timeline__detail-callout {
-    font-size: 0.72rem;
   }
 
   .shipped-team-list {
