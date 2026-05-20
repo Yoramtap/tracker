@@ -2142,12 +2142,28 @@ main {
 }
 
 #product-cycle-shipments-summary {
+  width: 100%;
   margin-bottom: 0;
 }
 
+#product-cycle-shipments-summary .dashboard-chart-summary {
+  width: 100%;
+}
+
 #product-cycle-shipments-summary .dashboard-utility-layout__stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   padding-bottom: 0;
   border-bottom: 0;
+}
+
+#product-cycle-shipments-summary .dashboard-utility-layout__stat:nth-child(2) {
+  justify-items: center;
+  text-align: center;
+}
+
+#product-cycle-shipments-summary .dashboard-utility-layout__stat:nth-child(3) {
+  justify-items: end;
+  text-align: right;
 }
 
 .shipped-timeline {
@@ -4042,6 +4058,16 @@ a.shipped-team-list__idea-key:focus-visible {
 @media (max-width: 560px) {
   .product-cycle-shipments {
     width: 100%;
+  }
+
+  #product-cycle-shipments-summary .dashboard-utility-layout__stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #product-cycle-shipments-summary .dashboard-utility-layout__stat:nth-child(2),
+  #product-cycle-shipments-summary .dashboard-utility-layout__stat:nth-child(3) {
+    justify-items: start;
+    text-align: left;
   }
 
   .shipped-timeline {
