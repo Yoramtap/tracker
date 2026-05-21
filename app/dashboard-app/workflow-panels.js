@@ -865,6 +865,7 @@ export function createWorkflowPanels(deps) {
             : ""
         ].filter(Boolean),
         valueText: String(toCount(row?.doneIssues)),
+        valueClassName: "dashboard-utility-layout__value--primary",
         width: getPretextFillWidth(row?.doneIssues, maxDone),
         color: "var(--team-react)"
       }))

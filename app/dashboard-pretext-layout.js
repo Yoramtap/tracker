@@ -111,6 +111,7 @@
           : ` style="width:${width}%;"`;
         const detailText = String(row?.detailText || row?.description || "").trim();
         const labelMarkup = renderUtilityRowLabel(row);
+        const valueClassName = String(row?.valueClassName || "").trim();
         const metaBits = (Array.isArray(row?.metaBits) ? row.metaBits : [])
           .map((item) => {
             if (item && typeof item === "object") {
@@ -141,7 +142,9 @@
                     : ""
                 }
               </div>
-              <span class="dashboard-utility-layout__value">${escapeHtml(row?.valueText)}</span>
+              <span class="dashboard-utility-layout__value${
+                valueClassName ? ` ${escapeHtml(valueClassName)}` : ""
+              }">${escapeHtml(row?.valueText)}</span>
             </div>
             ${
               metaBits.length > 0

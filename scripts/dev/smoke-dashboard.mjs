@@ -619,6 +619,9 @@ function readUtilityStats(selector) {
       rowCount: rows.length,
       primaryMetaCount: Array.from(
         root?.querySelectorAll(".dashboard-utility-layout__meta-bit--primary") || []
+      ).length,
+      primaryValueCount: Array.from(
+        root?.querySelectorAll(".dashboard-utility-layout__value--primary") || []
       ).length
     };
   })())`);
@@ -631,7 +634,8 @@ function assertUtilityStats({
   primaryLabel,
   valuePattern,
   minRows = 1,
-  minPrimaryMetaCount = 0
+  minPrimaryMetaCount = 0,
+  minPrimaryValueCount = 0
 }) {
   const state = readUtilityStats(selector);
   assert(state.hasRoot === true, `${description} utility stats root was not found.`);
@@ -658,6 +662,10 @@ function assertUtilityStats({
   assert(
     state.primaryMetaCount >= minPrimaryMetaCount,
     `${description} should highlight row metadata, saw ${state.primaryMetaCount} primary meta bits.`
+  );
+  assert(
+    state.primaryValueCount >= minPrimaryValueCount,
+    `${description} should outline row values, saw ${state.primaryValueCount} primary value frames.`
   );
   return state;
 }
@@ -747,7 +755,8 @@ async function main() {
     expectedLabels: ["Done", "Top contributor", "Active", "Included issues"],
     primaryLabel: "Done",
     valuePattern: /^\d+$/,
-    minPrimaryMetaCount: 1
+    minPrimaryMetaCount: 1,
+    minPrimaryValueCount: 1
   });
 
   const developmentSnapshot = await enrichSnapshotWithLocalResourceStats(

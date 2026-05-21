@@ -31,7 +31,7 @@
     getSourcePath("vendor", "react.production.min.js"),
     getSourcePath("vendor", "react-dom.production.min.js"),
     getSourcePath("runtime", "dashboard-chart-core.js"),
-    getVersionedSourcePath("runtime", "dashboard-pretext-layout.js", "local9")
+    getVersionedSourcePath("runtime", "dashboard-pretext-layout.js", "local10")
   ];
   const DASHBOARD_APP_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
@@ -360,6 +360,7 @@
               : ""
           ].filter(Boolean),
           valueText: `${done}`,
+          valueClassName: "dashboard-utility-layout__value--primary",
           width: done > 0 ? Math.max(10, Math.round((done / maxDone) * 100)) : 10
         };
       })
@@ -401,7 +402,7 @@
               <div class="dashboard-utility-layout__label-group">
                 <span class="dashboard-utility-layout__label">${escapeHtml(row.label)}</span>
               </div>
-              <span class="dashboard-utility-layout__value">${escapeHtml(row.valueText)}</span>
+              <span class="dashboard-utility-layout__value ${escapeHtml(row.valueClassName)}">${escapeHtml(row.valueText)}</span>
             </div>
             <div class="dashboard-utility-layout__meta">${metaMarkup}</div>
             <div class="dashboard-utility-layout__rail" aria-hidden="true">

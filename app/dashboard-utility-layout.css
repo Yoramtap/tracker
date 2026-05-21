@@ -294,6 +294,21 @@
   font-variant-numeric: tabular-nums;
 }
 
+.dashboard-utility-layout__value--primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  min-width: 30px;
+  min-height: 26px;
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--row-accent) 52%, rgba(31, 51, 71, 0.28));
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--row-accent) 8%, white);
+  color: rgba(22, 41, 61, 0.98);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+}
+
 .dashboard-utility-layout__meta {
   display: flex;
   flex-wrap: wrap;
@@ -384,5 +399,11 @@
   .management-acceptance-layout__value,
   .dashboard-utility-layout__value {
     font-size: 0.84rem;
+  }
+
+  .dashboard-utility-layout__value--primary {
+    min-width: 26px;
+    min-height: 24px;
+    padding-inline: 7px;
   }
 }
