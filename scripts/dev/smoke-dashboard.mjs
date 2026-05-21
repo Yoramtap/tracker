@@ -630,7 +630,8 @@ function assertUtilityStats({
   expectedLabels,
   primaryLabel,
   valuePattern,
-  minRows = 1
+  minRows = 1,
+  minPrimaryMetaCount = 0
 }) {
   const state = readUtilityStats(selector);
   assert(state.hasRoot === true, `${description} utility stats root was not found.`);
@@ -653,6 +654,10 @@ function assertUtilityStats({
   assert(
     state.rowCount >= minRows,
     `${description} should render at least ${minRows} utility rows, saw ${state.rowCount}.`
+  );
+  assert(
+    state.primaryMetaCount >= minPrimaryMetaCount,
+    `${description} should highlight row metadata, saw ${state.primaryMetaCount} primary meta bits.`
   );
   return state;
 }
@@ -739,8 +744,10 @@ async function main() {
   assertUtilityStats({
     description: "Default community contributors panel",
     selector: "#top-contributors-chart",
-    expectedLabels: ["Included issues", "Top contributor", "Active", "Done"],
-    valuePattern: /^\d+$/
+    expectedLabels: ["Done", "Top contributor", "Active", "Included issues"],
+    primaryLabel: "Done",
+    valuePattern: /^\d+$/,
+    minPrimaryMetaCount: 1
   });
 
   const developmentSnapshot = await enrichSnapshotWithLocalResourceStats(

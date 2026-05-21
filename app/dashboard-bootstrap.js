@@ -329,18 +329,22 @@
     if (safeRows.length === 0) return null;
     const totalIssues = toCount(summary?.totalIssues);
     const topContributor = safeRows[0] || null;
-    const maxTotal = Math.max(1, ...safeRows.map((row) => toCount(row?.totalIssues)));
+    const maxDone = Math.max(1, ...safeRows.map((row) => toCount(row?.doneIssues)));
 
     return {
       accentColor: "var(--team-react)",
       stats: [
-        { label: "Included issues", value: `${totalIssues}` },
+        {
+          label: "Done",
+          value: `${toCount(summary?.doneIssues)}`,
+          className: "dashboard-utility-layout__stat--primary"
+        },
         {
           label: "Top contributor",
           value: String(topContributor?.contributor || "").trim() || "None"
         },
         { label: "Active", value: `${toCount(summary?.activeIssues)}` },
-        { label: "Done", value: `${toCount(summary?.doneIssues)}` }
+        { label: "Included issues", value: `${totalIssues}` }
       ],
       rows: safeRows.map((row) => {
         const total = toCount(row?.totalIssues);
@@ -348,9 +352,15 @@
         const active = toCount(row?.activeIssues);
         return {
           label: String(row?.contributor || "").trim(),
-          metaBits: [`${done} done`, active > 0 ? `${active} active` : ""].filter(Boolean),
-          valueText: `${total}`,
-          width: total > 0 ? Math.max(10, Math.round((total / maxTotal) * 100)) : 10
+          metaBits: [
+            { text: `${done} done`, className: "dashboard-utility-layout__meta-bit--primary" },
+            `${total} included`,
+            active > 0
+              ? { text: `${active} active`, className: "dashboard-utility-layout__meta-bit--muted" }
+              : ""
+          ].filter(Boolean),
+          valueText: `${done}`,
+          width: done > 0 ? Math.max(10, Math.round((done / maxDone) * 100)) : 10
         };
       })
     };
@@ -365,7 +375,9 @@
     const statsMarkup = model.stats
       .map(
         (stat) => `
-          <div class="dashboard-utility-layout__stat">
+          <div class="dashboard-utility-layout__stat${
+            stat.className ? ` ${escapeHtml(stat.className)}` : ""
+          }">
             <dt>${escapeHtml(stat.label)}</dt>
             <dd>${escapeHtml(stat.value)}</dd>
           </div>
@@ -375,7 +387,13 @@
     const rowsMarkup = model.rows
       .map((row) => {
         const metaMarkup = row.metaBits
-          .map((item) => `<span class="dashboard-utility-layout__meta-bit">${escapeHtml(item)}</span>`)
+          .map((item) => {
+            const meta = item && typeof item === "object" ? item : { text: item };
+            const className = String(meta.className || "").trim();
+            return `<span class="dashboard-utility-layout__meta-bit${
+              className ? ` ${escapeHtml(className)}` : ""
+            }">${escapeHtml(meta.text)}</span>`;
+          })
           .join("");
         return `
           <div class="dashboard-utility-layout__row" style="--row-accent:${model.accentColor}">
@@ -399,7 +417,7 @@
         <dl class="dashboard-utility-layout__stats">${statsMarkup}</dl>
         <div class="dashboard-utility-layout__columns" aria-hidden="true">
           <span>Contributor</span>
-          <span>Included issues</span>
+          <span>Done</span>
         </div>
         <div class="dashboard-utility-layout__list">${rowsMarkup}</div>
       </section>

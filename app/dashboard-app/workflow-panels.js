@@ -828,31 +828,44 @@ export function createWorkflowPanels(deps) {
     const topContributor = safeRows[0] || null;
     const totalIssues = toCount(summary?.totalIssues);
     const totalContributors = Math.max(toCount(summary?.totalContributors), safeRows.length);
-    const maxTotal = Math.max(1, ...safeRows.map((row) => toCount(row?.totalIssues)));
+    const maxDone = Math.max(1, ...safeRows.map((row) => toCount(row?.doneIssues)));
 
     return {
       teamKey: "contributors",
       teamColor: "var(--team-react)",
       accentColor: "var(--team-react)",
       stats: [
-        { label: "Included issues", value: `${totalIssues}` },
+        {
+          label: "Done",
+          value: `${toCount(summary?.doneIssues)}`,
+          className: "dashboard-utility-layout__stat--primary"
+        },
         {
           label: "Top contributor",
           value: String(topContributor?.contributor || "").trim() || `${totalContributors} ranked`
         },
         { label: "Active", value: `${toCount(summary?.activeIssues)}` },
-        { label: "Done", value: `${toCount(summary?.doneIssues)}` }
+        { label: "Included issues", value: `${totalIssues}` }
       ],
       columnStartLabel: "Contributor",
-      columnEndLabel: "Included issues",
+      columnEndLabel: "Done",
       rows: safeRows.map((row) => ({
         label: String(row?.contributor || "").trim(),
         metaBits: [
-          `${toCount(row?.doneIssues)} done`,
-          toCount(row?.activeIssues) > 0 ? `${toCount(row?.activeIssues)} active` : ""
+          {
+            text: `${toCount(row?.doneIssues)} done`,
+            className: "dashboard-utility-layout__meta-bit--primary"
+          },
+          `${toCount(row?.totalIssues)} included`,
+          toCount(row?.activeIssues) > 0
+            ? {
+                text: `${toCount(row?.activeIssues)} active`,
+                className: "dashboard-utility-layout__meta-bit--muted"
+              }
+            : ""
         ].filter(Boolean),
-        valueText: String(toCount(row?.totalIssues)),
-        width: getPretextFillWidth(row?.totalIssues, maxTotal),
+        valueText: String(toCount(row?.doneIssues)),
+        width: getPretextFillWidth(row?.doneIssues, maxDone),
         color: "var(--team-react)"
       }))
     };
