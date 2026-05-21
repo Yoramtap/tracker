@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-20T07:27:54.232Z",
+  "updatedAt": "2026-05-21T07:26:44.879Z",
   "chartData": {
     "managementBusinessUnit": {
       "scopeLabel": "Broadcast",
@@ -12,7 +12,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 1.06,
+              "uatAvg": 2.06,
               "issueItems": [
                 {
                   "issueId": "TFC-14376",
@@ -23,7 +23,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 1.04,
-                  "uatAvg": 1.06,
+                  "uatAvg": 2.06,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -39,7 +39,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 103.95,
+              "uatAvg": 104.95,
               "issueItems": [
                 {
                   "issueId": "TFC-15925",
@@ -50,7 +50,7 @@
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 103.95,
+                  "uatAvg": 104.95,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -62,19 +62,15 @@
             },
             {
               "label": "US",
-              "devAvg": 0.57,
-              "sampleCount": 5,
-              "devCount": 5,
-              "uatCount": 5,
-              "uatAvg": 78.85,
+              "devAvg": 0.68,
+              "sampleCount": 4,
+              "devCount": 4,
+              "uatCount": 4,
+              "uatAvg": 99.53,
               "issueItems": [
                 {
                   "issueId": "TFC-14425",
                   "facilityLabel": "Facility US EN1"
-                },
-                {
-                  "issueId": "TFC-16737",
-                  "facilityLabel": "Facility US PGA TOUR STUDIOS"
                 },
                 {
                   "issueId": "TFC-13224",
@@ -93,7 +89,7 @@
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 154.19,
+                  "uatAvg": 155.19,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -102,20 +98,9 @@
                   ]
                 },
                 {
-                  "label": "US PGA TOUR STUDIOS",
-                  "devAvg": 0.1,
-                  "uatAvg": 0.16,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-16737"
-                  ]
-                },
-                {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 105.37,
+                  "uatAvg": 106.37,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -126,7 +111,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 0.43,
-                  "uatAvg": 67.27,
+                  "uatAvg": 68.27,
                   "devCount": 2,
                   "uatCount": 2,
                   "sampleCount": 2,
@@ -143,7 +128,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 159.12,
+              "uatAvg": 160.12,
               "issueItems": [
                 {
                   "issueId": "TFC-14540",
@@ -154,7 +139,7 @@
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 159.12,
+                  "uatAvg": 160.12,
                   "devCount": 1,
                   "uatCount": 1,
                   "sampleCount": 1,
@@ -663,11 +648,11 @@
             },
             {
               "label": "US",
-              "devAvg": 6.74,
-              "sampleCount": 15,
-              "devCount": 15,
-              "uatCount": 15,
-              "uatAvg": 12.79,
+              "devAvg": 6.32,
+              "sampleCount": 16,
+              "devCount": 16,
+              "uatCount": 16,
+              "uatAvg": 12.04,
               "issueItems": [
                 {
                   "issueId": "TFC-15188",
@@ -691,6 +676,10 @@
                 },
                 {
                   "issueId": "TFC-15957",
+                  "facilityLabel": "Facility US PGA TOUR STUDIOS"
+                },
+                {
+                  "issueId": "TFC-16737",
                   "facilityLabel": "Facility US PGA TOUR STUDIOS"
                 },
                 {
@@ -748,13 +737,14 @@
                 },
                 {
                   "label": "US PGA TOUR STUDIOS",
-                  "devAvg": 0.02,
-                  "uatAvg": 6.27,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1,
+                  "devAvg": 0.06,
+                  "uatAvg": 3.55,
+                  "devCount": 2,
+                  "uatCount": 2,
+                  "sampleCount": 2,
                   "issueIds": [
-                    "TFC-15957"
+                    "TFC-15957",
+                    "TFC-16737"
                   ]
                 },
                 {
