@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-21T07:26:44.879Z",
+  "updatedAt": "2026-05-22T07:28:24.499Z",
   "combinedPoints": [
     {
       "date": "2025-11-10",
@@ -309,7 +309,7 @@
       "bc": {
         "highest": 5,
         "high": 61,
-        "medium": 105,
+        "medium": 104,
         "low": 8,
         "lowest": 0,
         "longstanding_30d_plus": 162,
@@ -356,7 +356,7 @@
       "bc": {
         "highest": 6,
         "high": 62,
-        "medium": 106,
+        "medium": 105,
         "low": 8,
         "lowest": 0,
         "longstanding_30d_plus": 166,
@@ -403,10 +403,10 @@
       "bc": {
         "highest": 3,
         "high": 69,
-        "medium": 107,
+        "medium": 106,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 167,
+        "longstanding_30d_plus": 166,
         "longstanding_60d_plus": 154
       },
       "workers": {
@@ -450,10 +450,10 @@
       "bc": {
         "highest": 6,
         "high": 69,
-        "medium": 112,
+        "medium": 111,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 168,
+        "longstanding_30d_plus": 167,
         "longstanding_60d_plus": 157
       },
       "workers": {
@@ -497,11 +497,11 @@
       "bc": {
         "highest": 8,
         "high": 71,
-        "medium": 113,
+        "medium": 112,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 174,
-        "longstanding_60d_plus": 163
+        "longstanding_30d_plus": 173,
+        "longstanding_60d_plus": 162
       },
       "workers": {
         "highest": 0,
@@ -544,11 +544,11 @@
       "bc": {
         "highest": 3,
         "high": 70,
-        "medium": 119,
+        "medium": 118,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 185,
-        "longstanding_60d_plus": 166
+        "longstanding_30d_plus": 184,
+        "longstanding_60d_plus": 165
       },
       "workers": {
         "highest": 0,
@@ -591,11 +591,11 @@
       "bc": {
         "highest": 6,
         "high": 69,
-        "medium": 118,
+        "medium": 117,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 181,
-        "longstanding_60d_plus": 168
+        "longstanding_30d_plus": 180,
+        "longstanding_60d_plus": 167
       },
       "workers": {
         "highest": 0,
@@ -638,11 +638,11 @@
       "bc": {
         "highest": 3,
         "high": 66,
-        "medium": 108,
+        "medium": 107,
         "low": 7,
         "lowest": 0,
-        "longstanding_30d_plus": 173,
-        "longstanding_60d_plus": 166
+        "longstanding_30d_plus": 172,
+        "longstanding_60d_plus": 165
       },
       "workers": {
         "highest": 0,
