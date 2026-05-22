@@ -112,6 +112,20 @@
         const detailText = String(row?.detailText || row?.description || "").trim();
         const labelMarkup = renderUtilityRowLabel(row);
         const valueClassName = String(row?.valueClassName || "").trim();
+        const labelMeta = (Array.isArray(row?.labelMeta) ? row.labelMeta : [])
+          .map((item) => {
+            if (item && typeof item === "object") {
+              return {
+                text: String(item.text || item.label || item.value || "").trim(),
+                href: sanitizeUtilityHref(item.href || item.url)
+              };
+            }
+            return {
+              text: String(item || "").trim(),
+              href: ""
+            };
+          })
+          .filter((item) => item.text);
         const metaBits = (Array.isArray(row?.metaBits) ? row.metaBits : [])
           .map((item) => {
             if (item && typeof item === "object") {
@@ -133,6 +147,20 @@
             <div class="dashboard-utility-layout__row-head">
               <div class="dashboard-utility-layout__label-group">
                 <span class="dashboard-utility-layout__label">${labelMarkup}</span>
+                ${labelMeta
+                  .map((item) => {
+                    if (item.href) {
+                      return `<a class="dashboard-utility-layout__label-meta dashboard-utility-layout__label-meta--link" href="${escapeHtml(
+                        item.href
+                      )}" target="_blank" rel="noopener noreferrer">${escapeHtml(
+                        item.text
+                      )}</a>`;
+                    }
+                    return `<span class="dashboard-utility-layout__label-meta">${escapeHtml(
+                      item.text
+                    )}</span>`;
+                  })
+                  .join("")}
                 ${
                   String(row?.sampleText || "").trim()
                     ? `<span class="dashboard-utility-layout__sample">${escapeHtml(row.sampleText)}</span>`

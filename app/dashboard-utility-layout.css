@@ -265,6 +265,30 @@
   opacity: 0.72;
 }
 
+.dashboard-utility-layout__label-meta {
+  color: rgba(31, 51, 71, 0.68);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.dashboard-utility-layout__label-meta--link {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.dashboard-utility-layout__label-meta--link:hover {
+  color: rgba(31, 51, 71, 0.94);
+}
+
+.dashboard-utility-layout__label-meta--link:focus-visible {
+  outline: 1px solid rgba(31, 51, 71, 0.2);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
 .management-acceptance-layout__sample,
 .dashboard-utility-layout__sample {
   color: rgba(31, 51, 71, 0.88);

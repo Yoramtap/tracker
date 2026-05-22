@@ -31,12 +31,12 @@
     getSourcePath("vendor", "react.production.min.js"),
     getSourcePath("vendor", "react-dom.production.min.js"),
     getSourcePath("runtime", "dashboard-chart-core.js"),
-    getVersionedSourcePath("runtime", "dashboard-pretext-layout.js", "local11")
+    getVersionedSourcePath("runtime", "dashboard-pretext-layout.js", "local12")
   ];
   const DASHBOARD_APP_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-app.js",
-    "local51"
+    "local52"
   );
   const SHIPPED_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
@@ -372,17 +372,17 @@
     return {
       accentColor: "var(--team-react)",
       stats: [
-        { label: "Done", value: `${toCount(summary?.doneIssues)}` },
+        {
+          label: "Done",
+          value: `${toCount(summary?.doneIssues)}`,
+          className: "dashboard-utility-layout__stat--primary"
+        },
         {
           label: "Top contributor",
           value: String(topContributor?.contributor || "").trim() || "None"
         },
         { label: "Active", value: `${toCount(summary?.activeIssues)}` },
-        {
-          label: "Included issues",
-          value: `${totalIssues}`,
-          className: "dashboard-utility-layout__stat--primary"
-        }
+        { label: "Included issues", value: `${totalIssues}` }
       ],
       rows: safeRows.map((row) => {
         const done = toCount(row?.doneIssues);
@@ -390,16 +390,16 @@
         const activeHref = buildContributorActiveHref(row?.contributor, source);
         return {
           label: String(row?.contributor || "").trim(),
-          metaBits:
+          labelMeta:
             active > 0
               ? [
                   {
                     text: `${active} active`,
-                    className: "dashboard-utility-layout__meta-bit--primary",
                     href: activeHref
                   }
                 ]
               : [],
+          metaBits: [],
           valueText: `${done}`,
           width: done > 0 ? Math.max(10, Math.round((done / maxDone) * 100)) : 10
         };
@@ -427,6 +427,20 @@
       .join("");
     const rowsMarkup = model.rows
       .map((row) => {
+        const labelMetaMarkup = (Array.isArray(row.labelMeta) ? row.labelMeta : [])
+          .map((item) => {
+            const meta = item && typeof item === "object" ? item : { text: item };
+            const href = sanitizeUtilityHref(meta.href);
+            if (href) {
+              return `<a class="dashboard-utility-layout__label-meta dashboard-utility-layout__label-meta--link" href="${escapeHtml(
+                href
+              )}" target="_blank" rel="noopener noreferrer">${escapeHtml(meta.text)}</a>`;
+            }
+            return `<span class="dashboard-utility-layout__label-meta">${escapeHtml(
+              meta.text
+            )}</span>`;
+          })
+          .join("");
         const metaMarkup = row.metaBits
           .map((item) => {
             const meta = item && typeof item === "object" ? item : { text: item };
@@ -448,6 +462,7 @@
             <div class="dashboard-utility-layout__row-head">
               <div class="dashboard-utility-layout__label-group">
                 <span class="dashboard-utility-layout__label">${escapeHtml(row.label)}</span>
+                ${labelMetaMarkup}
               </div>
               <span class="dashboard-utility-layout__value">${escapeHtml(row.valueText)}</span>
             </div>

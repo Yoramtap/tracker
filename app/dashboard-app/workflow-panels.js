@@ -861,17 +861,17 @@ export function createWorkflowPanels(deps) {
       teamColor: "var(--team-react)",
       accentColor: "var(--team-react)",
       stats: [
-        { label: "Done", value: `${toCount(summary?.doneIssues)}` },
+        {
+          label: "Done",
+          value: `${toCount(summary?.doneIssues)}`,
+          className: "dashboard-utility-layout__stat--primary"
+        },
         {
           label: "Top contributor",
           value: String(topContributor?.contributor || "").trim() || `${totalContributors} ranked`
         },
         { label: "Active", value: `${toCount(summary?.activeIssues)}` },
-        {
-          label: "Included issues",
-          value: `${totalIssues}`,
-          className: "dashboard-utility-layout__stat--primary"
-        }
+        { label: "Included issues", value: `${totalIssues}` }
       ],
       columnStartLabel: "Contributor",
       columnEndLabel: "Done",
@@ -880,16 +880,16 @@ export function createWorkflowPanels(deps) {
         const activeHref = buildContributorActiveHref(row?.contributor, source);
         return {
           label: String(row?.contributor || "").trim(),
-          metaBits:
+          labelMeta:
             active > 0
               ? [
                   {
                     text: `${active} active`,
-                    className: "dashboard-utility-layout__meta-bit--primary",
                     href: activeHref
                   }
                 ]
               : [],
+          metaBits: [],
           valueText: String(toCount(row?.doneIssues)),
           width: getPretextFillWidth(row?.doneIssues, maxDone),
           color: "var(--team-react)"

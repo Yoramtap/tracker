@@ -621,7 +621,9 @@ function readUtilityStats(selector) {
         root?.querySelectorAll(".dashboard-utility-layout__meta-bit--primary") || []
       ).length,
       metaLinkCount: Array.from(
-        root?.querySelectorAll(".dashboard-utility-layout__meta-bit--link[href]") || []
+        root?.querySelectorAll(
+          ".dashboard-utility-layout__meta-bit--link[href], .dashboard-utility-layout__label-meta--link[href]"
+        ) || []
       ).length
     };
   })())`);
@@ -753,9 +755,8 @@ async function main() {
     description: "Default community contributors panel",
     selector: "#top-contributors-chart",
     expectedLabels: ["Done", "Top contributor", "Active", "Included issues"],
-    primaryLabel: "Included issues",
+    primaryLabel: "Done",
     valuePattern: /^\d+$/,
-    minPrimaryMetaCount: 1,
     minMetaLinkCount: 1
   });
 
