@@ -36,7 +36,7 @@
   const DASHBOARD_APP_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-app.js",
-    "local49"
+    "local50"
   );
   const SHIPPED_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
@@ -312,6 +312,44 @@
     return Math.trunc(number);
   }
 
+  function sanitizeUtilityHref(value) {
+    const rawHref = String(value || "").trim();
+    if (!rawHref) return "";
+    try {
+      const url = new URL(rawHref, window.location.origin);
+      if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+      return url.href;
+    } catch {
+      return "";
+    }
+  }
+
+  function quoteJqlValue(value) {
+    return `"${String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+  }
+
+  function buildJiraSearchUrl(jql) {
+    const url = new URL("https://nepgroup.atlassian.net/issues/");
+    url.searchParams.set("jql", jql);
+    return url.href;
+  }
+
+  function getContributorsBaseJql(source) {
+    return String(source?.jql || "").trim() || 'project = "TFC" AND labels = "Contributors"';
+  }
+
+  function buildContributorActiveHref(contributor, source) {
+    const contributorName = String(contributor || "").trim();
+    if (!contributorName) return "";
+    const activeJql = [
+      getContributorsBaseJql(source),
+      `assignee = ${quoteJqlValue(contributorName)}`,
+      "statusCategory != Done",
+      'status != "Duplicate"'
+    ].join(" AND ");
+    return buildJiraSearchUrl(`${activeJql} ORDER BY updated DESC`);
+  }
+
   function summarizeContributorRows(rows) {
     return (Array.isArray(rows) ? rows : []).reduce(
       (summary, row) => ({
@@ -324,7 +362,7 @@
     );
   }
 
-  function buildContributorsUtilityModel(rows, summary) {
+  function buildContributorsUtilityModel(rows, summary, source) {
     const safeRows = Array.isArray(rows) ? rows : [];
     if (safeRows.length === 0) return null;
     const totalIssues = toCount(summary?.totalIssues);
@@ -334,44 +372,46 @@
     return {
       accentColor: "var(--team-react)",
       stats: [
-        {
-          label: "Done",
-          value: `${toCount(summary?.doneIssues)}`,
-          className: "dashboard-utility-layout__stat--primary"
-        },
+        { label: "Done", value: `${toCount(summary?.doneIssues)}` },
         {
           label: "Top contributor",
           value: String(topContributor?.contributor || "").trim() || "None"
         },
         { label: "Active", value: `${toCount(summary?.activeIssues)}` },
-        { label: "Included issues", value: `${totalIssues}` }
+        {
+          label: "Included issues",
+          value: `${totalIssues}`,
+          className: "dashboard-utility-layout__stat--primary"
+        }
       ],
       rows: safeRows.map((row) => {
-        const total = toCount(row?.totalIssues);
         const done = toCount(row?.doneIssues);
         const active = toCount(row?.activeIssues);
+        const activeHref = buildContributorActiveHref(row?.contributor, source);
         return {
           label: String(row?.contributor || "").trim(),
-          metaBits: [
-            { text: `${done} done`, className: "dashboard-utility-layout__meta-bit--primary" },
-            `${total} included`,
+          metaBits:
             active > 0
-              ? { text: `${active} active`, className: "dashboard-utility-layout__meta-bit--muted" }
-              : ""
-          ].filter(Boolean),
+              ? [
+                  {
+                    text: `${active} active`,
+                    className: "dashboard-utility-layout__meta-bit--primary",
+                    href: activeHref
+                  }
+                ]
+              : [],
           valueText: `${done}`,
-          valueClassName: "dashboard-utility-layout__value--primary",
           width: done > 0 ? Math.max(10, Math.round((done / maxDone) * 100)) : 10
         };
       })
     };
   }
 
-  function renderTopContributorsCard(rows, summary) {
+  function renderTopContributorsCard(rows, summary, source) {
     const container = document.getElementById("top-contributors-chart");
     if (!container) return;
 
-    const model = buildContributorsUtilityModel(rows, summary);
+    const model = buildContributorsUtilityModel(rows, summary, source);
     if (!model) return;
     const statsMarkup = model.stats
       .map(
@@ -391,9 +431,16 @@
           .map((item) => {
             const meta = item && typeof item === "object" ? item : { text: item };
             const className = String(meta.className || "").trim();
-            return `<span class="dashboard-utility-layout__meta-bit${
+            const href = sanitizeUtilityHref(meta.href);
+            const classes = `dashboard-utility-layout__meta-bit${
               className ? ` ${escapeHtml(className)}` : ""
-            }">${escapeHtml(meta.text)}</span>`;
+            }${href ? " dashboard-utility-layout__meta-bit--link" : ""}`;
+            if (href) {
+              return `<a class="${classes}" href="${escapeHtml(
+                href
+              )}" target="_blank" rel="noopener noreferrer">${escapeHtml(meta.text)}</a>`;
+            }
+            return `<span class="${classes}">${escapeHtml(meta.text)}</span>`;
           })
           .join("");
         return `
@@ -402,9 +449,13 @@
               <div class="dashboard-utility-layout__label-group">
                 <span class="dashboard-utility-layout__label">${escapeHtml(row.label)}</span>
               </div>
-              <span class="dashboard-utility-layout__value ${escapeHtml(row.valueClassName)}">${escapeHtml(row.valueText)}</span>
+              <span class="dashboard-utility-layout__value">${escapeHtml(row.valueText)}</span>
             </div>
-            <div class="dashboard-utility-layout__meta">${metaMarkup}</div>
+            ${
+              metaMarkup
+                ? `<div class="dashboard-utility-layout__meta">${metaMarkup}</div>`
+                : ""
+            }
             <div class="dashboard-utility-layout__rail" aria-hidden="true">
               <div class="dashboard-utility-layout__fill" style="width:${row.width}%;background:${model.accentColor}"></div>
             </div>
@@ -448,7 +499,7 @@
     }
 
     const summary = summarizeContributorRows(rows);
-    renderTopContributorsCard(rows, summary);
+    renderTopContributorsCard(rows, summary, snapshot?.source);
     setPanelContext(contextNode, "");
     setStatusMessage("contributors-status", "");
   }

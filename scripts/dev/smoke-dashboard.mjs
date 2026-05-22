@@ -620,8 +620,8 @@ function readUtilityStats(selector) {
       primaryMetaCount: Array.from(
         root?.querySelectorAll(".dashboard-utility-layout__meta-bit--primary") || []
       ).length,
-      primaryValueCount: Array.from(
-        root?.querySelectorAll(".dashboard-utility-layout__value--primary") || []
+      metaLinkCount: Array.from(
+        root?.querySelectorAll(".dashboard-utility-layout__meta-bit--link[href]") || []
       ).length
     };
   })())`);
@@ -635,7 +635,7 @@ function assertUtilityStats({
   valuePattern,
   minRows = 1,
   minPrimaryMetaCount = 0,
-  minPrimaryValueCount = 0
+  minMetaLinkCount = 0
 }) {
   const state = readUtilityStats(selector);
   assert(state.hasRoot === true, `${description} utility stats root was not found.`);
@@ -664,8 +664,8 @@ function assertUtilityStats({
     `${description} should highlight row metadata, saw ${state.primaryMetaCount} primary meta bits.`
   );
   assert(
-    state.primaryValueCount >= minPrimaryValueCount,
-    `${description} should outline row values, saw ${state.primaryValueCount} primary value frames.`
+    state.metaLinkCount >= minMetaLinkCount,
+    `${description} should link row metadata, saw ${state.metaLinkCount} metadata links.`
   );
   return state;
 }
@@ -753,10 +753,10 @@ async function main() {
     description: "Default community contributors panel",
     selector: "#top-contributors-chart",
     expectedLabels: ["Done", "Top contributor", "Active", "Included issues"],
-    primaryLabel: "Done",
+    primaryLabel: "Included issues",
     valuePattern: /^\d+$/,
     minPrimaryMetaCount: 1,
-    minPrimaryValueCount: 1
+    minMetaLinkCount: 1
   });
 
   const developmentSnapshot = await enrichSnapshotWithLocalResourceStats(
@@ -809,7 +809,8 @@ async function main() {
   assertUtilityStats({
     description: "Product delivery panel",
     selector: "#cycle-time-parking-lot-to-done-chart",
-    expectedLabels: ["Avg delivery", "Fastest team", "Teams", "Sample"],
+    expectedLabels: ["Avg delivery", "Shipped", "Ongoing", "Sample"],
+    primaryLabel: "Avg delivery",
     valuePattern: /ideas$/
   });
 
@@ -922,7 +923,7 @@ async function main() {
   assertUtilityStats({
     description: "Shipped panel summary",
     selector: "#product-cycle-shipments-summary",
-    expectedLabels: ["Month", "Shipped", "Top team", "Year total"],
+    expectedLabels: ["Top team", "This month", "Year total"],
     valuePattern: /^\d+ ideas$/,
     minRows: 0
   });

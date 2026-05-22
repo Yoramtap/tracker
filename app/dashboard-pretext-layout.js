@@ -117,12 +117,14 @@
             if (item && typeof item === "object") {
               return {
                 text: String(item.text || item.label || item.value || "").trim(),
-                className: String(item.className || "").trim()
+                className: String(item.className || "").trim(),
+                href: sanitizeUtilityHref(item.href || item.url)
               };
             }
             return {
               text: String(item || "").trim(),
-              className: ""
+              className: "",
+              href: ""
             };
           })
           .filter((item) => item.text);
@@ -149,10 +151,19 @@
             ${
               metaBits.length > 0
                 ? `<div class="dashboard-utility-layout__meta">${metaBits
-                    .map(
-                      (item) =>
-                        `<span class="dashboard-utility-layout__meta-bit${item.className ? ` ${escapeHtml(item.className)}` : ""}">${escapeHtml(item.text)}</span>`
-                    )
+                    .map((item) => {
+                      const classes = `dashboard-utility-layout__meta-bit${
+                        item.className ? ` ${escapeHtml(item.className)}` : ""
+                      }${item.href ? " dashboard-utility-layout__meta-bit--link" : ""}`;
+                      if (item.href) {
+                        return `<a class="${classes}" href="${escapeHtml(
+                          item.href
+                        )}" target="_blank" rel="noopener noreferrer">${escapeHtml(
+                          item.text
+                        )}</a>`;
+                      }
+                      return `<span class="${classes}">${escapeHtml(item.text)}</span>`;
+                    })
                     .join("")}</div>`
                 : ""
             }

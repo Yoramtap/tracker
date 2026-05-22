@@ -95,6 +95,32 @@ export function createWorkflowPanels(deps) {
     return Math.max(12, Math.round((safeValue / safeUpper) * 100));
   }
 
+  function quoteJqlValue(value) {
+    return `"${String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+  }
+
+  function buildJiraSearchUrl(jql) {
+    const url = new URL("https://nepgroup.atlassian.net/issues/");
+    url.searchParams.set("jql", jql);
+    return url.href;
+  }
+
+  function getContributorsBaseJql(source) {
+    return String(source?.jql || "").trim() || 'project = "TFC" AND labels = "Contributors"';
+  }
+
+  function buildContributorActiveHref(contributor, source) {
+    const contributorName = String(contributor || "").trim();
+    if (!contributorName) return "";
+    const activeJql = [
+      getContributorsBaseJql(source),
+      `assignee = ${quoteJqlValue(contributorName)}`,
+      "statusCategory != Done",
+      'status != "Duplicate"'
+    ].join(" AND ");
+    return buildJiraSearchUrl(`${activeJql} ORDER BY updated DESC`);
+  }
+
   function buildManagementFacilityLeadModel(scopeLabel, rows) {
     const safeRows = (Array.isArray(rows) ? rows : []).filter(
       (row) => toCount(row?.sampleCount) > 0
@@ -822,7 +848,7 @@ export function createWorkflowPanels(deps) {
     );
   }
 
-  function buildPretextContributorsModel(rows, summary) {
+  function buildPretextContributorsModel(rows, summary, source) {
     const safeRows = Array.isArray(rows) ? rows : [];
     if (safeRows.length === 0) return null;
     const topContributor = safeRows[0] || null;
@@ -835,40 +861,40 @@ export function createWorkflowPanels(deps) {
       teamColor: "var(--team-react)",
       accentColor: "var(--team-react)",
       stats: [
-        {
-          label: "Done",
-          value: `${toCount(summary?.doneIssues)}`,
-          className: "dashboard-utility-layout__stat--primary"
-        },
+        { label: "Done", value: `${toCount(summary?.doneIssues)}` },
         {
           label: "Top contributor",
           value: String(topContributor?.contributor || "").trim() || `${totalContributors} ranked`
         },
         { label: "Active", value: `${toCount(summary?.activeIssues)}` },
-        { label: "Included issues", value: `${totalIssues}` }
+        {
+          label: "Included issues",
+          value: `${totalIssues}`,
+          className: "dashboard-utility-layout__stat--primary"
+        }
       ],
       columnStartLabel: "Contributor",
       columnEndLabel: "Done",
-      rows: safeRows.map((row) => ({
-        label: String(row?.contributor || "").trim(),
-        metaBits: [
-          {
-            text: `${toCount(row?.doneIssues)} done`,
-            className: "dashboard-utility-layout__meta-bit--primary"
-          },
-          `${toCount(row?.totalIssues)} included`,
-          toCount(row?.activeIssues) > 0
-            ? {
-                text: `${toCount(row?.activeIssues)} active`,
-                className: "dashboard-utility-layout__meta-bit--muted"
-              }
-            : ""
-        ].filter(Boolean),
-        valueText: String(toCount(row?.doneIssues)),
-        valueClassName: "dashboard-utility-layout__value--primary",
-        width: getPretextFillWidth(row?.doneIssues, maxDone),
-        color: "var(--team-react)"
-      }))
+      rows: safeRows.map((row) => {
+        const active = toCount(row?.activeIssues);
+        const activeHref = buildContributorActiveHref(row?.contributor, source);
+        return {
+          label: String(row?.contributor || "").trim(),
+          metaBits:
+            active > 0
+              ? [
+                  {
+                    text: `${active} active`,
+                    className: "dashboard-utility-layout__meta-bit--primary",
+                    href: activeHref
+                  }
+                ]
+              : [],
+          valueText: String(toCount(row?.doneIssues)),
+          width: getPretextFillWidth(row?.doneIssues, maxDone),
+          color: "var(--team-react)"
+        };
+      })
     };
   }
 
@@ -898,7 +924,7 @@ export function createWorkflowPanels(deps) {
       setPanelContext(context, "");
       const pretextLayout = getDashboardPretextLayout();
       clearPanelLead(config.panelId);
-      const model = buildPretextContributorsModel(rows, displaySummary);
+      const model = buildPretextContributorsModel(rows, displaySummary, contributorsSnapshot?.source);
       const rendered =
         pretextLayout?.renderPretextCard?.(config.containerId, model) ||
         pretextLayout?.renderWorkflowBreakdownCard?.(config.containerId, model);
