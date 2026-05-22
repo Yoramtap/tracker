@@ -755,7 +755,6 @@ async function main() {
     description: "Default community contributors panel",
     selector: "#top-contributors-chart",
     expectedLabels: ["Done", "Top contributor", "Active", "Included issues"],
-    primaryLabel: "Done",
     valuePattern: /^\d+$/,
     minMetaLinkCount: 1
   });
