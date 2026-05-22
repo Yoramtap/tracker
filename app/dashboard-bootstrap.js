@@ -31,12 +31,12 @@
     getSourcePath("vendor", "react.production.min.js"),
     getSourcePath("vendor", "react-dom.production.min.js"),
     getSourcePath("runtime", "dashboard-chart-core.js"),
-    getVersionedSourcePath("runtime", "dashboard-pretext-layout.js", "local10")
+    getVersionedSourcePath("runtime", "dashboard-pretext-layout.js", "local11")
   ];
   const DASHBOARD_APP_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-app.js",
-    "local50"
+    "local51"
   );
   const SHIPPED_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
