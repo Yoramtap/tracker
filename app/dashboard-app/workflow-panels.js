@@ -861,7 +861,11 @@ export function createWorkflowPanels(deps) {
       teamColor: "var(--team-react)",
       accentColor: "var(--team-react)",
       stats: [
-        { label: "Done", value: `${toCount(summary?.doneIssues)}` },
+        {
+          label: "Done",
+          value: `${toCount(summary?.doneIssues)}`,
+          className: "dashboard-utility-layout__stat--primary"
+        },
         {
           label: "Top contributor",
           value: String(topContributor?.contributor || "").trim() || `${totalContributors} ranked`

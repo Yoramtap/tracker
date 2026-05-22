@@ -36,7 +36,7 @@
   const DASHBOARD_APP_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-app.js",
-    "local53"
+    "local54"
   );
   const SHIPPED_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
@@ -372,7 +372,11 @@
     return {
       accentColor: "var(--team-react)",
       stats: [
-        { label: "Done", value: `${toCount(summary?.doneIssues)}` },
+        {
+          label: "Done",
+          value: `${toCount(summary?.doneIssues)}`,
+          className: "dashboard-utility-layout__stat--primary"
+        },
         {
           label: "Top contributor",
           value: String(topContributor?.contributor || "").trim() || "None"
