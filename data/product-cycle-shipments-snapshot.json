@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-05-22T07:28:24.491Z",
+  "generatedAt": "2026-05-23T07:26:28.059Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-05-01",
-      "totalShipped": 183,
+      "totalShipped": 184,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -1607,7 +1607,7 @@
         {
           "monthStart": "2026-05-01",
           "monthKey": "2026-05",
-          "totalShipped": 10,
+          "totalShipped": 11,
           "teamCount": 3,
           "teams": [
             {
@@ -1648,8 +1648,14 @@
             },
             {
               "team": "Frontend",
-              "shippedCount": 3,
+              "shippedCount": 4,
               "ideas": [
+                {
+                  "issueKey": "TPS-434",
+                  "productAreaLabel": "TFC",
+                  "summary": "Panel Builder slice 3: Undo, Blind, zoom, shortcuts, button drag/drop",
+                  "shippedAt": "2026-05-22T11:51:09.190Z"
+                },
                 {
                   "issueKey": "TPS-405",
                   "productAreaLabel": "TFC",
