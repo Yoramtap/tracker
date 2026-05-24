@@ -964,6 +964,13 @@ async function main() {
     description: "Legacy PR activity merged metric"
   });
   await assertSectionControlSwitch({
+    section: "development",
+    expectedVisiblePanels: DEVELOPMENT_ROUTE_VISIBLE_PANELS,
+    name: "pr-activity-legacy-window",
+    value: "2y",
+    description: "Development PR activity 2y window"
+  });
+  await assertSectionControlSwitch({
     section: "product",
     expectedVisiblePanels: PRODUCT_ROUTE_VISIBLE_PANELS,
     name: "product-delivery-workflow-view",

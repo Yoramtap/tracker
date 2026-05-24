@@ -210,25 +210,26 @@
 <section
   id="development-workflow-trends-panel"
   class="panel panel--editorial panel--width-wide"
-  aria-label="Monthly development workflow trends"
+  aria-label="Development workflow trends"
   hidden
 >
   <div class="panel-title-row">
     <div class="panel-title-copy">
       <p class="panel-kicker">Development</p>
-      <h2>Monthly development workflow trends</h2>
+      <h2>Development workflow trends</h2>
     </div>
     <details class="help-wrap">
-      <summary class="help-tip" aria-label="Monthly development workflow trends explainer">i</summary>
+      <summary class="help-tip" aria-label="Development workflow trends explainer">i</summary>
       <div class="help-popover" role="tooltip">
         <p>
-          <strong>Monthly development workflow trends</strong> restores the older team-by-team timeline view
-          so we can review whether it is still useful.
+          <strong>Development workflow trends</strong> shows the team-by-team PR timeline across
+          the selected time range.
         </p>
         <ul>
           <li>Each line is one team.</li>
           <li>The first chart toggles between PRs opened and PRs merged.</li>
           <li>The second chart shows average days from the first non-author GitHub review to merge.</li>
+          <li>Short ranges use sprint buckets; longer ranges use monthly buckets.</li>
           <li>Vertical event lines mark NAB, IBC, and Codex.</li>
         </ul>
       </div>
@@ -236,6 +237,33 @@
   </div>
   <p id="pr-activity-legacy-context" class="panel-summary panel-summary--meta" hidden></p>
   <div class="radio-control-groups" aria-label="PR activity over time controls">
+    <fieldset class="radio-group-card radio-group-card--segmented">
+      <legend>Time range</legend>
+      <label
+        ><input type="radio" name="pr-activity-legacy-window" value="14d" />
+        <span aria-hidden="true">14d</span><span class="sr-only">Last 14 days</span></label
+      >
+      <label
+        ><input type="radio" name="pr-activity-legacy-window" value="30d" />
+        <span aria-hidden="true">30d</span><span class="sr-only">Last 30 days</span></label
+      >
+      <label
+        ><input type="radio" name="pr-activity-legacy-window" value="90d" checked />
+        <span aria-hidden="true">90d</span><span class="sr-only">Last 90 days</span></label
+      >
+      <label
+        ><input type="radio" name="pr-activity-legacy-window" value="6m" />
+        <span aria-hidden="true">6m</span><span class="sr-only">Last 6 months</span></label
+      >
+      <label
+        ><input type="radio" name="pr-activity-legacy-window" value="1y" />
+        <span aria-hidden="true">1y</span><span class="sr-only">Last year</span></label
+      >
+      <label
+        ><input type="radio" name="pr-activity-legacy-window" value="2y" />
+        <span aria-hidden="true">2y</span><span class="sr-only">Last 2 years</span></label
+      >
+    </fieldset>
     <fieldset class="radio-group-card radio-group-card--segmented">
       <legend>Metric</legend>
       <label
