@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-23T07:26:28.059Z",
+  "generatedAt": "2026-05-24T07:27:19.073Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
@@ -1612,7 +1612,7 @@
           "teams": [
             {
               "team": "Multi team",
-              "shippedCount": 5,
+              "shippedCount": 4,
               "ideas": [
                 {
                   "issueKey": "TPS-408",
@@ -1633,12 +1633,6 @@
                   "shippedAt": "2026-05-08T13:52:46.950Z"
                 },
                 {
-                  "issueKey": "TPS-399",
-                  "productAreaLabel": "TFC",
-                  "summary": "Panel Builder slice 1: Canvas Foundations + public alpha",
-                  "shippedAt": "2026-05-08T11:06:08.474Z"
-                },
-                {
                   "issueKey": "TPS-431",
                   "productAreaLabel": "TFC",
                   "summary": "Panel Builder slice 2: Resolutions & out of bounds sections",
@@ -1648,8 +1642,14 @@
             },
             {
               "team": "Frontend",
-              "shippedCount": 4,
+              "shippedCount": 5,
               "ideas": [
+                {
+                  "issueKey": "TPS-399",
+                  "productAreaLabel": "TFC",
+                  "summary": "Panel Builder slice 1: Canvas Foundations + public alpha",
+                  "shippedAt": "2026-05-08T11:06:08.474Z"
+                },
                 {
                   "issueKey": "TPS-434",
                   "productAreaLabel": "TFC",
