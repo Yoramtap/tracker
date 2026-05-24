@@ -171,6 +171,7 @@
     const latestPoint = points.length > 0 ? points[points.length - 1] : null;
     if (!latestPoint) return [];
     const snapshotUpdatedAt = snapshot?.updatedAt;
+    const windowLabel = String(snapshot?.bugTrendWindowLabel || "").trim();
     const latestDate = capDateToSnapshot(latestPoint?.date, snapshotUpdatedAt) || latestPoint?.date;
     const latestMs = new Date(`${latestDate}T00:00:00Z`).getTime();
 
@@ -199,16 +200,19 @@
     const comparisonPoint90d = findLookbackPoint(90);
     const comparisonPoint180d = findLookbackPoint(180);
     const comparisonPoint30d = findLookbackPoint(30);
+    const comparisonPointWindow = points[0] || latestPoint;
 
     return TEAM_CONFIG.map((team) => {
       const metrics = latestPoint?.[team.key] || {};
       const previousMetrics30d = comparisonPoint30d?.[team.key] || {};
       const previousMetrics90d = comparisonPoint90d?.[team.key] || {};
       const previousMetrics180d = comparisonPoint180d?.[team.key] || {};
+      const previousMetricsWindow = comparisonPointWindow?.[team.key] || {};
       const total = totalForPoint(metrics);
       const previousTotal30d = totalForPoint(previousMetrics30d);
       const previousTotal90d = totalForPoint(previousMetrics90d);
       const previousTotal180d = totalForPoint(previousMetrics180d);
+      const previousTotalWindow = totalForPoint(previousMetricsWindow);
       const segments = PRIORITY_TABLE_ORDER.map((priority) => {
         const count = toNumber(metrics?.[priority.key]);
         const share = total > 0 ? (count / total) * 100 : 0;
@@ -228,6 +232,8 @@
         change30d: buildChangeMetrics(total, previousTotal30d),
         change90d: buildChangeMetrics(total, previousTotal90d),
         change180d: buildChangeMetrics(total, previousTotal180d),
+        changeWindow: windowLabel ? buildChangeMetrics(total, previousTotalWindow) : null,
+        changeWindowLabel: windowLabel,
         urgentShare:
           total > 0 ? ((toNumber(metrics?.highest) + toNumber(metrics?.high)) / total) * 100 : 0,
         segments
@@ -589,11 +595,13 @@
     const compactViewport = isCompactViewport();
 
     function renderChangeItems(row) {
-      const changeItems = [
-        ["30d", row.change30d],
-        ["90d", row.change90d],
-        ["6m", row.change180d]
-      ];
+      const changeItems = row.changeWindow
+        ? [[row.changeWindowLabel, row.changeWindow]]
+        : [
+            ["30d", row.change30d],
+            ["90d", row.change90d],
+            ["6m", row.change180d]
+          ];
       if (compactViewport) {
         return [
           h(
@@ -897,7 +905,8 @@
   }
 
   function renderBugBacklogTrendByTeamChart({ containerId, snapshot, colors }) {
-    const rows = buildTrendData(snapshot, RECENT_TREND_POINTS);
+    const maxPoints = Math.max(1, toNumber(snapshot?.bugTrendMaxPoints) || RECENT_TREND_POINTS);
+    const rows = buildTrendData(snapshot, maxPoints);
     const yUpper = computeYUpper(
       [
         ...rows.map((row) => row.api),

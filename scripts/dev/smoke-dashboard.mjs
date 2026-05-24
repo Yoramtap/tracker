@@ -936,6 +936,13 @@ async function main() {
     description: "Bug trends table view"
   });
   await assertSectionControlSwitch({
+    section: "bug",
+    expectedVisiblePanels: BUG_ROUTE_VISIBLE_PANELS,
+    name: "bug-trends-window",
+    value: "90d",
+    description: "Bug trends 90d window"
+  });
+  await assertSectionControlSwitch({
     section: "product",
     expectedVisiblePanels: PRODUCT_ROUTE_VISIBLE_PANELS,
     name: "management-facility-flow-scope",

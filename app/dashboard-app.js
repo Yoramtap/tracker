@@ -34,6 +34,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   const ALL_TEAMS_LABEL = "All teams";
   const BUG_TRENDS_VIEW_DEFAULT = "graph";
   const BUG_TRENDS_VIEW_MODES = [BUG_TRENDS_VIEW_DEFAULT, "table"];
+  const BUG_TRENDS_WINDOW_DEFAULT = "90d";
   const TEAM_BUG_JQL = {
     api: "project = TFC AND type = Bug AND labels = API",
     legacy: "project = TFC AND type = Bug AND labels = Frontend",
@@ -217,6 +218,10 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     return normalizeOption(value, BUG_TRENDS_VIEW_MODES, BUG_TRENDS_VIEW_DEFAULT);
   }
 
+  function bugTrendsWindowKey(value) {
+    return normalizeOption(value, DEVELOPMENT_WORKFLOW_WINDOWS, BUG_TRENDS_WINDOW_DEFAULT);
+  }
+
   function normalizeDashboardMode(mode) {
     return mode === "composition" ? "trend" : mode;
   }
@@ -316,6 +321,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     mode: "all",
     sectionFilter: SECTION_FILTER_DEFAULT,
     bugTrendsView: BUG_TRENDS_VIEW_DEFAULT,
+    bugTrendsWindow: BUG_TRENDS_WINDOW_DEFAULT,
     prActivityLegacyHiddenKeys: [],
     developmentWorkflowWindow: THIRTY_DAY_WINDOW_KEY,
     prActivityLegacyMetric: "offered",
@@ -539,6 +545,36 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       points: filteredPoints.length > 0 ? filteredPoints : safePoints,
       windowKey: selectedWindowKey,
       windowLabel: getPrActivityWindowLabel(selectedWindowKey)
+    };
+  }
+
+  function getBugTrendWindowedPoints(points, selectedWindowKey) {
+    const safePoints = Array.isArray(points) ? points.filter(Boolean) : [];
+    const windowKey = bugTrendsWindowKey(selectedWindowKey);
+    if (safePoints.length === 0) {
+      return {
+        points: [],
+        windowKey,
+        windowLabel: getPrActivityWindowLabel(windowKey)
+      };
+    }
+
+    const latestPoint = safePoints[safePoints.length - 1];
+    const latestDate = getSnapshotDisplayDate(latestPoint?.date || "");
+    let startDate = latestDate;
+    if (windowKey === FOURTEEN_DAY_WINDOW_KEY) startDate = shiftChartIsoDate(latestDate, -13);
+    else if (windowKey === THIRTY_DAY_WINDOW_KEY) startDate = shiftChartIsoDate(latestDate, -29);
+    else if (windowKey === "90d") startDate = shiftChartIsoDate(latestDate, -89);
+    else if (windowKey === "6m") startDate = shiftChartIsoMonths(latestDate, -6);
+    else startDate = shiftChartIsoMonths(latestDate, -12);
+
+    const filteredPoints = safePoints.filter(
+      (point) => getSnapshotDisplayDate(point?.date || "") >= startDate
+    );
+    return {
+      points: filteredPoints.length > 0 ? filteredPoints : safePoints,
+      windowKey,
+      windowLabel: getPrActivityWindowLabel(windowKey)
     };
   }
 
@@ -877,14 +913,14 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
             .trim()
             .toLowerCase() === "bc"
       )?.longstanding30 || 0;
-    const trendWindowSize = Math.min(10, safePoints.length);
+    const trendWindowSize = safePoints.length;
     const latestDate = getSnapshotDisplayDate(latestPoint?.date || "");
 
     return {
       summaryText:
         viewKey === "table"
           ? `${totalOpen} open bugs are currently on the board, with ${leadTeam?.label || "the busiest team"} carrying the heaviest share of backlog pressure.`
-          : `The last ${trendWindowSize} sprints end at ${totalOpen} open bugs, with ${leadTeam?.label || "the busiest team"} carrying the heaviest share of backlog pressure.`,
+          : `The last ${trendWindowSize} sprint${trendWindowSize === 1 ? "" : "s"} ${trendWindowSize === 1 ? "ends" : "end"} at ${totalOpen} open bugs, with ${leadTeam?.label || "the busiest team"} carrying the heaviest share of backlog pressure.`,
       calloutLabel: "Open bugs",
       calloutValue: String(totalOpen),
       calloutSubtext: leadTeam ? `Largest share: ${leadTeam.label}` : latestDate,
@@ -897,27 +933,20 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     };
   }
 
-  function buildBugTrendsTableModel(points) {
+  function buildBugTrendsTableModel(points, windowLabel) {
     const safePoints = Array.isArray(points) ? points : [];
     const latestPoint = safePoints[safePoints.length - 1] || null;
     if (!latestPoint) return null;
 
     const latestDate = getSnapshotDisplayDate(latestPoint?.date || "");
-    const latestMs = new Date(`${latestPoint?.date || ""}T00:00:00Z`).getTime();
-    const target30d = Number.isFinite(latestMs) ? latestMs - 30 * 24 * 60 * 60 * 1000 : Number.NaN;
-    const comparisonPoint30d =
-      safePoints.find((point) => {
-        const pointMs = new Date(`${point?.date || ""}T00:00:00Z`).getTime();
-        return Number.isFinite(target30d) && Number.isFinite(pointMs) && pointMs >= target30d;
-      }) ||
-      safePoints[0] ||
-      latestPoint;
+    const comparisonPoint = safePoints[0] || latestPoint;
+    const changeLabel = String(windowLabel || "").trim() || "Window";
 
     const rows = Object.entries(latestPoint)
       .filter(([key]) => key !== "date")
       .map(([key, teamPoint]) => {
         const total = sumBugPriorityTotal(teamPoint);
-        const previousTotal = sumBugPriorityTotal(comparisonPoint30d?.[key]);
+        const previousTotal = sumBugPriorityTotal(comparisonPoint?.[key]);
         const highest = toCount(teamPoint?.highest);
         const high = toCount(teamPoint?.high);
         const highestShare = total > 0 ? Math.round((highest / total) * 100) : 0;
@@ -933,7 +962,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
           metaBits: [
             `${highestShare}% highest`,
             `${highShare}% high`,
-            `30d ${formatSignedWhole(total - previousTotal)}`
+            `${changeLabel} ${formatSignedWhole(total - previousTotal)}`
           ]
         };
       })
@@ -950,7 +979,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       columnStartLabel: "Team",
       columnEndLabel: "Open bugs",
       rows,
-      footerBits: [latestDate ? `Latest snapshot ${latestDate}` : ""].filter(Boolean)
+      footerBits: [latestDate ? `Latest snapshot ${latestDate}` : "", changeLabel].filter(Boolean)
     };
   }
 
@@ -1000,29 +1029,31 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   function renderBugTrendsPanel() {
     const config = getConfig("trend");
     const viewKey = bugTrendsViewKey(state.bugTrendsView);
+    const windowKey = bugTrendsWindowKey(state.bugTrendsWindow);
     state.bugTrendsView = viewKey;
+    state.bugTrendsWindow = windowKey;
     syncControlValue("bug-trends-view", viewKey);
+    syncControlValue("bug-trends-window", windowKey);
     const points = Array.isArray(state.snapshot?.combinedPoints)
       ? state.snapshot.combinedPoints
       : [];
-    const trendPoints = points.slice(-10);
+    const bugTrendWindow = getBugTrendWindowedPoints(points, windowKey);
+    const trendPoints = bugTrendWindow.points;
     const firstPoint = trendPoints[0] || null;
     const lastPoint = trendPoints[trendPoints.length - 1] || null;
     const firstDisplayDate = getSnapshotDisplayDate(firstPoint?.date || "");
     const lastDisplayDate = getSnapshotDisplayDate(lastPoint?.date || "");
-    const latestPoint = points.length > 0 ? points[points.length - 1] : null;
-    const latestDisplayDate = getSnapshotDisplayDate(latestPoint?.date || "");
     renderDashboardChartState("trend", getConfig, () => ({
       contextText: isPretextLayoutActive()
         ? ""
         : formatContextWithFreshness(
             viewKey === "table"
-              ? latestDisplayDate
-                ? `Latest backlog snapshot • ${latestDisplayDate}`
+              ? firstDisplayDate && lastDisplayDate
+                ? `${bugTrendWindow.windowLabel} • ${trendPoints.length} sprint${trendPoints.length === 1 ? "" : "s"} • latest ${lastDisplayDate}`
                 : ""
               : firstDisplayDate && lastDisplayDate
-                ? `Last ${trendPoints.length} sprints • ${firstDisplayDate} to ${lastDisplayDate}`
-                : "Last 10 sprints",
+                ? `${bugTrendWindow.windowLabel} • ${trendPoints.length} sprint${trendPoints.length === 1 ? "" : "s"} • ${firstDisplayDate} to ${lastDisplayDate}`
+                : bugTrendWindow.windowLabel,
             getSnapshotContextTimestamp(state)
           ),
       render: () => {
@@ -1044,13 +1075,13 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
           clearPanelStats(config.summaryId);
         } else {
           clearPanelStats(config.summaryId);
-          renderPanelLead(config.panelId, buildBugTrendsLeadModel(viewKey, points));
+          renderPanelLead(config.panelId, buildBugTrendsLeadModel(viewKey, trendPoints));
         }
         setBugTrendsViewVisibility(renderUtilityTable ? "table" : "graph");
         if (renderUtilityTable) {
           pretextLayout.renderUtilityListPanel?.(
             tableContainerId,
-            buildBugTrendsTableModel(points)
+            buildBugTrendsTableModel(trendPoints, bugTrendWindow.windowKey)
           );
           return;
         }
@@ -1058,7 +1089,12 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
           { ...config, containerId: graphContainerId },
           {
             containerId: graphContainerId,
-            snapshot: state.snapshot,
+            snapshot: {
+              ...state.snapshot,
+              combinedPoints: trendPoints,
+              bugTrendMaxPoints: trendPoints.length,
+              bugTrendWindowLabel: bugTrendWindow.windowKey
+            },
             colors: getThemeColors()
           },
           {
@@ -1891,6 +1927,13 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       stateKey: "bugTrendsView",
       defaultValue: BUG_TRENDS_VIEW_DEFAULT,
       normalizeValue: bugTrendsViewKey,
+      onChangeRender: renderBugTrendsPanel
+    },
+    {
+      name: "bug-trends-window",
+      stateKey: "bugTrendsWindow",
+      defaultValue: BUG_TRENDS_WINDOW_DEFAULT,
+      normalizeValue: bugTrendsWindowKey,
       onChangeRender: renderBugTrendsPanel
     },
     {
