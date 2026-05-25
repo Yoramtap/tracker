@@ -1,53 +1,6 @@
 {
-  "updatedAt": "2026-05-24T07:27:19.085Z",
+  "updatedAt": "2026-05-25T07:26:39.580Z",
   "combinedPoints": [
-    {
-      "date": "2025-11-10",
-      "api": {
-        "highest": 0,
-        "high": 2,
-        "medium": 4,
-        "low": 5,
-        "lowest": 0
-      },
-      "legacy": {
-        "highest": 0,
-        "high": 1,
-        "medium": 12,
-        "low": 45,
-        "lowest": 2
-      },
-      "react": {
-        "highest": 0,
-        "high": 1,
-        "medium": 6,
-        "low": 0,
-        "lowest": 0
-      },
-      "bc": {
-        "highest": 6,
-        "high": 58,
-        "medium": 103,
-        "low": 9,
-        "lowest": 0,
-        "longstanding_30d_plus": 153,
-        "longstanding_60d_plus": 140
-      },
-      "workers": {
-        "highest": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "lowest": 0
-      },
-      "titanium": {
-        "highest": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "lowest": 0
-      }
-    },
     {
       "date": "2025-11-24",
       "api": {
@@ -638,7 +591,7 @@
       "bc": {
         "highest": 3,
         "high": 66,
-        "medium": 107,
+        "medium": 108,
         "low": 7,
         "lowest": 0,
         "longstanding_30d_plus": 172,
@@ -654,6 +607,53 @@
       "titanium": {
         "highest": 0,
         "high": 2,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2026-05-25",
+      "api": {
+        "highest": 0,
+        "high": 3,
+        "medium": 12,
+        "low": 5,
+        "lowest": 2
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 6,
+        "low": 21,
+        "lowest": 0
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 3,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 5,
+        "high": 64,
+        "medium": 110,
+        "low": 7,
+        "lowest": 0,
+        "longstanding_30d_plus": 174,
+        "longstanding_60d_plus": 166
+      },
+      "workers": {
+        "highest": 0,
+        "high": 2,
+        "medium": 6,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 1,
+        "high": 1,
         "medium": 0,
         "low": 0,
         "lowest": 0
