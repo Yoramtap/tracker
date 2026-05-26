@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-05-25T07:26:39.558Z",
+  "generatedAt": "2026-05-26T07:27:21.807Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-05-01",
-      "totalShipped": 185,
+      "totalShipped": 186,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -1607,13 +1607,19 @@
         {
           "monthStart": "2026-05-01",
           "monthKey": "2026-05",
-          "totalShipped": 12,
+          "totalShipped": 13,
           "teamCount": 4,
           "teams": [
             {
               "team": "Multi team",
-              "shippedCount": 4,
+              "shippedCount": 5,
               "ideas": [
+                {
+                  "issueKey": "TPS-435",
+                  "productAreaLabel": "TFC",
+                  "summary": "Custom button sorting on panels",
+                  "shippedAt": "2026-05-26T01:12:18.907Z"
+                },
                 {
                   "issueKey": "TPS-408",
                   "productAreaLabel": "TFC",
