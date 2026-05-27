@@ -352,6 +352,7 @@ test("fetchGitHubPrActivity builds non-draft PR activity rows from repo mappings
       "example-org/tfc-ui": "react"
     },
     githubToken: "test-token",
+    fetchRepoMetadata: async (repo) => ({ full_name: repo }),
     fetchRepoPage: async (repo, page) => {
       if (page !== 1) return [];
       if (repo === "example-org/tfc-functionality-usvc") {
@@ -447,6 +448,61 @@ test("fetchGitHubPrActivity builds non-draft PR activity rows from repo mappings
         offeredProxyDate: "2026-03-20",
         mergedProxyDate: "",
         status: "OPEN"
+      }
+    ]
+  );
+});
+
+test("fetchGitHubPrActivity canonicalizes redirected repo aliases before counting PRs", async () => {
+  const fetchedRepos = [];
+  const prActivity = await fetchGitHubPrActivity("2026-04-01", {
+    repoTeamMap: {
+      "example-org/tfc-driver-lawo-homeapps": "bc",
+      "example-org/tfc-driver-lawo-homeapps-multiviewer": "bc"
+    },
+    githubToken: "test-token",
+    fetchRepoMetadata: async (repo) => ({
+      full_name:
+        repo === "example-org/tfc-driver-lawo-homeapps-multiviewer"
+          ? "example-org/tfc-driver-lawo-homeapps"
+          : repo
+    }),
+    fetchRepoPage: async (repo, page) => {
+      fetchedRepos.push(repo);
+      if (page !== 1) return [];
+      return [
+        {
+          number: 44,
+          draft: false,
+          state: "closed",
+          created_at: "2026-05-27T08:00:00Z",
+          merged_at: "2026-05-27T09:00:00Z",
+          updated_at: "2026-05-27T09:00:00Z",
+          html_url: `https://github.com/${repo}/pull/44`,
+          base: { repo: { full_name: "example-org/tfc-driver-lawo-homeapps" } },
+          user: { login: "author_example" }
+        }
+      ];
+    },
+    fetchReviewsPage: async () => []
+  });
+
+  assert.deepEqual(fetchedRepos, ["example-org/tfc-driver-lawo-homeapps"]);
+  assert.equal(prActivity.candidateIssueCount, 1);
+  assert.equal(prActivity.detailIssueCount, 1);
+  assert.equal(prActivity.uniquePrCount, 1);
+  assert.equal(prActivity.aliasRepoCount, 1);
+  assert.deepEqual(
+    prActivity.records.map((record) => ({
+      uniqueKey: record.uniqueKey,
+      repositoryId: record.repositoryId,
+      team: record.team
+    })),
+    [
+      {
+        uniqueKey: "example-org/tfc-driver-lawo-homeapps#44",
+        repositoryId: "example-org/tfc-driver-lawo-homeapps",
+        team: "bc"
       }
     ]
   );

@@ -511,7 +511,11 @@ export function normalizeGitHubReviewToMergeRecord(repo, team, pullRequest, revi
 }
 
 export function normalizeGitHubPullRequestRecord(repo, team, pullRequest) {
-  const safeRepo = String(repo || "").trim().toLowerCase();
+  const safeRepo = String(
+    pullRequest?.base?.repo?.full_name || pullRequest?.repository?.full_name || repo || ""
+  )
+    .trim()
+    .toLowerCase();
   const safeTeam = String(team || "").trim().toLowerCase();
   const number = Number(pullRequest?.number);
   const createdDate = isoDateOnly(pullRequest?.created_at);
@@ -608,6 +612,88 @@ async function fetchGitHubPullRequestsForRepo(repo, sinceDate, options = {}) {
   );
 }
 
+async function resolveGitHubCanonicalRepoEntries(repoEntries, options = {}) {
+  const githubToken = options.githubToken;
+  const fetchRepoMetadata =
+    typeof options.fetchRepoMetadata === "function"
+      ? options.fetchRepoMetadata
+      : async (repoName) => githubRequest(githubToken, `repos/${repoName}`);
+
+  const resolvedEntries = await mapWithConcurrency(
+    repoEntries,
+    GITHUB_PR_DETAIL_CONCURRENCY,
+    async ([repo, team]) => {
+      const metadata = await fetchRepoMetadata(repo);
+      const canonicalRepo = String(metadata?.full_name || repo)
+        .trim()
+        .toLowerCase();
+      return {
+        mappedRepo: String(repo || "").trim().toLowerCase(),
+        repo: canonicalRepo,
+        team: String(team || "").trim().toLowerCase()
+      };
+    }
+  );
+
+  const canonicalEntries = new Map();
+  let aliasRepoCount = 0;
+  let canonicalConflictCount = 0;
+
+  for (const entry of resolvedEntries) {
+    if (!entry.repo || !TEAM_KEYS.includes(entry.team)) continue;
+    const existing = canonicalEntries.get(entry.repo);
+    if (!existing) {
+      canonicalEntries.set(entry.repo, entry);
+      continue;
+    }
+    aliasRepoCount += 1;
+    if (existing.team !== entry.team) canonicalConflictCount += 1;
+  }
+
+  return {
+    repoEntries: Array.from(canonicalEntries.values()).map((entry) => [entry.repo, entry.team]),
+    aliasRepoCount,
+    canonicalConflictCount
+  };
+}
+
+function mergeGitHubPullRequestRecords(records) {
+  const uniquePullRequests = new Map();
+  let conflictCount = 0;
+
+  for (const record of Array.isArray(records) ? records : []) {
+    if (!record?.uniqueKey) continue;
+    const existing = uniquePullRequests.get(record.uniqueKey);
+    if (!existing) {
+      uniquePullRequests.set(record.uniqueKey, { ...record });
+      continue;
+    }
+
+    if (existing.team !== record.team) conflictCount += 1;
+    existing.offeredProxyDate = earliestIsoDate([
+      existing.offeredProxyDate,
+      record.offeredProxyDate
+    ]);
+    existing.mergedProxyDate = latestIsoDate([existing.mergedProxyDate, record.mergedProxyDate]);
+    if (existing.status !== "MERGED" && record.status === "MERGED") existing.status = "MERGED";
+  }
+
+  return {
+    records: Array.from(uniquePullRequests.values()),
+    conflictCount
+  };
+}
+
+function mergeGitHubReviewToMergeRecords(records) {
+  const uniqueRecords = new Map();
+  for (const record of Array.isArray(records) ? records : []) {
+    const key = String(record?.issueKey || "").trim();
+    if (!key || uniqueRecords.has(key)) continue;
+    uniqueRecords.set(key, record);
+  }
+  return Array.from(uniqueRecords.values());
+}
+
 export async function fetchGitHubPrActivity(sinceDate, options = {}) {
   const safeSinceDate = isoDateOnly(sinceDate);
   const repoTeamMap =
@@ -618,9 +704,13 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
   const repoEntries = Object.entries(repoTeamMap).filter(
     ([repo, team]) => String(repo || "").trim() && TEAM_KEYS.includes(String(team || "").trim())
   );
+  const canonicalRepoState = await resolveGitHubCanonicalRepoEntries(repoEntries, {
+    githubToken,
+    fetchRepoMetadata: options.fetchRepoMetadata
+  });
 
   const perRepoResults = await mapWithConcurrency(
-    repoEntries,
+    canonicalRepoState.repoEntries,
     GITHUB_PR_DETAIL_CONCURRENCY,
     async ([repo, team]) => {
       const pullRequests = await fetchGitHubPullRequestsForRepo(repo, safeSinceDate, {
@@ -652,20 +742,23 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
     }
   );
 
-  const records = perRepoResults.flatMap((result) => result.records || []);
-  const ticketReviewToMergeRecords = perRepoResults.flatMap(
-    (result) => result.ticketReviewToMergeRecords || []
+  const mergedRecords = mergeGitHubPullRequestRecords(
+    perRepoResults.flatMap((result) => result.records || [])
+  );
+  const ticketReviewToMergeRecords = mergeGitHubReviewToMergeRecords(
+    perRepoResults.flatMap((result) => result.ticketReviewToMergeRecords || [])
   );
   return {
     source: "github_pull_requests",
-    candidateIssueCount: repoEntries.length,
-    detailIssueCount: repoEntries.length,
-    uniquePrCount: records.length,
-    conflictCount: 0,
+    candidateIssueCount: canonicalRepoState.repoEntries.length,
+    detailIssueCount: canonicalRepoState.repoEntries.length,
+    uniquePrCount: mergedRecords.records.length,
+    conflictCount: mergedRecords.conflictCount + canonicalRepoState.canonicalConflictCount,
+    aliasRepoCount: canonicalRepoState.aliasRepoCount,
     reviewChangelogIssueCount: ticketReviewToMergeRecords.length,
     cacheHitCount: 0,
     cacheWriteCount: 0,
-    records,
+    records: mergedRecords.records,
     ticketReviewToMergeRecords
   };
 }
