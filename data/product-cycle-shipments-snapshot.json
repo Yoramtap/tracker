@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-27T07:28:11.082Z",
+  "generatedAt": "2026-05-27T18:49:18.185Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
@@ -1612,7 +1612,7 @@
           "teams": [
             {
               "team": "Multi team",
-              "shippedCount": 5,
+              "shippedCount": 3,
               "ideas": [
                 {
                   "issueKey": "TPS-435",
@@ -1631,7 +1631,13 @@
                   "productAreaLabel": "TFC",
                   "summary": "Multiviewer: 16 clocks & text boxes per head",
                   "shippedAt": "2026-05-07T11:05:29.550Z"
-                },
+                }
+              ]
+            },
+            {
+              "team": "Frontend",
+              "shippedCount": 7,
+              "ideas": [
                 {
                   "issueKey": "TPS-430",
                   "productAreaLabel": "TFC",
@@ -1639,22 +1645,16 @@
                   "shippedAt": "2026-05-08T13:52:46.950Z"
                 },
                 {
-                  "issueKey": "TPS-431",
-                  "productAreaLabel": "TFC",
-                  "summary": "Panel Builder slice 2: Resolutions & out of bounds sections",
-                  "shippedAt": "2026-05-15T14:55:03.875Z"
-                }
-              ]
-            },
-            {
-              "team": "Frontend",
-              "shippedCount": 5,
-              "ideas": [
-                {
                   "issueKey": "TPS-399",
                   "productAreaLabel": "TFC",
                   "summary": "Panel Builder slice 1: Canvas Foundations + public alpha",
                   "shippedAt": "2026-05-08T11:06:08.474Z"
+                },
+                {
+                  "issueKey": "TPS-431",
+                  "productAreaLabel": "TFC",
+                  "summary": "Panel Builder slice 2: Resolutions & out of bounds sections",
+                  "shippedAt": "2026-05-15T14:55:03.875Z"
                 },
                 {
                   "issueKey": "TPS-434",
