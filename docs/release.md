@@ -123,4 +123,5 @@ Recommended operating model:
 
 - `.github/workflows/pages.yml` deploys GitHub Pages from `dist/` on pushes to `main`
 - `.github/workflows/weekly-dashboard-refresh.yml` refreshes dashboard snapshots
+- `.github/workflows/team-repo-map-audit.yml` checks team board PR repos against `scripts/config/repo-team-map.json` weekly
 - GitHub Actions secrets must include Jira credentials and a GitHub token for PR refreshes

@@ -112,6 +112,7 @@ Read [docs/release.md](docs/release.md) before shipping.
 - GitHub Pages deploys from this repo via [.github/workflows/pages.yml](.github/workflows/pages.yml).
 - The workflow runs `npm ci` and `npm run build`, then publishes `dist/`.
 - Dashboard snapshots refresh in GitHub Actions via [.github/workflows/weekly-dashboard-refresh.yml](.github/workflows/weekly-dashboard-refresh.yml).
+- Team board PR repo mappings are audited weekly via [.github/workflows/team-repo-map-audit.yml](.github/workflows/team-repo-map-audit.yml).
 - The live site stays publicly accessible for Confluence embedding.
 
 ## Notes

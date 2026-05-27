@@ -1,0 +1,85 @@
+name: Team Repo Map Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "27 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: team-repo-map-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Restore audit cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/team-pr-repo-audit-dev-status-cache.json
+          key: team-pr-repo-audit-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            team-pr-repo-audit-${{ github.ref_name }}-
+            team-pr-repo-audit-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit team board PR repo mappings
+        env:
+          ATLASSIAN_SITE: ${{ secrets.ATLASSIAN_SITE }}
+          ATLASSIAN_EMAIL: ${{ secrets.ATLASSIAN_EMAIL }}
+          ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          if [ -z "$ATLASSIAN_SITE" ] || [ -z "$ATLASSIAN_EMAIL" ] || [ -z "$ATLASSIAN_API_TOKEN" ] || [ -z "$GH_TOKEN" ]; then
+            echo "Missing one or more required secrets: ATLASSIAN_SITE, ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN, GH_TOKEN." >&2
+            exit 1
+          fi
+
+          npm run dev:audit:team-pr-repos -- --output .cache/analysis/team-pr-repo-map-audit.json
+
+      - name: Summarize audit
+        if: always()
+        run: |
+          if [ ! -f .cache/analysis/team-pr-repo-map-audit.json ]; then
+            echo "No audit report generated." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          node - <<'NODE' >> "$GITHUB_STEP_SUMMARY"
+          const fs = require("fs");
+          const report = JSON.parse(fs.readFileSync(".cache/analysis/team-pr-repo-map-audit.json", "utf8"));
+          const aggregate = report.aggregate || {};
+          console.log("## Team Repo Map Audit");
+          console.log("");
+          console.log("| Check | Count |");
+          console.log("|---|---:|");
+          console.log(`| Unmapped repos | ${aggregate.unmappedRepoCount || 0} |`);
+          console.log(`| Unmapped merged PRs | ${aggregate.unmappedMergedPrCount || 0} |`);
+          console.log(`| Repo/team mismatch repos | ${aggregate.mismatchRepoCount || 0} |`);
+          console.log(`| Mismatched merged PRs | ${aggregate.mismatchedMergedPrCount || 0} |`);
+          console.log(`| Canonical duplicate repo groups | ${aggregate.duplicateCanonicalRepoGroupCount || 0} |`);
+          console.log(`| Excess alias entries | ${aggregate.excessAliasCount || 0} |`);
+          console.log(`| Shared repo candidates | ${aggregate.sharedRepoCandidateCount || 0} |`);
+          NODE
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: team-pr-repo-map-audit
+          path: .cache/analysis/team-pr-repo-map-audit.json
+          if-no-files-found: ignore

@@ -19,6 +19,7 @@
     "dev:refresh:pr-activity": "PR_ACTIVITY_ONLY=true SKIP_TREND_REFRESH=true node scripts/refresh-report-data.mjs",
     "dev:refresh:product-cycle": "PRODUCT_CYCLE_ONLY=true node scripts/refresh-report-data.mjs",
     "dev:refresh:uat": "UAT_ONLY=true SKIP_UAT_AGING=true node scripts/refresh-report-data.mjs",
+    "dev:audit:team-pr-repos": "node scripts/dev/audit-board-pr-repo-map.mjs",
     "dev:bench:refresh": "node scripts/dev/benchmark-refresh-phases.mjs",
     "dev:bench:dashboard": "node scripts/dev/benchmark-dashboard-assets.mjs",
     "dev:analyze": "node scripts/dev/analyze-report-data.mjs --output .cache/analysis/latest-analysis.md",
