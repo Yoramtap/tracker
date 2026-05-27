@@ -17,7 +17,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   const PRODUCT_CYCLE_SCOPE = "inception";
   const PRODUCT_CYCLE_SCOPE_LABEL = "All ideas";
   const PRODUCT_CYCLE_MULTI_TEAM_KEY = "multiteam";
-  const PRODUCT_CYCLE_MULTI_TEAM_LABEL = "Multi team";
+  const PRODUCT_CYCLE_MULTI_TEAM_LABEL = "Cross-team";
   const PRODUCT_CYCLE_TEAM_ORDER = [
     PRODUCT_CYCLE_MULTI_TEAM_KEY,
     "api",
@@ -1263,7 +1263,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     const raw = String(name || "").trim();
     const key = normalizeProductCycleTeamKey(raw);
     if (key === "all") return "All";
-    if (key === PRODUCT_CYCLE_MULTI_TEAM_KEY) return "Multi";
+    if (key === PRODUCT_CYCLE_MULTI_TEAM_KEY) return "Cross";
     if (key === "frontend") return "FE";
     if (key === "broadcast" || key === "bc") return "BC";
     return normalizeDisplayTeamName(raw);

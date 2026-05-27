@@ -386,12 +386,15 @@ export function sanitizeProductCycleShipmentsSnapshot(snapshot) {
                     team: sanitizeText(team?.team),
                     shippedCount: sanitizeNumber(team?.shippedCount),
                     ideas: Array.isArray(team?.ideas)
-                      ? team.ideas.map((idea) => ({
-                          issueKey: sanitizeText(idea?.issueKey),
-                          productAreaLabel: sanitizeText(idea?.productAreaLabel),
-                          summary: sanitizeText(idea?.summary),
-                          shippedAt: sanitizeText(idea?.shippedAt)
-                        }))
+                        ? team.ideas.map((idea) => ({
+                            issueKey: sanitizeText(idea?.issueKey),
+                            productAreaLabel: sanitizeText(idea?.productAreaLabel),
+                            teams: Array.isArray(idea?.teams)
+                              ? idea.teams.map((teamName) => sanitizeText(teamName)).filter(Boolean)
+                              : [],
+                            summary: sanitizeText(idea?.summary),
+                            shippedAt: sanitizeText(idea?.shippedAt)
+                          }))
                       : []
                   }))
                 : []

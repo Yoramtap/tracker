@@ -2336,9 +2336,16 @@ a.shipped-team-list__idea-key:focus-visible {
 }
 
 .shipped-team-list__idea-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.9rem;
   color: rgba(31, 51, 71, 0.9);
   line-height: 1.24;
+  min-width: 0;
+}
+
+.shipped-team-list__idea-title-text {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2356,6 +2363,31 @@ a.shipped-team-list__idea-key:focus-visible {
   justify-self: end;
   text-align: right;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shipped-team-list__idea-teams {
+  display: flex;
+  flex: none;
+  justify-content: flex-start;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.shipped-team-list__team-chip {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--shipment-chip-accent, var(--shipment-accent)) 12%, white);
+  color: color-mix(in srgb, var(--shipment-chip-accent, var(--shipment-accent)) 76%, black);
+  font-size: 0.61rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
   white-space: nowrap;
 }
 

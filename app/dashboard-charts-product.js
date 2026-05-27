@@ -94,7 +94,7 @@
     const raw = String(name || "").trim();
     const key = normalizeProductCycleTeamKey(raw);
     if (key === "workers") return "Workers";
-    if (key === "multiteam") return "Multi team";
+    if (key === "multiteam") return "Cross-team";
     return raw;
   }
 

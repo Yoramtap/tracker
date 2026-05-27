@@ -1713,6 +1713,9 @@ function buildProductCycleShippedTimelineSnapshot(ideas, teams, nowIso) {
     teamBucket.ideas.push({
       issueKey: String(idea?.issueKey || "").trim(),
       productAreaLabel: String(idea?.productAreaLabel || "").trim(),
+      teams: Array.isArray(idea?.teams)
+        ? idea.teams.map((teamName) => String(teamName || "").trim()).filter(Boolean)
+        : [],
       summary: String(idea?.summary || "").trim(),
       shippedAt: enteredDoneAt
     });

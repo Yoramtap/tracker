@@ -41,7 +41,7 @@
     const raw = String(name || "").trim();
     const key = normalizeProductCycleTeamKey(raw);
     if (key === "workers") return "Workers";
-    if (key === "multiteam") return "Multi team";
+    if (key === "multiteam") return "Cross-team";
     return raw;
   }
 
@@ -61,6 +61,31 @@
     const raw = String(areaLabel || "").trim();
     if (raw === "Commissioning & Support") return "Commissioning";
     return raw;
+  }
+
+  function renderShipmentTeamChips(teams) {
+    const normalizedTeams = [
+      ...new Set(
+        (Array.isArray(teams) ? teams : [])
+          .map((teamName) => normalizeDisplayTeamName(teamName))
+          .filter(Boolean)
+      )
+    ];
+    if (normalizedTeams.length <= 1) return "";
+    return `
+      <span class="shipped-team-list__idea-teams" aria-label="${escapeHtml(
+        `Teams: ${normalizedTeams.join(", ")}`
+      )}">
+        ${normalizedTeams
+          .map((teamName) => {
+            const teamColor = getPrCycleTeamColor(teamName);
+            return `<span class="shipped-team-list__team-chip" style="--shipment-chip-accent:${escapeHtml(
+              teamColor
+            )};">${escapeHtml(teamName)}</span>`;
+          })
+          .join("")}
+      </span>
+    `;
   }
 
   function buildJiraIssueBrowseUrl(issueKey) {
@@ -161,6 +186,10 @@
             const productAreaLabel = formatShipmentAreaLabel(idea?.productAreaLabel);
             const summary = String(idea?.summary || "").trim();
             const issueUrl = buildJiraIssueBrowseUrl(issueKey);
+            const ideaTeamsMarkup =
+              normalizeProductCycleTeamKey(normalizedTeamKey) === "multiteam"
+                ? renderShipmentTeamChips(idea?.teams)
+                : "";
             return `
               <li class="shipped-team-list__idea">
                 <span class="shipped-team-list__idea-meta">
@@ -173,7 +202,10 @@
                     aria-label="${escapeHtml(`${issueKey}: ${summary}`)}"
                   >${escapeHtml(issueKey)}</a>
                 </span>
-                <span class="shipped-team-list__idea-title">${escapeHtml(summary)}</span>
+                <span class="shipped-team-list__idea-title">
+                  <span class="shipped-team-list__idea-title-text">${escapeHtml(summary)}</span>
+                  ${ideaTeamsMarkup}
+                </span>
                 <span class="shipped-team-list__idea-area">${escapeHtml(productAreaLabel)}</span>
               </li>
             `;
