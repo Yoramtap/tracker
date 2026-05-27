@@ -45,6 +45,13 @@
     return raw;
   }
 
+  function formatShipmentTeamChipLabel(name) {
+    const key = normalizeProductCycleTeamKey(name);
+    if (key === "frontend") return "FE";
+    if (key === "broadcast") return "BC";
+    return normalizeDisplayTeamName(name);
+  }
+
   function formatShipmentMonthButton(dateText) {
     const parsed = new Date(`${String(dateText || "").trim()}T00:00:00Z`);
     if (!Number.isFinite(parsed.getTime())) return String(dateText || "").trim();
@@ -81,7 +88,7 @@
             const teamColor = getPrCycleTeamColor(teamName);
             return `<span class="shipped-team-list__team-chip" style="--shipment-chip-accent:${escapeHtml(
               teamColor
-            )};">${escapeHtml(teamName)}</span>`;
+            )};">${escapeHtml(formatShipmentTeamChipLabel(teamName))}</span>`;
           })
           .join("")}
       </span>
