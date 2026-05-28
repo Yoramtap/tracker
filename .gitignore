@@ -7,5 +7,6 @@ dist/
 !.env.example
 .codex/
 .codex-artifacts/
+skills/
 data/*.tmp
 tracker-review-*.zip
