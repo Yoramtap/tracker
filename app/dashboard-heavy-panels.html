@@ -60,7 +60,7 @@
         </p>
         <ul>
           <li>
-            Use the toggle to compare work currently in user testing with work completed after
+            Use the tabs to compare work awaiting user approval with verified work that completed
             testing.
           </li>
           <li>Measured in months with a 1-month target.</li>
@@ -74,16 +74,16 @@
     </details>
   </div>
   <p id="management-facility-context" class="panel-summary panel-summary--meta" hidden></p>
-  <div class="radio-control-groups" aria-label="User testing controls">
-    <fieldset class="radio-group-card radio-group-card--primary radio-group-card--segmented">
-      <legend>Scope</legend>
+  <div class="panel-mode-controls" aria-label="User testing view">
+    <fieldset class="panel-mode-tabs">
+      <legend>View</legend>
       <label
         ><input type="radio" name="management-facility-flow-scope" value="ongoing" checked />
-        <span>In user testing</span></label
+        <span>Awaiting user approval</span></label
       >
       <label
         ><input type="radio" name="management-facility-flow-scope" value="done" />
-        <span>Completed after testing</span></label
+        <span>Verified</span></label
       >
     </fieldset>
   </div>
@@ -236,7 +236,7 @@
     </details>
   </div>
   <p id="pr-activity-legacy-context" class="panel-summary panel-summary--meta" hidden></p>
-  <div class="radio-control-groups" aria-label="PR activity over time controls">
+  <div class="radio-control-groups" aria-label="PR activity time range">
     <fieldset class="radio-group-card radio-group-card--segmented">
       <legend>Time range</legend>
       <label
@@ -264,22 +264,26 @@
         <span aria-hidden="true">2y</span><span class="sr-only">Last 2 years</span></label
       >
     </fieldset>
-    <fieldset class="radio-group-card radio-group-card--segmented">
-      <legend>Metric</legend>
-      <label
-        ><input type="radio" name="pr-activity-legacy-metric" value="offered" checked />
-        <span>PRs opened</span></label
-      >
-      <label
-        ><input type="radio" name="pr-activity-legacy-metric" value="merged" />
-        <span>PRs merged</span></label
-      >
-    </fieldset>
   </div>
   <div id="pr-activity-legacy-summary" class="dashboard-chart-summary-slot" hidden></div>
   <div class="chart-stack">
     <div class="chart-block">
-      <p class="chart-section-title">PRs opened / PRs merged</p>
+      <div class="chart-block__header">
+        <p class="chart-section-title">PR activity</p>
+        <div class="panel-mode-controls panel-mode-controls--compact" aria-label="PR activity metric">
+          <fieldset class="panel-mode-tabs">
+            <legend>Metric</legend>
+            <label
+              ><input type="radio" name="pr-activity-legacy-metric" value="offered" checked />
+              <span>PRs opened</span></label
+            >
+            <label
+              ><input type="radio" name="pr-activity-legacy-metric" value="merged" />
+              <span>PRs merged</span></label
+            >
+          </fieldset>
+        </div>
+      </div>
       <div class="chart">
         <div id="pr-activity-legacy-count-chart" class="chart-canvas chart-canvas--standard"></div>
       </div>
@@ -319,13 +323,13 @@
       <div class="help-popover" role="tooltip">
         <p>
           <strong>Product delivery and workflow</strong> combines shipped delivery timing with the
-          current-state workflow view for the same team set.
+          open-ideas-by-stage view for the same team set.
         </p>
         <ul>
-          <li>Use the toggle to switch between Delivery time and Current workflow.</li>
+          <li>Use the tabs to switch between Delivery time and Open ideas by stage.</li>
           <li>Delivery time = time spent in In Development + UAT, including ongoing work.</li>
           <li>
-            Current workflow shows how long open ideas have spent in the stage they are currently
+            Open ideas by stage shows how long open ideas have spent in the stage they are currently
             sitting in.
           </li>
           <li>
@@ -337,25 +341,25 @@
   </div>
   <p id="product-cycle-context" class="panel-summary panel-summary--meta" hidden></p>
   <div class="panel-inline-controls">
-    <div class="radio-control-groups" aria-label="Product delivery and workflow view">
-      <fieldset class="radio-group-card radio-group-card--primary radio-group-card--segmented">
-        <legend>View</legend>
-        <label
-          ><input type="radio" name="product-delivery-workflow-view" value="delivery" checked />
-          <span>Delivery time</span></label
-        >
-        <label
-          ><input type="radio" name="product-delivery-workflow-view" value="workflow" />
-          <span>Current workflow</span></label
-        >
-      </fieldset>
-    </div>
     <div
       id="product-cycle-team-switch"
       class="pr-cycle-team-switch"
       role="radiogroup"
       aria-label="Product delivery and workflow team"
     ></div>
+  </div>
+  <div class="panel-mode-controls" aria-label="Product delivery and workflow view">
+    <fieldset class="panel-mode-tabs">
+      <legend>View</legend>
+      <label
+        ><input type="radio" name="product-delivery-workflow-view" value="delivery" checked />
+        <span>Delivery time</span></label
+      >
+      <label
+        ><input type="radio" name="product-delivery-workflow-view" value="workflow" />
+        <span>Open ideas by stage</span></label
+      >
+    </fieldset>
   </div>
   <div class="chart">
     <div id="cycle-time-parking-lot-to-done-chart" class="chart-canvas chart-canvas--dense"></div>

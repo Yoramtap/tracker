@@ -367,16 +367,17 @@ export function createProductPanels(deps) {
           label: "Slowest stage",
           value: String(longestRow?.phaseLabel || "").trim() || selectionLabel
         },
-        { label: "Sample", value: `${sampleSize} open ideas` },
+        { label: "Sample", value: formatCountLabel(sampleSize, "open idea", "open ideas") },
         { label: "Scope", value: selectionLabel }
       ],
       columnStartLabel: "Stage",
       columnEndLabel: "Avg time",
-      footerBits: ["Current workflow"],
+      footerBits: ["Open ideas by stage"],
       rows: displayRows.map((row) => ({
         label: String(row?.phaseLabel || "").trim(),
-        metaBits: [`${toCount(row?.meta_slot_0?.n)} open ideas`],
+        metaBits: [],
         valueText: formatCycleMonthsText(row?.slot_0, { short: true }),
+        valueMetaText: formatCountLabel(row?.meta_slot_0?.n, "open idea", "open ideas"),
         width: getPretextFillWidth(row?.slot_0, maxDays),
         color: rowColor
       }))
@@ -422,31 +423,24 @@ export function createProductPanels(deps) {
           value: formatCycleMonthsText(weightedCycleDays, { short: true }),
           className: "dashboard-utility-layout__stat--primary"
         },
-        { label: "Shipped", value: `${toCount(shippedCount)} ideas` },
-        { label: "Ongoing", value: `${toCount(ongoingCount)} ideas` },
-        { label: "Sample", value: `${toCount(cycleSampleCount)} ideas` }
+        { label: "Shipped", value: formatCountLabel(shippedCount, "idea") },
+        { label: "Ongoing", value: formatCountLabel(ongoingCount, "idea") },
+        { label: "Sample", value: formatCountLabel(cycleSampleCount, "idea") }
       ],
       columnStartLabel: "Team",
       columnEndLabel: "Avg delivery",
       footerBits: [
         String(scopeLabel || PRODUCT_CYCLE_SCOPE_LABEL).trim(),
-        fetchedCount > 0 ? `${toCount(fetchedCount)} fetched ideas` : ""
+        fetchedCount > 0 ? formatCountLabel(fetchedCount, "fetched idea", "fetched ideas") : ""
       ].filter(Boolean),
       rows: rankedRows.map((row) => {
         const doneCount = toCount(row?.cycleDoneCount);
-        const ongoingCount = toCount(row?.cycleOngoingCount);
         return {
           label: normalizeDisplayTeamName(row?.team || ""),
-          metaBits: [
-            { text: `${toCount(row?.meta_cycle?.n)} ideas` },
-            doneCount > 0
-              ? { text: `${doneCount} shipped`, className: "dashboard-utility-layout__meta-bit--primary" }
-              : null,
-            ongoingCount > 0
-              ? { text: `${ongoingCount} ongoing`, className: "dashboard-utility-layout__meta-bit--muted" }
-              : null
-          ].filter(Boolean),
+          labelMeta: [],
+          metaBits: [],
           valueText: formatCycleMonthsText(row?.cycle, { short: true }),
+          valueMetaText: doneCount > 0 ? `${doneCount} ${doneCount === 1 ? "idea" : "ideas"} shipped` : "",
           width: Math.max(12, Math.round((toNumber(row?.cycle) / maxCycleDays) * 100)),
           color: getPrCycleTeamColor(row?.team)
         };
@@ -475,7 +469,7 @@ export function createProductPanels(deps) {
       accentColor: teamColor,
       stats: [
         { label: "Delivery time", value: formatCycleMonthsText(row?.cycle, { short: true }) },
-        { label: "Sample", value: `${cycleSample} ideas` },
+        { label: "Sample", value: formatCountLabel(cycleSample, "idea") },
         { label: "Shipped", value: `${shippedCount}` },
         { label: "Ongoing", value: `${ongoingCount}` }
       ],
@@ -485,22 +479,25 @@ export function createProductPanels(deps) {
       rows: [
         {
           label: "Delivery time",
-          metaBits: [`${cycleSample} ideas`],
+          metaBits: [],
           valueText: formatCycleMonthsText(row?.cycle, { short: true }),
+          valueMetaText: formatCountLabel(cycleSample, "idea"),
           width: getPretextFillWidth(row?.cycle, maxCycleDays),
           color: teamColor
         },
         {
           label: "Shipped",
-          metaBits: ["completed ideas"],
+          metaBits: [],
           valueText: String(shippedCount),
+          valueMetaText: "completed ideas",
           width: getPretextFillWidth(shippedCount, maxShipped),
           color: teamColor
         },
         {
           label: "Ongoing",
-          metaBits: ["ongoing ideas"],
+          metaBits: [],
           valueText: String(ongoingCount),
+          valueMetaText: "ongoing ideas",
           width: getPretextFillWidth(ongoingCount, maxOngoing),
           color: teamColor
         }
@@ -581,7 +578,11 @@ export function createProductPanels(deps) {
         contextText: isPretextLayoutActive()
           ? ""
           : formatContextWithFreshness(
-              `${filteredView.selectionLabel} • ${sampleSize} open ideas sampled`,
+              `${filteredView.selectionLabel} • ${formatCountLabel(
+                sampleSize,
+                "open idea",
+                "open ideas"
+              )} sampled`,
               getSnapshotContextTimestamp(state),
               "generated"
             ),
@@ -702,11 +703,28 @@ export function createProductPanels(deps) {
           : formatContextWithFreshness(
               selectedTeamKey === "all"
                 ? fetchedCount > 0
-                  ? `${cycleSampleCount} ideas with delivery data from ${fetchedCount} fetched ideas`
-                  : `${cycleSampleCount} ideas with delivery data`
+                  ? `${formatCountLabel(
+                      cycleSampleCount,
+                      "idea"
+                    )} with delivery data from ${formatCountLabel(
+                      fetchedCount,
+                      "fetched idea",
+                      "fetched ideas"
+                    )}`
+                  : `${formatCountLabel(cycleSampleCount, "idea")} with delivery data`
                 : fetchedCount > 0
-                  ? `${normalizeDisplayTeamName(selectedRow?.team || "")} • ${selectedSampleCount} ideas with delivery data from ${fetchedCount} fetched ideas`
-                  : `${normalizeDisplayTeamName(selectedRow?.team || "")} • ${selectedSampleCount} ideas with delivery data`,
+                  ? `${normalizeDisplayTeamName(selectedRow?.team || "")} • ${formatCountLabel(
+                      selectedSampleCount,
+                      "idea"
+                    )} with delivery data from ${formatCountLabel(
+                      fetchedCount,
+                      "fetched idea",
+                      "fetched ideas"
+                    )}`
+                  : `${normalizeDisplayTeamName(selectedRow?.team || "")} • ${formatCountLabel(
+                      selectedSampleCount,
+                      "idea"
+                    )} with delivery data`,
               getSnapshotContextTimestamp(state),
               "generated"
             ),

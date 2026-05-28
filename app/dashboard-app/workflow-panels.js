@@ -197,17 +197,14 @@ export function createWorkflowPanels(deps) {
       columnEndLabel: "Avg time in UAT",
       rows: sortedRows.map((row) => ({
         label: String(row?.label || "").trim(),
-        rowHref: buildIssueItemsSearchUrl(row?.issueItems),
-        linkAriaLabel: `Open ${String(row?.label || "").trim()} Jira issues in new tab`,
-        metaBits: [
-          {
-            text: `${toCount(row?.sampleCount)} ${
-              toCount(row?.sampleCount) === 1 ? "issue" : "issues"
-            }`,
-            className: "dashboard-utility-layout__meta-bit--primary"
-          }
-        ],
+        metaBits: [],
         valueText: formatCycleMonthsText(row?.uatAvg, { short: true }),
+        valueMetaText: {
+          text: `${toCount(row?.sampleCount)} ${
+            toCount(row?.sampleCount) === 1 ? "issue" : "issues"
+          }`,
+          href: buildIssueItemsSearchUrl(row?.issueItems)
+        },
         width: getPretextFillWidth(row?.uatAvg, maxUatDays),
         color: "var(--chart-active)"
       }))
@@ -275,7 +272,7 @@ export function createWorkflowPanels(deps) {
   function formatWorkflowPrsPerSprintText(value) {
     const inflow = toNumber(value);
     if (!Number.isFinite(inflow) || inflow <= 0) return "";
-    return `≈ ${Math.round(inflow)} PRs / sprint`;
+    return `${Math.round(inflow)} PRs / sprint`;
   }
 
   function normalizeWorkflowBottleneckLabel(value) {
@@ -328,9 +325,10 @@ export function createWorkflowPanels(deps) {
       footerBits: [footerSecondary].filter(Boolean),
       rows: stages.map((stage) => ({
         label: getPrCycleStageDisplayLabel(stage),
-        metaBits: [
-          `${toCount(stage?.sampleCount)} ${toCount(stage?.sampleCount) === 1 ? "issue" : "issues"}`
-        ],
+        metaBits: [],
+        valueMetaText: `${toCount(stage?.sampleCount)} ${
+          toCount(stage?.sampleCount) === 1 ? "issue" : "issues"
+        }`,
         valueText: formatWorkflowDaysText(stage?.days),
         width: Math.max(12, Math.round((toNumber(stage?.days) / maxDays) * 100)),
         color: teamColor
@@ -379,23 +377,23 @@ export function createWorkflowPanels(deps) {
       columnEndLabel: "Avg cycle",
       footerBits: [footerSecondary].filter(Boolean),
       rows: orderedRows.map((row) => {
-        const bottleneck = normalizeWorkflowBottleneckLabel(row?.bottleneckLabel);
         const inflowText = formatWorkflowPrsPerSprintText(row?.avgPrInflow);
+        const issueText = `${toCount(row?.issueCount)} ${
+          toCount(row?.issueCount) === 1 ? "issue" : "issues"
+        }`;
         return {
           label: normalizeDisplayTeamName(row?.label || ""),
-          metaBits: [
-            inflowText
-              ? {
+          labelMeta: inflowText
+            ? [
+                {
                   text: inflowText,
-                  className: "dashboard-utility-layout__meta-bit--primary"
-              }
-              : "",
-            bottleneck ? `Bottleneck: ${bottleneck}` : ""
-          ].filter(Boolean),
+                  className: "dashboard-utility-layout__label-meta--workflow-rate"
+                }
+              ]
+            : [],
+          metaBits: [],
           valueText: formatWorkflowDaysText(row?.totalCycleDays),
-          valueMetaText: `${toCount(row?.issueCount)} ${
-            toCount(row?.issueCount) === 1 ? "issue" : "issues"
-          }`,
+          valueMetaText: issueText,
           width: Math.max(12, Math.round((toNumber(row?.totalCycleDays) / maxDays) * 100)),
           color: getPrCycleTeamColor(row?.key)
         };
@@ -782,7 +780,7 @@ export function createWorkflowPanels(deps) {
   }
 
   function getManagementFlowScopeLabel(scope) {
-    return scope === "done" ? "Completed after testing" : "In user testing";
+    return scope === "done" ? "Verified" : "Awaiting user approval";
   }
 
   function renderDevelopmentVsUatByFacilityChart() {
@@ -864,17 +862,17 @@ export function createWorkflowPanels(deps) {
       teamColor: "var(--team-react)",
       accentColor: "var(--team-react)",
       stats: [
-        {
-          label: "Done",
-          value: `${toCount(summary?.doneIssues)}`,
-          className: "dashboard-utility-layout__stat--primary"
-        },
+        { label: "Included issues", value: `${totalIssues}` },
         {
           label: "Top contributor",
           value: String(topContributor?.contributor || "").trim() || `${totalContributors} ranked`
         },
         { label: "Active", value: `${toCount(summary?.activeIssues)}` },
-        { label: "Included issues", value: `${totalIssues}` }
+        {
+          label: "Done",
+          value: `${toCount(summary?.doneIssues)}`,
+          className: "dashboard-utility-layout__stat--primary"
+        }
       ],
       columnStartLabel: "Contributor",
       columnEndLabel: "Done",
@@ -883,16 +881,16 @@ export function createWorkflowPanels(deps) {
         const activeHref = buildContributorActiveHref(row?.contributor, source);
         return {
           label: String(row?.contributor || "").trim(),
-          labelMeta:
-            active > 0
-              ? [
-                  {
-                    text: `${active} active`,
-                    href: activeHref
-                  }
-                ]
-              : [],
+          labelMeta: [],
           metaBits: [],
+          valueMetaText:
+            active > 0
+              ? {
+                  text: `${active} active`,
+                  href: activeHref,
+                  className: "dashboard-utility-layout__value-meta--active"
+                }
+              : "",
           valueText: String(toCount(row?.doneIssues)),
           width: getPretextFillWidth(row?.doneIssues, maxDone),
           color: "var(--team-react)"

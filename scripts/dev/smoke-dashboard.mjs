@@ -598,8 +598,10 @@ function verifyWorkflowBreakdownInflowLabels() {
       `Development workflow breakdown should show PRs / sprint in utility values: ${JSON.stringify(breakdownState.utilityStatValues)}`
     );
     assert(
-      breakdownState.utilityValueMetaTexts.some((value) => /^\d+ issues?$/.test(value)),
-      `Development workflow breakdown should show row sample counts under the cycle value: ${JSON.stringify(breakdownState.utilityValueMetaTexts)}`
+      breakdownState.utilityValueMetaTexts.some(
+        (value) => /^\d+ PRs \/ sprint · \d+ issues?$/.test(value) || /^\d+ issues?$/.test(value)
+      ),
+      `Development workflow breakdown should show row context next to the cycle value: ${JSON.stringify(breakdownState.utilityValueMetaTexts)}`
     );
   }
   if (breakdownState.metricValueCount >= 2) {
@@ -636,7 +638,7 @@ function readUtilityStats(selector) {
       ).length,
       metaLinkCount: Array.from(
         root?.querySelectorAll(
-          ".dashboard-utility-layout__meta-bit--link[href], .dashboard-utility-layout__label-meta--link[href]"
+          ".dashboard-utility-layout__meta-bit--link[href], .dashboard-utility-layout__label-meta--link[href], .dashboard-utility-layout__value-meta--link[href]"
         ) || []
       ).length
     };
@@ -768,7 +770,7 @@ async function main() {
   assertUtilityStats({
     description: "Default community contributors panel",
     selector: "#top-contributors-chart",
-    expectedLabels: ["Done", "Top contributor", "Active", "Included issues"],
+    expectedLabels: ["Included issues", "Top contributor", "Active", "Done"],
     primaryLabel: "Done",
     valuePattern: /^\d+$/,
     minMetaLinkCount: 1

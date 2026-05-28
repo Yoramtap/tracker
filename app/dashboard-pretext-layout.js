@@ -112,18 +112,34 @@
         const detailText = String(row?.detailText || row?.description || "").trim();
         const labelMarkup = renderUtilityRowLabel(row);
         const valueClassName = String(row?.valueClassName || "").trim();
-        const valueMetaText = String(row?.valueMetaText || row?.valueMeta || "").trim();
+        const valueMetaSource = row?.valueMetaText || row?.valueMeta || "";
+        const valueMeta =
+          valueMetaSource && typeof valueMetaSource === "object"
+            ? {
+                text: String(
+                  valueMetaSource.text || valueMetaSource.label || valueMetaSource.value || ""
+                ).trim(),
+                href: sanitizeUtilityHref(valueMetaSource.href || valueMetaSource.url),
+                className: String(valueMetaSource.className || "").trim()
+              }
+            : {
+                text: String(valueMetaSource || "").trim(),
+                href: "",
+                className: ""
+              };
         const labelMeta = (Array.isArray(row?.labelMeta) ? row.labelMeta : [])
           .map((item) => {
             if (item && typeof item === "object") {
               return {
                 text: String(item.text || item.label || item.value || "").trim(),
-                href: sanitizeUtilityHref(item.href || item.url)
+                href: sanitizeUtilityHref(item.href || item.url),
+                className: String(item.className || "").trim()
               };
             }
             return {
               text: String(item || "").trim(),
-              href: ""
+              href: "",
+              className: ""
             };
           })
           .filter((item) => item.text);
@@ -150,14 +166,17 @@
                 <span class="dashboard-utility-layout__label">${labelMarkup}</span>
                 ${labelMeta
                   .map((item) => {
+                    const classes = `dashboard-utility-layout__label-meta${
+                      item.className ? ` ${escapeHtml(item.className)}` : ""
+                    }`;
                     if (item.href) {
-                      return `<a class="dashboard-utility-layout__label-meta dashboard-utility-layout__label-meta--link" href="${escapeHtml(
+                      return `<a class="${classes} dashboard-utility-layout__label-meta--link" href="${escapeHtml(
                         item.href
                       )}" target="_blank" rel="noopener noreferrer">${escapeHtml(
                         item.text
                       )}</a>`;
                     }
-                    return `<span class="dashboard-utility-layout__label-meta">${escapeHtml(
+                    return `<span class="${classes}">${escapeHtml(
                       item.text
                     )}</span>`;
                   })
@@ -174,14 +193,24 @@
                 }
               </div>
               <span class="dashboard-utility-layout__value-group">
+                ${
+                  valueMeta.text
+                    ? valueMeta.href
+                      ? `<a class="dashboard-utility-layout__value-meta dashboard-utility-layout__value-meta--link${
+                          valueMeta.className ? ` ${escapeHtml(valueMeta.className)}` : ""
+                        }" href="${escapeHtml(
+                          valueMeta.href
+                        )}" target="_blank" rel="noopener noreferrer">${escapeHtml(
+                          valueMeta.text
+                        )}</a>`
+                      : `<span class="dashboard-utility-layout__value-meta${
+                          valueMeta.className ? ` ${escapeHtml(valueMeta.className)}` : ""
+                        }">${escapeHtml(valueMeta.text)}</span>`
+                    : ""
+                }
                 <span class="dashboard-utility-layout__value${
                   valueClassName ? ` ${escapeHtml(valueClassName)}` : ""
                 }">${escapeHtml(row?.valueText)}</span>
-                ${
-                  valueMetaText
-                    ? `<span class="dashboard-utility-layout__value-meta">${escapeHtml(valueMetaText)}</span>`
-                    : ""
-                }
               </span>
             </div>
             ${

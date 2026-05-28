@@ -125,8 +125,10 @@
   grid-template-columns: repeat(var(--utility-stat-columns, 4), minmax(0, 1fr));
   gap: 14px 18px;
   margin: 0;
-  padding: 0 0 14px;
+  padding: 12px 14px;
+  background: rgba(31, 51, 71, 0.035);
   border-bottom: 1px solid rgba(31, 51, 71, 0.14);
+  border-radius: 6px 6px 0 0;
 }
 
 .management-acceptance-layout__stat,
@@ -134,11 +136,24 @@
   display: grid;
   gap: 4px;
   min-width: 0;
+  justify-items: start;
+  text-align: left;
+}
+
+.management-acceptance-layout__stat:not(:first-child):not(:last-child),
+.dashboard-utility-layout__stat:not(:first-child):not(:last-child) {
+  justify-items: center;
+  text-align: center;
+}
+
+.management-acceptance-layout__stat:last-child,
+.dashboard-utility-layout__stat:last-child {
+  justify-items: end;
+  text-align: right;
 }
 
 .dashboard-utility-layout__stat--primary {
-  padding-left: 10px;
-  border-left: 3px solid var(--utility-accent);
+  padding-left: 0;
 }
 
 .management-acceptance-layout__stat dt,
@@ -183,10 +198,10 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 16px;
-  color: rgba(31, 51, 71, 0.52);
-  font-size: 0.68rem;
+  color: rgba(31, 51, 71, 0.44);
+  font-size: 0.64rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   line-height: 1.1;
   text-transform: uppercase;
 }
@@ -268,9 +283,26 @@
 .dashboard-utility-layout__label-meta {
   color: rgba(31, 51, 71, 0.68);
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
+}
+
+.dashboard-utility-layout__label-meta--workflow-rate {
+  color: rgba(31, 51, 71, 0.62);
+  font-weight: 600;
+}
+
+.dashboard-utility-layout__label-meta--workflow-context {
+  color: rgba(31, 51, 71, 0.56);
+  font-weight: 600;
+}
+
+.dashboard-utility-layout__label-meta--separated::before {
+  content: "•";
+  margin-right: 8px;
+  color: rgba(31, 51, 71, 0.34);
+  font-weight: 700;
 }
 
 .dashboard-utility-layout__label-meta--link {
@@ -319,9 +351,10 @@
 }
 
 .dashboard-utility-layout__value-group {
-  display: grid;
-  justify-items: end;
-  gap: 3px;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 8px;
   min-width: max-content;
 }
 
@@ -332,6 +365,18 @@
   line-height: 1.1;
   text-align: right;
   white-space: nowrap;
+  order: -1;
+}
+
+.dashboard-utility-layout__value-meta--link {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.dashboard-utility-layout__value-meta--link:hover,
+.dashboard-utility-layout__value-meta--link:focus-visible {
+  color: rgba(31, 51, 71, 0.82);
 }
 
 .dashboard-utility-layout__meta {

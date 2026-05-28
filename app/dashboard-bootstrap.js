@@ -31,12 +31,12 @@
     getSourcePath("vendor", "react.production.min.js"),
     getSourcePath("vendor", "react-dom.production.min.js"),
     getSourcePath("runtime", "dashboard-chart-core.js"),
-    getVersionedSourcePath("runtime", "dashboard-pretext-layout.js", "local13")
+    getVersionedSourcePath("runtime", "dashboard-pretext-layout.js", "local14")
   ];
   const DASHBOARD_APP_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-app.js",
-    "local56"
+    "local69"
   );
   const SHIPPED_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
@@ -51,7 +51,7 @@
   const FULL_HEAVY_PANEL_SHELL_SRC = getVersionedSourcePath(
     "app",
     "dashboard-heavy-panels.html",
-    "local17"
+    "local21"
   );
   const LOCAL_AGENTATION_LOADER_SRC = getVersionedSourcePath(
     "dev",
@@ -372,17 +372,17 @@
     return {
       accentColor: "var(--team-react)",
       stats: [
-        {
-          label: "Done",
-          value: `${toCount(summary?.doneIssues)}`,
-          className: "dashboard-utility-layout__stat--primary"
-        },
+        { label: "Included issues", value: `${totalIssues}` },
         {
           label: "Top contributor",
           value: String(topContributor?.contributor || "").trim() || "None"
         },
         { label: "Active", value: `${toCount(summary?.activeIssues)}` },
-        { label: "Included issues", value: `${totalIssues}` }
+        {
+          label: "Done",
+          value: `${toCount(summary?.doneIssues)}`,
+          className: "dashboard-utility-layout__stat--primary"
+        }
       ],
       rows: safeRows.map((row) => {
         const done = toCount(row?.doneIssues);
@@ -390,15 +390,14 @@
         const activeHref = buildContributorActiveHref(row?.contributor, source);
         return {
           label: String(row?.contributor || "").trim(),
-          labelMeta:
+          labelMeta: [],
+          valueMeta:
             active > 0
-              ? [
-                  {
-                    text: `${active} active`,
-                    href: activeHref
-                  }
-                ]
-              : [],
+              ? {
+                  text: `${active} active`,
+                  href: activeHref
+                }
+              : null,
           metaBits: [],
           valueText: `${done}`,
           width: done > 0 ? Math.max(10, Math.round((done / maxDone) * 100)) : 10
@@ -457,6 +456,17 @@
             return `<span class="${classes}">${escapeHtml(meta.text)}</span>`;
           })
           .join("");
+        const valueMeta = row.valueMeta && typeof row.valueMeta === "object" ? row.valueMeta : null;
+        const valueMetaHref = sanitizeUtilityHref(valueMeta?.href);
+        const valueMetaMarkup = valueMeta?.text
+          ? valueMetaHref
+            ? `<a class="dashboard-utility-layout__value-meta dashboard-utility-layout__value-meta--link" href="${escapeHtml(
+                valueMetaHref
+              )}" target="_blank" rel="noopener noreferrer">${escapeHtml(valueMeta.text)}</a>`
+            : `<span class="dashboard-utility-layout__value-meta">${escapeHtml(
+                valueMeta.text
+              )}</span>`
+          : "";
         return `
           <div class="dashboard-utility-layout__row" style="--row-accent:${model.accentColor}">
             <div class="dashboard-utility-layout__row-head">
@@ -464,7 +474,10 @@
                 <span class="dashboard-utility-layout__label">${escapeHtml(row.label)}</span>
                 ${labelMetaMarkup}
               </div>
-              <span class="dashboard-utility-layout__value">${escapeHtml(row.valueText)}</span>
+              <span class="dashboard-utility-layout__value-group">
+                ${valueMetaMarkup}
+                <span class="dashboard-utility-layout__value">${escapeHtml(row.valueText)}</span>
+              </span>
             </div>
             ${
               metaMarkup
