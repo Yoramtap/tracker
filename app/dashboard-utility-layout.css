@@ -350,6 +350,18 @@
   font-variant-numeric: tabular-nums;
 }
 
+.dashboard-utility-layout__value-link {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.dashboard-utility-layout__value-link:hover,
+.dashboard-utility-layout__value-link:focus-visible {
+  color: rgba(31, 51, 71, 0.98);
+}
+
 .dashboard-utility-layout__value-group {
   display: inline-flex;
   align-items: baseline;

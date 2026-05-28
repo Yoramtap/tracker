@@ -395,37 +395,41 @@
       </div>
     </details>
   </div>
-  <div class="radio-control-groups" aria-label="Bug trends controls">
-    <fieldset class="radio-group-card radio-group-card--primary radio-group-card--segmented">
+  <div class="panel-inline-controls">
+    <div class="radio-control-groups" aria-label="Bug trends time range">
+      <fieldset class="radio-group-card radio-group-card--segmented">
+        <legend>Time range</legend>
+        <label
+          ><input type="radio" name="bug-trends-window" value="14d" />
+          <span aria-hidden="true">14d</span><span class="sr-only">Last 14 days</span></label
+        >
+        <label
+          ><input type="radio" name="bug-trends-window" value="30d" />
+          <span aria-hidden="true">30d</span><span class="sr-only">Last 30 days</span></label
+        >
+        <label
+          ><input type="radio" name="bug-trends-window" value="90d" checked />
+          <span aria-hidden="true">90d</span><span class="sr-only">Last 90 days</span></label
+        >
+        <label
+          ><input type="radio" name="bug-trends-window" value="6m" />
+          <span aria-hidden="true">6m</span><span class="sr-only">Last 6 months</span></label
+        >
+        <label
+          ><input type="radio" name="bug-trends-window" value="1y" />
+          <span aria-hidden="true">1y</span><span class="sr-only">Last year</span></label
+        >
+      </fieldset>
+    </div>
+  </div>
+  <div class="panel-mode-controls" aria-label="Bug trends view">
+    <fieldset class="panel-mode-tabs">
       <legend>View</legend>
       <label
         ><input type="radio" name="bug-trends-view" value="graph" checked />
         <span>Graph</span></label
       >
       <label><input type="radio" name="bug-trends-view" value="table" /> <span>Table</span></label>
-    </fieldset>
-    <fieldset class="radio-group-card radio-group-card--segmented">
-      <legend>Time range</legend>
-      <label
-        ><input type="radio" name="bug-trends-window" value="14d" />
-        <span aria-hidden="true">14d</span><span class="sr-only">Last 14 days</span></label
-      >
-      <label
-        ><input type="radio" name="bug-trends-window" value="30d" />
-        <span aria-hidden="true">30d</span><span class="sr-only">Last 30 days</span></label
-      >
-      <label
-        ><input type="radio" name="bug-trends-window" value="90d" checked />
-        <span aria-hidden="true">90d</span><span class="sr-only">Last 90 days</span></label
-      >
-      <label
-        ><input type="radio" name="bug-trends-window" value="6m" />
-        <span aria-hidden="true">6m</span><span class="sr-only">Last 6 months</span></label
-      >
-      <label
-        ><input type="radio" name="bug-trends-window" value="1y" />
-        <span aria-hidden="true">1y</span><span class="sr-only">Last year</span></label
-      >
     </fieldset>
   </div>
   <div id="bug-trends-summary" class="dashboard-chart-summary-slot" hidden></div>

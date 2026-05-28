@@ -31,12 +31,12 @@
     getSourcePath("vendor", "react.production.min.js"),
     getSourcePath("vendor", "react-dom.production.min.js"),
     getSourcePath("runtime", "dashboard-chart-core.js"),
-    getVersionedSourcePath("runtime", "dashboard-pretext-layout.js", "local14")
+    getVersionedSourcePath("runtime", "dashboard-pretext-layout.js", "local15")
   ];
   const DASHBOARD_APP_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-app.js",
-    "local69"
+    "local70"
   );
   const SHIPPED_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
@@ -51,7 +51,7 @@
   const FULL_HEAVY_PANEL_SHELL_SRC = getVersionedSourcePath(
     "app",
     "dashboard-heavy-panels.html",
-    "local21"
+    "local22"
   );
   const LOCAL_AGENTATION_LOADER_SRC = getVersionedSourcePath(
     "dev",

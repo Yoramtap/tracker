@@ -977,16 +977,16 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
         const teamLabel = normalizeDisplayTeamName(key);
         return {
           label: teamLabel,
-          rowHref: buildBugTeamSearchUrl(key),
-          linkAriaLabel: `Open ${teamLabel} Jira bugs in new tab`,
           valueText: String(total),
-          width: total,
+          valueHref: buildBugTeamSearchUrl(key),
+          total,
+          urgentTotal: highest + high,
           color: getPrCycleTeamColor(key),
-          metaBits: [
+          valueMetaText: [
             `${highestShare}% highest`,
             `${highShare}% high`,
             `${changeLabel} ${formatSignedWhole(total - previousTotal)}`
-          ]
+          ].join(" · ")
         };
       })
       .filter((row) => toCount(row?.valueText) > 0)
@@ -996,12 +996,29 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
         }
         return String(left?.label || "").localeCompare(String(right?.label || ""));
       });
+    const totalOpen = rows.reduce((sum, row) => sum + toCount(row?.total), 0);
+    const urgentOpen = rows.reduce((sum, row) => sum + toCount(row?.urgentTotal), 0);
+    const leadTeam = rows[0] || null;
+    const maxTotal = rows.reduce((highest, row) => Math.max(highest, toCount(row?.total)), 1);
 
     return {
       accentColor: "var(--chart-active)",
+      stats: [
+        {
+          label: "Open bugs",
+          value: String(totalOpen),
+          className: "dashboard-utility-layout__stat--primary"
+        },
+        { label: "Largest backlog", value: leadTeam?.label || "None" },
+        { label: "Highest + high", value: String(urgentOpen) },
+        { label: "Window", value: changeLabel }
+      ],
       columnStartLabel: "Team",
       columnEndLabel: "Open bugs",
-      rows,
+      rows: rows.map((row) => ({
+        ...row,
+        width: Math.max(10, Math.round((toCount(row?.total) / maxTotal) * 100))
+      })),
       footerBits: [latestDate ? `Latest snapshot ${latestDate}` : "", changeLabel].filter(Boolean)
     };
   }

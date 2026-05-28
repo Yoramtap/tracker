@@ -112,6 +112,7 @@
         const detailText = String(row?.detailText || row?.description || "").trim();
         const labelMarkup = renderUtilityRowLabel(row);
         const valueClassName = String(row?.valueClassName || "").trim();
+        const valueHref = sanitizeUtilityHref(row?.valueHref || row?.valueUrl);
         const valueMetaSource = row?.valueMetaText || row?.valueMeta || "";
         const valueMeta =
           valueMetaSource && typeof valueMetaSource === "object"
@@ -208,9 +209,19 @@
                         }">${escapeHtml(valueMeta.text)}</span>`
                     : ""
                 }
-                <span class="dashboard-utility-layout__value${
-                  valueClassName ? ` ${escapeHtml(valueClassName)}` : ""
-                }">${escapeHtml(row?.valueText)}</span>
+                ${
+                  valueHref
+                    ? `<a class="dashboard-utility-layout__value dashboard-utility-layout__value-link${
+                        valueClassName ? ` ${escapeHtml(valueClassName)}` : ""
+                      }" href="${escapeHtml(
+                        valueHref
+                      )}" target="_blank" rel="noopener noreferrer">${escapeHtml(
+                        row?.valueText
+                      )}</a>`
+                    : `<span class="dashboard-utility-layout__value${
+                        valueClassName ? ` ${escapeHtml(valueClassName)}` : ""
+                      }">${escapeHtml(row?.valueText)}</span>`
+                }
               </span>
             </div>
             ${
