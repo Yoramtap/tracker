@@ -313,32 +313,40 @@ body.embedded-frame-mode main {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   width: 100%;
   margin: 0;
-  padding: 0 14px;
+  padding: 0;
   gap: 0;
-  border: 1px solid rgba(31, 51, 71, 0.08);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(31, 51, 71, 0.16);
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(31, 51, 71, 0.07);
+  overflow: hidden;
 }
 
 .report-intro__card {
   display: flex;
   position: relative;
-  min-height: 54px;
+  min-height: 42px;
   align-items: center;
   justify-content: center;
-  padding: 0 6px;
+  padding: 0 12px;
   border: 0;
   background: transparent;
   text-align: center;
   color: inherit;
   cursor: pointer;
   user-select: none;
-  transition: color 160ms ease;
+  transition:
+    background 140ms ease,
+    box-shadow 140ms ease,
+    color 140ms ease;
 }
 
 .report-intro__card:hover {
-  background: transparent;
+  background: rgba(31, 51, 71, 0.045);
+}
+
+.report-intro__card + .report-intro__card {
+  border-left: 1px solid rgba(31, 51, 71, 0.14);
 }
 
 .report-intro__card input[type="radio"] {
@@ -352,10 +360,10 @@ body.embedded-frame-mode main {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   min-width: 0;
-  color: rgba(31, 51, 71, 0.76);
+  color: rgba(31, 51, 71, 0.7);
 }
 
 .report-intro__label::after {
@@ -363,13 +371,14 @@ body.embedded-frame-mode main {
 }
 
 .report-intro__icon {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  flex: 0 0 16px;
+  flex: 0 0 15px;
+  opacity: 0.86;
 }
 
 .report-intro__icon--empty {
@@ -378,8 +387,8 @@ body.embedded-frame-mode main {
 
 .report-intro__icon-image {
   display: block;
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   object-fit: contain;
 }
 
@@ -392,28 +401,41 @@ body.embedded-frame-mode main {
   letter-spacing: 0.045em;
   line-height: 1;
   text-transform: uppercase;
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-decoration-thickness: 0.1em;
-  text-underline-offset: 0.28em;
 }
 
 .report-intro__card.is-selected .report-intro__label {
   color: rgba(31, 51, 71, 0.98);
 }
 
-.report-intro__card:hover .report-intro__title,
-.report-intro__card:focus-within .report-intro__title {
-  text-decoration-color: rgba(31, 51, 71, 0.42);
+.report-intro__card.is-selected {
+  background: linear-gradient(180deg, #ffffff 0%, rgba(246, 250, 253, 0.96) 100%);
+  box-shadow: inset 0 -3px 0 rgba(31, 51, 71, 0.38);
 }
 
-.report-intro__card.is-selected .report-intro__title {
-  text-decoration-color: rgba(31, 51, 71, 0.9);
+.report-intro__card.is-selected .report-intro__icon {
+  opacity: 1;
+}
+
+.report-intro__card:focus-within {
+  background: rgba(31, 51, 71, 0.055);
+}
+
+.report-intro__card.is-selected:focus-within {
+  background: linear-gradient(180deg, #ffffff 0%, rgba(246, 250, 253, 0.96) 100%);
+  box-shadow: inset 0 -3px 0 rgba(72, 114, 167, 0.72);
 }
 
 @media (max-width: 1080px) {
   .report-intro__grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .report-intro__card:nth-child(3n + 1) {
+    border-left: 0;
+  }
+
+  .report-intro__card:nth-child(n + 4) {
+    border-top: 1px solid rgba(31, 51, 71, 0.14);
   }
 }
 
@@ -429,6 +451,18 @@ body.embedded-frame-mode main {
   .report-intro__card {
     min-height: 44px;
     padding: 0 8px;
+  }
+
+  .report-intro__card:nth-child(3n + 1) {
+    border-left: 1px solid rgba(31, 51, 71, 0.14);
+  }
+
+  .report-intro__card:nth-child(odd) {
+    border-left: 0;
+  }
+
+  .report-intro__card:nth-child(n + 3) {
+    border-top: 1px solid rgba(31, 51, 71, 0.14);
   }
 
   .report-intro__label {
@@ -460,6 +494,14 @@ body.embedded-frame-mode main {
 @media (max-width: 520px) {
   .report-intro__grid {
     grid-template-columns: 1fr;
+  }
+
+  .report-intro__card {
+    border-left: 0;
+  }
+
+  .report-intro__card:nth-child(n + 2) {
+    border-top: 1px solid rgba(31, 51, 71, 0.14);
   }
 }
 
