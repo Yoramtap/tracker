@@ -318,6 +318,22 @@
   font-variant-numeric: tabular-nums;
 }
 
+.dashboard-utility-layout__value-group {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  min-width: max-content;
+}
+
+.dashboard-utility-layout__value-meta {
+  color: rgba(31, 51, 71, 0.5);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: right;
+  white-space: nowrap;
+}
+
 .dashboard-utility-layout__meta {
   display: flex;
   flex-wrap: wrap;

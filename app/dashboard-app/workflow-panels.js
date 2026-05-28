@@ -388,17 +388,14 @@ export function createWorkflowPanels(deps) {
               ? {
                   text: inflowText,
                   className: "dashboard-utility-layout__meta-bit--primary"
-                }
+              }
               : "",
-            bottleneck ? `Bottleneck: ${bottleneck}` : "",
-            {
-              text: `${toCount(row?.issueCount)} ${
-                toCount(row?.issueCount) === 1 ? "issue" : "issues"
-              }`,
-              className: "dashboard-utility-layout__meta-bit--muted"
-            }
+            bottleneck ? `Bottleneck: ${bottleneck}` : ""
           ].filter(Boolean),
           valueText: formatWorkflowDaysText(row?.totalCycleDays),
+          valueMetaText: `${toCount(row?.issueCount)} ${
+            toCount(row?.issueCount) === 1 ? "issue" : "issues"
+          }`,
           width: Math.max(12, Math.round((toNumber(row?.totalCycleDays) / maxDays) * 100)),
           color: getPrCycleTeamColor(row?.key)
         };

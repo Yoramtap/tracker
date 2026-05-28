@@ -551,6 +551,9 @@ function verifyWorkflowBreakdownInflowLabels() {
         primaryUtilityStatLabels: utilityStats
           .filter((node) => node.classList.contains("dashboard-utility-layout__stat--primary"))
           .map((node) => node.querySelector("dt")?.textContent?.trim() || ""),
+        utilityValueMetaTexts: Array.from(
+          panel?.querySelectorAll(".dashboard-utility-layout__value-meta") || []
+        ).map((node) => node.textContent?.trim() || ""),
         utilityRowCount: Array.from(
           panel?.querySelectorAll(".dashboard-utility-layout__row") || []
         ).length,
@@ -593,6 +596,10 @@ function verifyWorkflowBreakdownInflowLabels() {
     assert(
       breakdownState.utilityStatValues.some((value) => /PRs \/ sprint$/.test(value)),
       `Development workflow breakdown should show PRs / sprint in utility values: ${JSON.stringify(breakdownState.utilityStatValues)}`
+    );
+    assert(
+      breakdownState.utilityValueMetaTexts.some((value) => /^\d+ issues?$/.test(value)),
+      `Development workflow breakdown should show row sample counts under the cycle value: ${JSON.stringify(breakdownState.utilityValueMetaTexts)}`
     );
   }
   if (breakdownState.metricValueCount >= 2) {

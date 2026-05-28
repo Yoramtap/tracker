@@ -112,6 +112,7 @@
         const detailText = String(row?.detailText || row?.description || "").trim();
         const labelMarkup = renderUtilityRowLabel(row);
         const valueClassName = String(row?.valueClassName || "").trim();
+        const valueMetaText = String(row?.valueMetaText || row?.valueMeta || "").trim();
         const labelMeta = (Array.isArray(row?.labelMeta) ? row.labelMeta : [])
           .map((item) => {
             if (item && typeof item === "object") {
@@ -172,9 +173,16 @@
                     : ""
                 }
               </div>
-              <span class="dashboard-utility-layout__value${
-                valueClassName ? ` ${escapeHtml(valueClassName)}` : ""
-              }">${escapeHtml(row?.valueText)}</span>
+              <span class="dashboard-utility-layout__value-group">
+                <span class="dashboard-utility-layout__value${
+                  valueClassName ? ` ${escapeHtml(valueClassName)}` : ""
+                }">${escapeHtml(row?.valueText)}</span>
+                ${
+                  valueMetaText
+                    ? `<span class="dashboard-utility-layout__value-meta">${escapeHtml(valueMetaText)}</span>`
+                    : ""
+                }
+              </span>
             </div>
             ${
               metaBits.length > 0
