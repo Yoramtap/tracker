@@ -548,6 +548,9 @@ function verifyWorkflowBreakdownInflowLabels() {
         utilityStatCount: utilityStats.length,
         utilityStatLabels: utilityStats.map((node) => node.querySelector("dt")?.textContent?.trim() || ""),
         utilityStatValues: utilityStats.map((node) => node.querySelector("dd")?.textContent?.trim() || ""),
+        primaryUtilityStatLabels: utilityStats
+          .filter((node) => node.classList.contains("dashboard-utility-layout__stat--primary"))
+          .map((node) => node.querySelector("dt")?.textContent?.trim() || ""),
         utilityRowCount: Array.from(
           panel?.querySelectorAll(".dashboard-utility-layout__row") || []
         ).length,
@@ -576,8 +579,12 @@ function verifyWorkflowBreakdownInflowLabels() {
   );
   if (breakdownState.utilityStatCount > 0) {
     assert(
+      breakdownState.primaryUtilityStatLabels.includes("Cycle time"),
+      `Development workflow breakdown should keep Cycle time as the primary utility metric: ${JSON.stringify(breakdownState.primaryUtilityStatLabels)}`
+    );
+    assert(
       breakdownState.utilityStatLabels.includes("PRs / sprint"),
-      `Development workflow breakdown should keep PRs / sprint as the primary utility metric: ${JSON.stringify(breakdownState.utilityStatLabels)}`
+      `Development workflow breakdown should keep PRs / sprint visible as supporting context: ${JSON.stringify(breakdownState.utilityStatLabels)}`
     );
     assert(
       !breakdownState.utilityStatLabels.includes("Window"),

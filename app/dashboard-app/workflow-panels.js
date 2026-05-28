@@ -307,17 +307,20 @@ export function createWorkflowPanels(deps) {
       teamColor,
       accentColor: teamColor,
       stats: [
+        {
+          label: "Cycle time",
+          value: formatWorkflowDaysText(team?.totalCycleDays),
+          className: "dashboard-utility-layout__stat--primary"
+        },
         ...(inflowText
           ? [
               {
                 label: "PRs / sprint",
-                value: inflowText,
-                className: "dashboard-utility-layout__stat--primary"
+                value: inflowText
               }
             ]
           : []),
         { label: "Bottleneck", value: bottleneckLabel || "None" },
-        { label: "Cycle time", value: formatWorkflowDaysText(team?.totalCycleDays) },
         { label: "Sample", value: `${issueCount} ${issueCount === 1 ? "issue" : "issues"}` }
       ],
       columnStartLabel: "Stage",
@@ -356,17 +359,20 @@ export function createWorkflowPanels(deps) {
       teamColor: getPrCycleTeamColor(ALL_TEAM_SCOPE_KEY),
       accentColor: "var(--chart-active)",
       stats: [
+        {
+          label: "Cycle time",
+          value: formatWorkflowDaysText(team?.totalCycleDays),
+          className: "dashboard-utility-layout__stat--primary"
+        },
         ...(inflowSummary
           ? [
               {
                 label: "PRs / sprint",
-                value: inflowSummary,
-                className: "dashboard-utility-layout__stat--primary"
+                value: inflowSummary
               }
             ]
           : []),
         { label: "Bottleneck", value: bottleneckLabel || "None" },
-        { label: "Cycle time", value: formatWorkflowDaysText(team?.totalCycleDays) },
         { label: "Teams", value: `${toCount(team?.teamCount)} teams` }
       ],
       columnStartLabel: "Team",
