@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-05-28T07:27:14.483Z",
+  "generatedAt": "2026-05-29T07:27:00.831Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-05-01",
-      "totalShipped": 186,
+      "totalShipped": 188,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -2159,7 +2159,7 @@
         {
           "monthStart": "2026-05-01",
           "monthKey": "2026-05",
-          "totalShipped": 13,
+          "totalShipped": 15,
           "teamCount": 4,
           "teams": [
             {
@@ -2200,7 +2200,7 @@
             },
             {
               "team": "Frontend",
-              "shippedCount": 7,
+              "shippedCount": 9,
               "ideas": [
                 {
                   "issueKey": "TPS-430",
@@ -2239,6 +2239,15 @@
                   "shippedAt": "2026-05-22T11:51:09.190Z"
                 },
                 {
+                  "issueKey": "TPS-432",
+                  "productAreaLabel": "TFC",
+                  "teams": [
+                    "Frontend"
+                  ],
+                  "summary": "UI Porting: Audit Logs (Devices & Flows)",
+                  "shippedAt": "2026-05-28T12:49:07.207Z"
+                },
+                {
                   "issueKey": "TPS-405",
                   "productAreaLabel": "TFC",
                   "teams": [
@@ -2255,6 +2264,15 @@
                   ],
                   "summary": "UI Porting: Routing: Advanced Routing",
                   "shippedAt": "2026-05-08T10:52:12.358Z"
+                },
+                {
+                  "issueKey": "TPS-406",
+                  "productAreaLabel": "TFC",
+                  "teams": [
+                    "Frontend"
+                  ],
+                  "summary": "UI Porting: Routing: Predefined Breakaways",
+                  "shippedAt": "2026-05-28T09:16:08.186Z"
                 },
                 {
                   "issueKey": "TPS-415",
