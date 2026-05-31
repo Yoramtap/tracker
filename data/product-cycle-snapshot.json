@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-30T07:27:41.012Z",
+  "generatedAt": "2026-05-31T07:27:30.670Z",
   "chartData": {
     "fetchedCount": 389,
     "leadCycleByScope": {
@@ -10,7 +10,7 @@
         "rows": [
           {
             "team": "Multi team",
-            "cycle": 40.48,
+            "cycle": 40.59,
             "cycleDoneCount": 45,
             "cycleOngoingCount": 8,
             "meta_cycle": {
@@ -19,7 +19,7 @@
           },
           {
             "team": "API",
-            "cycle": 59.34,
+            "cycle": 59.42,
             "cycleDoneCount": 20,
             "cycleOngoingCount": 5,
             "meta_cycle": {
@@ -28,7 +28,7 @@
           },
           {
             "team": "Frontend",
-            "cycle": 21.56,
+            "cycle": 21.59,
             "cycleDoneCount": 31,
             "cycleOngoingCount": 1,
             "meta_cycle": {
@@ -37,7 +37,7 @@
           },
           {
             "team": "Broadcast",
-            "cycle": 95.67,
+            "cycle": 95.82,
             "cycleDoneCount": 20,
             "cycleOngoingCount": 8,
             "meta_cycle": {
@@ -46,7 +46,7 @@
           },
           {
             "team": "Orchestration",
-            "cycle": 118.07,
+            "cycle": 118.23,
             "cycleDoneCount": 15,
             "cycleOngoingCount": 4,
             "meta_cycle": {
@@ -55,7 +55,7 @@
           },
           {
             "team": "Titanium",
-            "cycle": 73.96,
+            "cycle": 74.73,
             "cycleDoneCount": 4,
             "cycleOngoingCount": 13,
             "meta_cycle": {
@@ -84,7 +84,7 @@
       }
     },
     "currentStageSnapshot": {
-      "yUpper": 334.37,
+      "yUpper": 335.37,
       "categorySecondaryLabels": {
         "Parking": "n=122",
         "Design": "n=24",
@@ -138,41 +138,41 @@
         {
           "phaseKey": "parking_lot",
           "phaseLabel": "Parking",
-          "slot_0": 281.79,
+          "slot_0": 282.79,
           "meta_slot_0": {
             "team": "Multi team",
             "n": 45,
-            "average": 281.79
+            "average": 282.79
           },
-          "slot_1": 321.02,
+          "slot_1": 322.02,
           "meta_slot_1": {
             "team": "API",
             "n": 18,
-            "average": 321.02
+            "average": 322.02
           },
-          "slot_2": 9.88,
+          "slot_2": 10.88,
           "meta_slot_2": {
             "team": "Frontend",
             "n": 1,
-            "average": 9.88
+            "average": 10.88
           },
-          "slot_3": 334.37,
+          "slot_3": 335.37,
           "meta_slot_3": {
             "team": "Broadcast",
             "n": 31,
-            "average": 334.37
+            "average": 335.37
           },
-          "slot_4": 208.76,
+          "slot_4": 209.76,
           "meta_slot_4": {
             "team": "Orchestration",
             "n": 9,
-            "average": 208.76
+            "average": 209.76
           },
-          "slot_5": 46.99,
+          "slot_5": 47.99,
           "meta_slot_5": {
             "team": "Titanium",
             "n": 4,
-            "average": 46.99
+            "average": 47.99
           },
           "slot_6": 0,
           "meta_slot_6": {
@@ -180,45 +180,45 @@
             "n": 0,
             "average": 0
           },
-          "slot_7": 186.01,
+          "slot_7": 187.01,
           "meta_slot_7": {
             "team": "UNMAPPED",
             "n": 14,
-            "average": 186.01
+            "average": 187.01
           }
         },
         {
           "phaseKey": "design",
           "phaseLabel": "Design",
-          "slot_0": 138.41,
+          "slot_0": 139.41,
           "meta_slot_0": {
             "team": "Multi team",
             "n": 11,
-            "average": 138.41
+            "average": 139.41
           },
-          "slot_1": 163.36,
+          "slot_1": 164.36,
           "meta_slot_1": {
             "team": "API",
             "n": 6,
-            "average": 163.36
+            "average": 164.36
           },
-          "slot_2": 56.92,
+          "slot_2": 57.92,
           "meta_slot_2": {
             "team": "Frontend",
             "n": 1,
-            "average": 56.92
+            "average": 57.92
           },
-          "slot_3": 313.11,
+          "slot_3": 314.11,
           "meta_slot_3": {
             "team": "Broadcast",
             "n": 2,
-            "average": 313.11
+            "average": 314.11
           },
-          "slot_4": 72.34,
+          "slot_4": 73.34,
           "meta_slot_4": {
             "team": "Orchestration",
             "n": 3,
-            "average": 72.34
+            "average": 73.34
           },
           "slot_5": 0,
           "meta_slot_5": {
@@ -232,21 +232,21 @@
             "n": 0,
             "average": 0
           },
-          "slot_7": 259.94,
+          "slot_7": 260.94,
           "meta_slot_7": {
             "team": "UNMAPPED",
             "n": 1,
-            "average": 259.94
+            "average": 260.94
           }
         },
         {
           "phaseKey": "ready_for_development",
           "phaseLabel": "Ready",
-          "slot_0": 157.46,
+          "slot_0": 158.46,
           "meta_slot_0": {
             "team": "Multi team",
             "n": 2,
-            "average": 157.46
+            "average": 158.46
           },
           "slot_1": 0,
           "meta_slot_1": {
@@ -254,11 +254,11 @@
             "n": 0,
             "average": 0
           },
-          "slot_2": 42.53,
+          "slot_2": 43.53,
           "meta_slot_2": {
             "team": "Frontend",
             "n": 2,
-            "average": 42.53
+            "average": 43.53
           },
           "slot_3": 0,
           "meta_slot_3": {
@@ -284,51 +284,51 @@
             "n": 0,
             "average": 0
           },
-          "slot_7": 72.01,
+          "slot_7": 73.01,
           "meta_slot_7": {
             "team": "UNMAPPED",
             "n": 1,
-            "average": 72.01
+            "average": 73.01
           }
         },
         {
           "phaseKey": "in_development",
           "phaseLabel": "In Development",
-          "slot_0": 27.45,
+          "slot_0": 28.45,
           "meta_slot_0": {
             "team": "Multi team",
             "n": 4,
-            "average": 27.45
+            "average": 28.45
           },
-          "slot_1": 68.39,
+          "slot_1": 69.39,
           "meta_slot_1": {
             "team": "API",
             "n": 1,
-            "average": 68.39
+            "average": 69.39
           },
-          "slot_2": 3.94,
+          "slot_2": 4.94,
           "meta_slot_2": {
             "team": "Frontend",
             "n": 1,
-            "average": 3.94
+            "average": 4.94
           },
-          "slot_3": 97.88,
+          "slot_3": 98.88,
           "meta_slot_3": {
             "team": "Broadcast",
             "n": 3,
-            "average": 97.88
+            "average": 98.88
           },
-          "slot_4": 31.17,
+          "slot_4": 32.17,
           "meta_slot_4": {
             "team": "Orchestration",
             "n": 1,
-            "average": 31.17
+            "average": 32.17
           },
-          "slot_5": 38.42,
+          "slot_5": 39.42,
           "meta_slot_5": {
             "team": "Titanium",
             "n": 10,
-            "average": 38.42
+            "average": 39.42
           },
           "slot_6": 0,
           "meta_slot_6": {
@@ -346,11 +346,11 @@
         {
           "phaseKey": "feedback",
           "phaseLabel": "UAT",
-          "slot_0": 47.03,
+          "slot_0": 48.03,
           "meta_slot_0": {
             "team": "Multi team",
             "n": 1,
-            "average": 47.03
+            "average": 48.03
           },
           "slot_1": 0,
           "meta_slot_1": {
@@ -376,11 +376,11 @@
             "n": 0,
             "average": 0
           },
-          "slot_5": 61.15,
+          "slot_5": 62.15,
           "meta_slot_5": {
             "team": "Titanium",
             "n": 3,
-            "average": 61.15
+            "average": 62.15
           },
           "slot_6": 0,
           "meta_slot_6": {
