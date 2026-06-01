@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-01T07:27:26.036Z",
+  "generatedAt": "2026-06-01T19:16:44.688Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
-      "timelineEnd": "2026-05-01",
-      "totalShipped": 189,
+      "timelineEnd": "2026-06-01",
+      "totalShipped": 190,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -2330,6 +2330,31 @@
                   ],
                   "summary": "Destroy data plane for LAWO",
                   "shippedAt": "2026-05-14T09:54:07.888Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "monthStart": "2026-06-01",
+          "monthKey": "2026-06",
+          "totalShipped": 1,
+          "teamCount": 1,
+          "teams": [
+            {
+              "team": "Multi team",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-383",
+                  "productAreaLabel": "TFC",
+                  "teams": [
+                    "API",
+                    "Frontend",
+                    "Broadcast"
+                  ],
+                  "summary": "Ephemeral: multiviewer head cloning",
+                  "shippedAt": "2026-06-01T16:51:22.019Z"
                 }
               ]
             }
