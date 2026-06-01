@@ -69,20 +69,6 @@
     ["workers", "Workers", "workers"],
     ["titanium", "Titanium", "titanium"]
   ];
-  const TREND_LONG_LINES = [
-    {
-      dataKey: "bcLong30",
-      name: "BC long-standing (30d+)",
-      stroke: "#8e9aaa",
-      strokeDasharray: "4 3"
-    },
-    {
-      dataKey: "bcLong60",
-      name: "BC long-standing (60d+)",
-      stroke: "#6f7f92",
-      strokeDasharray: "7 4"
-    }
-  ];
 
   function toWhole(value) {
     return Math.round(toNumber(value));
@@ -446,7 +432,6 @@
     h,
     getPrCycleTeamColor,
     TEAM_CONFIG,
-    TREND_LONG_LINES,
     TREND_TEAM_LINES,
     computeYUpper,
     formatDateShort,

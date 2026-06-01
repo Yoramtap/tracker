@@ -21,7 +21,6 @@
 
   const {
     TEAM_CONFIG,
-    TREND_LONG_LINES,
     TREND_TEAM_LINES,
     buildRowMarkup,
     computeYUpper,
@@ -245,20 +244,13 @@
   }
 
   function trendLineDefs(colors) {
-    return [
-      ...TREND_TEAM_LINES.map(([dataKey, name, colorKey]) => ({
-        dataKey,
-        name,
-        stroke: colors.teams[colorKey],
-        strokeWidth: 2.5,
-        dot: true
-      })),
-      ...TREND_LONG_LINES.map((lineDef) => ({
-        ...lineDef,
-        strokeWidth: 1.9,
-        dot: false
-      }))
-    ];
+    return TREND_TEAM_LINES.map(([dataKey, name, colorKey]) => ({
+      dataKey,
+      name,
+      stroke: colors.teams[colorKey],
+      strokeWidth: 2.5,
+      dot: true
+    }));
   }
 
   function buildTrendAxis(yUpper) {
@@ -914,9 +906,7 @@
         ...rows.map((row) => row.react),
         ...rows.map((row) => row.bc),
         ...rows.map((row) => row.workers),
-        ...rows.map((row) => row.titanium),
-        ...rows.map((row) => row.bcLong30),
-        ...rows.map((row) => row.bcLong60)
+        ...rows.map((row) => row.titanium)
       ],
       { min: 10, pad: 1.08 }
     );
