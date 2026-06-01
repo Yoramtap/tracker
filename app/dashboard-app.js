@@ -403,7 +403,8 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     { dataKey: "react", name: "React FE", colorKey: "react" },
     { dataKey: "bc", name: "BC", colorKey: "bc" },
     { dataKey: "workers", name: "Workers", colorKey: "workers" },
-    { dataKey: "titanium", name: "Titanium", colorKey: "titanium" }
+    { dataKey: "titanium", name: "Titanium", colorKey: "titanium" },
+    { dataKey: "unmapped", name: "Unmapped", colorKey: "unmapped" }
   ];
   const PR_ACTIVITY_EVENT_REFERENCE_MARKERS = [
     { date: "2024-04-13", label: "NAB" },

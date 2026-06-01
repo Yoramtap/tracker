@@ -15,8 +15,9 @@ import {
   MANAGEMENT_FACILITY_SNAPSHOT_PATH,
   PR_CYCLE_CHANGELOG_CACHE_PATH,
   PR_CYCLE_CHANGELOG_CACHE_TMP_PATH,
-  PR_ACTIVITY_ISSUE_CACHE_PATH,
-  PR_ACTIVITY_ISSUE_CACHE_TMP_PATH,
+  PR_ACTIVITY_CONTRIBUTOR_TEAM_MAP_PATH,
+  PR_ACTIVITY_REPO_DISCOVERY_CACHE_PATH,
+  PR_ACTIVITY_REPO_DISCOVERY_CACHE_TMP_PATH,
   PR_ACTIVITY_REPO_TEAM_MAP_PATH,
   PR_ACTIVITY_SNAPSHOT_PATH,
   PR_CYCLE_SNAPSHOT_PATH,
@@ -101,7 +102,6 @@ const BOARDS = [
 const PAGE_SIZE = 100;
 const MAX_RETRIES = 5;
 const JIRA_REQUEST_TIMEOUT_MS = 30000;
-const PR_DETAIL_CONCURRENCY = 12;
 const GITHUB_PR_DETAIL_CONCURRENCY = 6;
 const GITHUB_PULLS_PAGE_SIZE = 100;
 const UAT_CHANGELOG_CONCURRENCY = 6;
@@ -119,16 +119,16 @@ const FULL_REFRESH_STAGE_ORDER = Object.freeze([
   "write"
 ]);
 const PRIORITY_ORDER = ["highest", "high", "medium", "low", "lowest"];
-const PR_SUMMARY_FIELD = "customfield_10000";
 const PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY = "30d";
 const PR_ACTIVITY_HISTORY_WINDOW_KEY = "history";
 const PR_ACTIVITY_HISTORY_FLOOR = "2024-01-01";
-const PR_REVIEW_STATUS = "In Review";
 const PR_ACTIVITY_PROJECT_KEYS = ["TFC", "TFO", "MESO"];
-const PR_ACTIVITY_SOURCE_JIRA = "jira";
-const PR_ACTIVITY_SOURCE_GITHUB = "github";
-const PR_ACTIVITY_ARTIFACT_PULL_REQUEST_KEYS = new Set(["TFC-11509|1024649212:#52"]);
 const TEAM_KEYS = ["api", "legacy", "react", "bc", "workers", "titanium"];
+const PR_ACTIVITY_UNMAPPED_TEAM_KEY = "unmapped";
+const PR_ACTIVITY_TEAM_KEYS = [...TEAM_KEYS, PR_ACTIVITY_UNMAPPED_TEAM_KEY];
+const PR_ACTIVITY_DEFAULT_GITHUB_ORG = "example-org";
+const PR_ACTIVITY_REPO_DISCOVERY_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const PR_ACTIVITY_UNMAPPED_CONTRIBUTOR_LIMIT = 50;
 const PR_TEAM_LABELS = {
   API: "api",
   Frontend: "legacy",
@@ -226,7 +226,9 @@ function readCliArg(flag) {
 }
 
 function resolveStopAfterStage(value = "") {
-  const stageName = String(value || "").trim().toLowerCase();
+  const stageName = String(value || "")
+    .trim()
+    .toLowerCase();
   if (!stageName) return "";
   if (!FULL_REFRESH_STAGE_ORDER.includes(stageName)) {
     throw new Error(
@@ -369,12 +371,6 @@ async function jiraRequest(site, email, token, url, options = {}) {
   throw new Error("Jira request failed after retries.");
 }
 
-function normalizePrActivitySource(value) {
-  return String(value || "").trim().toLowerCase() === PR_ACTIVITY_SOURCE_GITHUB
-    ? PR_ACTIVITY_SOURCE_GITHUB
-    : PR_ACTIVITY_SOURCE_JIRA;
-}
-
 export async function loadPrActivityRepoTeamMapConfig(options = {}) {
   const payload =
     options.payload && typeof options.payload === "object"
@@ -384,10 +380,35 @@ export async function loadPrActivityRepoTeamMapConfig(options = {}) {
   return Object.fromEntries(
     Object.entries(rawRepos)
       .map(([repo, team]) => [
-        String(repo || "").trim().toLowerCase(),
-        String(team || "").trim().toLowerCase()
+        String(repo || "")
+          .trim()
+          .toLowerCase(),
+        String(team || "")
+          .trim()
+          .toLowerCase()
       ])
       .filter(([repo, team]) => repo && TEAM_KEYS.includes(team))
+  );
+}
+
+export async function loadPrActivityContributorTeamMapConfig(options = {}) {
+  const payload =
+    options.payload && typeof options.payload === "object"
+      ? options.payload
+      : await readJsonFile(options.path || PR_ACTIVITY_CONTRIBUTOR_TEAM_MAP_PATH);
+  const rawContributors =
+    payload?.contributors && typeof payload.contributors === "object" ? payload.contributors : {};
+  return Object.fromEntries(
+    Object.entries(rawContributors)
+      .map(([login, team]) => [
+        String(login || "")
+          .trim()
+          .toLowerCase(),
+        String(team || "")
+          .trim()
+          .toLowerCase()
+      ])
+      .filter(([login, team]) => login && TEAM_KEYS.includes(team))
   );
 }
 
@@ -416,9 +437,90 @@ export async function resolveGitHubAccessToken(options = {}) {
   return loadGitHubCliToken();
 }
 
+function normalizeGitHubRepoName(repo) {
+  return String(repo?.full_name || repo || "")
+    .trim()
+    .toLowerCase();
+}
+
+function shouldScanGitHubRepo(repo) {
+  if (!repo || typeof repo !== "object") return false;
+  if (repo.archived || repo.disabled) return false;
+  return Boolean(normalizeGitHubRepoName(repo));
+}
+
+function isFreshRepoDiscoveryCache(payload, nowMs = Date.now()) {
+  const fetchedAtMs = new Date(String(payload?.fetchedAt || "")).getTime();
+  return (
+    Number.isFinite(fetchedAtMs) &&
+    nowMs - fetchedAtMs >= 0 &&
+    nowMs - fetchedAtMs <= PR_ACTIVITY_REPO_DISCOVERY_CACHE_TTL_MS
+  );
+}
+
+async function fetchGitHubOrgRepositories(org, options = {}) {
+  const safeOrg = String(org || PR_ACTIVITY_DEFAULT_GITHUB_ORG)
+    .trim()
+    .toLowerCase();
+  if (!safeOrg) return [];
+
+  const githubToken = options.githubToken;
+  const readCache =
+    typeof options.readRepoDiscoveryCache === "function"
+      ? options.readRepoDiscoveryCache
+      : readJsonFile;
+  const writeCache =
+    typeof options.writeRepoDiscoveryCache === "function"
+      ? options.writeRepoDiscoveryCache
+      : writeJsonAtomic;
+  const cachePath = options.repoDiscoveryCachePath || PR_ACTIVITY_REPO_DISCOVERY_CACHE_PATH;
+  const cacheTmpPath =
+    options.repoDiscoveryCacheTmpPath || PR_ACTIVITY_REPO_DISCOVERY_CACHE_TMP_PATH;
+
+  if (options.useRepoDiscoveryCache !== false) {
+    const cached = await readCache(cachePath);
+    if (cached?.org === safeOrg && isFreshRepoDiscoveryCache(cached, options.nowMs)) {
+      return Array.isArray(cached.repos)
+        ? cached.repos.map(normalizeGitHubRepoName).filter(Boolean)
+        : [];
+    }
+  }
+
+  const fetchOrgReposPage =
+    typeof options.fetchOrgReposPage === "function"
+      ? options.fetchOrgReposPage
+      : async (orgName, page) =>
+          githubRequest(
+            githubToken,
+            `orgs/${orgName}/repos?type=all&sort=updated&direction=desc&per_page=${GITHUB_PULLS_PAGE_SIZE}&page=${page}`
+          );
+
+  const repos = [];
+  let page = 1;
+  for (;;) {
+    const pageRows = await fetchOrgReposPage(safeOrg, page);
+    const safeRows = Array.isArray(pageRows) ? pageRows : [];
+    repos.push(...safeRows.filter(shouldScanGitHubRepo).map(normalizeGitHubRepoName));
+    if (safeRows.length < GITHUB_PULLS_PAGE_SIZE) break;
+    page += 1;
+  }
+
+  const uniqueRepos = Array.from(new Set(repos)).sort();
+  if (options.useRepoDiscoveryCache !== false) {
+    await writeCache(cachePath, cacheTmpPath, {
+      fetchedAt: new Date(options.nowMs || Date.now()).toISOString(),
+      org: safeOrg,
+      repos: uniqueRepos
+    });
+  }
+  return uniqueRepos;
+}
+
 async function githubRequest(token, apiPath) {
   const safeToken = String(token || "").trim();
-  const safeApiPath = String(apiPath || "").trim().replace(/^\/+/, "");
+  const safeApiPath = String(apiPath || "")
+    .trim()
+    .replace(/^\/+/, "");
   if (!safeToken) {
     throw new Error("Missing GitHub auth. Authenticate with gh auth login.");
   }
@@ -473,9 +575,15 @@ function githubPullRequestTouchesSinceDate(pullRequest, safeSinceDate) {
 
 function isGitHubSubmittedReview(review, authorLogin) {
   const submittedAt = isoDateTime(review?.submitted_at);
-  const state = String(review?.state || "").trim().toUpperCase();
-  const reviewerLogin = String(review?.user?.login || "").trim().toLowerCase();
-  const safeAuthorLogin = String(authorLogin || "").trim().toLowerCase();
+  const state = String(review?.state || "")
+    .trim()
+    .toUpperCase();
+  const reviewerLogin = String(review?.user?.login || "")
+    .trim()
+    .toLowerCase();
+  const safeAuthorLogin = String(authorLogin || "")
+    .trim()
+    .toLowerCase();
   if (!submittedAt || !state || state === "PENDING") return false;
   if (safeAuthorLogin && reviewerLogin && reviewerLogin === safeAuthorLogin) return false;
   return true;
@@ -516,15 +624,19 @@ export function normalizeGitHubPullRequestRecord(repo, team, pullRequest) {
   )
     .trim()
     .toLowerCase();
-  const safeTeam = String(team || "").trim().toLowerCase();
+  const safeTeam = String(team || "")
+    .trim()
+    .toLowerCase();
   const number = Number(pullRequest?.number);
   const createdDate = isoDateOnly(pullRequest?.created_at);
   const mergedDate = isoDateOnly(pullRequest?.merged_at);
-  const state = String(pullRequest?.state || "").trim().toUpperCase();
+  const state = String(pullRequest?.state || "")
+    .trim()
+    .toUpperCase();
   const isDraft = Boolean(pullRequest?.draft);
   if (
     !safeRepo ||
-    !TEAM_KEYS.includes(safeTeam) ||
+    !PR_ACTIVITY_TEAM_KEYS.includes(safeTeam) ||
     !Number.isFinite(number) ||
     !createdDate ||
     isDraft
@@ -545,8 +657,20 @@ export function normalizeGitHubPullRequestRecord(repo, team, pullRequest) {
   };
 }
 
+function resolveContributorTeam(contributorTeamMap, pullRequest) {
+  const authorLogin = String(pullRequest?.user?.login || "")
+    .trim()
+    .toLowerCase();
+  if (!authorLogin) return "";
+  return String(contributorTeamMap?.[authorLogin] || "")
+    .trim()
+    .toLowerCase();
+}
+
 async function fetchGitHubPullRequestReviews(repo, pullRequestNumber, options = {}) {
-  const safeRepo = String(repo || "").trim().toLowerCase();
+  const safeRepo = String(repo || "")
+    .trim()
+    .toLowerCase();
   const safeNumber = Number(pullRequestNumber);
   if (!safeRepo || !Number.isFinite(safeNumber)) return [];
 
@@ -575,7 +699,9 @@ async function fetchGitHubPullRequestReviews(repo, pullRequestNumber, options = 
 }
 
 async function fetchGitHubPullRequestsForRepo(repo, sinceDate, options = {}) {
-  const safeRepo = String(repo || "").trim().toLowerCase();
+  const safeRepo = String(repo || "")
+    .trim()
+    .toLowerCase();
   const safeSinceDate = isoDateOnly(sinceDate);
   if (!safeRepo || !safeSinceDate) return [];
 
@@ -623,14 +749,20 @@ async function resolveGitHubCanonicalRepoEntries(repoEntries, options = {}) {
     repoEntries,
     GITHUB_PR_DETAIL_CONCURRENCY,
     async ([repo, team]) => {
-      const metadata = await fetchRepoMetadata(repo);
+      const metadata = options.skipRepoMetadata
+        ? { full_name: repo }
+        : await fetchRepoMetadata(repo);
       const canonicalRepo = String(metadata?.full_name || repo)
         .trim()
         .toLowerCase();
       return {
-        mappedRepo: String(repo || "").trim().toLowerCase(),
+        mappedRepo: String(repo || "")
+          .trim()
+          .toLowerCase(),
         repo: canonicalRepo,
-        team: String(team || "").trim().toLowerCase()
+        team: String(team || "")
+          .trim()
+          .toLowerCase()
       };
     }
   );
@@ -640,7 +772,7 @@ async function resolveGitHubCanonicalRepoEntries(repoEntries, options = {}) {
   let canonicalConflictCount = 0;
 
   for (const entry of resolvedEntries) {
-    if (!entry.repo || !TEAM_KEYS.includes(entry.team)) continue;
+    if (!entry.repo || !PR_ACTIVITY_TEAM_KEYS.includes(entry.team)) continue;
     const existing = canonicalEntries.get(entry.repo);
     if (!existing) {
       canonicalEntries.set(entry.repo, entry);
@@ -694,19 +826,79 @@ function mergeGitHubReviewToMergeRecords(records) {
   return Array.from(uniqueRecords.values());
 }
 
+function collectUnmappedContributorCounts(pullRequests, contributorTeamMap) {
+  const counts = new Map();
+  for (const pullRequest of Array.isArray(pullRequests) ? pullRequests : []) {
+    if (!pullRequest || pullRequest.draft) continue;
+    const authorLogin = String(pullRequest?.user?.login || "")
+      .trim()
+      .toLowerCase();
+    if (!authorLogin || contributorTeamMap?.[authorLogin]) continue;
+    counts.set(authorLogin, (counts.get(authorLogin) || 0) + 1);
+  }
+  return counts;
+}
+
+function mergeUnmappedContributorCounts(countMaps) {
+  const mergedCounts = new Map();
+  for (const countMap of Array.isArray(countMaps) ? countMaps : []) {
+    for (const [login, count] of countMap instanceof Map ? countMap.entries() : []) {
+      mergedCounts.set(login, (mergedCounts.get(login) || 0) + numberOrZero(count));
+    }
+  }
+  return Array.from(mergedCounts.entries())
+    .map(([login, pullRequestCount]) => ({ login, pullRequestCount }))
+    .sort((a, b) => b.pullRequestCount - a.pullRequestCount || a.login.localeCompare(b.login));
+}
+
 export async function fetchGitHubPrActivity(sinceDate, options = {}) {
   const safeSinceDate = isoDateOnly(sinceDate);
   const repoTeamMap =
     options.repoTeamMap && typeof options.repoTeamMap === "object"
       ? options.repoTeamMap
       : await loadPrActivityRepoTeamMapConfig();
+  const contributorTeamMap =
+    options.contributorTeamMap && typeof options.contributorTeamMap === "object"
+      ? options.contributorTeamMap
+      : await loadPrActivityContributorTeamMapConfig();
   const githubToken = await resolveGitHubAccessToken(options);
-  const repoEntries = Object.entries(repoTeamMap).filter(
-    ([repo, team]) => String(repo || "").trim() && TEAM_KEYS.includes(String(team || "").trim())
+  const discoveredRepos =
+    options.repoDiscoveryEnabled === false
+      ? []
+      : await fetchGitHubOrgRepositories(options.githubOrg || PR_ACTIVITY_DEFAULT_GITHUB_ORG, {
+          ...options,
+          githubToken
+        });
+  const repoEntriesByRepo = new Map();
+  for (const repo of discoveredRepos) {
+    const safeRepo = String(repo || "")
+      .trim()
+      .toLowerCase();
+    if (safeRepo) {
+      repoEntriesByRepo.set(safeRepo, repoTeamMap[safeRepo] || PR_ACTIVITY_UNMAPPED_TEAM_KEY);
+    }
+  }
+  if (options.repoDiscoveryEnabled === false || discoveredRepos.length === 0) {
+    for (const [repo, team] of Object.entries(repoTeamMap)) {
+      const safeRepo = String(repo || "")
+        .trim()
+        .toLowerCase();
+      const safeTeam = String(team || "")
+        .trim()
+        .toLowerCase();
+      if (safeRepo && TEAM_KEYS.includes(safeTeam) && !repoEntriesByRepo.has(safeRepo)) {
+        repoEntriesByRepo.set(safeRepo, safeTeam);
+      }
+    }
+  }
+  const repoEntries = Array.from(repoEntriesByRepo.entries()).filter(
+    ([repo, team]) =>
+      String(repo || "").trim() && PR_ACTIVITY_TEAM_KEYS.includes(String(team || "").trim())
   );
   const canonicalRepoState = await resolveGitHubCanonicalRepoEntries(repoEntries, {
     githubToken,
-    fetchRepoMetadata: options.fetchRepoMetadata
+    fetchRepoMetadata: options.fetchRepoMetadata,
+    skipRepoMetadata: discoveredRepos.length > 0 && !options.fetchRepoMetadata
   });
 
   const perRepoResults = await mapWithConcurrency(
@@ -717,8 +909,18 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
         githubToken,
         fetchRepoPage: options.fetchRepoPage
       });
+      const unmappedContributorCounts = collectUnmappedContributorCounts(
+        pullRequests,
+        contributorTeamMap
+      );
       const records = pullRequests
-        .map((pullRequest) => normalizeGitHubPullRequestRecord(repo, team, pullRequest))
+        .map((pullRequest) =>
+          normalizeGitHubPullRequestRecord(
+            repo,
+            resolveContributorTeam(contributorTeamMap, pullRequest) || team,
+            pullRequest
+          )
+        )
         .filter(Boolean);
       const mergedPullRequests = pullRequests.filter(
         (pullRequest) =>
@@ -727,17 +929,27 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
           githubPullRequestTouchesSinceDate(pullRequest, safeSinceDate)
       );
       const ticketReviewToMergeRecords = (
-        await mapWithConcurrency(mergedPullRequests, GITHUB_PR_DETAIL_CONCURRENCY, async (pullRequest) => {
-          const reviews = await fetchGitHubPullRequestReviews(repo, pullRequest?.number, {
-            githubToken,
-            fetchReviewsPage: options.fetchReviewsPage
-          });
-          return normalizeGitHubReviewToMergeRecord(repo, team, pullRequest, reviews);
-        })
+        await mapWithConcurrency(
+          mergedPullRequests,
+          GITHUB_PR_DETAIL_CONCURRENCY,
+          async (pullRequest) => {
+            const reviews = await fetchGitHubPullRequestReviews(repo, pullRequest?.number, {
+              githubToken,
+              fetchReviewsPage: options.fetchReviewsPage
+            });
+            return normalizeGitHubReviewToMergeRecord(
+              repo,
+              resolveContributorTeam(contributorTeamMap, pullRequest) || team,
+              pullRequest,
+              reviews
+            );
+          }
+        )
       ).filter(Boolean);
       return {
         records,
-        ticketReviewToMergeRecords
+        ticketReviewToMergeRecords,
+        unmappedContributorCounts
       };
     }
   );
@@ -748,6 +960,9 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
   const ticketReviewToMergeRecords = mergeGitHubReviewToMergeRecords(
     perRepoResults.flatMap((result) => result.ticketReviewToMergeRecords || [])
   );
+  const unmappedContributors = mergeUnmappedContributorCounts(
+    perRepoResults.map((result) => result.unmappedContributorCounts)
+  );
   return {
     source: "github_pull_requests",
     candidateIssueCount: canonicalRepoState.repoEntries.length,
@@ -755,6 +970,12 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
     uniquePrCount: mergedRecords.records.length,
     conflictCount: mergedRecords.conflictCount + canonicalRepoState.canonicalConflictCount,
     aliasRepoCount: canonicalRepoState.aliasRepoCount,
+    discoveredRepoCount: discoveredRepos.length,
+    unmappedRepoCount: canonicalRepoState.repoEntries.filter(
+      ([, team]) => team === PR_ACTIVITY_UNMAPPED_TEAM_KEY
+    ).length,
+    unmappedContributorCount: unmappedContributors.length,
+    unmappedContributors: unmappedContributors.slice(0, PR_ACTIVITY_UNMAPPED_CONTRIBUTOR_LIMIT),
     reviewChangelogIssueCount: ticketReviewToMergeRecords.length,
     cacheHitCount: 0,
     cacheWriteCount: 0,
@@ -843,7 +1064,7 @@ function emptyPrAccumulator() {
 }
 
 function createEmptyPrActivityBuckets() {
-  return TEAM_KEYS.reduce((acc, team) => {
+  return PR_ACTIVITY_TEAM_KEYS.reduce((acc, team) => {
     acc[team] = emptyPrAccumulator();
     return acc;
   }, {});
@@ -917,31 +1138,6 @@ function findLastEnteredStatus(changelog, statusName) {
   }
 
   return latest;
-}
-
-function findFirstEnteredStatus(changelog, statusName) {
-  const target = String(statusName || "")
-    .trim()
-    .toLowerCase();
-  let earliest = "";
-
-  for (const history of changelog?.histories ?? []) {
-    const createdAt = history?.created || "";
-    for (const item of history?.items ?? []) {
-      if (String(item?.field || "").toLowerCase() !== "status") continue;
-      if (
-        String(item?.toString || "")
-          .trim()
-          .toLowerCase() !== target
-      )
-        continue;
-      if (!earliest || new Date(createdAt).getTime() < new Date(earliest).getTime()) {
-        earliest = createdAt;
-      }
-    }
-  }
-
-  return earliest;
 }
 
 function quoteJqlValue(value) {
@@ -1116,7 +1312,9 @@ export function selectPrCycleScrumWindowSprints(sprints, windowConfig = {}) {
   if (!Number.isFinite(windowStartMs) || !Number.isFinite(windowEndMs)) return [];
 
   return safeSprints.filter((sprint) => {
-    const state = String(sprint?.state || "").trim().toLowerCase();
+    const state = String(sprint?.state || "")
+      .trim()
+      .toLowerCase();
     if (state !== "active" && state !== "closed") return false;
 
     const sprintStartMs = new Date(
@@ -1222,7 +1420,12 @@ async function fetchPrCycleKanbanScopedIssueKeysByWindow(
 }
 
 async function fetchPrCycleTeamScopedIssueKeys(site, email, token, teamKey, windowConfigs) {
-  const teamScope = PR_CYCLE_TEAM_BOARD_SCOPES[String(teamKey || "").trim().toLowerCase()];
+  const teamScope =
+    PR_CYCLE_TEAM_BOARD_SCOPES[
+      String(teamKey || "")
+        .trim()
+        .toLowerCase()
+    ];
   const safeWindowConfigs = Array.isArray(windowConfigs) ? windowConfigs.filter(Boolean) : [];
   if (!teamScope?.boardId) return buildScopedIssueKeysByWindowMap(safeWindowConfigs, new Set());
 
@@ -2107,7 +2310,9 @@ function buildPrCycleAvgInflowByTeam(prActivity, windowKey) {
       return [
         teamKey,
         inflowValues.length > 0
-          ? Number((inflowValues.reduce((sum, value) => sum + value, 0) / inflowValues.length).toFixed(1))
+          ? Number(
+              (inflowValues.reduce((sum, value) => sum + value, 0) / inflowValues.length).toFixed(1)
+            )
           : null
       ];
     })
@@ -2115,7 +2320,8 @@ function buildPrCycleAvgInflowByTeam(prActivity, windowKey) {
 }
 
 export function attachPrCycleAvgInflow(prCycleSnapshot, prActivity) {
-  if (!prCycleSnapshot?.windows || typeof prCycleSnapshot.windows !== "object") return prCycleSnapshot;
+  if (!prCycleSnapshot?.windows || typeof prCycleSnapshot.windows !== "object")
+    return prCycleSnapshot;
   const hasPrActivityPoints = Array.isArray(prActivity?.points) && prActivity.points.length > 0;
   if (!hasPrActivityPoints) return prCycleSnapshot;
   const windows = Object.fromEntries(
@@ -2128,7 +2334,13 @@ export function attachPrCycleAvgInflow(prCycleSnapshot, prActivity) {
           teams: (Array.isArray(windowSnapshot?.teams) ? windowSnapshot.teams : []).map((team) => ({
             ...team,
             avgPrInflow:
-              inflowByTeamKey[String(team?.key || "").trim().toLowerCase()] ?? team?.avgPrInflow ?? null
+              inflowByTeamKey[
+                String(team?.key || "")
+                  .trim()
+                  .toLowerCase()
+              ] ??
+              team?.avgPrInflow ??
+              null
           }))
         }
       ];
@@ -2204,347 +2416,7 @@ function teamKeyFromLabels(labels) {
   return "";
 }
 
-function hasPullRequestSummary(rawValue) {
-  const raw = String(rawValue || "").trim();
-  return raw.includes("pullrequest={");
-}
-
-function readPullRequestSummaryLastUpdatedAt(rawValue) {
-  const raw = String(rawValue || "").trim();
-  if (!raw.includes("pullrequest={")) return "";
-  const match = raw.match(/"lastUpdated":"([^"]+)"/);
-  return isoDateTime(match?.[1] || "");
-}
-
-function readPullRequestSummaryLastUpdated(rawValue) {
-  return isoDateOnly(readPullRequestSummaryLastUpdatedAt(rawValue));
-}
-
-async function fetchIssuePullRequestDetails(site, email, token, issueId) {
-  const payload = await jiraRequest(
-    site,
-    email,
-    token,
-    `https://${site}/rest/dev-status/latest/issue/detail?issueId=${encodeURIComponent(issueId)}&applicationType=GitHub&dataType=pullrequest`
-  );
-  return Array.isArray(payload?.detail) ? payload.detail : [];
-}
-
-function pullRequestUniqueKey(pullRequest) {
-  const repositoryId = String(pullRequest?.repositoryId || "").trim();
-  const id = String(pullRequest?.id || "").trim();
-  const url = String(pullRequest?.url || "").trim();
-  if (repositoryId && id) return `${repositoryId}:${id}`;
-  return url;
-}
-
-function isIgnoredPrActivityArtifact(issueKey, pullRequest) {
-  const safeIssueKey = String(issueKey || "").trim();
-  const safePullRequestKey = pullRequestUniqueKey(pullRequest);
-  if (!safeIssueKey || !safePullRequestKey) return false;
-  return PR_ACTIVITY_ARTIFACT_PULL_REQUEST_KEYS.has(`${safeIssueKey}|${safePullRequestKey}`);
-}
-
-function resolvePullRequestOfferProxyDate(pullRequest, branches) {
-  const sourceBranch = String(pullRequest?.source?.branch || "").trim();
-  const matchingBranch = Array.isArray(branches)
-    ? branches.find((branch) => String(branch?.name || "").trim() === sourceBranch)
-    : null;
-
-  return earliestIsoDate([pullRequest?.lastUpdate, matchingBranch?.lastCommit?.authorTimestamp]);
-}
-
-function resolvePullRequestMergedProxyDate(pullRequest) {
-  return isoDateOnly(pullRequest?.lastUpdate);
-}
-
-function resolveIssueMergedProxyDate(issueKey, details) {
-  const mergedDates = [];
-
-  for (const detail of details ?? []) {
-    for (const pullRequest of detail?.pullRequests ?? []) {
-      if (isIgnoredPrActivityArtifact(issueKey, pullRequest)) continue;
-      const status = String(pullRequest?.status || "")
-        .trim()
-        .toUpperCase();
-      if (status !== "MERGED") continue;
-      const mergedProxyDate = resolvePullRequestMergedProxyDate(pullRequest);
-      if (mergedProxyDate) mergedDates.push(mergedProxyDate);
-    }
-  }
-
-  return latestIsoDate(mergedDates);
-}
-
-function normalizePullRequestRecords(issue, details) {
-  const issueKey = String(issue?.key || "").trim();
-  const team = teamKeyFromLabels(issue?.fields?.labels ?? []);
-  if (!team) return [];
-
-  const records = [];
-
-  for (const detail of details ?? []) {
-    const branches = Array.isArray(detail?.branches) ? detail.branches : [];
-    const pullRequests = Array.isArray(detail?.pullRequests) ? detail.pullRequests : [];
-
-    for (const pullRequest of pullRequests) {
-      if (isIgnoredPrActivityArtifact(issueKey, pullRequest)) continue;
-      const uniqueKey = pullRequestUniqueKey(pullRequest);
-      const offeredProxyDate = resolvePullRequestOfferProxyDate(pullRequest, branches);
-      const status = String(pullRequest?.status || "")
-        .trim()
-        .toUpperCase();
-      const mergedProxyDate =
-        status === "MERGED" ? resolvePullRequestMergedProxyDate(pullRequest) : "";
-      if (!uniqueKey || !offeredProxyDate) continue;
-
-      records.push({
-        uniqueKey,
-        team,
-        offeredProxyDate,
-        mergedProxyDate,
-        status,
-        url: String(pullRequest?.url || "").trim(),
-        repositoryId: String(pullRequest?.repositoryId || "").trim(),
-        pullRequestId: String(pullRequest?.id || "").trim(),
-        issueKey
-      });
-    }
-  }
-
-  return records;
-}
-
-function normalizeTicketReviewToMergeRecord(issue, details, changelog) {
-  const issueKey = String(issue?.key || "").trim();
-  const team = teamKeyFromLabels(issue?.fields?.labels ?? []);
-  if (!team) return null;
-
-  const reviewStartedAt = isoDateOnly(findFirstEnteredStatus(changelog, PR_REVIEW_STATUS));
-  const mergedProxyDate = resolveIssueMergedProxyDate(issueKey, details);
-  if (!reviewStartedAt || !mergedProxyDate) return null;
-
-  const reviewToMergeDays = daysBetweenIsoDates(reviewStartedAt, mergedProxyDate);
-  if (reviewToMergeDays < 0) return null;
-
-  return {
-    issueKey,
-    team,
-    reviewStartedAt,
-    mergedProxyDate,
-    reviewToMergeDays
-  };
-}
-
-function pullRequestRecordTouchesSinceDate(record, safeSinceDate) {
-  const offeredProxyDate = isoDateOnly(record?.offeredProxyDate);
-  const mergedProxyDate = isoDateOnly(record?.mergedProxyDate);
-  return (
-    (offeredProxyDate && offeredProxyDate >= safeSinceDate) ||
-    (mergedProxyDate && mergedProxyDate >= safeSinceDate)
-  );
-}
-
-function readPrActivityIssueCacheEntry(cacheByIssueKey, issueKey, summaryLastUpdatedAt) {
-  const safeIssueKey = String(issueKey || "").trim();
-  const safeSummaryLastUpdatedAt = String(summaryLastUpdatedAt || "").trim();
-  if (!safeIssueKey || !safeSummaryLastUpdatedAt) return null;
-
-  const entry = cacheByIssueKey?.[safeIssueKey];
-  if (!entry || typeof entry !== "object") return null;
-  if (String(entry.summaryLastUpdatedAt || "").trim() !== safeSummaryLastUpdatedAt) return null;
-
-  return {
-    pullRequestRecords: Array.isArray(entry.pullRequestRecords) ? entry.pullRequestRecords : [],
-    ticketReviewToMergeRecord:
-      entry.ticketReviewToMergeRecord && typeof entry.ticketReviewToMergeRecord === "object"
-        ? entry.ticketReviewToMergeRecord
-        : null
-  };
-}
-
-function createPrActivityIssueCacheEntry(summaryLastUpdatedAt, issueResult) {
-  const safeSummaryLastUpdatedAt = String(summaryLastUpdatedAt || "").trim();
-  if (!safeSummaryLastUpdatedAt) return null;
-
-  return {
-    summaryLastUpdatedAt: safeSummaryLastUpdatedAt,
-    pullRequestRecords: Array.isArray(issueResult?.pullRequestRecords)
-      ? issueResult.pullRequestRecords
-      : [],
-    ticketReviewToMergeRecord:
-      issueResult?.ticketReviewToMergeRecord &&
-      typeof issueResult.ticketReviewToMergeRecord === "object"
-        ? issueResult.ticketReviewToMergeRecord
-        : null
-  };
-}
-
-async function fetchJiraPrActivity(site, email, token, sinceDate, options = {}) {
-  const labelClause = Object.keys(PR_TEAM_LABELS)
-    .map((label) => quoteJqlValue(label))
-    .join(", ");
-  const projectClause = PR_ACTIVITY_PROJECT_KEYS.map((projectKey) =>
-    quoteJqlValue(projectKey)
-  ).join(", ");
-  const jql = [`project in (${projectClause})`, `AND labels in (${labelClause})`].join(" ");
-
-  const issues = await searchJiraIssues(site, email, token, jql, [
-    "labels",
-    "status",
-    "created",
-    PR_SUMMARY_FIELD
-  ]);
-
-  const candidateIssues = issues.filter(
-    (issue) =>
-      teamKeyFromLabels(issue?.fields?.labels ?? []) &&
-      hasPullRequestSummary(issue?.fields?.[PR_SUMMARY_FIELD])
-  );
-  const safeSinceDate = isoDateOnly(sinceDate);
-  const prActivityIssueCache =
-    options.useCache === false ? null : await readJsonFile(PR_ACTIVITY_ISSUE_CACHE_PATH);
-  const prActivityIssueCacheByIssueKey =
-    prActivityIssueCache?.issues && typeof prActivityIssueCache.issues === "object"
-      ? { ...prActivityIssueCache.issues }
-      : {};
-  const activeCandidateIssues = candidateIssues.filter((issue) => {
-    const summaryLastUpdated = readPullRequestSummaryLastUpdated(issue?.fields?.[PR_SUMMARY_FIELD]);
-    return !summaryLastUpdated || summaryLastUpdated >= safeSinceDate;
-  });
-
-  const issueResults = await mapWithConcurrency(
-    activeCandidateIssues,
-    PR_DETAIL_CONCURRENCY,
-    async (issue) => {
-      const issueKey = String(issue?.key || "").trim();
-      const summaryLastUpdatedAt = readPullRequestSummaryLastUpdatedAt(
-        issue?.fields?.[PR_SUMMARY_FIELD]
-      );
-      const cachedIssueResult = readPrActivityIssueCacheEntry(
-        prActivityIssueCacheByIssueKey,
-        issueKey,
-        summaryLastUpdatedAt
-      );
-      if (cachedIssueResult) {
-        return {
-          pullRequestRecords: cachedIssueResult.pullRequestRecords.filter((record) =>
-            pullRequestRecordTouchesSinceDate(record, safeSinceDate)
-          ),
-          ticketReviewToMergeRecord: cachedIssueResult.ticketReviewToMergeRecord,
-          reviewChangelogFetched: false,
-          cacheHit: true,
-          cacheEntry: null,
-          issueKey
-        };
-      }
-
-      const details = await fetchIssuePullRequestDetails(site, email, token, issue.id);
-      const allPullRequestRecords = normalizePullRequestRecords(issue, details);
-      const pullRequestRecords = allPullRequestRecords.filter((record) =>
-        pullRequestRecordTouchesSinceDate(record, safeSinceDate)
-      );
-      const shouldFetchReviewChangelog = allPullRequestRecords.some(
-        (record) =>
-          String(record?.status || "")
-            .trim()
-            .toUpperCase() === "MERGED"
-      );
-      const changelog = shouldFetchReviewChangelog
-        ? await fetchIssueChangelog(site, email, token, issue.key)
-        : null;
-      const ticketReviewToMergeRecord =
-        shouldFetchReviewChangelog && changelog
-          ? normalizeTicketReviewToMergeRecord(issue, details, changelog)
-          : null;
-      return {
-        pullRequestRecords,
-        ticketReviewToMergeRecord,
-        reviewChangelogFetched: shouldFetchReviewChangelog,
-        cacheHit: false,
-        cacheEntry: createPrActivityIssueCacheEntry(summaryLastUpdatedAt, {
-          pullRequestRecords: allPullRequestRecords,
-          ticketReviewToMergeRecord
-        }),
-        issueKey
-      };
-    }
-  );
-
-  let cacheWriteCount = 0;
-  for (const issueResult of issueResults) {
-    const safeIssueKey = String(issueResult?.issueKey || "").trim();
-    if (!safeIssueKey || !issueResult?.cacheEntry) continue;
-    prActivityIssueCacheByIssueKey[safeIssueKey] = issueResult.cacheEntry;
-    cacheWriteCount += 1;
-  }
-  if (cacheWriteCount > 0) {
-    await writeJsonAtomic(PR_ACTIVITY_ISSUE_CACHE_PATH, PR_ACTIVITY_ISSUE_CACHE_TMP_PATH, {
-      updatedAt: new Date().toISOString(),
-      issues: prActivityIssueCacheByIssueKey
-    });
-  }
-
-  const uniquePullRequests = new Map();
-  let conflictCount = 0;
-
-  for (const record of issueResults.flatMap((result) => result.pullRequestRecords || [])) {
-    const existing = uniquePullRequests.get(record.uniqueKey);
-    if (!existing) {
-      uniquePullRequests.set(record.uniqueKey, record);
-      continue;
-    }
-
-    if (existing.team !== record.team) conflictCount += 1;
-
-    existing.offeredProxyDate = earliestIsoDate([
-      existing.offeredProxyDate,
-      record.offeredProxyDate
-    ]);
-    existing.mergedProxyDate = latestIsoDate([existing.mergedProxyDate, record.mergedProxyDate]);
-    if (existing.status !== "MERGED" && record.status === "MERGED") existing.status = "MERGED";
-  }
-
-  const filteredRecords = Array.from(uniquePullRequests.values()).filter((record) => {
-    const offeredProxyDate = isoDateOnly(record.offeredProxyDate);
-    const mergedProxyDate = isoDateOnly(record.mergedProxyDate);
-    return (
-      (offeredProxyDate && offeredProxyDate >= safeSinceDate) ||
-      (mergedProxyDate && mergedProxyDate >= safeSinceDate)
-    );
-  });
-  const filteredReviewToMergeRecords = issueResults
-    .map((result) => result.ticketReviewToMergeRecord)
-    .filter(Boolean)
-    .filter((record) => {
-      const mergedProxyDate = isoDateOnly(record?.mergedProxyDate);
-      return mergedProxyDate && mergedProxyDate >= safeSinceDate;
-    });
-  const reviewChangelogIssueCount = issueResults.reduce(
-    (sum, result) => sum + (result?.reviewChangelogFetched ? 1 : 0),
-    0
-  );
-  const cacheHitCount = issueResults.reduce((sum, result) => sum + (result?.cacheHit ? 1 : 0), 0);
-
-  return {
-    source: "jira_dev_status_detail",
-    candidateIssueCount: candidateIssues.length,
-    detailIssueCount: activeCandidateIssues.length,
-    uniquePrCount: filteredRecords.length,
-    conflictCount,
-    reviewChangelogIssueCount,
-    cacheHitCount,
-    cacheWriteCount,
-    records: filteredRecords,
-    ticketReviewToMergeRecords: filteredReviewToMergeRecords
-  };
-}
-
-async function fetchPrActivity(site, email, token, sinceDate, options = {}) {
-  const prActivitySource = normalizePrActivitySource(options.prActivitySource);
-  if (prActivitySource !== PR_ACTIVITY_SOURCE_GITHUB) {
-    return fetchJiraPrActivity(site, email, token, sinceDate, options);
-  }
+async function fetchPrActivity(_site, _email, _token, sinceDate, options = {}) {
   return fetchGitHubPrActivity(sinceDate, options);
 }
 
@@ -2562,7 +2434,7 @@ function resolveSprintBucketDate(isoDate, sprintDates) {
 
 function buildPrActivityPoints(byDate, dates) {
   return (Array.isArray(dates) ? dates : []).map((date) =>
-    TEAM_KEYS.reduce(
+    PR_ACTIVITY_TEAM_KEYS.reduce(
       (point, team) => {
         point[team] = buildPrPointForTeam(byDate, date, team);
         return point;
@@ -2573,20 +2445,17 @@ function buildPrActivityPoints(byDate, dates) {
 }
 
 function buildPrActivityCaveat(source) {
-  const safeSource = String(source || "").trim().toLowerCase();
+  const safeSource = String(source || "")
+    .trim()
+    .toLowerCase();
   if (safeSource === "github_pull_requests") {
-    return "Counts are sourced from GitHub pull requests and attributed by committed repo-to-team mapping. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the first submitted non-author GitHub review to mergedAt.";
+    return "Counts are sourced from GitHub pull requests across discovered organization repos and attributed by the Jira-derived contributor-to-team map, falling back to committed repo-to-team mapping and then Unmapped when neither is known. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the first submitted non-author GitHub review to mergedAt.";
   }
-  return "Counts are deduped from Jira dev-status pull request records and attributed by Jira team label. Inflow dates use the earliest available PR lastUpdate and source-branch last commit timestamp, then are bucketed to Jira sprint points. Merged dates use Jira PR lastUpdate as a merge proxy and are bucketed to the corresponding sprint point. Review-to-merge time is a ticket proxy: first Jira In Review status to linked merged PR proxy date. Multiple done Jira tickets can still map to the same underlying PR.";
+  return "Counts are sourced from GitHub pull requests.";
 }
 
-function buildPrimarySnapshotSourceNote(prActivitySource) {
-  const safeSource = String(prActivitySource || "").trim().toLowerCase();
-  const prActivityNote =
-    safeSource === "github_pull_requests"
-      ? "PR activity is sourced from GitHub pull requests and attributed by committed repo-to-team mapping."
-      : "PR activity is derived from Jira dev-status pull request details.";
-  return `Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. ${prActivityNote}`;
+function buildPrimarySnapshotSourceNote() {
+  return "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. PR activity is sourced from GitHub pull requests across discovered organization repos and attributed by Jira-derived contributor mapping with repo ownership and Unmapped fallbacks.";
 }
 
 function buildPrActivitySprintSnapshot(result, sinceDate, sprintDates) {
@@ -2643,10 +2512,20 @@ function buildPrActivitySprintSnapshot(result, sinceDate, sprintDates) {
     since: sinceDate,
     interval: "sprint",
     monthlyInterval: "month",
-    source: String(result?.source || "jira_dev_status_detail").trim() || "jira_dev_status_detail",
+    source: String(result?.source || "github_pull_requests").trim() || "github_pull_requests",
     candidateIssueCount: numberOrZero(result.candidateIssueCount),
     uniquePrCount: numberOrZero(result.uniquePrCount),
     conflictCount: numberOrZero(result.conflictCount),
+    unmappedRepoCount: numberOrZero(result.unmappedRepoCount),
+    unmappedContributorCount: numberOrZero(result.unmappedContributorCount),
+    unmappedContributors: Array.isArray(result.unmappedContributors)
+      ? result.unmappedContributors
+          .map((row) => ({
+            login: String(row?.login || "").trim(),
+            pullRequestCount: numberOrZero(row?.pullRequestCount)
+          }))
+          .filter((row) => row.login && row.pullRequestCount > 0)
+      : [],
     caveat: buildPrActivityCaveat(result?.source),
     points: buildPrActivityPoints(byDate, dates)
   };
@@ -2959,7 +2838,7 @@ function buildCombinedSnapshot(computed, syncedAt, uatAging, prActivity, chartDa
     source: {
       mode: "mcp_snapshot",
       syncedAt,
-      note: buildPrimarySnapshotSourceNote(prActivity?.source)
+      note: buildPrimarySnapshotSourceNote()
     },
     ...(uatAging && typeof uatAging === "object" ? { uatAging } : {}),
     prActivity,
@@ -3049,7 +2928,9 @@ async function preparePrimarySnapshotArtifacts(snapshot) {
     : snapshot;
   const backlogSnapshot = buildBacklogBugSnapshot(snapshotWithPreservedChartData);
   const prActivitySnapshot = buildPrActivitySnapshot(snapshotWithPreservedChartData);
-  const managementFacilitySnapshot = buildManagementFacilitySnapshot(snapshotWithPreservedChartData);
+  const managementFacilitySnapshot = buildManagementFacilitySnapshot(
+    snapshotWithPreservedChartData
+  );
   assertBacklogSnapshotIntegrity(existingBacklogSnapshot, backlogSnapshot);
   assertPrActivitySnapshotIntegrity(existingPrActivitySnapshot, prActivitySnapshot);
   assertManagementFacilitySnapshotIntegrity(
@@ -3082,7 +2963,10 @@ function assertBacklogSnapshotIntegrity(previousSnapshot, _nextSnapshot) {
 function assertPrActivitySnapshotIntegrity(previousSnapshot, nextSnapshot) {
   if (!previousSnapshot || typeof previousSnapshot !== "object") return;
 
-  const previousMonthlyCount = countPrActivitySeriesPoints(previousSnapshot?.prActivity, "monthlyPoints");
+  const previousMonthlyCount = countPrActivitySeriesPoints(
+    previousSnapshot?.prActivity,
+    "monthlyPoints"
+  );
   const nextMonthlyCount = countPrActivitySeriesPoints(nextSnapshot?.prActivity, "monthlyPoints");
 
   if (previousMonthlyCount >= 6 && nextMonthlyCount <= 2) {
@@ -3125,7 +3009,7 @@ function updateExistingSnapshotPrActivity(existingSnapshot, prActivity, syncedAt
         ? existingSnapshot.source
         : {}),
       syncedAt,
-      note: buildPrimarySnapshotSourceNote(prActivity?.source || existingSnapshot?.prActivity?.source)
+      note: buildPrimarySnapshotSourceNote()
     },
     prActivity
   };
@@ -3147,7 +3031,7 @@ function updateExistingSnapshotUat(existingSnapshot, { uatAging, chartData, sync
         ? existingSnapshot.source
         : {}),
       syncedAt,
-      note: buildPrimarySnapshotSourceNote(existingSnapshot?.prActivity?.source)
+      note: buildPrimarySnapshotSourceNote()
     },
     ...(uatAging && typeof uatAging === "object" ? { uatAging } : {}),
     ...(chartData && typeof chartData === "object" ? { chartData } : {})
@@ -3206,7 +3090,6 @@ function buildRefreshConfig() {
     sprintMondayAnchor: envBool("SPRINT_MONDAY_ANCHOR", DEFAULT_SPRINT_MONDAY_ANCHOR),
     prCycleRebuildAll: envBool("PR_CYCLE_REBUILD_ALL", false),
     prActivityRebuildAll: envBool("PR_ACTIVITY_REBUILD_ALL", false),
-    prActivitySource: normalizePrActivitySource(env("PR_ACTIVITY_SOURCE", PR_ACTIVITY_SOURCE_GITHUB)),
     trendCountConcurrency: envPositiveInt(
       "TREND_COUNT_CONCURRENCY",
       DEFAULT_TREND_COUNT_CONCURRENCY
@@ -3495,8 +3378,7 @@ async function buildPrActivityRefreshState(config, todayIso, resolvedDates, opti
     "PR activity fetch",
     () =>
       fetchPrActivity(config.site, config.email, config.token, prActivityFetchSinceDate, {
-        useCache: !config.cleanRun,
-        prActivitySource: config.prActivitySource
+        useCache: !config.cleanRun
       }),
     console
   );
@@ -3505,7 +3387,7 @@ async function buildPrActivityRefreshState(config, todayIso, resolvedDates, opti
     reuseHistoricalPrActivity: prActivityHistoryPlan.reuseHistoricalPrActivity
   });
   console.log(
-    `Computed ${config.prActivitySource === PR_ACTIVITY_SOURCE_GITHUB ? "GitHub Development PR activity" : "Jira Development PR inflow proxy"} (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} ${config.prActivitySource === PR_ACTIVITY_SOURCE_GITHUB ? "mapped repos" : "candidate issues"}, ${prRows.detailIssueCount} ${config.prActivitySource === PR_ACTIVITY_SOURCE_GITHUB ? "repos scanned" : "with recent PR summary activity"}, since ${prActivitySnapshotState.prActivityFetchSinceDate} across ${prActivitySnapshotState.prActivitySprintDates.length} sprint buckets and ${prActivitySnapshotState.refreshedPrActivity.monthlyPoints.length} monthly buckets; fetched ${prRows.reviewChangelogIssueCount} ${config.prActivitySource === PR_ACTIVITY_SOURCE_GITHUB ? "review samples" : "review changelogs"}, cache hits ${prRows.cacheHitCount}, cache writes ${prRows.cacheWriteCount}${prActivityHistoryPlan.reuseHistoricalPrActivity ? "; reused cached older PR activity buckets" : ""}).`
+    `Computed GitHub Development PR activity (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} discovered repos, ${prRows.detailIssueCount} repos scanned, ${prRows.unmappedRepoCount || 0} unmapped repos, ${prRows.unmappedContributorCount || 0} unmapped contributors, since ${prActivitySnapshotState.prActivityFetchSinceDate} across ${prActivitySnapshotState.prActivitySprintDates.length} sprint buckets and ${prActivitySnapshotState.refreshedPrActivity.monthlyPoints.length} monthly buckets; fetched ${prRows.reviewChangelogIssueCount} review samples, cache hits ${prRows.cacheHitCount}, cache writes ${prRows.cacheWriteCount}${prActivityHistoryPlan.reuseHistoricalPrActivity ? "; reused cached older PR activity buckets" : ""}).`
   );
 
   return {
@@ -3520,12 +3402,11 @@ export function resolvePrActivityHistoryPlan(prActivityHistoryState, options = {
   const existingPrActivityForMerge = prActivityHistoryState?.bestPrActivity || null;
   const hasReusablePrActivitySeries = Boolean(
     countPrActivitySeriesPoints(existingPrActivityForMerge, "points") > 0 &&
-      countPrActivitySeriesPoints(existingPrActivityForMerge, "monthlyPoints") > 0
+    countPrActivitySeriesPoints(existingPrActivityForMerge, "monthlyPoints") > 0
   );
   const canReuseHistoricalPrActivity =
     hasReusablePrActivitySeries && prActivityHistoryCoversFloor(existingPrActivityForMerge);
-  const reuseHistoricalPrActivity =
-    !shouldRebuildPrActivityHistory && canReuseHistoricalPrActivity;
+  const reuseHistoricalPrActivity = !shouldRebuildPrActivityHistory && canReuseHistoricalPrActivity;
   const archivedHistoryWarning =
     reuseHistoricalPrActivity &&
     prActivityHistoryState?.bestSource &&
@@ -3556,15 +3437,12 @@ function prActivityHistoryCoversFloor(prActivity) {
   );
   return Boolean(
     (monthlySince && monthlySince <= floorMonth) ||
-      (firstMonthlyPointDate && firstMonthlyPointDate <= floorMonth)
+    (firstMonthlyPointDate && firstMonthlyPointDate <= floorMonth)
   );
 }
 
 export function buildPrActivitySnapshotState(todayIso, resolvedDates, prRows, options = {}) {
-  const {
-    existingPrActivityForMerge = null,
-    reuseHistoricalPrActivity = false
-  } = options;
+  const { existingPrActivityForMerge = null, reuseHistoricalPrActivity = false } = options;
   const allResolvedDates = Array.isArray(resolvedDates?.dates) ? resolvedDates.dates : [];
   const closedResolvedDates = Array.isArray(resolvedDates?.closedDates)
     ? resolvedDates.closedDates

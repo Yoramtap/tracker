@@ -66,6 +66,7 @@ Operator helpers:
 - `npm run dev:refresh:product-cycle`
 - `npm run dev:refresh:uat`
 - `npm run dev:analyze`
+- `npm run dev:derive:contributors`
 - `npm run dev:publish -- --refresh yes --message "Refresh dashboard data" --push`
 - `npm run automation:bootstrap`
 - `npm run automation:preflight`
@@ -80,6 +81,8 @@ Use `dev:publish` only as a convenience helper when the repo is already clean. T
 - Default refreshes may reuse local PR activity cache, archived snapshot history, and Business Unit done-cache state.
 - `npm run data:refresh:clean` bypasses those local caches for the current run and rebuilds fresh cache artifacts afterward.
 - Use clean refreshes for debugging, CI, or whenever you want a reproducible run that is less dependent on local state.
+
+Contributor team attribution for GitHub PR activity is generated into `scripts/config/contributor-team-map.json` by scanning Jira-linked PRs and resolving each GitHub PR author. The dashboard enumerates active GitHub repos from the organization, fetches PRs from GitHub, then attributes known contributors to their Jira-derived team with repo ownership and `Unmapped` fallbacks so unknown repos still count. Refresh output also carries unmapped contributor counts so new GitHub authors are visible until they are mapped.
 
 ## Optional Analysis
 

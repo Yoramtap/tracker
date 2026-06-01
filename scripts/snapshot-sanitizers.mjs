@@ -94,7 +94,35 @@ function sanitizePrActivityPoint(point) {
     react: sanitizePrActivityTeamPoint(safePoint.react),
     bc: sanitizePrActivityTeamPoint(safePoint.bc),
     workers: sanitizePrActivityTeamPoint(safePoint.workers),
-    titanium: sanitizePrActivityTeamPoint(safePoint.titanium)
+    titanium: sanitizePrActivityTeamPoint(safePoint.titanium),
+    ...("unmapped" in safePoint
+      ? { unmapped: sanitizePrActivityTeamPoint(safePoint.unmapped) }
+      : {})
+  };
+}
+
+function sanitizePrActivityUnmappedContributor(row) {
+  return {
+    login: sanitizeText(row?.login),
+    pullRequestCount: sanitizeNumber(row?.pullRequestCount)
+  };
+}
+
+function sanitizePrActivityMetadata(prActivity) {
+  return {
+    ...(Number.isFinite(Number(prActivity?.unmappedRepoCount))
+      ? { unmappedRepoCount: sanitizeNumber(prActivity?.unmappedRepoCount) }
+      : {}),
+    ...(Number.isFinite(Number(prActivity?.unmappedContributorCount))
+      ? { unmappedContributorCount: sanitizeNumber(prActivity?.unmappedContributorCount) }
+      : {}),
+    ...(Array.isArray(prActivity?.unmappedContributors)
+      ? {
+          unmappedContributors: prActivity.unmappedContributors
+            .map(sanitizePrActivityUnmappedContributor)
+            .filter((row) => row.login && row.pullRequestCount > 0)
+        }
+      : {})
   };
 }
 
@@ -239,20 +267,19 @@ export function sanitizeBacklogSnapshot(snapshot) {
         }
       : {}),
     ...(snapshot?.prActivity && typeof snapshot.prActivity === "object"
-        ? {
+      ? {
           prActivity: {
             since: sanitizeText(snapshot?.prActivity?.since),
             interval: sanitizeText(snapshot?.prActivity?.interval),
             ...(sanitizeText(snapshot?.prActivity?.latestClosedSprintDate)
               ? {
-                  latestClosedSprintDate: sanitizeText(
-                    snapshot?.prActivity?.latestClosedSprintDate
-                  )
+                  latestClosedSprintDate: sanitizeText(snapshot?.prActivity?.latestClosedSprintDate)
                 }
               : {}),
             monthlySince: sanitizeText(snapshot?.prActivity?.monthlySince),
             monthlyInterval: sanitizeText(snapshot?.prActivity?.monthlyInterval),
             caveat: sanitizeText(snapshot?.prActivity?.caveat),
+            ...sanitizePrActivityMetadata(snapshot?.prActivity),
             points: Array.isArray(snapshot?.prActivity?.points)
               ? snapshot.prActivity.points.map(sanitizePrActivityPoint)
               : [],
@@ -278,14 +305,13 @@ export function sanitizePrActivitySnapshot(snapshot) {
             interval: sanitizeText(snapshot?.prActivity?.interval),
             ...(sanitizeText(snapshot?.prActivity?.latestClosedSprintDate)
               ? {
-                  latestClosedSprintDate: sanitizeText(
-                    snapshot?.prActivity?.latestClosedSprintDate
-                  )
+                  latestClosedSprintDate: sanitizeText(snapshot?.prActivity?.latestClosedSprintDate)
                 }
               : {}),
             monthlySince: sanitizeText(snapshot?.prActivity?.monthlySince),
             monthlyInterval: sanitizeText(snapshot?.prActivity?.monthlyInterval),
             caveat: sanitizeText(snapshot?.prActivity?.caveat),
+            ...sanitizePrActivityMetadata(snapshot?.prActivity),
             points: Array.isArray(snapshot?.prActivity?.points)
               ? snapshot.prActivity.points.map(sanitizePrActivityPoint)
               : [],
@@ -386,15 +412,15 @@ export function sanitizeProductCycleShipmentsSnapshot(snapshot) {
                     team: sanitizeText(team?.team),
                     shippedCount: sanitizeNumber(team?.shippedCount),
                     ideas: Array.isArray(team?.ideas)
-                        ? team.ideas.map((idea) => ({
-                            issueKey: sanitizeText(idea?.issueKey),
-                            productAreaLabel: sanitizeText(idea?.productAreaLabel),
-                            teams: Array.isArray(idea?.teams)
-                              ? idea.teams.map((teamName) => sanitizeText(teamName)).filter(Boolean)
-                              : [],
-                            summary: sanitizeText(idea?.summary),
-                            shippedAt: sanitizeText(idea?.shippedAt)
-                          }))
+                      ? team.ideas.map((idea) => ({
+                          issueKey: sanitizeText(idea?.issueKey),
+                          productAreaLabel: sanitizeText(idea?.productAreaLabel),
+                          teams: Array.isArray(idea?.teams)
+                            ? idea.teams.map((teamName) => sanitizeText(teamName)).filter(Boolean)
+                            : [],
+                          summary: sanitizeText(idea?.summary),
+                          shippedAt: sanitizeText(idea?.shippedAt)
+                        }))
                       : []
                   }))
                 : []

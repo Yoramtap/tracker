@@ -339,7 +339,8 @@
         bc: readThemeColor("--team-bc", "#76649a"),
         multiteam: readThemeColor("--team-multi-team", "#667a4d"),
         workers: readThemeColor("--team-workers", "#5e6b84"),
-        titanium: readThemeColor("--team-titanium", "#b07aa1")
+        titanium: readThemeColor("--team-titanium", "#b07aa1"),
+        unmapped: readThemeColor("--team-unmapped", "#4a758e")
       },
       priorities: {
         highest: readThemeColor("--priority-highest", "#3f638f"),

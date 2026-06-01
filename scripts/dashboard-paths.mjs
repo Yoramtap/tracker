@@ -26,12 +26,16 @@ export const DATA_DIR_PATH = path.resolve(
 export const CACHE_DIR_PATH = path.resolve(
   process.env.REFRESH_CACHE_DIR || path.join(REPO_ROOT_PATH, CACHE_DIR)
 );
-export const DIST_DIR_PATH = path.resolve(process.env.DIST_DIR || path.join(REPO_ROOT_PATH, DIST_DIR));
+export const DIST_DIR_PATH = path.resolve(
+  process.env.DIST_DIR || path.join(REPO_ROOT_PATH, DIST_DIR)
+);
 export const SNAPSHOT_HISTORY_DIR_PATH = path.resolve(
   process.env.REFRESH_SNAPSHOT_HISTORY_DIR || path.join(REPO_ROOT_PATH, SNAPSHOT_HISTORY_DIR)
 );
 export const ANALYSIS_DIR_PATH = path.resolve(path.join(REPO_ROOT_PATH, ANALYSIS_DIR));
-export const ANALYSIS_REPORT_PATH_ABSOLUTE = path.resolve(path.join(REPO_ROOT_PATH, ANALYSIS_REPORT_PATH));
+export const ANALYSIS_REPORT_PATH_ABSOLUTE = path.resolve(
+  path.join(REPO_ROOT_PATH, ANALYSIS_REPORT_PATH)
+);
 export const ANALYSIS_HISTORY_DIR_PATH = path.resolve(
   path.join(REPO_ROOT_PATH, ANALYSIS_HISTORY_DIR)
 );
@@ -51,9 +55,7 @@ export const PRIMARY_SNAPSHOT_TMP_PATH = resolveDataFileTmpPath(
 export const BACKLOG_SNAPSHOT_PATH = resolveDataFilePath(BACKLOG_SNAPSHOT_FILE_NAME);
 export const BACKLOG_SNAPSHOT_TMP_PATH = resolveDataFileTmpPath(BACKLOG_SNAPSHOT_FILE_NAME);
 export const PR_ACTIVITY_SNAPSHOT_PATH = resolveDataFilePath(PR_ACTIVITY_SNAPSHOT_FILE_NAME);
-export const PR_ACTIVITY_SNAPSHOT_TMP_PATH = resolveDataFileTmpPath(
-  PR_ACTIVITY_SNAPSHOT_FILE_NAME
-);
+export const PR_ACTIVITY_SNAPSHOT_TMP_PATH = resolveDataFileTmpPath(PR_ACTIVITY_SNAPSHOT_FILE_NAME);
 export const MANAGEMENT_FACILITY_SNAPSHOT_PATH = resolveDataFilePath(
   MANAGEMENT_FACILITY_SNAPSHOT_FILE_NAME
 );
@@ -77,16 +79,25 @@ export const PRODUCT_CYCLE_SHIPMENTS_SNAPSHOT_TMP_PATH = resolveDataFileTmpPath(
 export const PR_CYCLE_SNAPSHOT_PATH = resolveDataFilePath(PR_CYCLE_SNAPSHOT_FILE_NAME);
 export const PR_CYCLE_SNAPSHOT_TMP_PATH = resolveDataFileTmpPath(PR_CYCLE_SNAPSHOT_FILE_NAME);
 
-export const PR_ACTIVITY_ISSUE_CACHE_PATH = path.join(CACHE_DIR_PATH, "pr-activity-issue-cache.json");
-export const PR_ACTIVITY_ISSUE_CACHE_TMP_PATH = path.join(
-  CACHE_DIR_PATH,
-  "pr-activity-issue-cache.json.tmp"
-);
 export const PR_ACTIVITY_REPO_TEAM_MAP_PATH = path.join(
   REPO_ROOT_PATH,
   "scripts",
   "config",
   "repo-team-map.json"
+);
+export const PR_ACTIVITY_CONTRIBUTOR_TEAM_MAP_PATH = path.join(
+  REPO_ROOT_PATH,
+  "scripts",
+  "config",
+  "contributor-team-map.json"
+);
+export const PR_ACTIVITY_REPO_DISCOVERY_CACHE_PATH = path.join(
+  CACHE_DIR_PATH,
+  "pr-activity-repo-discovery-cache.json"
+);
+export const PR_ACTIVITY_REPO_DISCOVERY_CACHE_TMP_PATH = path.join(
+  CACHE_DIR_PATH,
+  "pr-activity-repo-discovery-cache.json.tmp"
 );
 export const TREND_DATE_CACHE_PATH = path.join(CACHE_DIR_PATH, "trend-date-cache.json");
 export const TREND_DATE_CACHE_TMP_PATH = path.join(CACHE_DIR_PATH, "trend-date-cache.json.tmp");

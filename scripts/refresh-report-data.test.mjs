@@ -10,6 +10,7 @@ import {
   buildTrendRefreshDateState,
   fetchPrCycleIssueBreakdown,
   fetchGitHubPrActivity,
+  loadPrActivityContributorTeamMapConfig,
   loadPrActivityRepoTeamMapConfig,
   normalizeGitHubPullRequestRecord,
   normalizeGitHubReviewToMergeRecord,
@@ -279,6 +280,22 @@ test("loadPrActivityRepoTeamMapConfig reads the committed repo ownership map", a
   assert.equal(repoTeamMap["example-org/tfc-ui"], "react");
 });
 
+test("loadPrActivityContributorTeamMapConfig normalizes contributor logins and teams", async () => {
+  const contributorTeamMap = await loadPrActivityContributorTeamMapConfig({
+    payload: {
+      contributors: {
+        Author_Example: "BC",
+        "unknown-user": "not-a-team",
+        "": "api"
+      }
+    }
+  });
+
+  assert.deepEqual(contributorTeamMap, {
+    author_example: "bc"
+  });
+});
+
 test("resolveGitHubAccessToken prefers the explicit override before gh auth", async () => {
   let execCallCount = 0;
   const token = await resolveGitHubAccessToken({
@@ -351,6 +368,7 @@ test("fetchGitHubPrActivity builds non-draft PR activity rows from repo mappings
       "example-org/tfc-functionality-usvc": "api",
       "example-org/tfc-ui": "react"
     },
+    repoDiscoveryEnabled: false,
     githubToken: "test-token",
     fetchRepoMetadata: async (repo) => ({ full_name: repo }),
     fetchRepoPage: async (repo, page) => {
@@ -453,6 +471,173 @@ test("fetchGitHubPrActivity builds non-draft PR activity rows from repo mappings
   );
 });
 
+test("fetchGitHubPrActivity attributes mapped contributors before falling back to repo ownership", async () => {
+  const prActivity = await fetchGitHubPrActivity("2026-03-01", {
+    repoTeamMap: {
+      "example-org/tfc-functionality-usvc": "api"
+    },
+    repoDiscoveryEnabled: false,
+    contributorTeamMap: {
+      author_example: "bc"
+    },
+    githubToken: "test-token",
+    fetchRepoMetadata: async (repo) => ({ full_name: repo }),
+    fetchRepoPage: async (_repo, page) => {
+      if (page !== 1) return [];
+      return [
+        {
+          number: 152,
+          draft: false,
+          state: "closed",
+          created_at: "2026-03-13T12:24:00Z",
+          merged_at: "2026-03-19T08:27:29Z",
+          updated_at: "2026-03-19T08:27:29Z",
+          html_url: "https://github.com/example-org/tfc-functionality-usvc/pull/152",
+          user: { login: "Author_Example" }
+        },
+        {
+          number: 153,
+          draft: false,
+          state: "open",
+          created_at: "2026-03-20T12:24:00Z",
+          merged_at: null,
+          updated_at: "2026-03-20T12:24:00Z",
+          html_url: "https://github.com/example-org/tfc-functionality-usvc/pull/153",
+          user: { login: "unmapped_example" }
+        }
+      ];
+    },
+    fetchReviewsPage: async () => []
+  });
+
+  assert.deepEqual(
+    prActivity.records.map((record) => ({
+      uniqueKey: record.uniqueKey,
+      team: record.team
+    })),
+    [
+      {
+        uniqueKey: "example-org/tfc-functionality-usvc#152",
+        team: "bc"
+      },
+      {
+        uniqueKey: "example-org/tfc-functionality-usvc#153",
+        team: "api"
+      }
+    ]
+  );
+  assert.equal(prActivity.unmappedContributorCount, 1);
+  assert.deepEqual(prActivity.unmappedContributors, [
+    {
+      login: "unmapped_example",
+      pullRequestCount: 1
+    }
+  ]);
+});
+
+test("fetchGitHubPrActivity discovers active org repos and counts unknown repos as unmapped", async () => {
+  const fetchedRepos = [];
+  const prActivity = await fetchGitHubPrActivity("2026-03-01", {
+    repoTeamMap: {
+      "example-org/tfc-functionality-usvc": "api"
+    },
+    contributorTeamMap: {
+      known_example: "api"
+    },
+    githubToken: "test-token",
+    useRepoDiscoveryCache: false,
+    fetchOrgReposPage: async (org, page) => {
+      assert.equal(org, "example-org");
+      if (page !== 1) return [];
+      return [
+        {
+          full_name: "example-org/tfc-functionality-usvc",
+          archived: false,
+          disabled: false
+        },
+        {
+          full_name: "example-org/new-github-only-repo",
+          archived: false,
+          disabled: false
+        },
+        {
+          full_name: "example-org/archived-repo",
+          archived: true,
+          disabled: false
+        }
+      ];
+    },
+    fetchRepoMetadata: async (repo) => ({ full_name: repo }),
+    fetchRepoPage: async (repo, page) => {
+      fetchedRepos.push(repo);
+      if (page !== 1) return [];
+      if (repo === "example-org/tfc-functionality-usvc") {
+        return [
+          {
+            number: 152,
+            draft: false,
+            state: "closed",
+            created_at: "2026-03-13T12:24:00Z",
+            merged_at: "2026-03-19T08:27:29Z",
+            updated_at: "2026-03-19T08:27:29Z",
+            html_url: "https://github.com/example-org/tfc-functionality-usvc/pull/152",
+            user: { login: "known_example" }
+          }
+        ];
+      }
+      if (repo === "example-org/new-github-only-repo") {
+        return [
+          {
+            number: 1,
+            draft: false,
+            state: "open",
+            created_at: "2026-03-20T10:00:00Z",
+            merged_at: null,
+            updated_at: "2026-03-20T10:00:00Z",
+            html_url: "https://github.com/example-org/new-github-only-repo/pull/1",
+            user: { login: "unknown_example" }
+          }
+        ];
+      }
+      return [];
+    },
+    fetchReviewsPage: async () => []
+  });
+
+  assert.deepEqual(fetchedRepos.sort(), [
+    "example-org/new-github-only-repo",
+    "example-org/tfc-functionality-usvc"
+  ]);
+  assert.equal(prActivity.candidateIssueCount, 2);
+  assert.equal(prActivity.detailIssueCount, 2);
+  assert.equal(prActivity.discoveredRepoCount, 2);
+  assert.equal(prActivity.unmappedRepoCount, 1);
+  assert.equal(prActivity.unmappedContributorCount, 1);
+  assert.deepEqual(prActivity.unmappedContributors, [
+    {
+      login: "unknown_example",
+      pullRequestCount: 1
+    }
+  ]);
+  assert.equal(prActivity.uniquePrCount, 2);
+  assert.deepEqual(
+    prActivity.records.map((record) => ({
+      uniqueKey: record.uniqueKey,
+      team: record.team
+    })),
+    [
+      {
+        uniqueKey: "example-org/new-github-only-repo#1",
+        team: "unmapped"
+      },
+      {
+        uniqueKey: "example-org/tfc-functionality-usvc#152",
+        team: "api"
+      }
+    ]
+  );
+});
+
 test("fetchGitHubPrActivity canonicalizes redirected repo aliases before counting PRs", async () => {
   const fetchedRepos = [];
   const prActivity = await fetchGitHubPrActivity("2026-04-01", {
@@ -460,6 +645,7 @@ test("fetchGitHubPrActivity canonicalizes redirected repo aliases before countin
       "example-org/tfc-driver-lawo-homeapps": "bc",
       "example-org/tfc-driver-lawo-homeapps-multiviewer": "bc"
     },
+    repoDiscoveryEnabled: false,
     githubToken: "test-token",
     fetchRepoMetadata: async (repo) => ({
       full_name:
@@ -580,7 +766,10 @@ test("buildPrActivitySnapshotState reuses cached history but truncates later poi
     {
       reuseHistoricalPrActivity: true,
       existingPrActivityForMerge: {
-        points: [{ date: "2025-04-07", marker: "old" }, { date: "2026-04-05", marker: "late" }],
+        points: [
+          { date: "2025-04-07", marker: "old" },
+          { date: "2026-04-05", marker: "late" }
+        ],
         monthlyPoints: [
           { date: "2025-04-01", marker: "old-month" },
           { date: "2026-04-01", marker: "late-month" }
@@ -1048,23 +1237,17 @@ test("fetchPrCycleIssueBreakdown reuses cached changelogs for unchanged issues",
       return { histories: [] };
     }
   });
-  const secondRun = await fetchPrCycleIssueBreakdown(
-    "jira.example.com",
-    "user",
-    "token",
-    config,
-    {
-      readCache: async () => cachedValue,
-      writeCache: async (_outputPath, _tmpPath, value) => {
-        cachedValue = value;
-      },
-      searchIssues: async () => issues,
-      fetchChangelog: async () => {
-        fetchChangelogCallCount += 1;
-        return { histories: [] };
-      }
+  const secondRun = await fetchPrCycleIssueBreakdown("jira.example.com", "user", "token", config, {
+    readCache: async () => cachedValue,
+    writeCache: async (_outputPath, _tmpPath, value) => {
+      cachedValue = value;
+    },
+    searchIssues: async () => issues,
+    fetchChangelog: async () => {
+      fetchChangelogCallCount += 1;
+      return { histories: [] };
     }
-  );
+  });
 
   assert.equal(firstRun.rows.length, 2);
   assert.equal(firstRun.changelogCacheHitCount, 0);
@@ -1099,7 +1282,13 @@ test("buildPrCycleSnapshotState preserves cached long windows when reuse is enab
   );
 
   assert.equal(snapshotState.prCycleSnapshot.defaultWindow, "6m");
-  assert.deepEqual(Object.keys(snapshotState.prCycleSnapshot.windows), ["6m", "1y", "14d", "30d", "90d"]);
+  assert.deepEqual(Object.keys(snapshotState.prCycleSnapshot.windows), [
+    "6m",
+    "1y",
+    "14d",
+    "30d",
+    "90d"
+  ]);
   assert.equal(snapshotState.prCycleSnapshot.windows["6m"].teams[0].marker, "cached-6m");
   assert.equal(snapshotState.prCycleSnapshot.windows["1y"].teams[0].marker, "cached-1y");
   assert.equal(snapshotState.prCycleSnapshot.windows["14d"].windowLabel, "Last 14 days");
@@ -1158,7 +1347,9 @@ test("buildPrCycleSnapshotState filters board-scoped windows to board-scoped iss
     ]
   );
 
-  const apiTeam = snapshotState.prCycleSnapshot.windows["14d"].teams.find((team) => team.key === "api");
+  const apiTeam = snapshotState.prCycleSnapshot.windows["14d"].teams.find(
+    (team) => team.key === "api"
+  );
   assert.equal(apiTeam.issueCount, 1);
   assert.equal(apiTeam.totalCycleDays, 3);
   assert.equal(apiTeam.stages.find((stage) => stage.key === "review").sampleCount, 1);
