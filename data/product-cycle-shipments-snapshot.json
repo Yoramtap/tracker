@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-01T19:16:44.688Z",
+  "generatedAt": "2026-06-02T07:28:29.173Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-06-01",
-      "totalShipped": 190,
+      "totalShipped": 191,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -2338,8 +2338,8 @@
         {
           "monthStart": "2026-06-01",
           "monthKey": "2026-06",
-          "totalShipped": 1,
-          "teamCount": 1,
+          "totalShipped": 2,
+          "teamCount": 2,
           "teams": [
             {
               "team": "Multi team",
@@ -2355,6 +2355,21 @@
                   ],
                   "summary": "Ephemeral: multiviewer head cloning",
                   "shippedAt": "2026-06-01T16:51:22.019Z"
+                }
+              ]
+            },
+            {
+              "team": "Titanium",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-389",
+                  "productAreaLabel": "Titanium",
+                  "teams": [
+                    "Titanium"
+                  ],
+                  "summary": "[Media Rx 2110 Module 2.0.x] Add v2 feature list",
+                  "shippedAt": "2026-06-01T22:55:32.714Z"
                 }
               ]
             }
