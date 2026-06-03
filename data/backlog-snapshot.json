@@ -1,53 +1,6 @@
 {
-  "updatedAt": "2026-06-03T07:29:34.989Z",
+  "updatedAt": "2026-06-03T12:07:09.297Z",
   "combinedPoints": [
-    {
-      "date": "2025-11-24",
-      "api": {
-        "highest": 0,
-        "high": 2,
-        "medium": 4,
-        "low": 5,
-        "lowest": 0
-      },
-      "legacy": {
-        "highest": 0,
-        "high": 1,
-        "medium": 9,
-        "low": 46,
-        "lowest": 2
-      },
-      "react": {
-        "highest": 0,
-        "high": 0,
-        "medium": 5,
-        "low": 0,
-        "lowest": 0
-      },
-      "bc": {
-        "highest": 6,
-        "high": 61,
-        "medium": 105,
-        "low": 9,
-        "lowest": 0,
-        "longstanding_30d_plus": 156,
-        "longstanding_60d_plus": 142
-      },
-      "workers": {
-        "highest": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "lowest": 0
-      },
-      "titanium": {
-        "highest": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "lowest": 0
-      }
-    },
     {
       "date": "2025-12-08",
       "api": {
@@ -648,6 +601,53 @@
         "highest": 0,
         "high": 2,
         "medium": 6,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 1,
+        "high": 1,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2026-06-03",
+      "api": {
+        "highest": 0,
+        "high": 3,
+        "medium": 12,
+        "low": 5,
+        "lowest": 2
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 6,
+        "low": 21,
+        "lowest": 0
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 3,
+        "high": 64,
+        "medium": 110,
+        "low": 7,
+        "lowest": 0,
+        "longstanding_30d_plus": 174,
+        "longstanding_60d_plus": 169
+      },
+      "workers": {
+        "highest": 0,
+        "high": 1,
+        "medium": 7,
         "low": 0,
         "lowest": 0
       },
