@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-03T07:29:34.963Z",
+  "generatedAt": "2026-06-03T11:57:42.226Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
@@ -2159,7 +2159,7 @@
         {
           "monthStart": "2026-05-01",
           "monthKey": "2026-05",
-          "totalShipped": 16,
+          "totalShipped": 15,
           "teamCount": 4,
           "teams": [
             {
@@ -2200,7 +2200,7 @@
             },
             {
               "team": "Frontend",
-              "shippedCount": 10,
+              "shippedCount": 9,
               "ideas": [
                 {
                   "issueKey": "TPS-430",
@@ -2237,15 +2237,6 @@
                   ],
                   "summary": "Panel Builder slice 3: Undo, Blind, zoom, shortcuts, button drag/drop",
                   "shippedAt": "2026-05-22T11:51:09.190Z"
-                },
-                {
-                  "issueKey": "TPS-443",
-                  "productAreaLabel": "TFC",
-                  "teams": [
-                    "Frontend"
-                  ],
-                  "summary": "Panel Builder slice 5: Category (source/target), Section spills",
-                  "shippedAt": "2026-05-29T13:15:55.689Z"
                 },
                 {
                   "issueKey": "TPS-432",
@@ -2338,8 +2329,8 @@
         {
           "monthStart": "2026-06-01",
           "monthKey": "2026-06",
-          "totalShipped": 6,
-          "teamCount": 2,
+          "totalShipped": 7,
+          "teamCount": 3,
           "teams": [
             {
               "team": "Multi team",
@@ -2355,6 +2346,21 @@
                   ],
                   "summary": "Ephemeral: multiviewer head cloning",
                   "shippedAt": "2026-06-01T16:51:22.019Z"
+                }
+              ]
+            },
+            {
+              "team": "Frontend",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-436",
+                  "productAreaLabel": "TFC",
+                  "teams": [
+                    "Frontend"
+                  ],
+                  "summary": "Panel Builder slice 4: Autosave, Take, Categories",
+                  "shippedAt": "2026-06-03T08:39:15.027Z"
                 }
               ]
             },
