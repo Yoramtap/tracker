@@ -76,6 +76,7 @@
   const bootstrapState = {
     heavyStackPromise: null,
     heavyShellPromise: null,
+    primarySnapshot: null,
     contributorsSnapshot: null,
     heavyPanelShellLoaded: false,
     cachedHeavyPanelMarkup: "",
@@ -270,7 +271,12 @@
     syncControlValue("report-section", bootstrapState.sectionFilter);
     setPanelContext(
       contextNode,
-      formatContextWithFreshness("", bootstrapState.contributorsSnapshot?.updatedAt || "")
+      formatContextWithFreshness(
+        "",
+        bootstrapState.primarySnapshot?.updatedAt ||
+          bootstrapState.contributorsSnapshot?.updatedAt ||
+          ""
+      )
     );
     statusNode.hidden = true;
   }
@@ -546,6 +552,22 @@
     return cache.contributors;
   }
 
+  async function loadPrimarySnapshot() {
+    const cache =
+      window.__dashboardDataSourcePromiseCache || (window.__dashboardDataSourcePromiseCache = {});
+    const cachedPromise = cache.snapshot;
+    if (cachedPromise && typeof cachedPromise.then === "function") {
+      return cachedPromise;
+    }
+    cache.snapshot = fetch(getSourcePath("data", "snapshot.json"), {
+      cache: "no-cache"
+    }).then(async (response) => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    });
+    return cache.snapshot;
+  }
+
   function loadScript(source) {
     const scriptSource =
       typeof source === "string" ? { src: source, module: false } : { module: false, ...source };
@@ -710,7 +732,12 @@
     bindSectionFilter();
 
     try {
-      bootstrapState.contributorsSnapshot = await loadContributorsSnapshot();
+      const [primarySnapshot, contributorsSnapshot] = await Promise.all([
+        loadPrimarySnapshot(),
+        loadContributorsSnapshot()
+      ]);
+      bootstrapState.primarySnapshot = primarySnapshot;
+      bootstrapState.contributorsSnapshot = contributorsSnapshot;
       renderActionsPanel();
       bindSectionFilter();
       renderContributorsState(bootstrapState.contributorsSnapshot);
