@@ -36,7 +36,7 @@
   const DASHBOARD_APP_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-app.js",
-    "local89"
+    "local90"
   );
   const SHIPPED_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
@@ -51,7 +51,7 @@
   const FULL_HEAVY_PANEL_SHELL_SRC = getVersionedSourcePath(
     "app",
     "dashboard-heavy-panels.html",
-    "local29"
+    "local30"
   );
   const LOCAL_AGENTATION_LOADER_SRC = getVersionedSourcePath(
     "dev",
