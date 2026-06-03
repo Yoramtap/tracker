@@ -1079,13 +1079,16 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
         viewKey === "ai"
           ? [
               {
-                label: "AI share",
-                value: `${aiShare}%`,
+                label: "PRs opened",
+                value: formatCountLabel(totalOpened, "PR"),
                 className: "dashboard-utility-layout__stat--primary"
               },
+              {
+                label: "AI share",
+                value: `${aiShare}%`
+              },
               { label: "AI labeled", value: formatCountLabel(totalAi, "PR") },
-              { label: "Not AI labeled", value: formatCountLabel(totalNonAi, "PR") },
-              { label: "PRs opened", value: formatCountLabel(totalOpened, "PR") }
+              { label: "Not AI labeled", value: formatCountLabel(totalNonAi, "PR") }
             ]
           : [
               {
