@@ -201,8 +201,9 @@ function findUnexpectedPrRouteResources(snapshot) {
 
 function findUnexpectedDefaultRouteResources(snapshot) {
   const loaded = getResourceNameSet(snapshot);
-  return normalizeExpectedResources(DEFAULT_ROUTE_FORBIDDEN_RESOURCES).filter((resource) =>
-    loaded.has(resource) &&
+  return normalizeExpectedResources(DEFAULT_ROUTE_FORBIDDEN_RESOURCES).filter(
+    (resource) =>
+      loaded.has(resource) &&
       (!isLocalPreview || !DEFAULT_ROUTE_LOCAL_ONLY_RUNTIME_RESOURCES.has(resource))
   );
 }
@@ -410,10 +411,7 @@ function assertProductRoute(snapshot) {
   assert(snapshot.hasViewUtils === true, "Product route should load dashboard view utils.");
   assertResourcesPresent(
     snapshot,
-    [
-      "./data/management-facility-snapshot.json",
-      "./data/product-cycle-snapshot.json"
-    ],
+    ["./data/management-facility-snapshot.json", "./data/product-cycle-snapshot.json"],
     "Product route"
   );
   const unexpectedResources = getResourceNameSet(snapshot);
@@ -441,11 +439,7 @@ function assertBugRoute(snapshot) {
     `Bug route shows status errors: ${JSON.stringify(snapshot.statuses)}`
   );
   assert(snapshot.hasViewUtils === true, "Bug route should load dashboard view utils.");
-  assertResourcesPresent(
-    snapshot,
-    ["./data/backlog-snapshot.json"],
-    "Bug route"
-  );
+  assertResourcesPresent(snapshot, ["./data/backlog-snapshot.json"], "Bug route");
   const unexpectedResources = getResourceNameSet(snapshot);
   assert(
     !unexpectedResources.has("./vendor/prop-types.min.js") &&
@@ -975,9 +969,9 @@ async function main() {
   await assertSectionControlSwitch({
     section: "development",
     expectedVisiblePanels: DEVELOPMENT_ROUTE_VISIBLE_PANELS,
-    name: "pr-activity-legacy-metric",
-    value: "merged",
-    description: "Legacy PR activity merged metric"
+    name: "pr-activity-legacy-view",
+    value: "ai",
+    description: "Development PR activity AI split view"
   });
   await assertSectionControlSwitch({
     section: "development",

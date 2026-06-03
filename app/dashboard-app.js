@@ -36,11 +36,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   const BUG_TRENDS_VIEW_MODES = [BUG_TRENDS_VIEW_DEFAULT, "table"];
   const BUG_TRENDS_WINDOW_DEFAULT = "90d";
   const PR_ACTIVITY_LEGACY_WINDOW_DEFAULT = "90d";
-  const PR_ACTIVITY_LEGACY_SPRINT_WINDOWS = [
-    FOURTEEN_DAY_WINDOW_KEY,
-    THIRTY_DAY_WINDOW_KEY,
-    "90d"
-  ];
+  const PR_ACTIVITY_LEGACY_SPRINT_WINDOWS = [FOURTEEN_DAY_WINDOW_KEY, THIRTY_DAY_WINDOW_KEY, "90d"];
   const TEAM_BUG_JQL = {
     api: "project = TFC AND type = Bug AND labels = API",
     legacy: "project = TFC AND type = Bug AND labels = Frontend",
@@ -230,11 +226,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   }
 
   function prActivityLegacyWindowKey(value) {
-    return normalizeOption(
-      value,
-      PR_ACTIVITY_LEGACY_WINDOWS,
-      PR_ACTIVITY_LEGACY_WINDOW_DEFAULT
-    );
+    return normalizeOption(value, PR_ACTIVITY_LEGACY_WINDOWS, PR_ACTIVITY_LEGACY_WINDOW_DEFAULT);
   }
 
   function normalizeDashboardMode(mode) {
@@ -339,7 +331,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     bugTrendsWindow: BUG_TRENDS_WINDOW_DEFAULT,
     prActivityLegacyHiddenKeys: [],
     developmentWorkflowWindow: THIRTY_DAY_WINDOW_KEY,
-    prActivityLegacyMetric: "offered",
+    prActivityLegacyView: "activity",
     prActivityLegacyWindow: PR_ACTIVITY_LEGACY_WINDOW_DEFAULT,
     productDeliveryWorkflowView: PRODUCT_DELIVERY_WORKFLOW_VIEW_DEFAULT,
     productCycleTeam: PRODUCT_CYCLE_TEAM_DEFAULT,
@@ -389,13 +381,8 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     renderWithRoot
   } = dashboardChartCore;
   const { SvgChartShell, linearScale, withAlpha } = dashboardSvgCore;
-  const {
-    addEventListener,
-    fetchJson,
-    getLocationSearch,
-    hasUrlParam,
-    requestAnimationFrame
-  } = browserApi;
+  const { addEventListener, fetchJson, getLocationSearch, hasUrlParam, requestAnimationFrame } =
+    browserApi;
 
   const PR_ACTIVITY_LINE_DEFS = [
     { dataKey: "api", name: "API", colorKey: "api" },
@@ -406,6 +393,9 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     { dataKey: "titanium", name: "Titanium", colorKey: "titanium" },
     { dataKey: "unmapped", name: "Unmapped", colorKey: "unmapped" }
   ];
+  const PR_ACTIVITY_VISIBLE_LINE_DEFS = PR_ACTIVITY_LINE_DEFS.filter(
+    (lineDef) => lineDef.dataKey !== "unmapped"
+  );
   const PR_ACTIVITY_EVENT_REFERENCE_MARKERS = [
     { date: "2024-04-13", label: "NAB" },
     { date: "2024-09-13", label: "IBC" },
@@ -414,9 +404,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     { date: "2026-04-18", label: "NAB" },
     { date: "2026-09-11", label: "IBC" }
   ];
-  const PR_ACTIVITY_ONE_TIME_REFERENCE_MARKERS = [
-    { date: "2026-01-01", label: "Codex" }
-  ];
+  const PR_ACTIVITY_ONE_TIME_REFERENCE_MARKERS = [{ date: "2026-01-01", label: "Codex" }];
   function toChartDateValue(dateText) {
     const timestamp = new Date(`${String(dateText || "")}T00:00:00Z`).getTime();
     return Number.isFinite(timestamp) ? timestamp : 0;
@@ -557,8 +545,10 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     const latestPoint = safePoints[safePoints.length - 1];
     const latestDate = getPrActivityDisplayDate(latestPoint?.date || "");
     let startDate = latestDate;
-    if (selectedWindowKey === FOURTEEN_DAY_WINDOW_KEY) startDate = shiftChartIsoDate(latestDate, -13);
-    else if (selectedWindowKey === THIRTY_DAY_WINDOW_KEY) startDate = shiftChartIsoDate(latestDate, -29);
+    if (selectedWindowKey === FOURTEEN_DAY_WINDOW_KEY)
+      startDate = shiftChartIsoDate(latestDate, -13);
+    else if (selectedWindowKey === THIRTY_DAY_WINDOW_KEY)
+      startDate = shiftChartIsoDate(latestDate, -29);
     else if (selectedWindowKey === "90d") startDate = shiftChartIsoDate(latestDate, -89);
     else if (selectedWindowKey === "6m") startDate = shiftChartIsoMonths(latestDate, -6);
     else startDate = shiftChartIsoMonths(latestDate, -12);
@@ -827,7 +817,8 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
 
   function formatCountLabel(count, singular, plural = `${singular}s`) {
     const safeCount = toCount(count);
-    return `${safeCount} ${safeCount === 1 ? singular : plural}`;
+    const formattedCount = safeCount.toLocaleString("nl-NL");
+    return `${formattedCount} ${safeCount === 1 ? singular : plural}`;
   }
 
   function buildJiraSearchUrl(jiraBase, jql) {
@@ -836,6 +827,20 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     const url = new URL("/issues/", String(jiraBase || "https://nepgroup.atlassian.net").trim());
     url.searchParams.set("jql", safeJql);
     return url.toString();
+  }
+
+  function removeObsoleteDashboardUrlParams(paramNames) {
+    if (typeof window === "undefined" || !window.location || !window.history) return;
+    const nextUrl = new URL(window.location.href);
+    let changed = false;
+    for (const name of Array.isArray(paramNames) ? paramNames : []) {
+      if (!nextUrl.searchParams.has(name)) continue;
+      nextUrl.searchParams.delete(name);
+      changed = true;
+    }
+    if (changed) {
+      window.history.replaceState({}, "", nextUrl);
+    }
   }
 
   function buildIssueItemsSearchUrl(
@@ -1024,46 +1029,77 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     };
   }
 
-  function buildLegacyPrActivityLeadModel(points, metricKey) {
+  function buildLegacyPrActivityStatsModel(points, { viewKey, windowLabel, granularity } = {}) {
     const safePoints = Array.isArray(points) ? points : [];
-    const latestPoint = safePoints[safePoints.length - 1] || null;
-    if (!latestPoint) return null;
+    if (safePoints.length === 0) return null;
 
-    const rankedVolume = PR_ACTIVITY_LINE_DEFS.map((lineDef) => ({
-      key: lineDef.dataKey,
-      label: lineDef.name,
-      count: toCount(latestPoint?.[lineDef.dataKey]?.[metricKey])
-    }))
-      .filter((row) => row.count > 0)
+    const teamRows = PR_ACTIVITY_VISIBLE_LINE_DEFS.map((lineDef) => {
+      const totals = safePoints.reduce(
+        (sum, point) => {
+          const teamMetrics = point?.[lineDef.dataKey];
+          const opened = toCount(teamMetrics?.offered);
+          const ai = toCount(teamMetrics?.aiOffered);
+          const explicitNonAi =
+            teamMetrics && Object.prototype.hasOwnProperty.call(teamMetrics, "nonAiOffered")
+              ? toCount(teamMetrics?.nonAiOffered)
+              : Math.max(0, opened - ai);
+          const nonAi = Math.max(explicitNonAi, opened - ai);
+          sum.opened += opened;
+          sum.ai += ai;
+          sum.nonAi += nonAi;
+          return sum;
+        },
+        { opened: 0, ai: 0, nonAi: 0 }
+      );
+      return { ...lineDef, ...totals };
+    });
+
+    const totalOpened = teamRows.reduce((sum, row) => sum + row.opened, 0);
+    const totalAi = teamRows.reduce((sum, row) => sum + row.ai, 0);
+    const totalNonAi = teamRows.reduce((sum, row) => sum + row.nonAi, 0);
+    const aiShare = totalOpened > 0 ? Math.round((totalAi / totalOpened) * 100) : 0;
+    const leadingTeam = teamRows
+      .filter((row) => row.opened > 0)
       .sort((left, right) => {
-        if (right.count !== left.count) return right.count - left.count;
-        return left.label.localeCompare(right.label);
-      });
-    const slowestMerge = PR_ACTIVITY_LINE_DEFS.map((lineDef) => ({
-      label: lineDef.name,
-      days: toNumber(latestPoint?.[lineDef.dataKey]?.avgReviewToMergeDays)
-    }))
-      .filter((row) => row.days > 0)
-      .sort((left, right) => {
-        if (right.days !== left.days) return right.days - left.days;
-        return left.label.localeCompare(right.label);
+        if (right.opened !== left.opened) return right.opened - left.opened;
+        return left.name.localeCompare(right.name);
       })[0];
-    const leadTeam = rankedVolume[0] || null;
-    if (!leadTeam) return null;
+    const bucketLabel = `${safePoints.length} ${String(granularity || "bucket").toLowerCase()}${
+      safePoints.length === 1 ? "" : "s"
+    }`;
 
     return {
-      summaryText:
-        metricKey === "merged"
-          ? `${leadTeam.label} merged the most PRs in the latest month, while ${slowestMerge?.label || "the slowest team"} is still taking the longest to move from review to merge.`
-          : `${leadTeam.label} opened the most PRs in the latest month, while ${slowestMerge?.label || "the slowest team"} is still taking the longest to move from review to merge.`,
-      calloutLabel: metricKey === "merged" ? "PRs merged" : "PRs opened",
-      calloutValue: String(leadTeam.count),
-      calloutSubtext: `${leadTeam.label} in the latest month`,
-      chips: [
-        metricKey === "merged" ? "Merged view" : "Opened view",
-        slowestMerge ? `Slowest merge: ${slowestMerge.label}` : ""
-      ].filter(Boolean),
-      accentColor: getPrCycleTeamColor(leadTeam.key)
+      accentColor:
+        viewKey === "ai"
+          ? "#1f7a64"
+          : leadingTeam
+            ? getPrCycleTeamColor(leadingTeam.dataKey)
+            : "var(--chart-active)",
+      stats:
+        viewKey === "ai"
+          ? [
+              {
+                label: "AI share",
+                value: `${aiShare}%`,
+                className: "dashboard-utility-layout__stat--primary"
+              },
+              { label: "AI labeled", value: formatCountLabel(totalAi, "PR") },
+              { label: "Not AI labeled", value: formatCountLabel(totalNonAi, "PR") },
+              { label: "PRs opened", value: formatCountLabel(totalOpened, "PR") }
+            ]
+          : [
+              {
+                label: "PRs opened",
+                value: formatCountLabel(totalOpened, "PR"),
+                className: "dashboard-utility-layout__stat--primary"
+              },
+              { label: "Leading team", value: leadingTeam?.name || "None" },
+              { label: "View", value: "Team trend" },
+              {
+                label: "Window",
+                value: windowLabel ? `${windowLabel} · ${bucketLabel}` : bucketLabel
+              }
+            ]
     };
   }
 
@@ -1230,7 +1266,10 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       ? prActivitySnapshot.prActivity.points
       : [];
     if (PR_ACTIVITY_LEGACY_SPRINT_WINDOWS.includes(windowKey) || monthlyPoints.length === 0) {
-      const clampedSprintPoints = clampLegacyPrActivityTrendPoints(sprintPoints, prActivitySnapshot);
+      const clampedSprintPoints = clampLegacyPrActivityTrendPoints(
+        sprintPoints,
+        prActivitySnapshot
+      );
       const windowedSprintPoints = getPrActivityWindowedPoints(clampedSprintPoints, windowKey);
       return {
         ...windowedSprintPoints,
@@ -1249,10 +1288,25 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   }
 
   function getLegacyPrActivitySourceLabel(prActivity) {
-    const source = String(prActivity?.source || "").trim().toLowerCase();
+    const source = String(prActivity?.source || "")
+      .trim()
+      .toLowerCase();
     if (source === "github_pull_requests") return "GitHub";
     if (source === "jira_dev_status_detail") return "Jira";
     return "PR";
+  }
+
+  function prActivityLegacyViewKey(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase() === "ai"
+      ? "ai"
+      : "activity";
+  }
+
+  function setElementHidden(id, hidden) {
+    const node = document.getElementById(id);
+    if (node) node.hidden = Boolean(hidden);
   }
 
   function normalizeDisplayTeamName(name) {
@@ -1300,7 +1354,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   }
 
   function getPrActivityLineDefs(colors) {
-    return PR_ACTIVITY_LINE_DEFS.map((line) => ({
+    return PR_ACTIVITY_VISIBLE_LINE_DEFS.map((line) => ({
       ...line,
       stroke: colors.teams[line.colorKey]
     }));
@@ -1797,13 +1851,171 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     );
   }
 
+  function getAiUseTeamRows(points, lineDefs) {
+    return lineDefs.map((lineDef) => {
+      const buckets = (Array.isArray(points) ? points : []).map((point) => {
+        const metrics = point?.[lineDef.dataKey] || {};
+        const totalMetric = toNumber(metrics.offered);
+        const ai = Math.max(0, toNumber(metrics.aiOffered));
+        const nonAi = Math.max(0, toNumber(metrics.nonAiOffered || totalMetric - ai));
+        const total = Math.max(totalMetric, ai + nonAi);
+        return {
+          date: String(point?.date || ""),
+          ai,
+          nonAi,
+          total
+        };
+      });
+      const windowTotals = buckets.reduce(
+        (sum, bucket) => ({
+          ai: sum.ai + toNumber(bucket.ai),
+          total: sum.total + toNumber(bucket.total)
+        }),
+        { ai: 0, total: 0 }
+      );
+      const windowShare =
+        windowTotals.total > 0
+          ? Math.round((windowTotals.ai / Math.max(1, windowTotals.total)) * 100)
+          : 0;
+      return {
+        ...lineDef,
+        buckets,
+        windowShare,
+        windowTotal: windowTotals.total,
+        windowAi: windowTotals.ai
+      };
+    });
+  }
+
+  function AiUseSmallMultiplesChart({ points, colors }) {
+    const lineDefs = getPrActivityLineDefs(colors).filter(
+      (lineDef) => lineDef.dataKey !== "unmapped"
+    );
+    const teamRows = getAiUseTeamRows(points, lineDefs);
+    const maxTotal =
+      teamRows.reduce(
+        (highest, row) =>
+          Math.max(highest, ...row.buckets.map((bucket) => Math.max(0, toNumber(bucket.total)))),
+        0
+      ) || 1;
+    const monthlySeries = (Array.isArray(points) ? points : []).every(
+      (point) => startOfChartMonth(point?.date) === point?.date
+    );
+    const firstDate = String(points?.[0]?.date || "");
+    const lastDate = String(points?.[points.length - 1]?.date || "");
+
+    return h(
+      "div",
+      {
+        className: "ai-use-chart",
+        role: "group",
+        "aria-label": "AI and non-AI PRs opened by team"
+      },
+      h(
+        "div",
+        { className: "ai-use-chart__legend", "aria-hidden": "true" },
+        h(
+          "span",
+          { className: "ai-use-chart__legend-item" },
+          h("span", { className: "ai-use-chart__swatch ai-use-chart__swatch--non-ai" }),
+          "Not AI labeled"
+        ),
+        h(
+          "span",
+          { className: "ai-use-chart__legend-item" },
+          h("span", { className: "ai-use-chart__swatch ai-use-chart__swatch--ai" }),
+          "AI labeled"
+        )
+      ),
+      h(
+        "div",
+        { className: "ai-use-chart__grid" },
+        ...teamRows.map((team) =>
+          h(
+            "section",
+            {
+              key: team.dataKey,
+              className: "ai-use-chart__team",
+              "aria-label": `${team.name} AI use`
+            },
+            h(
+              "div",
+              { className: "ai-use-chart__team-header" },
+              h("span", {
+                className: "ai-use-chart__team-dot",
+                style: { background: team.stroke }
+              }),
+              h("span", { className: "ai-use-chart__team-name" }, team.name),
+              h("span", { className: "ai-use-chart__team-share" }, `${team.windowShare}% AI`)
+            ),
+            h(
+              "div",
+              { className: "ai-use-chart__plot" },
+              ...team.buckets.map((bucket, index) => {
+                const totalHeight = Math.max(2, Math.round((bucket.total / maxTotal) * 100));
+                const aiHeight =
+                  bucket.total > 0
+                    ? Math.round((bucket.ai / Math.max(1, bucket.total)) * totalHeight)
+                    : 0;
+                const nonAiHeight = Math.max(0, totalHeight - aiHeight);
+                const dateLabel = formatLegacyPrActivityPointDate(bucket.date, { monthlySeries });
+                const share = bucket.total > 0 ? Math.round((bucket.ai / bucket.total) * 100) : 0;
+                const nonAiCount = Math.max(0, bucket.total - bucket.ai);
+                return h(
+                  "span",
+                  {
+                    key: `${team.dataKey}-${bucket.date}-${index}`,
+                    className: "ai-use-chart__bar",
+                    tabIndex: bucket.total > 0 ? 0 : -1,
+                    "aria-label": `${team.name}, ${dateLabel || bucket.date}: ${bucket.ai} AI labeled PRs, ${nonAiCount} not AI labeled PRs, ${bucket.total} opened, ${share}% AI`
+                  },
+                  h("span", {
+                    className: "ai-use-chart__bar-fill ai-use-chart__bar-fill--non-ai",
+                    style: { height: `${nonAiHeight}%` }
+                  }),
+                  h("span", {
+                    className: "ai-use-chart__bar-fill ai-use-chart__bar-fill--ai",
+                    style: { height: `${aiHeight}%` }
+                  }),
+                  h(
+                    "span",
+                    { className: "ai-use-chart__tooltip", role: "tooltip" },
+                    h("span", { className: "ai-use-chart__tooltip-title" }, team.name),
+                    h("span", null, dateLabel || bucket.date),
+                    h("span", null, `${bucket.total} PRs opened`),
+                    h("span", null, `${bucket.ai} AI labeled / ${nonAiCount} not AI labeled`),
+                    h("span", null, `${share}% AI`)
+                  )
+                );
+              })
+            ),
+            h(
+              "div",
+              { className: "ai-use-chart__axis" },
+              h("span", null, formatLegacyPrActivityPointDate(firstDate, { monthlySeries })),
+              h("span", null, formatLegacyPrActivityPointDate(lastDate, { monthlySeries }))
+            )
+          )
+        )
+      ),
+      h(
+        "p",
+        { className: "panel-note ai-use-chart__disclaimer" },
+        "Tracks the GitHub AI label applied by git-ai checks; it does not infer all AI usage."
+      )
+    );
+  }
+
   function renderLegacyPrActivityCharts() {
     withChart("pr-activity-legacy", getConfig, ({ status, context }) => {
       const config = getConfig("pr-activity-legacy");
       const prActivity = getPrActivitySnapshot()?.prActivity;
       const windowKey = prActivityLegacyWindowKey(state.prActivityLegacyWindow);
+      const viewKey = prActivityLegacyViewKey(state.prActivityLegacyView);
       state.prActivityLegacyWindow = windowKey;
+      state.prActivityLegacyView = viewKey;
       syncControlValue("pr-activity-legacy-window", windowKey);
+      syncControlValue("pr-activity-legacy-view", viewKey);
       const trendWindow = buildLegacyPrActivityTrendPoints(windowKey);
       const points = trendWindow.points;
       if (points.length === 0) {
@@ -1825,17 +2037,29 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       const lastLabel = monthlySeries
         ? formatCompactMonthYear(lastPointDate.slice(0, 7))
         : lastPointDate;
-      const metricKey = state.prActivityLegacyMetric === "merged" ? "merged" : "offered";
       const sourceLabel = getLegacyPrActivitySourceLabel(prActivity);
-      syncControlValue("pr-activity-legacy-metric", metricKey);
+      setElementHidden("pr-activity-legacy-merge-time-block", viewKey === "ai");
+      const countTitle = document.getElementById("pr-activity-legacy-count-title");
+      if (countTitle) {
+        countTitle.textContent = "PR activity";
+      }
+      const countSubtitle = document.getElementById("pr-activity-legacy-count-subtitle");
+      if (countSubtitle) {
+        countSubtitle.textContent =
+          viewKey === "ai" ? "PRs opened split by AI label" : "PRs opened team trend";
+      }
       setPanelContext(
         context,
         isPretextLayoutActive()
           ? ""
           : formatContextWithFreshness(
               compactViewport
-                ? `${trendWindow.windowLabel} ${sourceLabel} PR activity • ${trendWindow.granularity}`
-                : `${trendWindow.windowLabel} ${sourceLabel} PR activity • ${trendWindow.granularity} buckets • ${firstLabel || firstPointDate} to ${lastLabel || lastPointDate}`,
+                ? `${trendWindow.windowLabel} ${sourceLabel} ${
+                    viewKey === "ai" ? "AI use" : "PR activity"
+                  } • ${trendWindow.granularity}`
+                : `${trendWindow.windowLabel} ${sourceLabel} ${
+                    viewKey === "ai" ? "AI use" : "PR activity"
+                  } • ${trendWindow.granularity} buckets • ${firstLabel || firstPointDate} to ${lastLabel || lastPointDate}`,
               getSnapshotContextTimestamp(state)
             )
       );
@@ -1854,7 +2078,6 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
         }));
       const lineDefs = getPrActivityLineDefs(colors);
       const openedCountRows = buildLegacyRows((teamMetrics) => teamMetrics?.offered);
-      const selectedCountRows = buildLegacyRows((teamMetrics) => teamMetrics?.[metricKey]);
       const mergedCountRows = buildLegacyRows((teamMetrics) => teamMetrics?.merged);
       const mergeTimeRows = buildLegacyRows((teamMetrics) => teamMetrics?.avgReviewToMergeDays);
       const yAxisUpperOverride = Math.max(
@@ -1874,18 +2097,30 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
           );
         });
       };
+      renderPanelStats(
+        config?.summaryId,
+        buildLegacyPrActivityStatsModel(points, {
+          viewKey,
+          windowLabel: trendWindow.windowLabel,
+          granularity: trendWindow.granularity
+        })
+      );
       if (isPretextLayoutActive()) {
         clearPanelLead(config?.panelId);
-        clearPanelStats(config?.summaryId);
       } else {
-        clearPanelStats(config?.summaryId);
-        renderPanelLead(config?.panelId, buildLegacyPrActivityLeadModel(points, metricKey));
+        clearPanelLead(config?.panelId);
       }
-      renderLegacyChart("pr-activity-legacy-count-chart", selectedCountRows, {
-        yAxisLabel: metricKey === "merged" ? "PRs merged" : "PRs opened",
-        tooltipLabel: metricKey === "merged" ? "PRs merged" : "PRs opened",
-        tooltipValueFormatter: (value) =>
-          `${value} ${metricKey === "merged" ? "PRs merged" : "PRs opened"}`,
+      if (viewKey === "ai") {
+        renderWithRoot("pr-activity-legacy-count-chart", points.length > 0, (root) => {
+          root.render(h(AiUseSmallMultiplesChart, { points, colors }));
+        });
+        clearChartContainer("pr-activity-legacy-merge-time-chart");
+        return;
+      }
+      renderLegacyChart("pr-activity-legacy-count-chart", openedCountRows, {
+        yAxisLabel: "PRs opened",
+        tooltipLabel: "PRs opened",
+        tooltipValueFormatter: (value) => `${value} PRs opened`,
         yAxisUpperOverride,
         showLegend: true,
         xAxisLabel: monthlySeries ? "Month" : "Sprint"
@@ -1960,7 +2195,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       DEVELOPMENT_WORKFLOW_WINDOWS,
       MANAGEMENT_FLOW_SCOPES
     },
-    prActivityLineDefs: PR_ACTIVITY_LINE_DEFS,
+    prActivityLineDefs: PR_ACTIVITY_VISIBLE_LINE_DEFS,
     accessors: {
       getConfig,
       getManagementFacilitySnapshot,
@@ -2049,10 +2284,10 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       onChangeRender: workflowPanels.renderWorkflowBreakdown
     },
     {
-      name: "pr-activity-legacy-metric",
-      stateKey: "prActivityLegacyMetric",
-      defaultValue: "offered",
-      normalizeValue: (value) => (value === "merged" ? "merged" : "offered"),
+      name: "pr-activity-legacy-view",
+      stateKey: "prActivityLegacyView",
+      defaultValue: "activity",
+      normalizeValue: prActivityLegacyViewKey,
       onChangeRender: renderLegacyPrActivityCharts
     },
     {
@@ -2216,6 +2451,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     const rawMode = getModeFromUrl();
     state.mode = normalizeDashboardMode(rawMode);
     readDashboardControlStateFromUrl(CONTROL_BINDINGS, state);
+    removeObsoleteDashboardUrlParams(["pr-activity-legacy-metric"]);
     if (!hasUrlParam("bug-trends-view")) {
       state.bugTrendsView = defaultBugTrendsViewForMode(rawMode);
     }

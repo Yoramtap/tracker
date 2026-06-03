@@ -129,6 +129,8 @@ const PR_ACTIVITY_TEAM_KEYS = [...TEAM_KEYS, PR_ACTIVITY_UNMAPPED_TEAM_KEY];
 const PR_ACTIVITY_DEFAULT_GITHUB_ORG = "example-org";
 const PR_ACTIVITY_REPO_DISCOVERY_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const PR_ACTIVITY_UNMAPPED_CONTRIBUTOR_LIMIT = 50;
+const PR_ACTIVITY_UNMAPPED_AUDIT_LIMIT = 100;
+const PR_ACTIVITY_AI_LABELS = new Set(["ai"]);
 const PR_TEAM_LABELS = {
   API: "api",
   Frontend: "legacy",
@@ -650,6 +652,7 @@ export function normalizeGitHubPullRequestRecord(repo, team, pullRequest) {
     offeredProxyDate: createdDate,
     mergedProxyDate: mergedDate,
     status: mergedDate ? "MERGED" : state,
+    isAiLabeled: isAiLabeledGitHubPullRequest(pullRequest),
     url: String(pullRequest?.html_url || pullRequest?.url || "").trim(),
     repositoryId: safeRepo,
     pullRequestId: String(number),
@@ -807,6 +810,7 @@ function mergeGitHubPullRequestRecords(records) {
       record.offeredProxyDate
     ]);
     existing.mergedProxyDate = latestIsoDate([existing.mergedProxyDate, record.mergedProxyDate]);
+    existing.isAiLabeled = Boolean(existing.isAiLabeled || record.isAiLabeled);
     if (existing.status !== "MERGED" && record.status === "MERGED") existing.status = "MERGED";
   }
 
@@ -849,6 +853,114 @@ function mergeUnmappedContributorCounts(countMaps) {
   return Array.from(mergedCounts.entries())
     .map(([login, pullRequestCount]) => ({ login, pullRequestCount }))
     .sort((a, b) => b.pullRequestCount - a.pullRequestCount || a.login.localeCompare(b.login));
+}
+
+function collectUnmappedPrAuditRows(pullRequests, repo, repoTeam, contributorTeamMap) {
+  const safeRepo = String(repo || "")
+    .trim()
+    .toLowerCase();
+  const safeRepoTeam = String(repoTeam || "")
+    .trim()
+    .toLowerCase();
+  const repoIsUnmapped = safeRepoTeam === PR_ACTIVITY_UNMAPPED_TEAM_KEY;
+  const rowsByKey = new Map();
+
+  for (const pullRequest of Array.isArray(pullRequests) ? pullRequests : []) {
+    if (!pullRequest || pullRequest.draft) continue;
+    const authorLogin = String(pullRequest?.user?.login || "")
+      .trim()
+      .toLowerCase();
+    const contributorTeam = resolveContributorTeam(contributorTeamMap, pullRequest);
+    const contributorIsUnmapped = !contributorTeam;
+    if (!repoIsUnmapped && !contributorIsUnmapped) continue;
+
+    const reason =
+      repoIsUnmapped && contributorIsUnmapped
+        ? "repo_and_contributor_unmapped"
+        : repoIsUnmapped
+          ? "repo_unmapped"
+          : "contributor_unmapped";
+    const suggestedTeam = contributorTeam || (repoIsUnmapped ? "" : safeRepoTeam);
+    const key = [safeRepo, authorLogin || "(unknown)", reason, suggestedTeam].join("\u0000");
+    const createdDate = isoDateOnly(pullRequest?.created_at);
+    const mergedDate = isoDateOnly(pullRequest?.merged_at);
+    const latestDate = [createdDate, mergedDate].filter(Boolean).sort().at(-1) || "";
+    const existing = rowsByKey.get(key) || {
+      repo: safeRepo,
+      authorLogin: authorLogin || "(unknown)",
+      reason,
+      suggestedTeam,
+      pullRequestCount: 0,
+      mergedPullRequestCount: 0,
+      latestPullRequestDate: "",
+      samplePullRequests: []
+    };
+    existing.pullRequestCount += 1;
+    if (mergedDate) existing.mergedPullRequestCount += 1;
+    if (latestDate && latestDate > existing.latestPullRequestDate) {
+      existing.latestPullRequestDate = latestDate;
+    }
+    const url = String(pullRequest?.html_url || "").trim();
+    if (url && existing.samplePullRequests.length < 3) {
+      existing.samplePullRequests.push(url);
+    }
+    rowsByKey.set(key, existing);
+  }
+
+  return Array.from(rowsByKey.values());
+}
+
+function mergeUnmappedPrAuditRows(rowLists) {
+  const mergedRows = new Map();
+  for (const rows of Array.isArray(rowLists) ? rowLists : []) {
+    for (const row of Array.isArray(rows) ? rows : []) {
+      const repo = String(row?.repo || "")
+        .trim()
+        .toLowerCase();
+      const authorLogin = String(row?.authorLogin || "")
+        .trim()
+        .toLowerCase();
+      const reason = String(row?.reason || "").trim();
+      const suggestedTeam = String(row?.suggestedTeam || "")
+        .trim()
+        .toLowerCase();
+      if (!repo || !authorLogin || !reason) continue;
+      const key = [repo, authorLogin, reason, suggestedTeam].join("\u0000");
+      const existing = mergedRows.get(key) || {
+        repo,
+        authorLogin,
+        reason,
+        suggestedTeam,
+        pullRequestCount: 0,
+        mergedPullRequestCount: 0,
+        latestPullRequestDate: "",
+        samplePullRequests: []
+      };
+      existing.pullRequestCount += numberOrZero(row?.pullRequestCount);
+      existing.mergedPullRequestCount += numberOrZero(row?.mergedPullRequestCount);
+      const latestDate = isoDateOnly(row?.latestPullRequestDate);
+      if (latestDate && latestDate > existing.latestPullRequestDate) {
+        existing.latestPullRequestDate = latestDate;
+      }
+      for (const url of Array.isArray(row?.samplePullRequests) ? row.samplePullRequests : []) {
+        const safeUrl = String(url || "").trim();
+        if (safeUrl && existing.samplePullRequests.length < 3) {
+          existing.samplePullRequests.push(safeUrl);
+        }
+      }
+      mergedRows.set(key, existing);
+    }
+  }
+
+  return Array.from(mergedRows.values()).sort((left, right) => {
+    if (right.pullRequestCount !== left.pullRequestCount) {
+      return right.pullRequestCount - left.pullRequestCount;
+    }
+    if (right.mergedPullRequestCount !== left.mergedPullRequestCount) {
+      return right.mergedPullRequestCount - left.mergedPullRequestCount;
+    }
+    return `${left.repo} ${left.authorLogin}`.localeCompare(`${right.repo} ${right.authorLogin}`);
+  });
 }
 
 export async function fetchGitHubPrActivity(sinceDate, options = {}) {
@@ -913,6 +1025,12 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
         pullRequests,
         contributorTeamMap
       );
+      const unmappedPrAuditRows = collectUnmappedPrAuditRows(
+        pullRequests,
+        repo,
+        team,
+        contributorTeamMap
+      );
       const records = pullRequests
         .map((pullRequest) =>
           normalizeGitHubPullRequestRecord(
@@ -949,7 +1067,8 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
       return {
         records,
         ticketReviewToMergeRecords,
-        unmappedContributorCounts
+        unmappedContributorCounts,
+        unmappedPrAuditRows
       };
     }
   );
@@ -962,6 +1081,9 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
   );
   const unmappedContributors = mergeUnmappedContributorCounts(
     perRepoResults.map((result) => result.unmappedContributorCounts)
+  );
+  const unmappedPrAudit = mergeUnmappedPrAuditRows(
+    perRepoResults.map((result) => result.unmappedPrAuditRows)
   );
   return {
     source: "github_pull_requests",
@@ -976,6 +1098,7 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
     ).length,
     unmappedContributorCount: unmappedContributors.length,
     unmappedContributors: unmappedContributors.slice(0, PR_ACTIVITY_UNMAPPED_CONTRIBUTOR_LIMIT),
+    unmappedPrAudit: unmappedPrAudit.slice(0, PR_ACTIVITY_UNMAPPED_AUDIT_LIMIT),
     reviewChangelogIssueCount: ticketReviewToMergeRecords.length,
     cacheHitCount: 0,
     cacheWriteCount: 0,
@@ -1058,6 +1181,10 @@ function emptyPrAccumulator() {
   return {
     offered: 0,
     merged: 0,
+    aiOffered: 0,
+    nonAiOffered: 0,
+    aiMerged: 0,
+    nonAiMerged: 0,
     reviewToMergeDaysTotal: 0,
     avgReviewToMergeSampleCount: 0
   };
@@ -1076,6 +1203,10 @@ function buildPrPointForTeam(byDate, date, team) {
   return {
     offered: numberOrZero(teamPoint.offered),
     merged: numberOrZero(teamPoint.merged),
+    aiOffered: numberOrZero(teamPoint.aiOffered),
+    nonAiOffered: numberOrZero(teamPoint.nonAiOffered),
+    aiMerged: numberOrZero(teamPoint.aiMerged),
+    nonAiMerged: numberOrZero(teamPoint.nonAiMerged),
     avgReviewToMergeDays:
       sampleCount > 0
         ? Math.round(numberOrZero(teamPoint.reviewToMergeDaysTotal) / Math.max(sampleCount, 1))
@@ -2454,6 +2585,29 @@ function buildPrActivityCaveat(source) {
   return "Counts are sourced from GitHub pull requests.";
 }
 
+function normalizeGitHubPullRequestLabelName(label) {
+  return String(typeof label === "string" ? label : label?.name || "")
+    .trim()
+    .toLowerCase();
+}
+
+export function isAiLabeledGitHubPullRequest(pullRequest) {
+  const labels = Array.isArray(pullRequest?.labels) ? pullRequest.labels : [];
+  return labels.some((label) =>
+    PR_ACTIVITY_AI_LABELS.has(normalizeGitHubPullRequestLabelName(label))
+  );
+}
+
+function incrementPrActivityCount(point, team, isAi, metricKey) {
+  if (!point?.[team]) return;
+  point[team][metricKey] += 1;
+  if (metricKey === "offered") {
+    point[team][isAi ? "aiOffered" : "nonAiOffered"] += 1;
+  } else if (metricKey === "merged") {
+    point[team][isAi ? "aiMerged" : "nonAiMerged"] += 1;
+  }
+}
+
 function buildPrimarySnapshotSourceNote() {
   return "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. PR activity is sourced from GitHub pull requests across discovered organization repos and attributed by Jira-derived contributor mapping with repo ownership and Unmapped fallbacks.";
 }
@@ -2475,7 +2629,7 @@ function buildPrActivitySprintSnapshot(result, sinceDate, sprintDates) {
     if (offeredInRange) {
       const offeredBucketDate = resolveSprintBucketDate(offeredDate, dates);
       const offeredPoint = byDate.get(offeredBucketDate);
-      if (offeredPoint) offeredPoint[row.team].offered += 1;
+      incrementPrActivityCount(offeredPoint, row.team, Boolean(row.isAiLabeled), "offered");
     }
 
     if (row.status === "MERGED") {
@@ -2487,7 +2641,7 @@ function buildPrActivitySprintSnapshot(result, sinceDate, sprintDates) {
       if (mergedInRange) {
         const mergedBucketDate = resolveSprintBucketDate(mergedDate, dates);
         const mergedPoint = byDate.get(mergedBucketDate);
-        if (mergedPoint) mergedPoint[row.team].merged += 1;
+        incrementPrActivityCount(mergedPoint, row.team, Boolean(row.isAiLabeled), "merged");
       }
     }
   }
@@ -2525,6 +2679,22 @@ function buildPrActivitySprintSnapshot(result, sinceDate, sprintDates) {
             pullRequestCount: numberOrZero(row?.pullRequestCount)
           }))
           .filter((row) => row.login && row.pullRequestCount > 0)
+      : [],
+    unmappedPrAudit: Array.isArray(result.unmappedPrAudit)
+      ? result.unmappedPrAudit
+          .map((row) => ({
+            repo: String(row?.repo || "").trim(),
+            authorLogin: String(row?.authorLogin || "").trim(),
+            reason: String(row?.reason || "").trim(),
+            suggestedTeam: String(row?.suggestedTeam || "").trim(),
+            pullRequestCount: numberOrZero(row?.pullRequestCount),
+            mergedPullRequestCount: numberOrZero(row?.mergedPullRequestCount),
+            latestPullRequestDate: isoDateOnly(row?.latestPullRequestDate),
+            samplePullRequests: Array.isArray(row?.samplePullRequests)
+              ? row.samplePullRequests.map((url) => String(url || "").trim()).filter(Boolean)
+              : []
+          }))
+          .filter((row) => row.repo && row.authorLogin && row.reason && row.pullRequestCount > 0)
       : [],
     caveat: buildPrActivityCaveat(result?.source),
     points: buildPrActivityPoints(byDate, dates)
@@ -2582,7 +2752,7 @@ function buildPrActivityMonthlySnapshot(result, sinceDate, options = {}) {
       (!maximumBucketDate || !offeredBucketDate || offeredBucketDate <= maximumBucketDate);
     if (offeredBucketInRange) {
       const offeredPoint = ensureMonthBucket(offeredBucketDate);
-      if (offeredPoint) offeredPoint[row.team].offered += 1;
+      incrementPrActivityCount(offeredPoint, row.team, Boolean(row.isAiLabeled), "offered");
     }
 
     if (row.status === "MERGED") {
@@ -2592,7 +2762,7 @@ function buildPrActivityMonthlySnapshot(result, sinceDate, options = {}) {
         (!maximumBucketDate || !mergedBucketDate || mergedBucketDate <= maximumBucketDate);
       if (mergedBucketInRange) {
         const mergedPoint = ensureMonthBucket(mergedBucketDate);
-        if (mergedPoint) mergedPoint[row.team].merged += 1;
+        incrementPrActivityCount(mergedPoint, row.team, Boolean(row.isAiLabeled), "merged");
       }
     }
   }

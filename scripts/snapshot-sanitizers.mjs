@@ -80,6 +80,10 @@ function sanitizePrActivityTeamPoint(point) {
   return {
     offered: sanitizeNumber(point?.offered),
     merged: sanitizeNumber(point?.merged),
+    aiOffered: sanitizeNumber(point?.aiOffered),
+    nonAiOffered: sanitizeNumber(point?.nonAiOffered),
+    aiMerged: sanitizeNumber(point?.aiMerged),
+    nonAiMerged: sanitizeNumber(point?.nonAiMerged),
     avgReviewToMergeDays: sanitizeNumber(point?.avgReviewToMergeDays),
     avgReviewToMergeSampleCount: sanitizeNumber(point?.avgReviewToMergeSampleCount)
   };
@@ -108,6 +112,21 @@ function sanitizePrActivityUnmappedContributor(row) {
   };
 }
 
+function sanitizePrActivityUnmappedAuditRow(row) {
+  return {
+    repo: sanitizeText(row?.repo),
+    authorLogin: sanitizeText(row?.authorLogin),
+    reason: sanitizeText(row?.reason),
+    suggestedTeam: sanitizeText(row?.suggestedTeam),
+    pullRequestCount: sanitizeNumber(row?.pullRequestCount),
+    mergedPullRequestCount: sanitizeNumber(row?.mergedPullRequestCount),
+    latestPullRequestDate: sanitizeText(row?.latestPullRequestDate),
+    samplePullRequests: Array.isArray(row?.samplePullRequests)
+      ? row.samplePullRequests.map((url) => sanitizeText(url)).filter(Boolean)
+      : []
+  };
+}
+
 function sanitizePrActivityMetadata(prActivity) {
   return {
     ...(Number.isFinite(Number(prActivity?.unmappedRepoCount))
@@ -121,6 +140,13 @@ function sanitizePrActivityMetadata(prActivity) {
           unmappedContributors: prActivity.unmappedContributors
             .map(sanitizePrActivityUnmappedContributor)
             .filter((row) => row.login && row.pullRequestCount > 0)
+        }
+      : {}),
+    ...(Array.isArray(prActivity?.unmappedPrAudit)
+      ? {
+          unmappedPrAudit: prActivity.unmappedPrAudit
+            .map(sanitizePrActivityUnmappedAuditRow)
+            .filter((row) => row.repo && row.authorLogin && row.reason && row.pullRequestCount > 0)
         }
       : {})
   };

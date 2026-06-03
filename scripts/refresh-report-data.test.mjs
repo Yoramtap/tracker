@@ -10,6 +10,7 @@ import {
   buildTrendRefreshDateState,
   fetchPrCycleIssueBreakdown,
   fetchGitHubPrActivity,
+  isAiLabeledGitHubPullRequest,
   loadPrActivityContributorTeamMapConfig,
   loadPrActivityRepoTeamMapConfig,
   normalizeGitHubPullRequestRecord,
@@ -33,6 +34,7 @@ function makePrActivityRows() {
       {
         team: "api",
         status: "MERGED",
+        isAiLabeled: true,
         offeredProxyDate: "2026-03-15",
         mergedProxyDate: "2026-03-20"
       }
@@ -328,6 +330,25 @@ test("resolveGitHubAccessToken prefers env tokens before gh auth", async () => {
 
 test("normalizeGitHubPullRequestRecord excludes drafts and maps non-draft GitHub PRs", () => {
   assert.equal(
+    isAiLabeledGitHubPullRequest({
+      labels: [{ name: "AI" }, { name: "backend" }]
+    }),
+    true
+  );
+  assert.equal(
+    isAiLabeledGitHubPullRequest({
+      labels: [{ name: "github-copilot" }, { name: "backend" }]
+    }),
+    false
+  );
+  assert.equal(
+    isAiLabeledGitHubPullRequest({
+      labels: [{ name: "paid" }, { name: "backend" }]
+    }),
+    false
+  );
+
+  assert.equal(
     normalizeGitHubPullRequestRecord("example-org/tfc-functionality-usvc", "api", {
       number: 153,
       draft: true,
@@ -354,6 +375,7 @@ test("normalizeGitHubPullRequestRecord excludes drafts and maps non-draft GitHub
       offeredProxyDate: "2026-03-13",
       mergedProxyDate: "2026-03-19",
       status: "MERGED",
+      isAiLabeled: false,
       url: "https://github.com/example-org/tfc-functionality-usvc/pull/152",
       repositoryId: "example-org/tfc-functionality-usvc",
       pullRequestId: "152",
@@ -383,6 +405,7 @@ test("fetchGitHubPrActivity builds non-draft PR activity rows from repo mappings
             merged_at: "2026-03-19T08:27:29Z",
             updated_at: "2026-03-19T08:27:29Z",
             html_url: "https://github.com/example-org/tfc-functionality-usvc/pull/152",
+            labels: [{ name: "AI" }],
             user: { login: "author_example" }
           },
           {
@@ -450,7 +473,8 @@ test("fetchGitHubPrActivity builds non-draft PR activity rows from repo mappings
       team: record.team,
       offeredProxyDate: record.offeredProxyDate,
       mergedProxyDate: record.mergedProxyDate,
-      status: record.status
+      status: record.status,
+      isAiLabeled: record.isAiLabeled
     })),
     [
       {
@@ -458,14 +482,16 @@ test("fetchGitHubPrActivity builds non-draft PR activity rows from repo mappings
         team: "api",
         offeredProxyDate: "2026-03-13",
         mergedProxyDate: "2026-03-19",
-        status: "MERGED"
+        status: "MERGED",
+        isAiLabeled: true
       },
       {
         uniqueKey: "example-org/tfc-ui#901",
         team: "react",
         offeredProxyDate: "2026-03-20",
         mergedProxyDate: "",
-        status: "OPEN"
+        status: "OPEN",
+        isAiLabeled: false
       }
     ]
   );
@@ -533,6 +559,18 @@ test("fetchGitHubPrActivity attributes mapped contributors before falling back t
       pullRequestCount: 1
     }
   ]);
+  assert.deepEqual(prActivity.unmappedPrAudit, [
+    {
+      repo: "example-org/tfc-functionality-usvc",
+      authorLogin: "unmapped_example",
+      reason: "contributor_unmapped",
+      suggestedTeam: "api",
+      pullRequestCount: 1,
+      mergedPullRequestCount: 0,
+      latestPullRequestDate: "2026-03-20",
+      samplePullRequests: ["https://github.com/example-org/tfc-functionality-usvc/pull/153"]
+    }
+  ]);
 });
 
 test("fetchGitHubPrActivity discovers active org repos and counts unknown repos as unmapped", async () => {
@@ -596,6 +634,16 @@ test("fetchGitHubPrActivity discovers active org repos and counts unknown repos 
             updated_at: "2026-03-20T10:00:00Z",
             html_url: "https://github.com/example-org/new-github-only-repo/pull/1",
             user: { login: "unknown_example" }
+          },
+          {
+            number: 2,
+            draft: false,
+            state: "closed",
+            created_at: "2026-03-21T10:00:00Z",
+            merged_at: "2026-03-22T10:00:00Z",
+            updated_at: "2026-03-22T10:00:00Z",
+            html_url: "https://github.com/example-org/new-github-only-repo/pull/2",
+            user: { login: "known_example" }
           }
         ];
       }
@@ -619,7 +667,29 @@ test("fetchGitHubPrActivity discovers active org repos and counts unknown repos 
       pullRequestCount: 1
     }
   ]);
-  assert.equal(prActivity.uniquePrCount, 2);
+  assert.deepEqual(prActivity.unmappedPrAudit, [
+    {
+      repo: "example-org/new-github-only-repo",
+      authorLogin: "known_example",
+      reason: "repo_unmapped",
+      suggestedTeam: "api",
+      pullRequestCount: 1,
+      mergedPullRequestCount: 1,
+      latestPullRequestDate: "2026-03-22",
+      samplePullRequests: ["https://github.com/example-org/new-github-only-repo/pull/2"]
+    },
+    {
+      repo: "example-org/new-github-only-repo",
+      authorLogin: "unknown_example",
+      reason: "repo_and_contributor_unmapped",
+      suggestedTeam: "",
+      pullRequestCount: 1,
+      mergedPullRequestCount: 0,
+      latestPullRequestDate: "2026-03-20",
+      samplePullRequests: ["https://github.com/example-org/new-github-only-repo/pull/1"]
+    }
+  ]);
+  assert.equal(prActivity.uniquePrCount, 3);
   assert.deepEqual(
     prActivity.records.map((record) => ({
       uniqueKey: record.uniqueKey,
@@ -629,6 +699,10 @@ test("fetchGitHubPrActivity discovers active org repos and counts unknown repos 
       {
         uniqueKey: "example-org/new-github-only-repo#1",
         team: "unmapped"
+      },
+      {
+        uniqueKey: "example-org/new-github-only-repo#2",
+        team: "api"
       },
       {
         uniqueKey: "example-org/tfc-functionality-usvc#152",
@@ -789,7 +863,13 @@ test("buildPrActivitySnapshotState reuses cached history but truncates later poi
   );
   assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].api.offered, 1);
   assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].api.merged, 1);
+  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].api.aiOffered, 1);
+  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].api.nonAiOffered, 0);
+  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].api.aiMerged, 1);
+  assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].api.nonAiMerged, 0);
   assert.equal(prActivityState.refreshedPrActivity.monthlyPoints[0].api.avgReviewToMergeDays, 6);
+  assert.equal(prActivityState.refreshedPrActivity.points[0].api.aiOffered, 1);
+  assert.equal(prActivityState.refreshedPrActivity.points[1].api.aiMerged, 1);
   assert.deepEqual(
     prActivityState.mergedPrActivity.points.map((point) => point.date),
     ["2025-04-07", "2026-03-16", "2026-03-30"]

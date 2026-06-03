@@ -36,7 +36,7 @@
   const DASHBOARD_APP_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-app.js",
-    "local70"
+    "local88"
   );
   const SHIPPED_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
@@ -51,7 +51,7 @@
   const FULL_HEAVY_PANEL_SHELL_SRC = getVersionedSourcePath(
     "app",
     "dashboard-heavy-panels.html",
-    "local22"
+    "local29"
   );
   const LOCAL_AGENTATION_LOADER_SRC = getVersionedSourcePath(
     "dev",
@@ -325,7 +325,9 @@
   }
 
   function quoteJqlValue(value) {
-    return `"${String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+    return `"${String(value || "")
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"')}"`;
   }
 
   function buildJiraSearchUrl(jql) {
@@ -479,11 +481,7 @@
                 <span class="dashboard-utility-layout__value">${escapeHtml(row.valueText)}</span>
               </span>
             </div>
-            ${
-              metaMarkup
-                ? `<div class="dashboard-utility-layout__meta">${metaMarkup}</div>`
-                : ""
-            }
+            ${metaMarkup ? `<div class="dashboard-utility-layout__meta">${metaMarkup}</div>` : ""}
             <div class="dashboard-utility-layout__rail" aria-hidden="true">
               <div class="dashboard-utility-layout__fill" style="width:${row.width}%;background:${model.accentColor}"></div>
             </div>
