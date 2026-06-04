@@ -1986,7 +1986,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
                     key: `${team.dataKey}-${bucket.date}-${index}`,
                     className: "ai-use-chart__bar",
                     tabIndex: bucket.total > 0 ? 0 : -1,
-                    "aria-label": `${team.name}, ${dateLabel || bucket.date}: ${bucket.ai} PRs with AI label, ${nonAiCount} PRs without AI label, ${bucket.total} opened, ${share}% AI`
+                    "aria-label": `${team.name}, ${dateLabel || bucket.date}: ${bucket.total} PRs opened, ${bucket.ai} AI labeled, ${nonAiCount} not AI labeled, ${share}% AI`
                   },
                   h("span", {
                     className: "ai-use-chart__bar-fill ai-use-chart__bar-fill--non-ai",
@@ -1998,14 +1998,16 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
                   }),
                   h(
                     "span",
-                    { className: "ai-use-chart__tooltip", role: "tooltip" },
-                    h("span", { className: "ai-use-chart__tooltip-title" }, team.name),
-                    h("span", null, dateLabel || bucket.date),
-                    h("span", null, `${bucket.total} PRs opened`),
-                    h("span", null, `${bucket.ai} with AI label`),
-                    h("span", null, `${nonAiCount} without AI label`),
-                    h("span", null, `${share}% AI`)
-                  )
+	                    { className: "ai-use-chart__tooltip", role: "tooltip" },
+	                    h(
+	                      "span",
+	                      { className: "ai-use-chart__tooltip-title" },
+	                      `${team.name} · ${dateLabel || bucket.date}`
+	                    ),
+	                    h("span", null, `${bucket.total} opened`),
+	                    h("span", null, `${bucket.ai} AI / ${nonAiCount} not AI`),
+	                    h("span", null, `${share}% AI`)
+	                  )
                 );
               })
             ),

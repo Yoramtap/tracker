@@ -954,15 +954,15 @@ h2 {
   bottom: calc(100% + 8px);
   display: grid;
   gap: 2px;
-  min-width: 132px;
-  padding: 8px 10px;
+  min-width: 118px;
+  padding: 7px 9px;
   border: 1px solid rgba(31, 51, 71, 0.16);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.98);
   box-shadow: 0 10px 24px rgba(31, 51, 71, 0.16);
   color: rgba(31, 51, 71, 0.76);
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: 0.7rem;
+  font-weight: 650;
   line-height: 1.25;
   opacity: 0;
   pointer-events: none;
@@ -975,7 +975,7 @@ h2 {
 
 .ai-use-chart__tooltip-title {
   color: rgba(31, 51, 71, 0.92);
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 800;
 }
 
