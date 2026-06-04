@@ -17,6 +17,7 @@ This repo has one job: regenerate committed dashboard snapshots and publish a st
 
 - Use this file for setup, security, and the main commands.
 - Use `docs/release.md` for manual refresh + live publish steps.
+- Use `AGENTS.md` for the agent handoff/runbook, especially the public/private dashboard boundary and GitHub PR mapping workflow.
 
 ## Security
 
