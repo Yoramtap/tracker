@@ -1611,6 +1611,13 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     const displayedXTicks = buildLegacyPrActivityDisplayedXTicks(rows);
     const { xMin, xMax } = buildLegacyPrActivityXDomain(rows);
     const yTicks = buildLegacyPrActivityTicks(yUpper);
+    const displayedYTicks = yTicks.filter(
+      (tick, index) =>
+        tick === 0 ||
+        tick === yTicks[yTicks.length - 1] ||
+        compactViewport ||
+        index % 2 === 0
+    );
     const visibleDefs = lineDefs.filter((lineDef) => !hiddenKeys.has(lineDef.dataKey));
     const visibleReferenceMarkers =
       xTicks.length > 0 ? buildPrActivityReferenceMarkers(xMin, xMax) : [];
@@ -1690,19 +1697,21 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
         h(
           "g",
           null,
-          ...yTicks.map((tick) => {
+          h("rect", {
+            x: plotLeft,
+            y: plotTop,
+            width: plotRight - plotLeft,
+            height: plotBottom - plotTop,
+            rx: 6,
+            fill: "rgba(244, 248, 251, 0.58)",
+            stroke: "rgba(31, 51, 71, 0.08)",
+            strokeWidth: 1
+          }),
+          ...displayedYTicks.map((tick) => {
             const y = linearScale(tick, 0, yUpper, plotBottom, plotTop);
             return h(
               "g",
               { key: `legacy-pr-y-${tick}` },
-              h("line", {
-                x1: plotLeft,
-                x2: plotRight,
-                y1: y,
-                y2: y,
-                stroke: colors.grid,
-                strokeWidth: tick === 0 ? 1.2 : 1
-              }),
               h(
                 "text",
                 {
@@ -1741,9 +1750,9 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
                 x2: linearScale(toChartDateValue(marker.date), xMin, xMax, plotLeft, plotRight),
                 y1: plotTop,
                 y2: plotBottom,
-                stroke: "rgba(31, 51, 71, 0.58)",
-                strokeDasharray: "7 5",
-                strokeWidth: 1.8
+                stroke: "rgba(31, 51, 71, 0.26)",
+                strokeDasharray: "4 8",
+                strokeWidth: 1.2
               }),
               !(hideReferenceLabelsOnCompact && compactViewport)
                 ? h(
@@ -1757,7 +1766,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
                         plotRight
                       ),
                       y: plotTop - 6,
-                      fill: "rgba(0, 0, 0, 0.95)",
+                      fill: "rgba(31, 51, 71, 0.74)",
                       fontSize: compactViewport ? 10 : 11,
                       fontWeight: 700,
                       textAnchor: "middle"
@@ -1773,7 +1782,8 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
               d: buildLegacyPrActivityPath(series.points),
               fill: "none",
               stroke: series.stroke,
-              strokeWidth: 2.5,
+              opacity: 0.92,
+              strokeWidth: 2,
               strokeLinecap: "round",
               strokeLinejoin: "round"
             }),
@@ -1789,10 +1799,11 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
                 h("circle", {
                   cx: point.x,
                   cy: point.y,
-                  r: compactViewport ? 3 : 3.5,
+                  r: compactViewport ? 2 : 2.5,
                   fill: series.stroke,
                   stroke: "#ffffff",
-                  strokeWidth: 1.25,
+                  strokeWidth: 0.9,
+                  opacity: 0.72,
                   pointerEvents: "none"
                 }),
                 h(
@@ -2045,12 +2056,12 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       setElementHidden("pr-activity-legacy-merge-time-block", viewKey === "ai");
       const countTitle = document.getElementById("pr-activity-legacy-count-title");
       if (countTitle) {
-        countTitle.textContent = "PR activity";
+        countTitle.textContent =
+          viewKey === "ai" ? "PRs opened split by AI label" : "PRs opened by team";
       }
       const countSubtitle = document.getElementById("pr-activity-legacy-count-subtitle");
       if (countSubtitle) {
-        countSubtitle.textContent =
-          viewKey === "ai" ? "PRs opened split by AI label" : "PRs opened team trend";
+        countSubtitle.textContent = viewKey === "ai" ? "AI label tracking" : "Team trend over time";
       }
       setPanelContext(
         context,

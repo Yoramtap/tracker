@@ -287,10 +287,10 @@
   <div class="chart-stack">
     <div class="chart-block">
       <div class="chart-block__header">
-        <div class="chart-title-copy sr-only">
-          <p id="pr-activity-legacy-count-title" class="chart-section-title">PR activity</p>
-          <p id="pr-activity-legacy-count-subtitle" class="chart-section-subtitle">
-            PRs opened by team
+        <div class="chart-title-copy">
+          <p id="pr-activity-legacy-count-title" class="chart-section-subtitle">PRs opened by team</p>
+          <p id="pr-activity-legacy-count-subtitle" class="chart-section-subtitle sr-only">
+            Team trend over time
           </p>
         </div>
       </div>
@@ -299,7 +299,11 @@
       </div>
     </div>
     <div id="pr-activity-legacy-merge-time-block" class="chart-block">
-      <p class="chart-section-title">Time in days from when reviews start to PR being merged</p>
+      <div class="chart-block__header">
+        <div class="chart-title-copy">
+          <p class="chart-section-subtitle">Days from first review to merge</p>
+        </div>
+      </div>
       <div class="chart">
         <div
           id="pr-activity-legacy-merge-time-chart"
