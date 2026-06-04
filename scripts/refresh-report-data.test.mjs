@@ -21,6 +21,7 @@ import {
   resolvePrCycleRefreshPlan,
   selectPrCycleScrumWindowSprints
 } from "./refresh-report-data.mjs";
+import { sanitizePrActivitySnapshot } from "./snapshot-sanitizers.mjs";
 
 function makePrActivityRows() {
   return {
@@ -122,6 +123,41 @@ test("buildScopedIssueKeysByWindowMap clones scoped issue collections per window
 
   assert.deepEqual([...scopedIssueKeysByWindow["14d"]].sort(), ["TFC-1", "TFC-2"]);
   assert.deepEqual([...scopedIssueKeysByWindow["30d"]], ["TFC-1"]);
+});
+
+test("sanitizePrActivitySnapshot removes public GitHub identity audit details", () => {
+  const sanitized = sanitizePrActivitySnapshot({
+    updatedAt: "2026-04-05T10:00:00.000Z",
+    prActivity: {
+      since: "2026-03-01",
+      interval: "sprint",
+      monthlySince: "2026-03-01",
+      monthlyInterval: "month",
+      caveat: "GitHub PR activity",
+      unmappedRepoCount: 1,
+      unmappedContributorCount: 1,
+      unmappedContributors: [{ login: "person_example", pullRequestCount: 3 }],
+      unmappedPrAudit: [
+        {
+          repo: "example-org/private-service",
+          authorLogin: "person_example",
+          reason: "contributor_unmapped",
+          suggestedTeam: "api",
+          pullRequestCount: 3,
+          mergedPullRequestCount: 2,
+          latestPullRequestDate: "2026-04-01",
+          samplePullRequests: ["https://github.com/example-org/private-service/pull/1"]
+        }
+      ],
+      points: [],
+      monthlyPoints: []
+    }
+  });
+
+  assert.equal(sanitized.prActivity.unmappedRepoCount, 1);
+  assert.equal(sanitized.prActivity.unmappedContributorCount, 1);
+  assert.equal("unmappedContributors" in sanitized.prActivity, false);
+  assert.equal("unmappedPrAudit" in sanitized.prActivity, false);
 });
 
 test("buildTrendRefreshDateState trims resolved dates to sprint lookback count", () => {

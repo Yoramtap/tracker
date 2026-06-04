@@ -105,28 +105,6 @@ function sanitizePrActivityPoint(point) {
   };
 }
 
-function sanitizePrActivityUnmappedContributor(row) {
-  return {
-    login: sanitizeText(row?.login),
-    pullRequestCount: sanitizeNumber(row?.pullRequestCount)
-  };
-}
-
-function sanitizePrActivityUnmappedAuditRow(row) {
-  return {
-    repo: sanitizeText(row?.repo),
-    authorLogin: sanitizeText(row?.authorLogin),
-    reason: sanitizeText(row?.reason),
-    suggestedTeam: sanitizeText(row?.suggestedTeam),
-    pullRequestCount: sanitizeNumber(row?.pullRequestCount),
-    mergedPullRequestCount: sanitizeNumber(row?.mergedPullRequestCount),
-    latestPullRequestDate: sanitizeText(row?.latestPullRequestDate),
-    samplePullRequests: Array.isArray(row?.samplePullRequests)
-      ? row.samplePullRequests.map((url) => sanitizeText(url)).filter(Boolean)
-      : []
-  };
-}
-
 function sanitizePrActivityMetadata(prActivity) {
   return {
     ...(Number.isFinite(Number(prActivity?.unmappedRepoCount))
@@ -134,20 +112,6 @@ function sanitizePrActivityMetadata(prActivity) {
       : {}),
     ...(Number.isFinite(Number(prActivity?.unmappedContributorCount))
       ? { unmappedContributorCount: sanitizeNumber(prActivity?.unmappedContributorCount) }
-      : {}),
-    ...(Array.isArray(prActivity?.unmappedContributors)
-      ? {
-          unmappedContributors: prActivity.unmappedContributors
-            .map(sanitizePrActivityUnmappedContributor)
-            .filter((row) => row.login && row.pullRequestCount > 0)
-        }
-      : {}),
-    ...(Array.isArray(prActivity?.unmappedPrAudit)
-      ? {
-          unmappedPrAudit: prActivity.unmappedPrAudit
-            .map(sanitizePrActivityUnmappedAuditRow)
-            .filter((row) => row.repo && row.authorLogin && row.reason && row.pullRequestCount > 0)
-        }
       : {})
   };
 }
