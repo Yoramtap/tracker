@@ -1,6 +1,6 @@
 import { resolveDashboardAppDeps } from "./dashboard-app/deps.js";
 import { createProductPanels } from "./dashboard-app/product-panels.js?v=local5";
-import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local17";
+import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local18";
 
 (function initDashboardApp() {
   const {
@@ -1579,6 +1579,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     yAxisLabel,
     tooltipLabel,
     tooltipValueFormatter,
+    tooltipSampleFormatter = null,
     yAxisUpperOverride = 0,
     yAxisFixedUpper = null,
     yAxisPadRatio = 1,
@@ -1631,6 +1632,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
             key: `${lineDef.dataKey}-${row.date}`,
             date: row.date,
             value: toNumber(value),
+            sampleCount: toNumber(row?.[`${lineDef.dataKey}SampleCount`]),
             x: linearScale(row.dateValue, xMin, xMax, plotLeft, plotRight),
             y: linearScale(toNumber(value), 0, yUpper, plotBottom, plotTop),
             lineDef
@@ -1648,7 +1650,10 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
           null,
           h("p", null, h("strong", null, point.lineDef.name)),
           h("p", null, pointDateLabel || point.date || ""),
-          h("p", null, tooltipValueFormatter(point.value))
+          h("p", null, tooltipValueFormatter(point.value)),
+          typeof tooltipSampleFormatter === "function"
+            ? h("p", null, tooltipSampleFormatter(point.sampleCount))
+            : null
         )
       );
     }
@@ -2095,6 +2100,17 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       const openedCountRows = buildLegacyRows((teamMetrics) => teamMetrics?.offered);
       const mergedCountRows = buildLegacyRows((teamMetrics) => teamMetrics?.merged);
       const mergeTimeRows = buildLegacyRows((teamMetrics) => teamMetrics?.avgReviewToMergeDays);
+      mergeTimeRows.forEach((row, index) => {
+        const point = points[index] || {};
+        Object.assign(row, {
+          apiSampleCount: toNumber(point?.api?.avgReviewToMergeSampleCount),
+          legacySampleCount: toNumber(point?.legacy?.avgReviewToMergeSampleCount),
+          reactSampleCount: toNumber(point?.react?.avgReviewToMergeSampleCount),
+          bcSampleCount: toNumber(point?.bc?.avgReviewToMergeSampleCount),
+          workersSampleCount: toNumber(point?.workers?.avgReviewToMergeSampleCount),
+          titaniumSampleCount: toNumber(point?.titanium?.avgReviewToMergeSampleCount)
+        });
+      });
       const yAxisUpperOverride = Math.max(
         getLegacyPrActivityYUpper(openedCountRows, lineDefs),
         getLegacyPrActivityYUpper(mergedCountRows, lineDefs)
@@ -2142,11 +2158,13 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       });
       renderLegacyChart("pr-activity-legacy-merge-time-chart", mergeTimeRows, {
         yAxisLabel: "Avg days to merge",
-        tooltipLabel: "Average review-to-merge time",
+        tooltipLabel: "GitHub review-to-merge time",
         tooltipValueFormatter: (value) => {
           const roundedDays = Math.max(0, Math.round(Number(value) || 0));
-          return `~${roundedDays} day${roundedDays === 1 ? "" : "s"}`;
+          return `${roundedDays} day${roundedDays === 1 ? "" : "s"} avg`;
         },
+        tooltipSampleFormatter: (sampleCount) =>
+          `${Math.max(0, Math.round(Number(sampleCount) || 0))} PRs with review data`,
         yAxisUpperOverride: getLegacyPrActivityYUpper(mergeTimeRows, lineDefs),
         showLegend: false,
         hideReferenceLabelsOnCompact: true,

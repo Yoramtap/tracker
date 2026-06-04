@@ -576,8 +576,8 @@ function verifyWorkflowBreakdownInflowLabels() {
   );
   if (breakdownState.utilityStatCount > 0) {
     assert(
-      breakdownState.primaryUtilityStatLabels.includes("Cycle time"),
-      `Development workflow breakdown should keep Cycle time as the primary utility metric: ${JSON.stringify(breakdownState.primaryUtilityStatLabels)}`
+      breakdownState.primaryUtilityStatLabels.includes("Workflow cycle"),
+      `Development workflow breakdown should keep Workflow cycle as the primary utility metric: ${JSON.stringify(breakdownState.primaryUtilityStatLabels)}`
     );
     assert(
       breakdownState.utilityStatLabels.includes("PRs / sprint"),

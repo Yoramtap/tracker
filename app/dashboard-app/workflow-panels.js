@@ -305,7 +305,7 @@ export function createWorkflowPanels(deps) {
       accentColor: teamColor,
       stats: [
         {
-          label: "Cycle time",
+          label: "Workflow cycle",
           value: formatWorkflowDaysText(team?.totalCycleDays),
           className: "dashboard-utility-layout__stat--primary"
         },
@@ -358,7 +358,7 @@ export function createWorkflowPanels(deps) {
       accentColor: "var(--chart-active)",
       stats: [
         {
-          label: "Cycle time",
+          label: "Workflow cycle",
           value: formatWorkflowDaysText(team?.totalCycleDays),
           className: "dashboard-utility-layout__stat--primary"
         },
@@ -374,7 +374,7 @@ export function createWorkflowPanels(deps) {
         { label: "Teams", value: `${toCount(team?.teamCount)} teams` }
       ],
       columnStartLabel: "Team",
-      columnEndLabel: "Avg cycle",
+      columnEndLabel: "Workflow cycle",
       footerBits: [footerSecondary].filter(Boolean),
       rows: orderedRows.map((row) => {
         const inflowText = formatWorkflowPrsPerSprintText(row?.avgPrInflow);
