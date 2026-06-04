@@ -24,8 +24,8 @@ This repo has one job: regenerate committed dashboard snapshots and publish a st
 - The Jira API token must never be committed.
 - Keep Jira credentials only in `.env.backlog` or `.env.local`.
 - Keep tracker automation GitHub credentials local only. For headless automation, store `GH_TOKEN` or `GITHUB_TOKEN` only in ignored `.env.backlog` / `.env.local` files and never commit it.
-- Keep contributor-to-team GitHub login mappings out of git. Local refreshes read `.private/contributor-team-map.json`; GitHub Actions reads `CONTRIBUTOR_TEAM_MAP_JSON` from repository secrets.
-- Interactive local runs may still use `gh` auth for `private-github-account`; do not rely on GitHub Actions secrets for PR refreshes.
+- Keep repo-to-team and contributor-to-team GitHub mappings out of git. Local refreshes read `.private/repo-team-map.json` and `.private/contributor-team-map.json`; GitHub Actions reads `REPO_TEAM_MAP_JSON` and `CONTRIBUTOR_TEAM_MAP_JSON` from repository secrets.
+- Interactive local runs may still use `gh` auth for `private GitHub account`; do not rely on GitHub Actions secrets for PR refreshes.
 - `.env*`, `.private/`, `node_modules/`, `.cache/`, and `dist/` are ignored locally.
 
 ## Local Setup

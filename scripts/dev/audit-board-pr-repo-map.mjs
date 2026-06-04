@@ -53,9 +53,10 @@ function loadEnv() {
 }
 
 function readRepoTeamMap() {
-  const payload = JSON.parse(
-    fs.readFileSync(path.join(REPO_ROOT, "scripts/config/repo-team-map.json"), "utf8")
-  );
+  const envJson = String(process.env.REPO_TEAM_MAP_JSON || "").trim();
+  const payload = envJson
+    ? JSON.parse(envJson)
+    : JSON.parse(fs.readFileSync(path.join(REPO_ROOT, ".private/repo-team-map.json"), "utf8"));
   return payload?.repos && typeof payload.repos === "object" ? payload.repos : {};
 }
 

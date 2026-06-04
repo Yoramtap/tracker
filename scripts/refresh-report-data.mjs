@@ -126,7 +126,6 @@ const PR_ACTIVITY_PROJECT_KEYS = ["TFC", "TFO", "MESO"];
 const TEAM_KEYS = ["api", "legacy", "react", "bc", "workers", "titanium"];
 const PR_ACTIVITY_UNMAPPED_TEAM_KEY = "unmapped";
 const PR_ACTIVITY_TEAM_KEYS = [...TEAM_KEYS, PR_ACTIVITY_UNMAPPED_TEAM_KEY];
-const PR_ACTIVITY_DEFAULT_GITHUB_ORG = "example-org";
 const PR_ACTIVITY_REPO_DISCOVERY_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const PR_ACTIVITY_UNMAPPED_CONTRIBUTOR_LIMIT = 50;
 const PR_ACTIVITY_UNMAPPED_AUDIT_LIMIT = 100;
@@ -374,10 +373,16 @@ async function jiraRequest(site, email, token, url, options = {}) {
 }
 
 export async function loadPrActivityRepoTeamMapConfig(options = {}) {
-  const payload =
-    options.payload && typeof options.payload === "object"
-      ? options.payload
-      : await readJsonFile(options.path || PR_ACTIVITY_REPO_TEAM_MAP_PATH);
+  let payload = options.payload && typeof options.payload === "object" ? options.payload : null;
+  if (!payload) {
+    const envJson = String(options.envJson ?? process.env.REPO_TEAM_MAP_JSON ?? "").trim();
+    if (envJson) {
+      payload = JSON.parse(envJson);
+    }
+  }
+  if (!payload) {
+    payload = await readJsonFile(options.path || PR_ACTIVITY_REPO_TEAM_MAP_PATH);
+  }
   const rawRepos = payload?.repos && typeof payload.repos === "object" ? payload.repos : {};
   return Object.fromEntries(
     Object.entries(rawRepos)
@@ -391,6 +396,18 @@ export async function loadPrActivityRepoTeamMapConfig(options = {}) {
       ])
       .filter(([repo, team]) => repo && TEAM_KEYS.includes(team))
   );
+}
+
+function resolveGitHubOrg(options = {}, repoTeamMap = {}) {
+  const configuredOrg = String(options.githubOrg || process.env.PR_ACTIVITY_GITHUB_ORG || "")
+    .trim()
+    .toLowerCase();
+  if (configuredOrg) return configuredOrg;
+  const firstMappedRepo = Object.keys(repoTeamMap).find((repo) => String(repo || "").includes("/"));
+  return String(firstMappedRepo || "")
+    .split("/")[0]
+    .trim()
+    .toLowerCase();
 }
 
 export async function loadPrActivityContributorTeamMapConfig(options = {}) {
@@ -467,7 +484,7 @@ function isFreshRepoDiscoveryCache(payload, nowMs = Date.now()) {
 }
 
 async function fetchGitHubOrgRepositories(org, options = {}) {
-  const safeOrg = String(org || PR_ACTIVITY_DEFAULT_GITHUB_ORG)
+  const safeOrg = String(org || "")
     .trim()
     .toLowerCase();
   if (!safeOrg) return [];
@@ -995,7 +1012,7 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
   const discoveredRepos =
     options.repoDiscoveryEnabled === false
       ? []
-      : await fetchGitHubOrgRepositories(options.githubOrg || PR_ACTIVITY_DEFAULT_GITHUB_ORG, {
+      : await fetchGitHubOrgRepositories(resolveGitHubOrg(options, repoTeamMap), {
           ...options,
           githubToken
         });

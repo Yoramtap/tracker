@@ -6,7 +6,6 @@ on:
     paths:
       - ".github/workflows/team-repo-map-audit.yml"
       - "scripts/dev/audit-board-pr-repo-map.mjs"
-      - "scripts/config/repo-team-map.json"
   workflow_dispatch:
   schedule:
     - cron: "27 6 * * 1"
@@ -49,9 +48,10 @@ jobs:
           ATLASSIAN_EMAIL: ${{ secrets.ATLASSIAN_EMAIL }}
           ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPO_TEAM_MAP_JSON: ${{ secrets.REPO_TEAM_MAP_JSON }}
         run: |
-          if [ -z "$ATLASSIAN_SITE" ] || [ -z "$ATLASSIAN_EMAIL" ] || [ -z "$ATLASSIAN_API_TOKEN" ] || [ -z "$GH_TOKEN" ]; then
-            echo "Missing one or more required secrets: ATLASSIAN_SITE, ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN, GH_TOKEN." >&2
+          if [ -z "$ATLASSIAN_SITE" ] || [ -z "$ATLASSIAN_EMAIL" ] || [ -z "$ATLASSIAN_API_TOKEN" ] || [ -z "$GH_TOKEN" ] || [ -z "$REPO_TEAM_MAP_JSON" ]; then
+            echo "Missing one or more required secrets: ATLASSIAN_SITE, ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN, GH_TOKEN, REPO_TEAM_MAP_JSON." >&2
             exit 1
           fi
 
@@ -81,11 +81,3 @@ jobs:
           console.log(`| Excess alias entries | ${aggregate.excessAliasCount || 0} |`);
           console.log(`| Shared repo candidates | ${aggregate.sharedRepoCandidateCount || 0} |`);
           NODE
-
-      - name: Upload audit report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: team-pr-repo-map-audit
-          path: .cache/analysis/team-pr-repo-map-audit.json
-          if-no-files-found: ignore

@@ -81,9 +81,14 @@ export const PR_CYCLE_SNAPSHOT_TMP_PATH = resolveDataFileTmpPath(PR_CYCLE_SNAPSH
 
 export const PR_ACTIVITY_REPO_TEAM_MAP_PATH = path.join(
   REPO_ROOT_PATH,
+  ".private",
+  "repo-team-map.json"
+);
+export const PR_ACTIVITY_REPO_TEAM_MAP_EXAMPLE_PATH = path.join(
+  REPO_ROOT_PATH,
   "scripts",
   "config",
-  "repo-team-map.json"
+  "repo-team-map.example.json"
 );
 export const PR_ACTIVITY_CONTRIBUTOR_TEAM_MAP_PATH = path.join(
   REPO_ROOT_PATH,

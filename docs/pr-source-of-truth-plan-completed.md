@@ -34,8 +34,8 @@ then swap downstream snapshots and UI panels to consume that data.
   workflow breakdown views.
 - Compute summary averages over trailing windows such as last 30 days, months,
   or year from the same GitHub-backed PR events.
-- Store the committed repo ownership config at `scripts/config/repo-team-map.json`.
-- Treat `private-github-account` as read-only for all implementation and refresh
+- Keep the repo ownership config private: `.private/repo-team-map.json` locally and `REPO_TEAM_MAP_JSON` in GitHub Actions.
+- Treat `private GitHub account` as read-only for all implementation and refresh
   work.
 - Use local-only refresh automation; do not rely on GitHub-hosted PR refresh
   credentials.
@@ -72,7 +72,7 @@ shape.
 with majority-vote defaults and explicit override support.
 
 **Acceptance criteria:**
-- [ ] A stable config file exists at `scripts/config/repo-team-map.json`
+- [ ] A stable private config file exists at `.private/repo-team-map.json`
 - [ ] Majority-vote defaults are represented explicitly
 - [ ] Overrides can be applied for shared repos without code edits
 
@@ -84,7 +84,8 @@ with majority-vote defaults and explicit override support.
 GitHub ingestion is trusted
 
 **Files likely touched:**
-- `scripts/config/repo-team-map.json`
+- `.private/repo-team-map.json`
+- `scripts/config/repo-team-map.example.json`
 - `scripts/dev/derive-team-repo-map.mjs`
 - `scripts/refresh-report-data.test.mjs`
 
@@ -283,4 +284,4 @@ the new PR count semantics plus the local weekly refresh path.
 - Review-to-merge uses first submitted non-author GitHub review to merge.
 - PR refreshes run locally, not from GitHub Actions.
 - The committed `repo -> team` config lives at
-  `scripts/config/repo-team-map.json`.
+  `.private/repo-team-map.json`.

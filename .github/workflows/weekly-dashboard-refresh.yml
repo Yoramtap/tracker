@@ -160,11 +160,12 @@ jobs:
           ATLASSIAN_EMAIL: ${{ secrets.ATLASSIAN_EMAIL }}
           ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPO_TEAM_MAP_JSON: ${{ secrets.REPO_TEAM_MAP_JSON }}
           CONTRIBUTOR_TEAM_MAP_JSON: ${{ secrets.CONTRIBUTOR_TEAM_MAP_JSON }}
           SPRINT_INCLUDE_ACTIVE: "false"
         run: |
-          if [ -z "$ATLASSIAN_SITE" ] || [ -z "$ATLASSIAN_EMAIL" ] || [ -z "$ATLASSIAN_API_TOKEN" ] || [ -z "$GH_TOKEN" ] || [ -z "$CONTRIBUTOR_TEAM_MAP_JSON" ]; then
-            echo "Missing one or more required secrets: ATLASSIAN_SITE, ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN, GH_TOKEN, CONTRIBUTOR_TEAM_MAP_JSON." >&2
+          if [ -z "$ATLASSIAN_SITE" ] || [ -z "$ATLASSIAN_EMAIL" ] || [ -z "$ATLASSIAN_API_TOKEN" ] || [ -z "$GH_TOKEN" ] || [ -z "$REPO_TEAM_MAP_JSON" ] || [ -z "$CONTRIBUTOR_TEAM_MAP_JSON" ]; then
+            echo "Missing one or more required secrets: ATLASSIAN_SITE, ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN, GH_TOKEN, REPO_TEAM_MAP_JSON, CONTRIBUTOR_TEAM_MAP_JSON." >&2
             exit 1
           fi
 

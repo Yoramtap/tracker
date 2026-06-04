@@ -1,0 +1,8 @@
+{
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "resolutionPolicy": "example_only_private_mapping_required",
+  "repos": {
+    "example-org/example-service": "api",
+    "example-org/example-ui": "react"
+  }
+}

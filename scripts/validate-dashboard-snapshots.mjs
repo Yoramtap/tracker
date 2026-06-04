@@ -128,9 +128,9 @@ function assertNoPublicPrIdentityFields(value, fileName, currentPath = "$.prActi
   if (!isPlainObject(value)) {
     if (
       typeof value === "string" &&
-      /https:\/\/github\.com\/example-org\//i.test(value)
+      /https:\/\/github\.com\/[^/\s"]+\/[^/\s"]+\/pull\//i.test(value)
     ) {
-      throw new Error(`${fileName}: public PR activity must not expose GitHub URLs at ${currentPath}.`);
+      throw new Error(`${fileName}: public PR activity must not expose GitHub PR URLs at ${currentPath}.`);
     }
     return;
   }

@@ -311,11 +311,19 @@ test("resolveTrendDates excludes active sprint points when includeActive is fals
   assert.equal(result.usedFallback, false);
 });
 
-test("loadPrActivityRepoTeamMapConfig reads the committed repo ownership map", async () => {
-  const repoTeamMap = await loadPrActivityRepoTeamMapConfig();
-  assert.equal(repoTeamMap["example-org/tfc-functionality-usvc"], "api");
-  assert.equal(repoTeamMap["example-org/tfc-app"], "legacy");
-  assert.equal(repoTeamMap["example-org/tfc-ui"], "react");
+test("loadPrActivityRepoTeamMapConfig reads CI secret JSON before private files", async () => {
+  const repoTeamMap = await loadPrActivityRepoTeamMapConfig({
+    envJson: JSON.stringify({
+      repos: {
+        "Example-Org/Example-Service": "API",
+        "example-org/example-ui": "React"
+      }
+    }),
+    path: "/definitely/missing/repo-team-map.json"
+  });
+
+  assert.equal(repoTeamMap["example-org/example-service"], "api");
+  assert.equal(repoTeamMap["example-org/example-ui"], "react");
 });
 
 test("loadPrActivityContributorTeamMapConfig normalizes contributor logins and teams", async () => {

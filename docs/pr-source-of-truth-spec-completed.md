@@ -62,7 +62,7 @@ User-facing PR count surfaces:
 - Replacing Jira-based PR-cycle stage timing in this slice
 - Rebuilding all historical snapshot data beyond what is needed for the active
   refresh path
-- Any write access or repo mutations in the `private-github-account` account
+- Any write access or repo mutations in the `private GitHub account` account
 
 ## Source Of Truth Rules
 
@@ -97,8 +97,8 @@ User-facing PR count surfaces:
   `.cache/pr-activity-issue-cache.json`
 - Shared repos resolve to the dominant historical team unless explicitly
   overridden
-- The committed runtime config will live at
-  `scripts/config/repo-team-map.json`
+- The private runtime config lives at `.private/repo-team-map.json` locally
+  and in the `REPO_TEAM_MAP_JSON` GitHub Actions secret in CI
 
 ### Time Bucketing
 
@@ -168,7 +168,8 @@ Full refresh: `npm run data:refresh`
 - `scripts/refresh-runner.mjs` -> mode-specific refresh orchestration
 - `scripts/refresh-pr-activity-history.mjs` -> historical PR series merge logic
 - `scripts/dashboard-paths.mjs` -> cache/data path definitions
-- `scripts/config/repo-team-map.json` -> committed repo ownership mapping
+- `.private/repo-team-map.json` -> ignored local repo ownership mapping
+- `scripts/config/repo-team-map.example.json` -> tracked fake schema example
 - `scripts/dev/derive-team-repo-map.mjs` -> local generator for repo ownership mapping
 - `data/pr-activity-snapshot.json` -> public PR activity snapshot contract
 - `data/pr-cycle-snapshot.json` -> public workflow breakdown snapshot with
@@ -237,7 +238,7 @@ Conventions:
   - changing review-to-merge semantics again
 
 - Never:
-  - write or mutate remote repos using `private-github-account`
+  - write or mutate remote repos using `private GitHub account`
   - silently mix Jira proxy counts with GitHub counts in the same metric
   - infer teams from ad hoc title parsing when a repo map exists
 
