@@ -573,7 +573,7 @@ test("fetchGitHubPrActivity attributes mapped contributors before falling back t
   ]);
 });
 
-test("fetchGitHubPrActivity discovers active org repos and counts unknown repos as unmapped", async () => {
+test("fetchGitHubPrActivity discovers active org repos and scopes unmapped repos to mapped contributors", async () => {
   const fetchedRepos = [];
   const prActivity = await fetchGitHubPrActivity("2026-03-01", {
     repoTeamMap: {
@@ -595,6 +595,11 @@ test("fetchGitHubPrActivity discovers active org repos and counts unknown repos 
         },
         {
           full_name: "example-org/new-github-only-repo",
+          archived: false,
+          disabled: false
+        },
+        {
+          full_name: "example-org/outside-product-repo",
           archived: false,
           disabled: false
         },
@@ -647,6 +652,20 @@ test("fetchGitHubPrActivity discovers active org repos and counts unknown repos 
           }
         ];
       }
+      if (repo === "example-org/outside-product-repo") {
+        return [
+          {
+            number: 7,
+            draft: false,
+            state: "open",
+            created_at: "2026-03-23T10:00:00Z",
+            merged_at: null,
+            updated_at: "2026-03-23T10:00:00Z",
+            html_url: "https://github.com/example-org/outside-product-repo/pull/7",
+            user: { login: "unknown_example" }
+          }
+        ];
+      }
       return [];
     },
     fetchReviewsPage: async () => []
@@ -654,19 +673,15 @@ test("fetchGitHubPrActivity discovers active org repos and counts unknown repos 
 
   assert.deepEqual(fetchedRepos.sort(), [
     "example-org/new-github-only-repo",
+    "example-org/outside-product-repo",
     "example-org/tfc-functionality-usvc"
   ]);
-  assert.equal(prActivity.candidateIssueCount, 2);
-  assert.equal(prActivity.detailIssueCount, 2);
-  assert.equal(prActivity.discoveredRepoCount, 2);
+  assert.equal(prActivity.candidateIssueCount, 3);
+  assert.equal(prActivity.detailIssueCount, 3);
+  assert.equal(prActivity.discoveredRepoCount, 3);
   assert.equal(prActivity.unmappedRepoCount, 1);
-  assert.equal(prActivity.unmappedContributorCount, 1);
-  assert.deepEqual(prActivity.unmappedContributors, [
-    {
-      login: "unknown_example",
-      pullRequestCount: 1
-    }
-  ]);
+  assert.equal(prActivity.unmappedContributorCount, 0);
+  assert.deepEqual(prActivity.unmappedContributors, []);
   assert.deepEqual(prActivity.unmappedPrAudit, [
     {
       repo: "example-org/new-github-only-repo",
@@ -677,29 +692,15 @@ test("fetchGitHubPrActivity discovers active org repos and counts unknown repos 
       mergedPullRequestCount: 1,
       latestPullRequestDate: "2026-03-22",
       samplePullRequests: ["https://github.com/example-org/new-github-only-repo/pull/2"]
-    },
-    {
-      repo: "example-org/new-github-only-repo",
-      authorLogin: "unknown_example",
-      reason: "repo_and_contributor_unmapped",
-      suggestedTeam: "",
-      pullRequestCount: 1,
-      mergedPullRequestCount: 0,
-      latestPullRequestDate: "2026-03-20",
-      samplePullRequests: ["https://github.com/example-org/new-github-only-repo/pull/1"]
     }
   ]);
-  assert.equal(prActivity.uniquePrCount, 3);
+  assert.equal(prActivity.uniquePrCount, 2);
   assert.deepEqual(
     prActivity.records.map((record) => ({
       uniqueKey: record.uniqueKey,
       team: record.team
     })),
     [
-      {
-        uniqueKey: "example-org/new-github-only-repo#1",
-        team: "unmapped"
-      },
       {
         uniqueKey: "example-org/new-github-only-repo#2",
         team: "api"

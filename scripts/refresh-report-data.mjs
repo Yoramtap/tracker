@@ -963,6 +963,18 @@ function mergeUnmappedPrAuditRows(rowLists) {
   });
 }
 
+function scopePullRequestsToMappedContributorsForUnmappedRepo(pullRequests, repoTeam, contributorTeamMap) {
+  const safeRepoTeam = String(repoTeam || "")
+    .trim()
+    .toLowerCase();
+  if (safeRepoTeam !== PR_ACTIVITY_UNMAPPED_TEAM_KEY) {
+    return Array.isArray(pullRequests) ? pullRequests : [];
+  }
+  return (Array.isArray(pullRequests) ? pullRequests : []).filter((pullRequest) =>
+    resolveContributorTeam(contributorTeamMap, pullRequest)
+  );
+}
+
 export async function fetchGitHubPrActivity(sinceDate, options = {}) {
   const safeSinceDate = isoDateOnly(sinceDate);
   const repoTeamMap =
@@ -1021,17 +1033,22 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
         githubToken,
         fetchRepoPage: options.fetchRepoPage
       });
-      const unmappedContributorCounts = collectUnmappedContributorCounts(
+      const scopedPullRequests = scopePullRequestsToMappedContributorsForUnmappedRepo(
         pullRequests,
+        team,
+        contributorTeamMap
+      );
+      const unmappedContributorCounts = collectUnmappedContributorCounts(
+        scopedPullRequests,
         contributorTeamMap
       );
       const unmappedPrAuditRows = collectUnmappedPrAuditRows(
-        pullRequests,
+        scopedPullRequests,
         repo,
         team,
         contributorTeamMap
       );
-      const records = pullRequests
+      const records = scopedPullRequests
         .map((pullRequest) =>
           normalizeGitHubPullRequestRecord(
             repo,
@@ -1040,7 +1057,7 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
           )
         )
         .filter(Boolean);
-      const mergedPullRequests = pullRequests.filter(
+      const mergedPullRequests = scopedPullRequests.filter(
         (pullRequest) =>
           !pullRequest?.draft &&
           isoDateOnly(pullRequest?.merged_at) &&
@@ -1067,6 +1084,10 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
       return {
         records,
         ticketReviewToMergeRecords,
+        unmappedRepoHasScopedActivity:
+          String(team || "")
+            .trim()
+            .toLowerCase() === PR_ACTIVITY_UNMAPPED_TEAM_KEY && records.length > 0,
         unmappedContributorCounts,
         unmappedPrAuditRows
       };
@@ -1093,9 +1114,8 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
     conflictCount: mergedRecords.conflictCount + canonicalRepoState.canonicalConflictCount,
     aliasRepoCount: canonicalRepoState.aliasRepoCount,
     discoveredRepoCount: discoveredRepos.length,
-    unmappedRepoCount: canonicalRepoState.repoEntries.filter(
-      ([, team]) => team === PR_ACTIVITY_UNMAPPED_TEAM_KEY
-    ).length,
+    unmappedRepoCount: perRepoResults.filter((result) => result.unmappedRepoHasScopedActivity)
+      .length,
     unmappedContributorCount: unmappedContributors.length,
     unmappedContributors: unmappedContributors.slice(0, PR_ACTIVITY_UNMAPPED_CONTRIBUTOR_LIMIT),
     unmappedPrAudit: unmappedPrAudit.slice(0, PR_ACTIVITY_UNMAPPED_AUDIT_LIMIT),
@@ -2580,7 +2600,7 @@ function buildPrActivityCaveat(source) {
     .trim()
     .toLowerCase();
   if (safeSource === "github_pull_requests") {
-    return "Counts are sourced from GitHub pull requests across discovered organization repos and attributed by the Jira-derived contributor-to-team map, falling back to committed repo-to-team mapping and then Unmapped when neither is known. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the first submitted non-author GitHub review to mergedAt.";
+    return "Counts are sourced from GitHub pull requests across discovered organization repos and attributed by the Jira-derived contributor-to-team map, falling back to committed repo-to-team mapping. Unmapped discovered repos only count when a mapped contributor authored the PR. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the first submitted non-author GitHub review to mergedAt.";
   }
   return "Counts are sourced from GitHub pull requests.";
 }
