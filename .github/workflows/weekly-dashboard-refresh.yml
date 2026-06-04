@@ -175,6 +175,10 @@ jobs:
         if: steps.freshness.outputs.should_refresh == 'true'
         run: npm run data:validate
 
+      - name: Scan public files for sensitive markers
+        if: steps.freshness.outputs.should_refresh == 'true'
+        run: npm run security:scan-public
+
       - name: Build dashboard
         if: steps.freshness.outputs.should_refresh == 'true'
         run: npm run build
