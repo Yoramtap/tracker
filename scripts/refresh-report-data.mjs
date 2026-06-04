@@ -394,10 +394,16 @@ export async function loadPrActivityRepoTeamMapConfig(options = {}) {
 }
 
 export async function loadPrActivityContributorTeamMapConfig(options = {}) {
-  const payload =
-    options.payload && typeof options.payload === "object"
-      ? options.payload
-      : await readJsonFile(options.path || PR_ACTIVITY_CONTRIBUTOR_TEAM_MAP_PATH);
+  let payload = options.payload && typeof options.payload === "object" ? options.payload : null;
+  if (!payload) {
+    const envJson = String(options.envJson ?? process.env.CONTRIBUTOR_TEAM_MAP_JSON ?? "").trim();
+    if (envJson) {
+      payload = JSON.parse(envJson);
+    }
+  }
+  if (!payload) {
+    payload = await readJsonFile(options.path || PR_ACTIVITY_CONTRIBUTOR_TEAM_MAP_PATH);
+  }
   const rawContributors =
     payload?.contributors && typeof payload.contributors === "object" ? payload.contributors : {};
   return Object.fromEntries(

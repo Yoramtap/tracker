@@ -13,6 +13,7 @@ Expected operating model:
 - Cloud refresh credentials live in GitHub Actions secrets
 - Manual local Jira credentials live only in ignored local env files
 - Manual local runs should read `GH_TOKEN` / `GITHUB_TOKEN` from ignored local env files
+- Manual local contributor attribution reads ignored `.private/contributor-team-map.json`
 - Interactive local runs can still fall back to `gh auth token` for `private-github-account`
 - Daily refreshes run in GitHub Actions
 
@@ -124,4 +125,4 @@ Recommended operating model:
 - `.github/workflows/pages.yml` deploys GitHub Pages from `dist/` on pushes to `main`
 - `.github/workflows/weekly-dashboard-refresh.yml` refreshes dashboard snapshots
 - `.github/workflows/team-repo-map-audit.yml` checks team board PR repos against `scripts/config/repo-team-map.json` weekly
-- GitHub Actions secrets must include Jira credentials and a GitHub token for PR refreshes
+- GitHub Actions secrets must include Jira credentials, a GitHub token, and `CONTRIBUTOR_TEAM_MAP_JSON` for PR refreshes

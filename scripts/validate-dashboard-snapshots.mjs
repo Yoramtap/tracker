@@ -110,6 +110,39 @@ function assertSeriesDates(points, fileName, label) {
   });
 }
 
+function assertNoPublicPrIdentityFields(value, fileName, currentPath = "$.prActivity") {
+  const forbiddenKeys = new Set([
+    "authorLogin",
+    "html_url",
+    "login",
+    "samplePullRequests",
+    "unmappedContributors",
+    "unmappedPrAudit"
+  ]);
+  if (Array.isArray(value)) {
+    value.forEach((item, index) =>
+      assertNoPublicPrIdentityFields(item, fileName, `${currentPath}[${index}]`)
+    );
+    return;
+  }
+  if (!isPlainObject(value)) {
+    if (
+      typeof value === "string" &&
+      /https:\/\/github\.com\/example-org\//i.test(value)
+    ) {
+      throw new Error(`${fileName}: public PR activity must not expose GitHub URLs at ${currentPath}.`);
+    }
+    return;
+  }
+  for (const [key, child] of Object.entries(value)) {
+    const nextPath = `${currentPath}.${key}`;
+    if (forbiddenKeys.has(key)) {
+      throw new Error(`${fileName}: public PR activity must not expose ${key} at ${nextPath}.`);
+    }
+    assertNoPublicPrIdentityFields(child, fileName, nextPath);
+  }
+}
+
 function assertSanitizedSnapshot(fileName, snapshot) {
   const sanitizer = SNAPSHOT_SANITIZERS[fileName];
   if (!sanitizer) return;
@@ -137,6 +170,7 @@ function validateCombinedSnapshot(snapshot, fileName) {
       prActivity: snapshot.prActivity
     });
     assertObject(prActivitySnapshot.prActivity, fileName, "prActivity");
+    assertNoPublicPrIdentityFields(prActivitySnapshot.prActivity, fileName);
     assertSeriesDates(prActivitySnapshot.prActivity.points, fileName, "prActivity.points");
     assertSeriesDates(
       prActivitySnapshot.prActivity.monthlyPoints,
@@ -173,6 +207,7 @@ function validateSnapshotSemantics(snapshot, fileName) {
     case "pr-activity-snapshot.json":
       assertNonEmptyString(snapshot.updatedAt, fileName, "updatedAt");
       assertObject(snapshot.prActivity, fileName, "prActivity");
+      assertNoPublicPrIdentityFields(snapshot.prActivity, fileName);
       assertSeriesDates(snapshot.prActivity.points, fileName, "prActivity.points");
       assertSeriesDates(snapshot.prActivity.monthlyPoints, fileName, "prActivity.monthlyPoints");
       return;

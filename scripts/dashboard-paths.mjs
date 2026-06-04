@@ -87,9 +87,14 @@ export const PR_ACTIVITY_REPO_TEAM_MAP_PATH = path.join(
 );
 export const PR_ACTIVITY_CONTRIBUTOR_TEAM_MAP_PATH = path.join(
   REPO_ROOT_PATH,
+  ".private",
+  "contributor-team-map.json"
+);
+export const PR_ACTIVITY_CONTRIBUTOR_TEAM_MAP_EXAMPLE_PATH = path.join(
+  REPO_ROOT_PATH,
   "scripts",
   "config",
-  "contributor-team-map.json"
+  "contributor-team-map.example.json"
 );
 export const PR_ACTIVITY_REPO_DISCOVERY_CACHE_PATH = path.join(
   CACHE_DIR_PATH,

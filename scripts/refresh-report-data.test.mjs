@@ -334,6 +334,21 @@ test("loadPrActivityContributorTeamMapConfig normalizes contributor logins and t
   });
 });
 
+test("loadPrActivityContributorTeamMapConfig reads CI secret JSON before private files", async () => {
+  const contributorTeamMap = await loadPrActivityContributorTeamMapConfig({
+    envJson: JSON.stringify({
+      contributors: {
+        Secret_User_Example: "API"
+      }
+    }),
+    path: "/definitely/missing/contributor-team-map.json"
+  });
+
+  assert.deepEqual(contributorTeamMap, {
+    secret_user_example: "api"
+  });
+});
+
 test("resolveGitHubAccessToken prefers the explicit override before gh auth", async () => {
   let execCallCount = 0;
   const token = await resolveGitHubAccessToken({

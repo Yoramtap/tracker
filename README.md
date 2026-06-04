@@ -24,8 +24,9 @@ This repo has one job: regenerate committed dashboard snapshots and publish a st
 - The Jira API token must never be committed.
 - Keep Jira credentials only in `.env.backlog` or `.env.local`.
 - Keep tracker automation GitHub credentials local only. For headless automation, store `GH_TOKEN` or `GITHUB_TOKEN` only in ignored `.env.backlog` / `.env.local` files and never commit it.
+- Keep contributor-to-team GitHub login mappings out of git. Local refreshes read `.private/contributor-team-map.json`; GitHub Actions reads `CONTRIBUTOR_TEAM_MAP_JSON` from repository secrets.
 - Interactive local runs may still use `gh` auth for `private-github-account`; do not rely on GitHub Actions secrets for PR refreshes.
-- `.env*`, `node_modules/`, `.cache/`, and `dist/` are ignored locally.
+- `.env*`, `.private/`, `node_modules/`, `.cache/`, and `dist/` are ignored locally.
 
 ## Local Setup
 
@@ -82,7 +83,7 @@ Use `dev:publish` only as a convenience helper when the repo is already clean. T
 - `npm run data:refresh:clean` bypasses those local caches for the current run and rebuilds fresh cache artifacts afterward.
 - Use clean refreshes for debugging, CI, or whenever you want a reproducible run that is less dependent on local state.
 
-Contributor team attribution for GitHub PR activity is generated into `scripts/config/contributor-team-map.json` by scanning Jira-linked PRs and resolving each GitHub PR author. The dashboard enumerates active GitHub repos from the organization, fetches PRs from GitHub, then attributes known contributors to their Jira-derived team with repo ownership and `Unmapped` fallbacks so unknown repos still count. Refresh output also carries unmapped contributor counts so new GitHub authors are visible until they are mapped.
+Contributor team attribution for GitHub PR activity is generated into ignored `.private/contributor-team-map.json` by scanning Jira-linked PRs and resolving each GitHub PR author. The committed `scripts/config/contributor-team-map.example.json` documents the private file shape only. The dashboard enumerates active GitHub repos from the organization, fetches PRs from GitHub, then attributes known contributors to their Jira-derived team with repo ownership and `Unmapped` fallbacks so unknown repos still count. Public snapshots carry aggregate unmapped counts, not contributor logins or PR audit rows.
 
 ## Optional Analysis
 
