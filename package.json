@@ -13,6 +13,7 @@
     "data:refresh": "node scripts/refresh-report-data.mjs",
     "data:refresh:clean": "node scripts/refresh-report-data.mjs --clean",
     "data:validate": "node scripts/validate-dashboard-snapshots.mjs",
+    "security:scan-public": "node scripts/scan-public-sensitive-markers.mjs",
     "build": "node scripts/export-public.mjs --target dist",
     "dev:refresh:stage": "node scripts/refresh-report-data.mjs",
     "dev:refresh:pr-cycle": "PR_CYCLE_ONLY=true node scripts/refresh-report-data.mjs",

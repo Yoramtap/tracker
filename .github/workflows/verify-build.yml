@@ -28,5 +28,8 @@ jobs:
       - name: Validate committed snapshots
         run: npm run data:validate
 
+      - name: Scan public files for sensitive markers
+        run: npm run security:scan-public
+
       - name: Build static site artifact
         run: npm run build
