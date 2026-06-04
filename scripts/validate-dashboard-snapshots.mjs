@@ -170,7 +170,7 @@ function validateCombinedSnapshot(snapshot, fileName) {
       prActivity: snapshot.prActivity
     });
     assertObject(prActivitySnapshot.prActivity, fileName, "prActivity");
-    assertNoPublicPrIdentityFields(prActivitySnapshot.prActivity, fileName);
+    assertNoPublicPrIdentityFields(snapshot.prActivity, fileName);
     assertSeriesDates(prActivitySnapshot.prActivity.points, fileName, "prActivity.points");
     assertSeriesDates(
       prActivitySnapshot.prActivity.monthlyPoints,

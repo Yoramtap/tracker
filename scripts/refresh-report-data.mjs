@@ -3139,10 +3139,17 @@ async function preparePrimarySnapshotArtifacts(snapshot) {
         ...(preservedChartDataUpdatedAt ? { chartDataUpdatedAt: preservedChartDataUpdatedAt } : {})
       }
     : snapshot;
-  const backlogSnapshot = buildBacklogBugSnapshot(snapshotWithPreservedChartData);
   const prActivitySnapshot = buildPrActivitySnapshot(snapshotWithPreservedChartData);
+  const publicSnapshot =
+    snapshotWithPreservedChartData?.prActivity && typeof snapshotWithPreservedChartData.prActivity === "object"
+      ? {
+          ...snapshotWithPreservedChartData,
+          prActivity: prActivitySnapshot.prActivity
+        }
+      : snapshotWithPreservedChartData;
+  const backlogSnapshot = buildBacklogBugSnapshot(publicSnapshot);
   const managementFacilitySnapshot = buildManagementFacilitySnapshot(
-    snapshotWithPreservedChartData
+    publicSnapshot
   );
   assertBacklogSnapshotIntegrity(existingBacklogSnapshot, backlogSnapshot);
   assertPrActivitySnapshotIntegrity(existingPrActivitySnapshot, prActivitySnapshot);
@@ -3150,13 +3157,13 @@ async function preparePrimarySnapshotArtifacts(snapshot) {
     existingManagementFacilitySnapshot,
     managementFacilitySnapshot
   );
-  validateDashboardSnapshot("snapshot.json", snapshot);
+  validateDashboardSnapshot("snapshot.json", publicSnapshot);
   validateDashboardSnapshot("backlog-snapshot.json", backlogSnapshot);
   validateDashboardSnapshot("pr-activity-snapshot.json", prActivitySnapshot);
   validateDashboardSnapshot("management-facility-snapshot.json", managementFacilitySnapshot);
 
   return {
-    snapshot,
+    snapshot: publicSnapshot,
     backlogSnapshot,
     prActivitySnapshot,
     managementFacilitySnapshot

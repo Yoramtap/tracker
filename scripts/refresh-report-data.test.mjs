@@ -22,6 +22,7 @@ import {
   selectPrCycleScrumWindowSprints
 } from "./refresh-report-data.mjs";
 import { sanitizePrActivitySnapshot } from "./snapshot-sanitizers.mjs";
+import { validateDashboardSnapshot } from "./validate-dashboard-snapshots.mjs";
 
 function makePrActivityRows() {
   return {
@@ -158,6 +159,36 @@ test("sanitizePrActivitySnapshot removes public GitHub identity audit details", 
   assert.equal(sanitized.prActivity.unmappedContributorCount, 1);
   assert.equal("unmappedContributors" in sanitized.prActivity, false);
   assert.equal("unmappedPrAudit" in sanitized.prActivity, false);
+});
+
+test("validateDashboardSnapshot rejects private PR audit details in combined snapshot", () => {
+  assert.throws(
+    () =>
+      validateDashboardSnapshot("snapshot.json", {
+        schemaVersion: 3,
+        updatedAt: "2026-04-05T10:00:00.000Z",
+        source: {
+          syncedAt: "2026-04-05T10:00:00.000Z"
+        },
+        prActivity: {
+          since: "2026-03-01",
+          interval: "sprint",
+          monthlySince: "2026-03-01",
+          monthlyInterval: "month",
+          points: [],
+          monthlyPoints: [],
+          unmappedPrAudit: [
+            {
+              repo: "example-org/private-service",
+              authorLogin: "person_example",
+              samplePullRequests: ["https://github.com/example-org/private-service/pull/1"]
+            }
+          ]
+        },
+        combinedPoints: []
+      }),
+    /must not expose unmappedPrAudit/
+  );
 });
 
 test("buildTrendRefreshDateState trims resolved dates to sprint lookback count", () => {
