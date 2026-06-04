@@ -1,0 +1,36 @@
+name: Security Artifact Cleanup
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/security-artifact-cleanup.yml"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete historical workflow artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          artifact_ids="$(
+            gh api "repos/$REPOSITORY/actions/artifacts" --paginate \
+              --jq '.artifacts[] | select(.name == "team-pr-repo-map-audit" or .name == "github-pages") | .id'
+          )"
+
+          if [ -z "$artifact_ids" ]; then
+            echo "No historical artifacts to delete."
+            exit 0
+          fi
+
+          for artifact_id in $artifact_ids; do
+            echo "Deleting artifact $artifact_id"
+            gh api -X DELETE "repos/$REPOSITORY/actions/artifacts/$artifact_id"
+          done
