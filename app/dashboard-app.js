@@ -437,12 +437,18 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     });
   }
 
-  function formatLegacyPrActivityPointDate(dateText, { monthlySeries = false } = {}) {
+  function formatLegacyPrActivityPointDate(
+    dateText,
+    { monthlySeries = false, describeSprintBucket = false } = {}
+  ) {
     const safeDate = String(dateText || "").trim();
     if (!safeDate) return "";
-    return monthlySeries
+    const formattedDate = monthlySeries
       ? formatCompactMonthYear(safeDate.slice(0, 7))
       : formatCompactChartPointDate(safeDate);
+    return !monthlySeries && describeSprintBucket && formattedDate
+      ? `Sprint ending ${formattedDate}`
+      : formattedDate;
   }
 
   function shiftChartIsoDate(dateText, deltaDays) {
@@ -1643,7 +1649,10 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     const [tooltipContent, setTooltipContent] = React.useState(null);
 
     function showTooltip(point) {
-      const pointDateLabel = formatLegacyPrActivityPointDate(point.date, { monthlySeries });
+      const pointDateLabel = formatLegacyPrActivityPointDate(point.date, {
+        monthlySeries,
+        describeSprintBucket: true
+      });
       setTooltipContent(
         h(
           "div",
@@ -1820,7 +1829,10 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
                     fill: "rgba(255, 255, 255, 0.001)",
                     stroke: "transparent",
                     "aria-label": `${point.lineDef.name}: ${
-                      formatLegacyPrActivityPointDate(point.date, { monthlySeries }) ||
+                      formatLegacyPrActivityPointDate(point.date, {
+                        monthlySeries,
+                        describeSprintBucket: true
+                      }) ||
                       point.date ||
                       ""
                     } ${tooltipValueFormatter(point.value)}`
@@ -1829,7 +1841,10 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
                     "title",
                     null,
                     `${point.lineDef.name} • ${
-                      formatLegacyPrActivityPointDate(point.date, { monthlySeries }) ||
+                      formatLegacyPrActivityPointDate(point.date, {
+                        monthlySeries,
+                        describeSprintBucket: true
+                      }) ||
                       point.date ||
                       ""
                     } • ${tooltipValueFormatter(point.value)}`
