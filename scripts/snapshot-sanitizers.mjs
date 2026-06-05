@@ -106,12 +106,25 @@ function sanitizePrActivityPoint(point) {
 }
 
 function sanitizePrActivityMetadata(prActivity) {
+  const mappingCoverage =
+    prActivity?.mappingCoverage && typeof prActivity.mappingCoverage === "object"
+      ? prActivity.mappingCoverage
+      : null;
   return {
     ...(Number.isFinite(Number(prActivity?.unmappedRepoCount))
       ? { unmappedRepoCount: sanitizeNumber(prActivity?.unmappedRepoCount) }
       : {}),
     ...(Number.isFinite(Number(prActivity?.unmappedContributorCount))
       ? { unmappedContributorCount: sanitizeNumber(prActivity?.unmappedContributorCount) }
+      : {}),
+    ...(mappingCoverage
+      ? {
+          mappingCoverage: {
+            mappedRepoCount: sanitizeNumber(mappingCoverage?.mappedRepoCount),
+            mappedContributorCount: sanitizeNumber(mappingCoverage?.mappedContributorCount),
+            coverageHash: sanitizeText(mappingCoverage?.coverageHash)
+          }
+        }
       : {})
   };
 }

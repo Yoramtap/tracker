@@ -163,7 +163,6 @@ jobs:
           REPO_TEAM_MAP_JSON: ${{ secrets.REPO_TEAM_MAP_JSON }}
           CONTRIBUTOR_TEAM_MAP_JSON: ${{ secrets.CONTRIBUTOR_TEAM_MAP_JSON }}
           SPRINT_INCLUDE_ACTIVE: "false"
-          SKIP_PR_ACTIVITY: "true"
         run: |
           if [ -z "$ATLASSIAN_SITE" ] || [ -z "$ATLASSIAN_EMAIL" ] || [ -z "$ATLASSIAN_API_TOKEN" ] || [ -z "$GH_TOKEN" ] || [ -z "$REPO_TEAM_MAP_JSON" ] || [ -z "$CONTRIBUTOR_TEAM_MAP_JSON" ]; then
             echo "Missing one or more required secrets: ATLASSIAN_SITE, ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN, GH_TOKEN, REPO_TEAM_MAP_JSON, CONTRIBUTOR_TEAM_MAP_JSON." >&2

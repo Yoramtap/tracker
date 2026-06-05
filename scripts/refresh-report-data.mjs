@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { execFile } from "node:child_process";
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import { promisify } from "node:util";
 
@@ -693,6 +694,37 @@ function resolveContributorTeam(contributorTeamMap, pullRequest) {
     .toLowerCase();
 }
 
+function stableObjectHash(value) {
+  return crypto.createHash("sha256").update(JSON.stringify(value)).digest("hex").slice(0, 16);
+}
+
+function buildPrActivityMappingCoverage(repoTeamMap = {}, contributorTeamMap = {}) {
+  const repoTeamCounts = Object.fromEntries(TEAM_KEYS.map((team) => [team, 0]));
+  const contributorTeamCounts = Object.fromEntries(TEAM_KEYS.map((team) => [team, 0]));
+  for (const team of Object.values(repoTeamMap || {})) {
+    if (repoTeamCounts[team] !== undefined) repoTeamCounts[team] += 1;
+  }
+  for (const team of Object.values(contributorTeamMap || {})) {
+    if (contributorTeamCounts[team] !== undefined) contributorTeamCounts[team] += 1;
+  }
+  return {
+    mappedRepoCount: Object.values(repoTeamCounts).reduce((sum, count) => sum + count, 0),
+    mappedContributorCount: Object.values(contributorTeamCounts).reduce(
+      (sum, count) => sum + count,
+      0
+    ),
+    repoTeamCounts,
+    contributorTeamCounts,
+    coverageHash: stableObjectHash({ repoTeamCounts, contributorTeamCounts })
+  };
+}
+
+function samePrActivityMappingCoverage(left, right) {
+  const leftHash = String(left?.coverageHash || "").trim();
+  const rightHash = String(right?.coverageHash || "").trim();
+  return Boolean(leftHash && rightHash && leftHash === rightHash);
+}
+
 async function fetchGitHubPullRequestReviews(repo, pullRequestNumber, options = {}) {
   const safeRepo = String(repo || "")
     .trim()
@@ -1042,6 +1074,7 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
     ([repo, team]) =>
       String(repo || "").trim() && PR_ACTIVITY_TEAM_KEYS.includes(String(team || "").trim())
   );
+  const mappingCoverage = buildPrActivityMappingCoverage(repoTeamMap, contributorTeamMap);
   const canonicalRepoState = await resolveGitHubCanonicalRepoEntries(repoEntries, {
     githubToken,
     fetchRepoMetadata: options.fetchRepoMetadata,
@@ -1080,30 +1113,31 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
           )
         )
         .filter(Boolean);
-      const mergedPullRequests = scopedPullRequests.filter(
-        (pullRequest) =>
-          !pullRequest?.draft &&
-          isoDateOnly(pullRequest?.merged_at) &&
-          githubPullRequestTouchesSinceDate(pullRequest, safeSinceDate)
-      );
-      const ticketReviewToMergeRecords = (
-        await mapWithConcurrency(
-          mergedPullRequests,
-          GITHUB_PR_DETAIL_CONCURRENCY,
-          async (pullRequest) => {
-            const reviews = await fetchGitHubPullRequestReviews(repo, pullRequest?.number, {
-              githubToken,
-              fetchReviewsPage: options.fetchReviewsPage
-            });
-            return normalizeGitHubReviewToMergeRecord(
-              repo,
-              resolveContributorTeam(contributorTeamMap, pullRequest) || team,
-              pullRequest,
-              reviews
-            );
-          }
-        )
-      ).filter(Boolean);
+      const ticketReviewToMergeRecords = options.skipReviewDetails
+        ? []
+        : (
+            await mapWithConcurrency(
+              scopedPullRequests.filter(
+                (pullRequest) =>
+                  !pullRequest?.draft &&
+                  isoDateOnly(pullRequest?.merged_at) &&
+                  githubPullRequestTouchesSinceDate(pullRequest, safeSinceDate)
+              ),
+              GITHUB_PR_DETAIL_CONCURRENCY,
+              async (pullRequest) => {
+                const reviews = await fetchGitHubPullRequestReviews(repo, pullRequest?.number, {
+                  githubToken,
+                  fetchReviewsPage: options.fetchReviewsPage
+                });
+                return normalizeGitHubReviewToMergeRecord(
+                  repo,
+                  resolveContributorTeam(contributorTeamMap, pullRequest) || team,
+                  pullRequest,
+                  reviews
+                );
+              }
+            )
+          ).filter(Boolean);
       return {
         records,
         ticketReviewToMergeRecords,
@@ -1143,6 +1177,8 @@ export async function fetchGitHubPrActivity(sinceDate, options = {}) {
     unmappedContributors: unmappedContributors.slice(0, PR_ACTIVITY_UNMAPPED_CONTRIBUTOR_LIMIT),
     unmappedPrAudit: unmappedPrAudit.slice(0, PR_ACTIVITY_UNMAPPED_AUDIT_LIMIT),
     reviewChangelogIssueCount: ticketReviewToMergeRecords.length,
+    reviewDetailsSkipped: Boolean(options.skipReviewDetails),
+    mappingCoverage,
     cacheHitCount: 0,
     cacheWriteCount: 0,
     records: mergedRecords.records,
@@ -2618,6 +2654,37 @@ function buildPrActivityPoints(byDate, dates) {
   );
 }
 
+function copyPrActivityReviewMetrics(targetPoint, sourcePoint) {
+  if (!targetPoint || !sourcePoint) return;
+  for (const team of PR_ACTIVITY_TEAM_KEYS) {
+    const targetTeamPoint = targetPoint?.[team];
+    const sourceTeamPoint = sourcePoint?.[team];
+    if (!targetTeamPoint || !sourceTeamPoint) continue;
+    targetTeamPoint.avgReviewToMergeDays = numberOrZero(sourceTeamPoint.avgReviewToMergeDays);
+    targetTeamPoint.avgReviewToMergeSampleCount = numberOrZero(
+      sourceTeamPoint.avgReviewToMergeSampleCount
+    );
+  }
+}
+
+function preservePrActivityReviewMetrics(targetPrActivity, sourcePrActivity) {
+  if (!targetPrActivity || !sourcePrActivity) return targetPrActivity;
+  for (const key of ["points", "monthlyPoints"]) {
+    const sourceByDate = new Map(
+      (Array.isArray(sourcePrActivity?.[key]) ? sourcePrActivity[key] : [])
+        .filter(Boolean)
+        .map((point) => [String(point?.date || "").trim(), point])
+    );
+    for (const targetPoint of Array.isArray(targetPrActivity?.[key])
+      ? targetPrActivity[key]
+      : []) {
+      const date = String(targetPoint?.date || "").trim();
+      copyPrActivityReviewMetrics(targetPoint, sourceByDate.get(date));
+    }
+  }
+  return targetPrActivity;
+}
+
 function buildPrActivityCaveat(source) {
   const safeSource = String(source || "")
     .trim()
@@ -2715,6 +2782,15 @@ function buildPrActivitySprintSnapshot(result, sinceDate, sprintDates) {
     conflictCount: numberOrZero(result.conflictCount),
     unmappedRepoCount: numberOrZero(result.unmappedRepoCount),
     unmappedContributorCount: numberOrZero(result.unmappedContributorCount),
+    mappingCoverage:
+      result?.mappingCoverage && typeof result.mappingCoverage === "object"
+        ? {
+            mappedRepoCount: numberOrZero(result.mappingCoverage?.mappedRepoCount),
+            mappedContributorCount: numberOrZero(result.mappingCoverage?.mappedContributorCount),
+            coverageHash: String(result.mappingCoverage?.coverageHash || "").trim()
+          }
+        : undefined,
+    reviewDetailsSkipped: Boolean(result?.reviewDetailsSkipped),
     unmappedContributors: Array.isArray(result.unmappedContributors)
       ? result.unmappedContributors
           .map((row) => ({
@@ -3310,6 +3386,7 @@ function buildRefreshConfig() {
     sprintMondayAnchor: envBool("SPRINT_MONDAY_ANCHOR", DEFAULT_SPRINT_MONDAY_ANCHOR),
     prCycleRebuildAll: envBool("PR_CYCLE_REBUILD_ALL", false),
     prActivityRebuildAll: envBool("PR_ACTIVITY_REBUILD_ALL", false),
+    prActivitySkipReviewDetails: envBool("PR_ACTIVITY_SKIP_REVIEW_DETAILS", false),
     trendCountConcurrency: envPositiveInt(
       "TREND_COUNT_CONCURRENCY",
       DEFAULT_TREND_COUNT_CONCURRENCY
@@ -3571,12 +3648,22 @@ export function buildPrCycleSnapshotState(
 
 async function buildPrActivityRefreshState(config, todayIso, resolvedDates, options = {}) {
   const { skipRefresh = false } = options;
-  const shouldRebuildPrActivityHistory = config.prActivityRebuildAll || config.cleanRun;
+  const repoTeamMap = await loadPrActivityRepoTeamMapConfig();
+  const contributorTeamMap = await loadPrActivityContributorTeamMapConfig();
+  const currentMappingCoverage = buildPrActivityMappingCoverage(repoTeamMap, contributorTeamMap);
   const prActivityHistoryState = await readPrActivityHistoryState({
-    skipHistoryReuse: shouldRebuildPrActivityHistory
+    skipHistoryReuse: config.prActivityRebuildAll || config.cleanRun
   });
+  const shouldRebuildPrActivityHistory =
+    config.prActivityRebuildAll ||
+    config.cleanRun ||
+    !samePrActivityMappingCoverage(
+      prActivityHistoryState?.bestPrActivity?.mappingCoverage,
+      currentMappingCoverage
+    );
   const prActivityHistoryPlan = resolvePrActivityHistoryPlan(prActivityHistoryState, {
-    shouldRebuildPrActivityHistory
+    shouldRebuildPrActivityHistory,
+    currentMappingCoverage
   });
   if (prActivityHistoryPlan.archivedHistoryWarning) {
     console.warn(prActivityHistoryPlan.archivedHistoryWarning);
@@ -3594,11 +3681,16 @@ async function buildPrActivityRefreshState(config, todayIso, resolvedDates, opti
     ? PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY
     : PR_ACTIVITY_HISTORY_WINDOW_KEY;
   const prActivityFetchSinceDate = resolvePrActivityFetchSinceDate(todayIso, prActivityWindowKey);
+  const skipReviewDetails =
+    config.prActivitySkipReviewDetails || prActivityWindowKey === PR_ACTIVITY_HISTORY_WINDOW_KEY;
   const prRows = await withTiming(
     "PR activity fetch",
     () =>
       fetchPrActivity(config.site, config.email, config.token, prActivityFetchSinceDate, {
-        useCache: !config.cleanRun
+        useCache: !config.cleanRun,
+        repoTeamMap,
+        contributorTeamMap,
+        skipReviewDetails
       }),
     console
   );
@@ -3607,7 +3699,7 @@ async function buildPrActivityRefreshState(config, todayIso, resolvedDates, opti
     reuseHistoricalPrActivity: prActivityHistoryPlan.reuseHistoricalPrActivity
   });
   console.log(
-    `Computed GitHub Development PR activity (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} discovered repos, ${prRows.detailIssueCount} repos scanned, ${prRows.unmappedRepoCount || 0} unmapped repos, ${prRows.unmappedContributorCount || 0} unmapped contributors, since ${prActivitySnapshotState.prActivityFetchSinceDate} across ${prActivitySnapshotState.prActivitySprintDates.length} sprint buckets and ${prActivitySnapshotState.refreshedPrActivity.monthlyPoints.length} monthly buckets; fetched ${prRows.reviewChangelogIssueCount} review samples, cache hits ${prRows.cacheHitCount}, cache writes ${prRows.cacheWriteCount}${prActivityHistoryPlan.reuseHistoricalPrActivity ? "; reused cached older PR activity buckets" : ""}).`
+    `Computed GitHub Development PR activity (${prRows.uniquePrCount} unique PRs from ${prRows.candidateIssueCount} discovered repos, ${prRows.detailIssueCount} repos scanned, ${prRows.unmappedRepoCount || 0} unmapped repos, ${prRows.unmappedContributorCount || 0} unmapped contributors, since ${prActivitySnapshotState.prActivityFetchSinceDate} across ${prActivitySnapshotState.prActivitySprintDates.length} sprint buckets and ${prActivitySnapshotState.refreshedPrActivity.monthlyPoints.length} monthly buckets; fetched ${prRows.reviewChangelogIssueCount} review samples${skipReviewDetails ? " (review details skipped for full count rebuild)" : ""}, cache hits ${prRows.cacheHitCount}, cache writes ${prRows.cacheWriteCount}${prActivityHistoryPlan.reuseHistoricalPrActivity ? "; reused cached older PR activity buckets" : ""}).`
   );
 
   return {
@@ -3617,15 +3709,20 @@ async function buildPrActivityRefreshState(config, todayIso, resolvedDates, opti
 }
 
 export function resolvePrActivityHistoryPlan(prActivityHistoryState, options = {}) {
-  const { shouldRebuildPrActivityHistory = false } = options;
+  const { shouldRebuildPrActivityHistory = false, currentMappingCoverage = null } = options;
   const existingSnapshotForPrActivity = prActivityHistoryState?.currentSnapshot || null;
   const existingPrActivityForMerge = prActivityHistoryState?.bestPrActivity || null;
   const hasReusablePrActivitySeries = Boolean(
     countPrActivitySeriesPoints(existingPrActivityForMerge, "points") > 0 &&
     countPrActivitySeriesPoints(existingPrActivityForMerge, "monthlyPoints") > 0
   );
+  const mappingCoverageCompatible =
+    !currentMappingCoverage ||
+    samePrActivityMappingCoverage(existingPrActivityForMerge?.mappingCoverage, currentMappingCoverage);
   const canReuseHistoricalPrActivity =
-    hasReusablePrActivitySeries && prActivityHistoryCoversFloor(existingPrActivityForMerge);
+    hasReusablePrActivitySeries &&
+    mappingCoverageCompatible &&
+    prActivityHistoryCoversFloor(existingPrActivityForMerge);
   const reuseHistoricalPrActivity = !shouldRebuildPrActivityHistory && canReuseHistoricalPrActivity;
   const archivedHistoryWarning =
     reuseHistoricalPrActivity &&
@@ -3639,6 +3736,7 @@ export function resolvePrActivityHistoryPlan(prActivityHistoryState, options = {
     existingPrActivityForMerge,
     canReuseHistoricalPrActivity,
     hasReusablePrActivitySeries,
+    mappingCoverageCompatible,
     reuseHistoricalPrActivity,
     archivedHistoryWarning
   };
@@ -3690,6 +3788,9 @@ export function buildPrActivitySnapshotState(todayIso, resolvedDates, prRows, op
   refreshedPrActivity.latestClosedSprintDate = latestClosedSprintDate;
   refreshedPrActivity.monthlySince = prActivityMonthly.since;
   refreshedPrActivity.monthlyPoints = prActivityMonthly.points;
+  if (prRows?.reviewDetailsSkipped) {
+    preservePrActivityReviewMetrics(refreshedPrActivity, existingPrActivityForMerge);
+  }
   const mergedPrActivity = reuseHistoricalPrActivity
     ? mergePrActivitySnapshots(existingPrActivityForMerge, refreshedPrActivity, {
         truncateAfterRefreshedLatest: !resolvedDates.usedFallback,

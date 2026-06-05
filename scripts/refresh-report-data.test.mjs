@@ -859,6 +859,44 @@ test("fetchGitHubPrActivity canonicalizes redirected repo aliases before countin
   );
 });
 
+test("fetchGitHubPrActivity can skip review detail calls during count rebuilds", async () => {
+  let reviewFetchCount = 0;
+  const prActivity = await fetchGitHubPrActivity("2026-03-01", {
+    repoTeamMap: {
+      "example-org/tfc-functionality-usvc": "api"
+    },
+    repoDiscoveryEnabled: false,
+    githubToken: "test-token",
+    skipReviewDetails: true,
+    fetchRepoMetadata: async (repo) => ({ full_name: repo }),
+    fetchRepoPage: async (_repo, page) => {
+      if (page !== 1) return [];
+      return [
+        {
+          number: 152,
+          draft: false,
+          state: "closed",
+          created_at: "2026-03-13T12:24:00Z",
+          merged_at: "2026-03-19T08:27:29Z",
+          updated_at: "2026-03-19T08:27:29Z",
+          html_url: "https://github.com/example-org/tfc-functionality-usvc/pull/152",
+          user: { login: "author_example" }
+        }
+      ];
+    },
+    fetchReviewsPage: async () => {
+      reviewFetchCount += 1;
+      return [];
+    }
+  });
+
+  assert.equal(reviewFetchCount, 0);
+  assert.equal(prActivity.reviewDetailsSkipped, true);
+  assert.equal(prActivity.reviewChangelogIssueCount, 0);
+  assert.equal(prActivity.uniquePrCount, 1);
+  assert.equal(prActivity.mappingCoverage.mappedRepoCount, 1);
+});
+
 test("normalizeGitHubReviewToMergeRecord uses the first submitted non-author review", () => {
   assert.deepEqual(
     normalizeGitHubReviewToMergeRecord(
@@ -1123,6 +1161,61 @@ test("buildPrActivitySnapshotState includes the current month in monthly points 
   assert.equal(aprilPoint.api.merged, 1);
 });
 
+test("buildPrActivitySnapshotState preserves review metrics when review details are skipped", () => {
+  const prActivityState = buildPrActivitySnapshotState(
+    "2026-04-05",
+    {
+      dates: ["2026-03-16", "2026-03-30"],
+      closedDates: ["2026-03-16", "2026-03-30"],
+      usedFallback: false
+    },
+    {
+      candidateIssueCount: 1,
+      detailIssueCount: 1,
+      uniquePrCount: 1,
+      reviewDetailsSkipped: true,
+      reviewChangelogIssueCount: 0,
+      cacheHitCount: 0,
+      cacheWriteCount: 0,
+      records: [
+        {
+          team: "api",
+          status: "MERGED",
+          offeredProxyDate: "2026-03-10",
+          mergedProxyDate: "2026-03-20"
+        }
+      ],
+      ticketReviewToMergeRecords: []
+    },
+    {
+      existingPrActivityForMerge: {
+        points: [
+          {
+            date: "2026-03-16",
+            api: { avgReviewToMergeDays: 7, avgReviewToMergeSampleCount: 3 }
+          }
+        ],
+        monthlyPoints: [
+          {
+            date: "2026-03-01",
+            api: { avgReviewToMergeDays: 8, avgReviewToMergeSampleCount: 4 }
+          }
+        ]
+      }
+    }
+  );
+
+  assert.equal(prActivityState.refreshedPrActivity.points[0].api.offered, 1);
+  assert.equal(prActivityState.refreshedPrActivity.points[0].api.avgReviewToMergeDays, 7);
+  assert.equal(prActivityState.refreshedPrActivity.points[0].api.avgReviewToMergeSampleCount, 3);
+  const marchPoint = prActivityState.refreshedPrActivity.monthlyPoints.find(
+    (point) => point.date === "2026-03-01"
+  );
+  assert.equal(marchPoint.api.offered, 1);
+  assert.equal(marchPoint.api.avgReviewToMergeDays, 8);
+  assert.equal(marchPoint.api.avgReviewToMergeSampleCount, 4);
+});
+
 test("buildPrActivitySnapshotState counts monthly merges even when the PR was opened before the refresh floor", () => {
   const prActivityState = buildPrActivitySnapshotState(
     "2026-04-05",
@@ -1238,6 +1331,31 @@ test("resolvePrActivityHistoryPlan rebuilds cached history that starts after 202
   );
 
   assert.equal(historyPlan.hasReusablePrActivitySeries, true);
+  assert.equal(historyPlan.canReuseHistoricalPrActivity, false);
+  assert.equal(historyPlan.reuseHistoricalPrActivity, false);
+});
+
+test("resolvePrActivityHistoryPlan rebuilds cached history when mapping coverage changes", () => {
+  const historyPlan = resolvePrActivityHistoryPlan(
+    {
+      currentSnapshot: null,
+      bestPrActivity: {
+        points: [{ date: "2026-03-16" }],
+        monthlySince: "2024-01-01",
+        monthlyPoints: [{ date: "2024-01-01" }],
+        mappingCoverage: { coverageHash: "old-coverage" }
+      },
+      bestSource: "/tmp/archive-snapshot.json",
+      bestMetrics: { pointsCount: 1, monthlyPointsCount: 1 }
+    },
+    {
+      shouldRebuildPrActivityHistory: false,
+      currentMappingCoverage: { coverageHash: "new-coverage" }
+    }
+  );
+
+  assert.equal(historyPlan.hasReusablePrActivitySeries, true);
+  assert.equal(historyPlan.mappingCoverageCompatible, false);
   assert.equal(historyPlan.canReuseHistoricalPrActivity, false);
   assert.equal(historyPlan.reuseHistoricalPrActivity, false);
 });
