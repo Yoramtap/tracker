@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-06-05T17:05:02.693Z",
+  "updatedAt": "2026-06-05T17:11:30.042Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-06-05T17:05:02.693Z",
+    "syncedAt": "2026-06-05T17:11:30.042Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. PR activity is sourced from GitHub pull requests across discovered organization repos and attributed by Jira-derived contributor mapping with repo ownership and Unmapped fallbacks."
   },
   "prActivity": {
@@ -6973,17 +6973,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 55.03,
-              "facilities": [
-                {
-                  "label": "AU AHS",
-                  "devAvg": 7.01,
-                  "uatAvg": 55.03,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                }
-              ]
+              "uatAvg": 55.03
             },
             {
               "label": "Business unit unmapped",
@@ -6991,17 +6981,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 17.46,
-              "facilities": [
-                {
-                  "label": "Unspecified",
-                  "devAvg": 1.04,
-                  "uatAvg": 17.46,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                }
-              ]
+              "uatAvg": 17.47
             },
             {
               "label": "MEA",
@@ -7009,17 +6989,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 120.35,
-              "facilities": [
-                {
-                  "label": "ME MEIP1",
-                  "devAvg": 1.1,
-                  "uatAvg": 120.35,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                }
-              ]
+              "uatAvg": 120.36
             },
             {
               "label": "US",
@@ -7027,33 +6997,7 @@
               "sampleCount": 5,
               "devCount": 5,
               "uatCount": 5,
-              "uatAvg": 92.71,
-              "facilities": [
-                {
-                  "label": "US EN1",
-                  "devAvg": 0.88,
-                  "uatAvg": 170.59,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "US USCP",
-                  "devAvg": 0.98,
-                  "uatAvg": 121.77,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "Unspecified",
-                  "devAvg": 0.29,
-                  "uatAvg": 57.07,
-                  "devCount": 3,
-                  "uatCount": 3,
-                  "sampleCount": 3
-                }
-              ]
+              "uatAvg": 92.72
             },
             {
               "label": "Tech Debt",
@@ -7061,17 +7005,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 175.52,
-              "facilities": [
-                {
-                  "label": "Unspecified",
-                  "devAvg": 28.75,
-                  "uatAvg": 175.52,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                }
-              ]
+              "uatAvg": 175.53
             }
           ]
         },
@@ -7084,73 +7018,7 @@
               "sampleCount": 22,
               "devCount": 22,
               "uatCount": 22,
-              "uatAvg": 28.16,
-              "facilities": [
-                {
-                  "label": "AU AHS",
-                  "devAvg": 6.08,
-                  "uatAvg": 22.83,
-                  "devCount": 5,
-                  "uatCount": 5,
-                  "sampleCount": 5
-                },
-                {
-                  "label": "AU FLY1",
-                  "devAvg": 5.88,
-                  "uatAvg": 10.55,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "AU HG31",
-                  "devAvg": 5.91,
-                  "uatAvg": 2.07,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "AU IP26",
-                  "devAvg": 0.35,
-                  "uatAvg": 3.79,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "NL NLCP",
-                  "devAvg": 2.18,
-                  "uatAvg": 24.54,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "NZ FWCLIVE3",
-                  "devAvg": 1.91,
-                  "uatAvg": 19.62,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "NZ NZCP",
-                  "devAvg": 79.01,
-                  "uatAvg": 38.2,
-                  "devCount": 2,
-                  "uatCount": 2,
-                  "sampleCount": 2
-                },
-                {
-                  "label": "Unspecified",
-                  "devAvg": 42.05,
-                  "uatAvg": 36.84,
-                  "devCount": 10,
-                  "uatCount": 10,
-                  "sampleCount": 10
-                }
-              ]
+              "uatAvg": 28.16
             },
             {
               "label": "Business unit unmapped",
@@ -7158,33 +7026,7 @@
               "sampleCount": 12,
               "devCount": 12,
               "uatCount": 12,
-              "uatAvg": 5.37,
-              "facilities": [
-                {
-                  "label": "AU AHS",
-                  "devAvg": 3.04,
-                  "uatAvg": 11.84,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "NL NLCP",
-                  "devAvg": 1,
-                  "uatAvg": 1.03,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "Unspecified",
-                  "devAvg": 12.47,
-                  "uatAvg": 5.16,
-                  "devCount": 10,
-                  "uatCount": 10,
-                  "sampleCount": 10
-                }
-              ]
+              "uatAvg": 5.37
             },
             {
               "label": "EU",
@@ -7192,41 +7034,7 @@
               "sampleCount": 20,
               "devCount": 20,
               "uatCount": 20,
-              "uatAvg": 19.7,
-              "facilities": [
-                {
-                  "label": "NEBULA",
-                  "devAvg": 1.09,
-                  "uatAvg": 2.84,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "NL NLCP",
-                  "devAvg": 1.52,
-                  "uatAvg": 20.48,
-                  "devCount": 8,
-                  "uatCount": 8,
-                  "sampleCount": 8
-                },
-                {
-                  "label": "NO OBC",
-                  "devAvg": 0,
-                  "uatAvg": 38.28,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "Unspecified",
-                  "devAvg": 12.22,
-                  "uatAvg": 18.9,
-                  "devCount": 10,
-                  "uatCount": 10,
-                  "sampleCount": 10
-                }
-              ]
+              "uatAvg": 19.7
             },
             {
               "label": "MEA",
@@ -7234,25 +7042,7 @@
               "sampleCount": 3,
               "devCount": 3,
               "uatCount": 3,
-              "uatAvg": 13.03,
-              "facilities": [
-                {
-                  "label": "ME MEIP1",
-                  "devAvg": 0.03,
-                  "uatAvg": 3.91,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "SG ZENITH1",
-                  "devAvg": 1.55,
-                  "uatAvg": 17.6,
-                  "devCount": 2,
-                  "uatCount": 2,
-                  "sampleCount": 2
-                }
-              ]
+              "uatAvg": 13.03
             },
             {
               "label": "US",
@@ -7260,57 +7050,7 @@
               "sampleCount": 19,
               "devCount": 19,
               "uatCount": 19,
-              "uatAvg": 10.56,
-              "facilities": [
-                {
-                  "label": "US ND2",
-                  "devAvg": 14.56,
-                  "uatAvg": 30.66,
-                  "devCount": 5,
-                  "uatCount": 5,
-                  "sampleCount": 5
-                },
-                {
-                  "label": "US PGA TOUR STUDIOS",
-                  "devAvg": 0.06,
-                  "uatAvg": 3.55,
-                  "devCount": 2,
-                  "uatCount": 2,
-                  "sampleCount": 2
-                },
-                {
-                  "label": "US SS12",
-                  "devAvg": 0.93,
-                  "uatAvg": 1.98,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "US SS7",
-                  "devAvg": 0,
-                  "uatAvg": 0,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "US SSTOUR",
-                  "devAvg": 0.16,
-                  "uatAvg": 0,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                },
-                {
-                  "label": "Unspecified",
-                  "devAvg": 3.02,
-                  "uatAvg": 4.26,
-                  "devCount": 9,
-                  "uatCount": 9,
-                  "sampleCount": 9
-                }
-              ]
+              "uatAvg": 10.56
             },
             {
               "label": "Tech Debt",
@@ -7318,17 +7058,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 27.29,
-              "facilities": [
-                {
-                  "label": "Unspecified",
-                  "devAvg": 22.01,
-                  "uatAvg": 27.29,
-                  "devCount": 1,
-                  "uatCount": 1,
-                  "sampleCount": 1
-                }
-              ]
+              "uatAvg": 27.29
             }
           ]
         }

@@ -43,19 +43,7 @@ function sanitizeBusinessUnitRow(row) {
     sampleCount: sanitizeNumber(row?.sampleCount),
     devCount: sanitizeNumber(row?.devCount),
     uatCount: sanitizeNumber(row?.uatCount),
-    uatAvg: sanitizeNumber(row?.uatAvg),
-    facilities: Array.isArray(row?.facilities)
-      ? row.facilities
-          .map((facility) => ({
-            label: sanitizeText(facility?.label),
-            devAvg: sanitizeNumber(facility?.devAvg),
-            uatAvg: sanitizeNumber(facility?.uatAvg),
-            devCount: sanitizeNumber(facility?.devCount),
-            uatCount: sanitizeNumber(facility?.uatCount),
-            sampleCount: sanitizeNumber(facility?.sampleCount)
-          }))
-          .filter((facility) => facility.label)
-      : []
+    uatAvg: sanitizeNumber(row?.uatAvg)
   };
 }
 
