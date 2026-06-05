@@ -188,6 +188,19 @@
   font-weight: 700;
 }
 
+.dashboard-utility-layout__stat-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(79, 123, 155, 0.42);
+  text-underline-offset: 3px;
+}
+
+.dashboard-utility-layout__stat-link:hover,
+.dashboard-utility-layout__stat-link:focus-visible {
+  color: rgba(35, 92, 132, 0.96);
+  text-decoration-color: currentColor;
+}
+
 .dashboard-utility-layout__stat--muted dt,
 .dashboard-utility-layout__stat--muted dd {
   color: rgba(31, 51, 71, 0.5);

@@ -3216,17 +3216,27 @@ async function preparePrimarySnapshotArtifacts(snapshot) {
       }
     : snapshot;
   const prActivitySnapshot = buildPrActivitySnapshot(snapshotWithPreservedChartData);
-  const publicSnapshot =
+  const basePublicSnapshot =
     snapshotWithPreservedChartData?.prActivity && typeof snapshotWithPreservedChartData.prActivity === "object"
       ? {
           ...snapshotWithPreservedChartData,
           prActivity: prActivitySnapshot.prActivity
         }
       : snapshotWithPreservedChartData;
-  const backlogSnapshot = buildBacklogBugSnapshot(publicSnapshot);
   const managementFacilitySnapshot = buildManagementFacilitySnapshot(
-    publicSnapshot
+    basePublicSnapshot
   );
+  const publicSnapshot =
+    managementFacilitySnapshot?.chartData && typeof managementFacilitySnapshot.chartData === "object"
+      ? {
+          ...basePublicSnapshot,
+          chartData: managementFacilitySnapshot.chartData,
+          ...(managementFacilitySnapshot.chartDataUpdatedAt
+            ? { chartDataUpdatedAt: managementFacilitySnapshot.chartDataUpdatedAt }
+            : {})
+        }
+      : basePublicSnapshot;
+  const backlogSnapshot = buildBacklogBugSnapshot(publicSnapshot);
   assertBacklogSnapshotIntegrity(existingBacklogSnapshot, backlogSnapshot);
   assertPrActivitySnapshotIntegrity(existingPrActivitySnapshot, prActivitySnapshot);
   assertManagementFacilitySnapshotIntegrity(

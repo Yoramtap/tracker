@@ -764,6 +764,25 @@ function buildBusinessUnitDoneRebuildJql({ project, issueType, label, doneStatus
   return clauses.join(" AND ");
 }
 
+function buildBusinessUnitDoneSearchJql({ project, issueType, label, doneStatuses, uatStatuses }) {
+  const clauses = [
+    buildBusinessUnitDoneRebuildJql({ project, issueType, label, doneStatuses }),
+    `(${(Array.isArray(uatStatuses) ? uatStatuses : [])
+      .map((status) => `status WAS ${quoteJqlValue(status)}`)
+      .join(" OR ")})`
+  ].filter(Boolean);
+  return clauses.join(" AND ");
+}
+
+function buildJiraSearchHref(site, jql) {
+  const safeSite = String(site || "").trim();
+  const safeJql = String(jql || "").trim();
+  if (!safeSite || !safeJql) return "";
+  const url = new URL(`https://${safeSite}/issues/`);
+  url.searchParams.set("jql", `${safeJql} ORDER BY updated DESC`);
+  return url.href;
+}
+
 function buildBusinessUnitIncrementalJql({ project, issueType, label, updatedSince }) {
   const clauses = [
     `project = ${quoteJqlValue(project)}`,
@@ -1173,9 +1192,23 @@ export async function refreshBusinessUnitUatChartData(options = {}) {
       scopeLabel: label,
       byScope: {
         ongoing: {
+          searchHref: buildJiraSearchHref(
+            site,
+            buildBusinessUnitCurrentUatJql({ project, issueType, label, uatStatuses })
+          ),
           rows: ongoingByBusinessUnit
         },
         done: {
+          searchHref: buildJiraSearchHref(
+            site,
+            buildBusinessUnitDoneSearchJql({
+              project,
+              issueType,
+              label,
+              doneStatuses,
+              uatStatuses
+            })
+          ),
           rows: doneByBusinessUnit
         }
       }

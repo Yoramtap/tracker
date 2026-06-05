@@ -16,7 +16,6 @@ export function createWorkflowPanels(deps) {
     },
     ui: { isPretextLayoutActive, getDashboardPretextLayout },
     helpers: {
-      buildIssueItemsSearchUrl,
       buildRowMarkup,
       clearChartContainer,
       clearPanelLead,
@@ -80,6 +79,12 @@ export function createWorkflowPanels(deps) {
     return labels.map((label) => rowMap.get(label) || buildEmptyBusinessUnitRow(label));
   }
 
+  function getManagementFacilityScopeSnapshot(scope) {
+    const byScope = getManagementFacilitySnapshot()?.chartData?.managementBusinessUnit?.byScope;
+    const scopeKey = scope === "done" ? "done" : "ongoing";
+    return byScope?.[scopeKey] && typeof byScope[scopeKey] === "object" ? byScope[scopeKey] : {};
+  }
+
   function formatCycleMonthsText(valueInDays, { short = false } = {}) {
     const months = Math.max(0, toNumber(valueInDays) / 30.4375);
     const rounded = months === 0 ? "0" : months.toFixed(1);
@@ -121,7 +126,7 @@ export function createWorkflowPanels(deps) {
     return buildJiraSearchUrl(`${activeJql} ORDER BY updated DESC`);
   }
 
-  function buildManagementFacilityLeadModel(scopeLabel, rows) {
+  function buildManagementFacilityLeadModel(scopeLabel, rows, scopeSearchHref = "") {
     const safeRows = (Array.isArray(rows) ? rows : []).filter(
       (row) => toCount(row?.sampleCount) > 0
     );
@@ -150,11 +155,18 @@ export function createWorkflowPanels(deps) {
       calloutValue: formatCycleMonthsText(weightedUatAverage, { short: true }),
       calloutSubtext: slowestRow ? `Slowest: ${String(slowestRow.label || "").trim()}` : scopeLabel,
       chips: [scopeLabel, `${sampleCount} issues sampled`, `${getBroadcastScopeLabel()} scope`],
+      searchHref: String(scopeSearchHref || "").trim(),
+      searchText: `${sampleCount} ${sampleCount === 1 ? "issue" : "issues"}`,
       accentColor: "rgba(79, 123, 155, 0.22)"
     };
   }
 
-  function buildPretextManagementFacilityModel(scopeLabel, rows, scopeKey = "ongoing") {
+  function buildPretextManagementFacilityModel(
+    scopeLabel,
+    rows,
+    scopeKey = "ongoing",
+    scopeSearchHref = ""
+  ) {
     const safeRows = (Array.isArray(rows) ? rows : []).filter(
       (row) => toCount(row?.sampleCount) > 0
     );
@@ -172,6 +184,7 @@ export function createWorkflowPanels(deps) {
     const slowestRow = sortedRows[0] || null;
     const maxUatDays = Math.max(1, ...sortedRows.map((row) => toNumber(row?.uatAvg)));
 
+    const sampleText = `${sampleCount} ${sampleCount === 1 ? "issue" : "issues"}`;
     return {
       teamKey: "uat",
       teamColor: "var(--chart-active)",
@@ -191,7 +204,11 @@ export function createWorkflowPanels(deps) {
               }
             ]),
         { label: "Slowest avg", value: formatCycleMonthsText(slowestRow?.uatAvg, { short: true }) },
-        { label: "Sample", value: `${sampleCount} issues` }
+        {
+          label: "Sample",
+          value: sampleText,
+          href: String(scopeSearchHref || "").trim()
+        }
       ],
       columnStartLabel: "Business unit",
       columnEndLabel: "Avg time in UAT",
@@ -202,8 +219,7 @@ export function createWorkflowPanels(deps) {
         valueMetaText: {
           text: `${toCount(row?.sampleCount)} ${
             toCount(row?.sampleCount) === 1 ? "issue" : "issues"
-          }`,
-          href: buildIssueItemsSearchUrl(row?.issueItems)
+          }`
         },
         width: getPretextFillWidth(row?.uatAvg, maxUatDays),
         color: "var(--chart-active)"
@@ -787,6 +803,8 @@ export function createWorkflowPanels(deps) {
     renderDashboardChartState("management-facility", getConfig, ({ config }) => {
       const scope = normalizeOption(state.managementFlowScope, MANAGEMENT_FLOW_SCOPES, "ongoing");
       const scopeLabel = getManagementFlowScopeLabel(scope);
+      const scopeSnapshot = getManagementFacilityScopeSnapshot(scope);
+      const scopeSearchHref = String(scopeSnapshot?.searchHref || "").trim();
       const titleNode = document.getElementById("management-facility-title");
       syncControlValue("management-facility-flow-scope", scope);
       const rows = getAlignedBusinessUnitRows(scope);
@@ -811,14 +829,22 @@ export function createWorkflowPanels(deps) {
           const pretextLayout = getDashboardPretextLayout();
           if (isPretextLayoutActive() && pretextLayout) {
             clearPanelLead(config.panelId);
-            const model = buildPretextManagementFacilityModel(scopeLabel, rows, scope);
+            const model = buildPretextManagementFacilityModel(
+              scopeLabel,
+              rows,
+              scope,
+              scopeSearchHref
+            );
             const rendered =
               pretextLayout.renderManagementAcceptancePanel?.(config.containerId, model) ||
               pretextLayout.renderPretextCard?.(config.containerId, model) ||
               pretextLayout.renderWorkflowBreakdownCard?.(config.containerId, model);
             if (rendered) return;
           } else {
-            renderPanelLead(config.panelId, buildManagementFacilityLeadModel(scopeLabel, rows));
+            renderPanelLead(
+              config.panelId,
+              buildManagementFacilityLeadModel(scopeLabel, rows, scopeSearchHref)
+            );
           }
           renderNamedChart(
             config,
@@ -826,6 +852,7 @@ export function createWorkflowPanels(deps) {
               containerId: config.containerId,
               rows,
               groupingLabel: "Business Unit",
+              searchHref: scopeSearchHref,
               jiraBrowseBase: "https://nepgroup.atlassian.net/browse/",
               scope,
               colors: getThemeColors()

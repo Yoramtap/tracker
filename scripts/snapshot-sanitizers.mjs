@@ -44,14 +44,6 @@ function sanitizeBusinessUnitRow(row) {
     devCount: sanitizeNumber(row?.devCount),
     uatCount: sanitizeNumber(row?.uatCount),
     uatAvg: sanitizeNumber(row?.uatAvg),
-    issueItems: Array.isArray(row?.issueItems)
-      ? row.issueItems
-          .map((item) => ({
-            issueId: sanitizeText(item?.issueId || item),
-            facilityLabel: sanitizeText(item?.facilityLabel)
-          }))
-          .filter((item) => item.issueId)
-      : [],
     facilities: Array.isArray(row?.facilities)
       ? row.facilities
           .map((facility) => ({
@@ -60,10 +52,7 @@ function sanitizeBusinessUnitRow(row) {
             uatAvg: sanitizeNumber(facility?.uatAvg),
             devCount: sanitizeNumber(facility?.devCount),
             uatCount: sanitizeNumber(facility?.uatCount),
-            sampleCount: sanitizeNumber(facility?.sampleCount),
-            issueIds: Array.isArray(facility?.issueIds)
-              ? facility.issueIds.map((issueId) => sanitizeText(issueId)).filter(Boolean)
-              : []
+            sampleCount: sanitizeNumber(facility?.sampleCount)
           }))
           .filter((facility) => facility.label)
       : []
@@ -72,6 +61,9 @@ function sanitizeBusinessUnitRow(row) {
 
 function sanitizeBusinessUnitScope(scopeSnapshot) {
   return {
+    ...(sanitizeText(scopeSnapshot?.searchHref)
+      ? { searchHref: sanitizeText(scopeSnapshot?.searchHref) }
+      : {}),
     rows: Array.isArray(scopeSnapshot?.rows) ? scopeSnapshot.rows.map(sanitizeBusinessUnitRow) : []
   };
 }

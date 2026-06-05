@@ -87,10 +87,16 @@
     const statsMarkup = statsItems
       .map((item) => {
         const statClassName = String(item?.className || "").trim();
+        const statHref = sanitizeUtilityHref(item?.href || item?.url);
+        const valueMarkup = statHref
+          ? `<a class="dashboard-utility-layout__stat-link" href="${escapeHtml(
+              statHref
+            )}" target="_blank" rel="noopener noreferrer">${escapeHtml(item?.value)}</a>`
+          : escapeHtml(item?.value);
         return `
           <div class="dashboard-utility-layout__stat${statClassName ? ` ${escapeHtml(statClassName)}` : ""}">
             <dt>${escapeHtml(item?.label)}</dt>
-            <dd>${escapeHtml(item?.value)}</dd>
+            <dd>${valueMarkup}</dd>
           </div>
         `;
       })

@@ -1,10 +1,11 @@
 {
-  "updatedAt": "2026-06-05T07:36:29.524Z",
+  "updatedAt": "2026-06-05T17:05:02.693Z",
   "chartData": {
     "managementBusinessUnit": {
       "scopeLabel": "Broadcast",
       "byScope": {
         "ongoing": {
+          "searchHref": "https://nepgroup.atlassian.net/issues/?jql=project+%3D+%22TFC%22+AND+labels+%3D+%22Broadcast%22+AND+status+IN+%28%22UAT%22%29+ORDER+BY+updated+DESC",
           "rows": [
             {
               "label": "ANZJ",
@@ -12,56 +13,33 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 53.63,
-              "issueItems": [
-                {
-                  "issueId": "TFC-16160",
-                  "facilityLabel": "Facility AU AHS"
-                }
-              ],
+              "uatAvg": 55.03,
               "facilities": [
                 {
                   "label": "AU AHS",
                   "devAvg": 7.01,
-                  "uatAvg": 53.63,
+                  "uatAvg": 55.03,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-16160"
-                  ]
+                  "sampleCount": 1
                 }
               ]
             },
             {
               "label": "Business unit unmapped",
-              "devAvg": 17.17,
-              "sampleCount": 2,
-              "devCount": 2,
-              "uatCount": 2,
-              "uatAvg": 8.16,
-              "issueItems": [
-                {
-                  "issueId": "TFC-14376",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16156",
-                  "facilityLabel": "Facility unmapped"
-                }
-              ],
+              "devAvg": 1.04,
+              "sampleCount": 1,
+              "devCount": 1,
+              "uatCount": 1,
+              "uatAvg": 17.46,
               "facilities": [
                 {
                   "label": "Unspecified",
-                  "devAvg": 17.17,
-                  "uatAvg": 8.16,
-                  "devCount": 2,
-                  "uatCount": 2,
-                  "sampleCount": 2,
-                  "issueIds": [
-                    "TFC-14376",
-                    "TFC-16156"
-                  ]
+                  "devAvg": 1.04,
+                  "uatAvg": 17.46,
+                  "devCount": 1,
+                  "uatCount": 1,
+                  "sampleCount": 1
                 }
               ]
             },
@@ -71,24 +49,15 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 118.95,
-              "issueItems": [
-                {
-                  "issueId": "TFC-15925",
-                  "facilityLabel": "Facility ME MEIP1"
-                }
-              ],
+              "uatAvg": 120.35,
               "facilities": [
                 {
                   "label": "ME MEIP1",
                   "devAvg": 1.1,
-                  "uatAvg": 118.95,
+                  "uatAvg": 120.35,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-15925"
-                  ]
+                  "sampleCount": 1
                 }
               ]
             },
@@ -98,64 +67,31 @@
               "sampleCount": 5,
               "devCount": 5,
               "uatCount": 5,
-              "uatAvg": 91.31,
-              "issueItems": [
-                {
-                  "issueId": "TFC-14425",
-                  "facilityLabel": "Facility US EN1"
-                },
-                {
-                  "issueId": "TFC-13224",
-                  "facilityLabel": "Facility US USCP"
-                },
-                {
-                  "issueId": "TFC-15958",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16073",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16848",
-                  "facilityLabel": "Facility unmapped"
-                }
-              ],
+              "uatAvg": 92.71,
               "facilities": [
                 {
                   "label": "US EN1",
                   "devAvg": 0.88,
-                  "uatAvg": 169.19,
+                  "uatAvg": 170.59,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-14425"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "US USCP",
                   "devAvg": 0.98,
-                  "uatAvg": 120.37,
+                  "uatAvg": 121.77,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-13224"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "Unspecified",
                   "devAvg": 0.29,
-                  "uatAvg": 55.66,
+                  "uatAvg": 57.07,
                   "devCount": 3,
                   "uatCount": 3,
-                  "sampleCount": 3,
-                  "issueIds": [
-                    "TFC-15958",
-                    "TFC-16073",
-                    "TFC-16848"
-                  ]
+                  "sampleCount": 3
                 }
               ]
             },
@@ -165,30 +101,22 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 174.12,
-              "issueItems": [
-                {
-                  "issueId": "TFC-14540",
-                  "facilityLabel": "Facility unmapped"
-                }
-              ],
+              "uatAvg": 175.52,
               "facilities": [
                 {
                   "label": "Unspecified",
                   "devAvg": 28.75,
-                  "uatAvg": 174.12,
+                  "uatAvg": 175.52,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-14540"
-                  ]
+                  "sampleCount": 1
                 }
               ]
             }
           ]
         },
         "done": {
+          "searchHref": "https://nepgroup.atlassian.net/issues/?jql=project+%3D+%22TFC%22+AND+labels+%3D+%22Broadcast%22+AND+status+IN+%28%22Done%22%2C+%22Duplicate%22%2C+%22Won%27t+Fix%22%29+AND+%28status+WAS+%22UAT%22%29+ORDER+BY+updated+DESC",
           "rows": [
             {
               "label": "ANZJ",
@@ -197,96 +125,6 @@
               "devCount": 22,
               "uatCount": 22,
               "uatAvg": 28.16,
-              "issueItems": [
-                {
-                  "issueId": "TFC-14929",
-                  "facilityLabel": "Facility AU AHS"
-                },
-                {
-                  "issueId": "TFC-15598",
-                  "facilityLabel": "Facility AU AHS"
-                },
-                {
-                  "issueId": "TFC-15659",
-                  "facilityLabel": "Facility AU AHS"
-                },
-                {
-                  "issueId": "TFC-16151",
-                  "facilityLabel": "Facility AU AHS"
-                },
-                {
-                  "issueId": "TFC-16205",
-                  "facilityLabel": "Facility AU AHS"
-                },
-                {
-                  "issueId": "TFC-15657",
-                  "facilityLabel": "Facility AU FLY1"
-                },
-                {
-                  "issueId": "TFC-16291",
-                  "facilityLabel": "Facility AU HG31"
-                },
-                {
-                  "issueId": "TFC-15941",
-                  "facilityLabel": "Facility AU IP26"
-                },
-                {
-                  "issueId": "TFC-15472",
-                  "facilityLabel": "Facility NL NLCP"
-                },
-                {
-                  "issueId": "TFC-13109",
-                  "facilityLabel": "Facility NZ FWCLIVE3"
-                },
-                {
-                  "issueId": "TFC-12976",
-                  "facilityLabel": "Facility NZ NZCP"
-                },
-                {
-                  "issueId": "TFC-16216",
-                  "facilityLabel": "Facility NZ NZCP"
-                },
-                {
-                  "issueId": "TFC-13259",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-13842",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-13847",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-13848",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-14003",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-15120",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-15977",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16088",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16090",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16349",
-                  "facilityLabel": "Facility unmapped"
-                }
-              ],
               "facilities": [
                 {
                   "label": "AU AHS",
@@ -294,14 +132,7 @@
                   "uatAvg": 22.83,
                   "devCount": 5,
                   "uatCount": 5,
-                  "sampleCount": 5,
-                  "issueIds": [
-                    "TFC-14929",
-                    "TFC-15598",
-                    "TFC-15659",
-                    "TFC-16151",
-                    "TFC-16205"
-                  ]
+                  "sampleCount": 5
                 },
                 {
                   "label": "AU FLY1",
@@ -309,10 +140,7 @@
                   "uatAvg": 10.55,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-15657"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "AU HG31",
@@ -320,10 +148,7 @@
                   "uatAvg": 2.07,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-16291"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "AU IP26",
@@ -331,10 +156,7 @@
                   "uatAvg": 3.79,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-15941"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "NL NLCP",
@@ -342,10 +164,7 @@
                   "uatAvg": 24.54,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-15472"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "NZ FWCLIVE3",
@@ -353,10 +172,7 @@
                   "uatAvg": 19.62,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-13109"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "NZ NZCP",
@@ -364,11 +180,7 @@
                   "uatAvg": 38.2,
                   "devCount": 2,
                   "uatCount": 2,
-                  "sampleCount": 2,
-                  "issueIds": [
-                    "TFC-12976",
-                    "TFC-16216"
-                  ]
+                  "sampleCount": 2
                 },
                 {
                   "label": "Unspecified",
@@ -376,19 +188,7 @@
                   "uatAvg": 36.84,
                   "devCount": 10,
                   "uatCount": 10,
-                  "sampleCount": 10,
-                  "issueIds": [
-                    "TFC-13259",
-                    "TFC-13842",
-                    "TFC-13847",
-                    "TFC-13848",
-                    "TFC-14003",
-                    "TFC-15120",
-                    "TFC-15977",
-                    "TFC-16088",
-                    "TFC-16090",
-                    "TFC-16349"
-                  ]
+                  "sampleCount": 10
                 }
               ]
             },
@@ -399,56 +199,6 @@
               "devCount": 12,
               "uatCount": 12,
               "uatAvg": 5.37,
-              "issueItems": [
-                {
-                  "issueId": "TFC-16159",
-                  "facilityLabel": "Facility AU AHS"
-                },
-                {
-                  "issueId": "TFC-15885",
-                  "facilityLabel": "Facility NL NLCP"
-                },
-                {
-                  "issueId": "TFC-14244",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-15597",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-15758",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16408",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16488",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16498",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16563",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16590",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16627",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16815",
-                  "facilityLabel": "Facility unmapped"
-                }
-              ],
               "facilities": [
                 {
                   "label": "AU AHS",
@@ -456,10 +206,7 @@
                   "uatAvg": 11.84,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-16159"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "NL NLCP",
@@ -467,10 +214,7 @@
                   "uatAvg": 1.03,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-15885"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "Unspecified",
@@ -478,19 +222,7 @@
                   "uatAvg": 5.16,
                   "devCount": 10,
                   "uatCount": 10,
-                  "sampleCount": 10,
-                  "issueIds": [
-                    "TFC-14244",
-                    "TFC-15597",
-                    "TFC-15758",
-                    "TFC-16408",
-                    "TFC-16488",
-                    "TFC-16498",
-                    "TFC-16563",
-                    "TFC-16590",
-                    "TFC-16627",
-                    "TFC-16815"
-                  ]
+                  "sampleCount": 10
                 }
               ]
             },
@@ -501,88 +233,6 @@
               "devCount": 20,
               "uatCount": 20,
               "uatAvg": 19.7,
-              "issueItems": [
-                {
-                  "issueId": "TFC-16519",
-                  "facilityLabel": "Facility NEBULA"
-                },
-                {
-                  "issueId": "TFC-15123",
-                  "facilityLabel": "Facility NL NLCP"
-                },
-                {
-                  "issueId": "TFC-15388",
-                  "facilityLabel": "Facility NL NLCP"
-                },
-                {
-                  "issueId": "TFC-15469",
-                  "facilityLabel": "Facility NL NLCP"
-                },
-                {
-                  "issueId": "TFC-15471",
-                  "facilityLabel": "Facility NL NLCP"
-                },
-                {
-                  "issueId": "TFC-15539",
-                  "facilityLabel": "Facility NL NLCP"
-                },
-                {
-                  "issueId": "TFC-16029",
-                  "facilityLabel": "Facility NL NLCP"
-                },
-                {
-                  "issueId": "TFC-16108",
-                  "facilityLabel": "Facility NL NLCP"
-                },
-                {
-                  "issueId": "TFC-16752",
-                  "facilityLabel": "Facility NL NLCP"
-                },
-                {
-                  "issueId": "TFC-16084",
-                  "facilityLabel": "Facility NO OBC"
-                },
-                {
-                  "issueId": "TFC-11526",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-12720",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-12801",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-13569",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-15579",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-15805",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-15807",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16185",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16258",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16378",
-                  "facilityLabel": "Facility unmapped"
-                }
-              ],
               "facilities": [
                 {
                   "label": "NEBULA",
@@ -590,10 +240,7 @@
                   "uatAvg": 2.84,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-16519"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "NL NLCP",
@@ -601,17 +248,7 @@
                   "uatAvg": 20.48,
                   "devCount": 8,
                   "uatCount": 8,
-                  "sampleCount": 8,
-                  "issueIds": [
-                    "TFC-15123",
-                    "TFC-15388",
-                    "TFC-15469",
-                    "TFC-15471",
-                    "TFC-15539",
-                    "TFC-16029",
-                    "TFC-16108",
-                    "TFC-16752"
-                  ]
+                  "sampleCount": 8
                 },
                 {
                   "label": "NO OBC",
@@ -619,10 +256,7 @@
                   "uatAvg": 38.28,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-16084"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "Unspecified",
@@ -630,19 +264,7 @@
                   "uatAvg": 18.9,
                   "devCount": 10,
                   "uatCount": 10,
-                  "sampleCount": 10,
-                  "issueIds": [
-                    "TFC-11526",
-                    "TFC-12720",
-                    "TFC-12801",
-                    "TFC-13569",
-                    "TFC-15579",
-                    "TFC-15805",
-                    "TFC-15807",
-                    "TFC-16185",
-                    "TFC-16258",
-                    "TFC-16378"
-                  ]
+                  "sampleCount": 10
                 }
               ]
             },
@@ -653,20 +275,6 @@
               "devCount": 3,
               "uatCount": 3,
               "uatAvg": 13.03,
-              "issueItems": [
-                {
-                  "issueId": "TFC-15060",
-                  "facilityLabel": "Facility ME MEIP1"
-                },
-                {
-                  "issueId": "TFC-15593",
-                  "facilityLabel": "Facility SG ZENITH1"
-                },
-                {
-                  "issueId": "TFC-15935",
-                  "facilityLabel": "Facility SG ZENITH1"
-                }
-              ],
               "facilities": [
                 {
                   "label": "ME MEIP1",
@@ -674,10 +282,7 @@
                   "uatAvg": 3.91,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-15060"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "SG ZENITH1",
@@ -685,11 +290,7 @@
                   "uatAvg": 17.6,
                   "devCount": 2,
                   "uatCount": 2,
-                  "sampleCount": 2,
-                  "issueIds": [
-                    "TFC-15593",
-                    "TFC-15935"
-                  ]
+                  "sampleCount": 2
                 }
               ]
             },
@@ -700,84 +301,6 @@
               "devCount": 19,
               "uatCount": 19,
               "uatAvg": 10.56,
-              "issueItems": [
-                {
-                  "issueId": "TFC-15188",
-                  "facilityLabel": "Facility US ND2"
-                },
-                {
-                  "issueId": "TFC-15197",
-                  "facilityLabel": "Facility US ND2"
-                },
-                {
-                  "issueId": "TFC-15822",
-                  "facilityLabel": "Facility US ND2"
-                },
-                {
-                  "issueId": "TFC-16041",
-                  "facilityLabel": "Facility US ND2"
-                },
-                {
-                  "issueId": "TFC-16087",
-                  "facilityLabel": "Facility US ND2"
-                },
-                {
-                  "issueId": "TFC-15957",
-                  "facilityLabel": "Facility US PGA TOUR STUDIOS"
-                },
-                {
-                  "issueId": "TFC-16737",
-                  "facilityLabel": "Facility US PGA TOUR STUDIOS"
-                },
-                {
-                  "issueId": "TFC-15029",
-                  "facilityLabel": "Facility US SS12"
-                },
-                {
-                  "issueId": "TFC-15245",
-                  "facilityLabel": "Facility US SS7"
-                },
-                {
-                  "issueId": "TFC-16514",
-                  "facilityLabel": "Facility US SSTOUR"
-                },
-                {
-                  "issueId": "TFC-14556",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-15744",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-15824",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-15894",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16344",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16345",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16760",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16806",
-                  "facilityLabel": "Facility unmapped"
-                },
-                {
-                  "issueId": "TFC-16807",
-                  "facilityLabel": "Facility unmapped"
-                }
-              ],
               "facilities": [
                 {
                   "label": "US ND2",
@@ -785,14 +308,7 @@
                   "uatAvg": 30.66,
                   "devCount": 5,
                   "uatCount": 5,
-                  "sampleCount": 5,
-                  "issueIds": [
-                    "TFC-15188",
-                    "TFC-15197",
-                    "TFC-15822",
-                    "TFC-16041",
-                    "TFC-16087"
-                  ]
+                  "sampleCount": 5
                 },
                 {
                   "label": "US PGA TOUR STUDIOS",
@@ -800,11 +316,7 @@
                   "uatAvg": 3.55,
                   "devCount": 2,
                   "uatCount": 2,
-                  "sampleCount": 2,
-                  "issueIds": [
-                    "TFC-15957",
-                    "TFC-16737"
-                  ]
+                  "sampleCount": 2
                 },
                 {
                   "label": "US SS12",
@@ -812,10 +324,7 @@
                   "uatAvg": 1.98,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-15029"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "US SS7",
@@ -823,10 +332,7 @@
                   "uatAvg": 0,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-15245"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "US SSTOUR",
@@ -834,10 +340,7 @@
                   "uatAvg": 0,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-16514"
-                  ]
+                  "sampleCount": 1
                 },
                 {
                   "label": "Unspecified",
@@ -845,18 +348,7 @@
                   "uatAvg": 4.26,
                   "devCount": 9,
                   "uatCount": 9,
-                  "sampleCount": 9,
-                  "issueIds": [
-                    "TFC-14556",
-                    "TFC-15744",
-                    "TFC-15824",
-                    "TFC-15894",
-                    "TFC-16344",
-                    "TFC-16345",
-                    "TFC-16760",
-                    "TFC-16806",
-                    "TFC-16807"
-                  ]
+                  "sampleCount": 9
                 }
               ]
             },
@@ -867,12 +359,6 @@
               "devCount": 1,
               "uatCount": 1,
               "uatAvg": 27.29,
-              "issueItems": [
-                {
-                  "issueId": "TFC-14978",
-                  "facilityLabel": "Facility unmapped"
-                }
-              ],
               "facilities": [
                 {
                   "label": "Unspecified",
@@ -880,10 +366,7 @@
                   "uatAvg": 27.29,
                   "devCount": 1,
                   "uatCount": 1,
-                  "sampleCount": 1,
-                  "issueIds": [
-                    "TFC-14978"
-                  ]
+                  "sampleCount": 1
                 }
               ]
             }

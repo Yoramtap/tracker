@@ -21,7 +21,10 @@ import {
   resolvePrCycleRefreshPlan,
   selectPrCycleScrumWindowSprints
 } from "./refresh-report-data.mjs";
-import { sanitizePrActivitySnapshot } from "./snapshot-sanitizers.mjs";
+import {
+  sanitizeManagementFacilitySnapshot,
+  sanitizePrActivitySnapshot
+} from "./snapshot-sanitizers.mjs";
 import { validateDashboardSnapshot } from "./validate-dashboard-snapshots.mjs";
 
 function makePrActivityRows() {
@@ -188,6 +191,91 @@ test("validateDashboardSnapshot rejects private PR audit details in combined sna
         combinedPoints: []
       }),
     /must not expose unmappedPrAudit/
+  );
+});
+
+test("sanitizeManagementFacilitySnapshot removes exact issue keys but keeps aggregate search links", () => {
+  const sanitized = sanitizeManagementFacilitySnapshot({
+    updatedAt: "2026-06-05T10:00:00.000Z",
+    chartData: {
+      managementBusinessUnit: {
+        scopeLabel: "Broadcast",
+        byScope: {
+          ongoing: {
+            searchHref: "https://example.atlassian.net/issues/?jql=project%20%3D%20TFC",
+            rows: [
+              {
+                label: "US",
+                devAvg: 1,
+                sampleCount: 2,
+                devCount: 2,
+                uatCount: 2,
+                uatAvg: 10,
+                issueIds: ["TFC-1", "TFC-2"],
+                issueItems: [
+                  { issueId: "TFC-1", facilityLabel: "Facility US EN1" },
+                  { issueId: "TFC-2", facilityLabel: "Facility unmapped" }
+                ],
+                facilities: [
+                  {
+                    label: "US EN1",
+                    devAvg: 1,
+                    uatAvg: 10,
+                    devCount: 1,
+                    uatCount: 1,
+                    sampleCount: 1,
+                    issueIds: ["TFC-1"]
+                  }
+                ]
+              }
+            ]
+          },
+          done: {
+            searchHref: "https://example.atlassian.net/issues/?jql=status%20WAS%20UAT",
+            rows: []
+          }
+        }
+      }
+    }
+  });
+
+  const ongoing = sanitized.chartData.managementBusinessUnit.byScope.ongoing;
+  assert.equal(ongoing.searchHref, "https://example.atlassian.net/issues/?jql=project%20%3D%20TFC");
+  assert.equal("issueIds" in ongoing.rows[0], false);
+  assert.equal("issueItems" in ongoing.rows[0], false);
+  assert.equal("issueIds" in ongoing.rows[0].facilities[0], false);
+});
+
+test("validateDashboardSnapshot rejects management issue keys in public snapshot", () => {
+  assert.throws(
+    () =>
+      validateDashboardSnapshot("management-facility-snapshot.json", {
+        updatedAt: "2026-06-05T10:00:00.000Z",
+        chartData: {
+          managementBusinessUnit: {
+            scopeLabel: "Broadcast",
+            byScope: {
+              ongoing: {
+                searchHref: "https://example.atlassian.net/issues/?jql=project%20%3D%20TFC",
+                rows: [
+                  {
+                    label: "US",
+                    devAvg: 1,
+                    sampleCount: 1,
+                    devCount: 1,
+                    uatCount: 1,
+                    uatAvg: 10,
+                    issueItems: [{ issueId: "TFC-1", facilityLabel: "Facility US EN1" }],
+                    facilities: []
+                  }
+                ]
+              },
+              done: { rows: [] }
+            }
+          }
+        }
+      }),
+    /unexpected key/
   );
 });
 

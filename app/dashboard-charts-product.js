@@ -89,6 +89,18 @@
     return url.toString();
   }
 
+  function sanitizeUtilityHref(value) {
+    const rawHref = String(value || "").trim();
+    if (!rawHref) return "";
+    try {
+      const url = new URL(rawHref, window.location.origin);
+      if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+      return url.href;
+    } catch {
+      return "";
+    }
+  }
+
   function normalizeDisplayTeamName(name) {
     const raw = String(name || "").trim();
     const key = normalizeProductCycleTeamKey(raw);
@@ -926,16 +938,17 @@
     return `${done}/${total} done`;
   }
 
-  function FacilityUatListCard({ rows, groupingLabel, jiraBrowseBase }) {
+  function FacilityUatListCard({ rows, groupingLabel, searchHref }) {
     const displayRows = (Array.isArray(rows) ? rows : []).map((row) => ({
       ...row,
       uatMonths: toNumber(row?.uatAvg) / 30.4375
     }));
     const maxMonths = Math.max(1, ...displayRows.map((row) => toNumber(row?.uatMonths)));
-    const jiraRoot = String(jiraBrowseBase || "https://nepgroup.atlassian.net/browse/").replace(
-      /\/browse\/?$/,
-      ""
+    const totalSampleCount = displayRows.reduce(
+      (sum, row) => sum + toWhole(row?.sampleCount),
+      0
     );
+    const safeSearchHref = sanitizeUtilityHref(searchHref);
 
     return h(
       "div",
@@ -953,7 +966,20 @@
             h(
               "div",
               { className: "pr-cycle-stage-card__submeta" },
-              `${String(groupingLabel || "Business Unit")} • Target: 1 month`
+              safeSearchHref
+                ? h(
+                    "a",
+                    {
+                      className: "management-uat-card__summary-link",
+                      href: safeSearchHref,
+                      target: "_blank",
+                      rel: "noopener noreferrer",
+                      title: "Open Jira search in new tab"
+                    },
+                    `${totalSampleCount} ${totalSampleCount === 1 ? "issue" : "issues"}`
+                  )
+                : `${totalSampleCount} ${totalSampleCount === 1 ? "issue" : "issues"}`,
+              ` • ${String(groupingLabel || "Business Unit")} • Target: 1 month`
             )
           )
         ),
@@ -963,21 +989,12 @@
           ...displayRows.map((row) => {
             const uatMonths = toNumber(row?.uatMonths);
             const sampleCount = toWhole(row?.sampleCount);
-            const hasLink = sampleCount > 0;
-            const needsAction = hasLink;
             const alertLevel = uatMonths >= 2 ? "critical" : uatMonths > 1 ? "warning" : "";
             const safeMonths = Math.max(0, uatMonths);
             const monthParts = {
               value: safeMonths === 0 ? "0" : safeMonths.toFixed(1),
               unit: Math.abs(safeMonths - 1) < 0.05 ? "month" : "months"
             };
-            const issueKeys = Array.from(
-              new Set(
-                (Array.isArray(row?.issueItems) ? row.issueItems : [])
-                  .map((item) => String(item?.issueId || item || "").trim())
-                  .filter(Boolean)
-              )
-            );
             const width = sampleCount > 0 ? Math.max(0, Math.round((uatMonths / maxMonths) * 100)) : 0;
             return h(
               "div",
@@ -1006,64 +1023,21 @@
               h(
                 "div",
                 { className: "pr-cycle-stage-row__value management-uat-row__value" },
-                needsAction
-                  ? h(
-                      "a",
-                      {
-                        className: `management-uat-row__action management-uat-row__action--inline${
-                          alertLevel ? ` management-uat-row__action--${alertLevel}` : ""
-                        }`,
-                        href:
-                          issueKeys.length === 0
-                            ? ""
-                            : buildJiraSearchUrl(
-                                jiraRoot,
-                                `issueKey in (${issueKeys.join(",")}) ORDER BY updated DESC`
-                              ),
-                        target: "_blank",
-                        rel: "noopener noreferrer",
-                        "aria-label": `Open ${String(row?.label || "")} Jira issues in new tab`,
-                        title: "Open Jira search in new tab"
-                      },
-                      h(
-                        "span",
-                        { className: "management-uat-row__action-value" },
-                        h("span", { className: "management-uat-row__value-text" }, monthParts.value),
-                        h("span", { className: "management-uat-row__value-unit" }, monthParts.unit)
-                      ),
-                      h(
-                        "svg",
-                        {
-                          viewBox: "0 0 16 16",
-                          width: 13,
-                          height: 13,
-                          "aria-hidden": "true",
-                          fill: "none",
-                          stroke: "currentColor",
-                          strokeWidth: 1.6,
-                          strokeLinecap: "round",
-                          strokeLinejoin: "round"
-                        },
-                        h("path", { d: "M9.5 2.5h4v4" }),
-                        h("path", { d: "M13.5 2.5L7.75 8.25" }),
-                        h("path", { d: "M6 4.5H3.5v8h8V10" })
-                      )
-                    )
-                  : h(
-                      "span",
-                      {
-                        className: `management-uat-row__plain-value${
-                          alertLevel ? ` management-uat-row__plain-value--${alertLevel}` : ""
-                        }`
-                      },
-                      h(
-                        "span",
-                        { className: "management-uat-row__action-value" },
-                        h("span", { className: "management-uat-row__value-text" }, monthParts.value),
-                        h("span", { className: "management-uat-row__value-unit" }, monthParts.unit)
-                      ),
-                      h("span", { className: "management-uat-row__icon-spacer", "aria-hidden": "true" })
-                    )
+                h(
+                  "span",
+                  {
+                    className: `management-uat-row__plain-value${
+                      alertLevel ? ` management-uat-row__plain-value--${alertLevel}` : ""
+                    }`
+                  },
+                  h(
+                    "span",
+                    { className: "management-uat-row__action-value" },
+                    h("span", { className: "management-uat-row__value-text" }, monthParts.value),
+                    h("span", { className: "management-uat-row__value-unit" }, monthParts.unit)
+                  ),
+                  h("span", { className: "management-uat-row__icon-spacer", "aria-hidden": "true" })
+                )
               )
             );
           })
@@ -1128,14 +1102,14 @@
     containerId,
     rows,
     groupingLabel = "facility",
-    jiraBrowseBase = "https://nepgroup.atlassian.net/browse/"
+    searchHref = ""
   }) {
     const chartRows = Array.isArray(rows) ? rows.slice() : [];
     renderSvgChart(containerId, chartRows.length > 0, () =>
       h(FacilityUatListCard, {
         rows: chartRows,
         groupingLabel,
-        jiraBrowseBase
+        searchHref
       })
     );
   }

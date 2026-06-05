@@ -3002,6 +3002,19 @@ a.shipped-team-list__idea-key:focus-visible {
   gap: 12px;
 }
 
+.management-uat-card__summary-link {
+  color: rgba(35, 92, 132, 0.96);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgba(79, 123, 155, 0.42);
+  text-underline-offset: 3px;
+}
+
+.management-uat-card__summary-link:hover,
+.management-uat-card__summary-link:focus-visible {
+  text-decoration-color: currentColor;
+}
+
 .product-cycle-compare-card .pr-cycle-stage-row {
   grid-template-columns: 86px minmax(0, 1fr) 108px;
 }
