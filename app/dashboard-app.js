@@ -358,7 +358,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   function renderSectionFilterRadios(name = "report-section", selectedValue = state.sectionFilter) {
     const renderTitleMarkup = (value, label) => `
       <span class="report-intro__title">${escapeHtml(label)}</span>${
-        value === "dev-ai" ? '<span class="report-intro__badge">Beta</span>' : ""
+        value === "dev-ai" ? '<span class="report-intro__badge report-intro__badge--stacked">Beta</span>' : ""
       }
     `;
     return SECTION_FILTER_ITEMS.map(
@@ -445,9 +445,28 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   function windowOptions(values) {
     return values.map((value) => ({
       value,
-      label: value,
+      label: getPeriodButtonLabel(value),
       srLabel: getPrActivityWindowLabel(value)
     }));
+  }
+
+  function getPeriodButtonLabel(windowKey) {
+    switch (windowKey) {
+      case FOURTEEN_DAY_WINDOW_KEY:
+        return "14 days";
+      case THIRTY_DAY_WINDOW_KEY:
+        return "30 days";
+      case "90d":
+        return "90 days";
+      case "6m":
+        return "6 months";
+      case "1y":
+        return "1 year";
+      case "2y":
+        return "2 years";
+      default:
+        return String(windowKey || "");
+    }
   }
 
   function renderPrCycleTeamSwitch() {

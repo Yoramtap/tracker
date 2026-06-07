@@ -410,13 +410,32 @@ body.embedded-frame-mode main {
   text-transform: uppercase;
 }
 
+.report-intro__card--dev-ai .report-intro__title {
+  flex-basis: 100%;
+}
+
+.report-intro__badge--stacked {
+  justify-content: center;
+  width: fit-content;
+  min-height: 0;
+  margin-top: 1px;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 0;
+  background: transparent;
+  color: rgba(31, 51, 71, 0.5);
+  font-size: 0.46rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
 .report-intro__card.is-selected .report-intro__label {
   color: #ffffff;
 }
 
 .report-intro__card.is-selected .report-intro__badge {
-  background: rgba(255, 255, 255, 0.78);
-  color: var(--text);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .report-intro__card.is-selected {

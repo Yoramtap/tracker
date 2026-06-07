@@ -36,7 +36,7 @@
   const DASHBOARD_APP_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-app.js",
-    "local123"
+    "local124"
   );
   const SHIPPED_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
@@ -223,7 +223,7 @@
   function renderSectionFilterMarkup(selectedValue) {
     const renderTitleMarkup = (value, label) => `
       <span class="report-intro__title">${escapeHtml(label)}</span>${
-        value === "dev-ai" ? '<span class="report-intro__badge">Beta</span>' : ""
+        value === "dev-ai" ? '<span class="report-intro__badge report-intro__badge--stacked">Beta</span>' : ""
       }
     `;
     return SECTION_FILTER_ITEMS.map(
