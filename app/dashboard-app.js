@@ -525,7 +525,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
         digest: "Beta: share of opened PRs labeled as AI-assisted."
       },
       "dev-breakdown": {
-        title: "Dev Throughput",
+        title: "Dev throughput",
         digest: "How quickly teams move development work through tracked stages."
       }
     };
@@ -1597,9 +1597,15 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
         if (right.opened !== left.opened) return right.opened - left.opened;
         return left.name.localeCompare(right.name);
       })[0];
-    const bucketLabel = `${safePoints.length} ${String(granularity || "bucket").toLowerCase()}${
-      safePoints.length === 1 ? "" : "s"
-    }`;
+    const bucketUnit =
+      String(granularity || "bucket")
+        .trim()
+        .toLowerCase() === "monthly"
+        ? "month"
+        : String(granularity || "bucket")
+            .trim()
+            .toLowerCase();
+    const bucketLabel = `${safePoints.length} ${bucketUnit}${safePoints.length === 1 ? "" : "s"}`;
 
     return {
       accentColor:

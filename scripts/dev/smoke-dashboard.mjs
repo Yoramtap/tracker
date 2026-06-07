@@ -319,7 +319,7 @@ function assertDefaultRoute(snapshot) {
       "Shipped",
       "Delivery",
       "UAT",
-      "Dev Throughput",
+      "Dev throughput",
       "PR Volume",
       "AI PRs",
       "Bugs"

@@ -1679,7 +1679,7 @@ main {
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 9px 14px;
+  gap: 7px 14px;
   min-height: 36px;
   min-width: 0;
   max-width: 100%;
@@ -1935,6 +1935,9 @@ main {
 
 .development-work-page-toolbar .development-page-toolbar__controls {
   justify-content: stretch;
+  margin-top: 1px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(31, 51, 71, 0.06);
 }
 
 .development-work-page-toolbar .development-page-toolbar__group.radio-group-card--segmented {

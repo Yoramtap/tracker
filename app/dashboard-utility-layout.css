@@ -179,6 +179,13 @@
   font-variant-numeric: tabular-nums;
 }
 
+@media (min-width: 720px) {
+  .management-acceptance-layout__stat dd,
+  .dashboard-utility-layout__stat dd {
+    white-space: nowrap;
+  }
+}
+
 .dashboard-utility-layout__stat--primary dt {
   color: rgba(31, 51, 71, 0.68);
 }

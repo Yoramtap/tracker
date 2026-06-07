@@ -43,7 +43,7 @@
       },
       {
         value: "dev-breakdown",
-        label: "Dev Throughput"
+        label: "Dev throughput"
       },
       {
         value: "dev-trends",
