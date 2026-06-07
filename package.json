@@ -12,6 +12,7 @@
     "auth:setup": "node scripts/dev/setup-backlog-auth.mjs",
     "data:refresh": "node scripts/refresh-report-data.mjs",
     "data:refresh:clean": "node scripts/refresh-report-data.mjs --clean",
+    "data:preflight-live": "node scripts/check-dashboard-data-quality.mjs",
     "data:validate": "node scripts/validate-dashboard-snapshots.mjs",
     "security:scan-public": "node scripts/scan-public-sensitive-markers.mjs",
     "build": "node scripts/export-public.mjs --target dist",

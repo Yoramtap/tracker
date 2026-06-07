@@ -253,6 +253,10 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     return normalizeOption(value, SHARED_ROLLING_PERIOD_WINDOWS, fallback);
   }
 
+  function isSharedRollingPeriod(value) {
+    return SHARED_ROLLING_PERIOD_WINDOWS.includes(String(value || "").trim());
+  }
+
   function normalizeDashboardMode(mode) {
     return mode === "composition" ? "trend" : mode;
   }
@@ -486,6 +490,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     }
     const isBreakdown = activeSection === "dev-breakdown";
     const windowName = isBreakdown ? "pr-cycle-window" : "pr-activity-legacy-window";
+    const rangeOptions = isBreakdown ? SHARED_ROLLING_PERIOD_WINDOWS : PR_ACTIVITY_LEGACY_WINDOWS;
     const pageCopyBySection = {
       "dev-trends": {
         title: "PR Volume",
@@ -502,7 +507,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     };
     const selectedWindow = isBreakdown
       ? sharedRollingPeriodKey(state.developmentWorkflowWindow, THIRTY_DAY_WINDOW_KEY)
-      : sharedRollingPeriodKey(state.prActivityLegacyWindow);
+      : prActivityLegacyWindowKey(state.prActivityLegacyWindow);
     const controlsMarkup = [
       isBreakdown
         ? renderLabeledControl("Team", renderPrCycleTeamSwitch(), "page-toolbar__team-control")
@@ -511,7 +516,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
         "Period",
         renderSegmentedRadioGroup(
           windowName,
-          windowOptions(SHARED_ROLLING_PERIOD_WINDOWS),
+          windowOptions(rangeOptions),
           selectedWindow,
           "development-page-toolbar__group"
         ),
@@ -1274,48 +1279,73 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     }
   }
 
-  function getActiveSharedRollingPeriodParamName() {
-    const activeSection = sectionFilterKey(state.sectionFilter);
-    if (activeSection === "bug") return "bug-trends-window";
-    if (activeSection === "dev-breakdown") return "pr-cycle-window";
-    if (activeSection === "dev-trends" || activeSection === "dev-ai") {
-      return "pr-activity-legacy-window";
+  function getSharedRollingPeriodFallback(fallback = "1y") {
+    const candidates = [
+      state.developmentWorkflowWindow,
+      state.bugTrendsWindow,
+      state.prCycleWindow,
+      state.prActivityLegacyWindow
+    ];
+    for (const candidate of candidates) {
+      if (isSharedRollingPeriod(candidate)) return sharedRollingPeriodKey(candidate, fallback);
     }
-    return "";
+    return sharedRollingPeriodKey(fallback, BUG_TRENDS_WINDOW_DEFAULT);
   }
 
-  function getSharedRollingPeriodFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const preferredName = getActiveSharedRollingPeriodParamName();
-    const orderedNames = [
-      preferredName,
-      ...SHARED_ROLLING_PERIOD_PARAM_NAMES.filter((name) => name !== preferredName)
-    ].filter(Boolean);
-    for (const name of orderedNames) {
-      if (params.has(name)) return sharedRollingPeriodKey(params.get(name));
-    }
-    return BUG_TRENDS_WINDOW_DEFAULT;
-  }
-
-  function syncSharedRollingPeriodUrl(periodKey) {
+  function syncSharedRollingPeriodUrl() {
     if (typeof window === "undefined" || !window.location || !window.history) return;
     const nextUrl = new URL(window.location.href);
-    SHARED_ROLLING_PERIOD_PARAM_NAMES.forEach((name) => {
-      nextUrl.searchParams.set(name, periodKey);
-    });
+    nextUrl.searchParams.set("bug-trends-window", state.bugTrendsWindow);
+    nextUrl.searchParams.set("pr-cycle-window", state.developmentWorkflowWindow);
+    nextUrl.searchParams.set("pr-activity-legacy-window", state.prActivityLegacyWindow);
     window.history.replaceState({}, "", nextUrl);
   }
 
-  function applySharedRollingPeriod(period) {
+  function applySharedRollingPeriod(period, { syncPrActivity = true } = {}) {
     const periodKey = sharedRollingPeriodKey(period);
     state.bugTrendsWindow = periodKey;
     state.developmentWorkflowWindow = periodKey;
     state.prCycleWindow = periodKey;
-    state.prActivityLegacyWindow = periodKey;
+    if (syncPrActivity) {
+      state.prActivityLegacyWindow = periodKey;
+    }
     return periodKey;
   }
 
-  function handleSharedRollingPeriodStateChange({ value }) {
+  function syncInitialRollingPeriods() {
+    const activeSection = sectionFilterKey(state.sectionFilter);
+    if (activeSection === "bug") {
+      applySharedRollingPeriod(state.bugTrendsWindow);
+      return;
+    }
+    if (activeSection === "dev-breakdown") {
+      applySharedRollingPeriod(state.developmentWorkflowWindow);
+      return;
+    }
+    if (activeSection === "dev-trends" || activeSection === "dev-ai") {
+      const prActivityWindow = prActivityLegacyWindowKey(state.prActivityLegacyWindow);
+      state.prActivityLegacyWindow = prActivityWindow;
+      if (isSharedRollingPeriod(prActivityWindow)) {
+        applySharedRollingPeriod(prActivityWindow);
+        return;
+      }
+      applySharedRollingPeriod(getSharedRollingPeriodFallback("1y"), { syncPrActivity: false });
+      return;
+    }
+    applySharedRollingPeriod(getSharedRollingPeriodFallback(BUG_TRENDS_WINDOW_DEFAULT));
+  }
+
+  function handleSharedRollingPeriodStateChange({ name, value }) {
+    if (name === "pr-activity-legacy-window") {
+      const prActivityWindow = prActivityLegacyWindowKey(value);
+      state.prActivityLegacyWindow = prActivityWindow;
+      if (!isSharedRollingPeriod(prActivityWindow)) {
+        applySharedRollingPeriod(getSharedRollingPeriodFallback("1y"), { syncPrActivity: false });
+        return true;
+      }
+      applySharedRollingPeriod(prActivityWindow);
+      return true;
+    }
     applySharedRollingPeriod(value);
     return true;
   }
@@ -2818,7 +2848,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       name: "pr-activity-legacy-window",
       stateKey: "prActivityLegacyWindow",
       defaultValue: PR_ACTIVITY_LEGACY_WINDOW_DEFAULT,
-      normalizeValue: sharedRollingPeriodKey,
+      normalizeValue: prActivityLegacyWindowKey,
       onStateChange: handleSharedRollingPeriodStateChange,
       onChangeRender: renderLegacyPrActivityCharts
     },
@@ -2977,7 +3007,8 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     const rawMode = getModeFromUrl();
     state.mode = normalizeDashboardMode(rawMode);
     readDashboardControlStateFromUrl(CONTROL_BINDINGS, state);
-    syncSharedRollingPeriodUrl(applySharedRollingPeriod(getSharedRollingPeriodFromUrl()));
+    syncInitialRollingPeriods();
+    syncSharedRollingPeriodUrl();
     removeObsoleteDashboardUrlParams(["pr-activity-legacy-metric"]);
     if (!hasUrlParam("bug-trends-view")) {
       state.bugTrendsView = defaultBugTrendsViewForMode(rawMode);

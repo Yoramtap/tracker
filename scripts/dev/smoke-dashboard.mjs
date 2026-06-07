@@ -543,6 +543,9 @@ function verifyWorkflowBreakdownInflowLabels() {
         utilityValueMetaTexts: Array.from(
           panel?.querySelectorAll(".dashboard-utility-layout__value-meta") || []
         ).map((node) => node.textContent?.trim() || ""),
+        utilityLabelMetaTexts: Array.from(
+          panel?.querySelectorAll(".dashboard-utility-layout__label-meta") || []
+        ).map((node) => node.textContent?.trim() || ""),
         utilityRowCount: Array.from(
           panel?.querySelectorAll(".dashboard-utility-layout__row") || []
         ).length,
@@ -588,9 +591,13 @@ function verifyWorkflowBreakdownInflowLabels() {
     );
     assert(
       breakdownState.utilityValueMetaTexts.some(
-        (value) => /^\d+ PRs \/ sprint · \d+ issues?$/.test(value) || /^\d+ issues?$/.test(value)
+        (value) => /^\d+ PRs \/ sprint$/.test(value) || /^\d+ issues?$/.test(value)
       ),
       `Development workflow breakdown should show row context next to the cycle value: ${JSON.stringify(breakdownState.utilityValueMetaTexts)}`
+    );
+    assert(
+      breakdownState.utilityLabelMetaTexts.some((value) => /^\d+ issues?$/.test(value)),
+      `Development workflow breakdown should show issue count next to the team label: ${JSON.stringify(breakdownState.utilityLabelMetaTexts)}`
     );
   }
   if (breakdownState.metricValueCount >= 2) {
@@ -1048,15 +1055,15 @@ async function main() {
     section: "dev-ai",
     expectedVisiblePanels: DEVELOPMENT_ROUTE_VISIBLE_PANELS,
     name: "pr-activity-legacy-window",
-    value: "1y",
-    description: "Development AI use 1y window"
+    value: "2y",
+    description: "Development AI use 2y window"
   });
   await assertSectionControlSwitch({
     section: "dev-trends",
     expectedVisiblePanels: DEVELOPMENT_ROUTE_VISIBLE_PANELS,
     name: "pr-activity-legacy-window",
-    value: "1y",
-    description: "Development PR activity 1y window"
+    value: "2y",
+    description: "Development PR activity 2y window"
   });
   await assertSectionControlSwitch({
     section: "product-delivery",
