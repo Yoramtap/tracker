@@ -38,12 +38,16 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   const PR_ACTIVITY_LEGACY_WINDOW_DEFAULT = "90d";
   const PR_ACTIVITY_LEGACY_SPRINT_WINDOWS = [FOURTEEN_DAY_WINDOW_KEY, THIRTY_DAY_WINDOW_KEY, "90d"];
   const TEAM_BUG_JQL = {
-    api: "project = TFC AND type = Bug AND labels = API",
-    legacy: "project = TFC AND type = Bug AND labels = Frontend",
-    react: 'project = TFC AND type = Bug AND labels = "NewFrontend"',
-    bc: "project = TFC AND type = Bug AND labels = Broadcast",
-    workers: "project = TFO AND type = Bug AND labels = Workers",
-    titanium: 'project = MESO AND type = Bug AND labels = "READY"'
+    api: 'project = TFC AND type = Bug AND labels = API AND status NOT IN (Done, "Won\'t Fix", Duplicate)',
+    legacy:
+      'project = TFC AND type = Bug AND labels = Frontend AND status NOT IN (Done, "Won\'t Fix", Duplicate)',
+    react:
+      'project = TFC AND type = Bug AND labels = "NewFrontend" AND status NOT IN (Done, "Won\'t Fix", Duplicate)',
+    bc: 'project = TFC AND type = Bug AND labels = Broadcast AND status NOT IN (Done, "Won\'t Fix", Duplicate)',
+    workers:
+      'project = TFO AND type = Bug AND labels = Workers AND status NOT IN (Done, "Won\'t Fix", Duplicate)',
+    titanium:
+      'project = MESO AND type = Bug AND labels = "READY" AND status NOT IN (Done, "Won\'t Fix", Duplicate)'
   };
   const PRODUCT_DELIVERY_WORKFLOW_VIEW_DEFAULT = "delivery";
   const PRODUCT_DELIVERY_WORKFLOW_VIEW_MODES = [PRODUCT_DELIVERY_WORKFLOW_VIEW_DEFAULT, "workflow"];
