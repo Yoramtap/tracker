@@ -163,7 +163,7 @@ const UAT_BUCKETS = [
   { id: "d61_plus", label: "61+ days", minDays: 61, maxDays: null }
 ];
 const DEFAULT_SPRINT_PROJECT = "TFC";
-const DEFAULT_SPRINT_LOOKBACK_COUNT = 14;
+const DEFAULT_SPRINT_LOOKBACK_COUNT = 52;
 const DEFAULT_SPRINT_POINT = "end";
 const DEFAULT_SPRINT_MONDAY_ANCHOR = true;
 const FOURTEEN_DAY_WINDOW_KEY = "14d";
@@ -2099,6 +2099,13 @@ function buildPrCycleWindowConfigs(todayIso) {
       windowLabel: "Last year",
       windowStartDate: shiftIsoMonths(safeToday, -12),
       scopedToBoardWork: true
+    },
+    {
+      key: "2y",
+      windowDays: 730,
+      windowLabel: "Last 2 years",
+      windowStartDate: shiftIsoMonths(safeToday, -24),
+      scopedToBoardWork: true
     }
   ].map((windowConfig) => ({
     ...windowConfig,
@@ -2507,6 +2514,7 @@ function getPrActivityWindowPoints(points, windowKey) {
   else if (windowKey === "90d") startDate = shiftPrActivityIsoDate(latestDate, -89, 0);
   else if (windowKey === "6m") startDate = shiftPrActivityIsoDate(latestDate, 0, -6);
   else if (windowKey === "1y") startDate = shiftPrActivityIsoDate(latestDate, 0, -12);
+  else if (windowKey === "2y") startDate = shiftPrActivityIsoDate(latestDate, 0, -24);
   return safePoints.filter((point) => String(point?.date || "").trim() >= startDate);
 }
 
@@ -3562,7 +3570,7 @@ async function buildPrCycleRefreshSnapshot(config, todayIso) {
     prCycleRows
   );
   console.log(
-    `Computed PR cycle stage breakdown (${prCycleRows.length} issue histories across ${config.prCycleProjectKeys.join(", ")} for ${hydratedPrCycleRefreshPlan.prCycleWindowsToRefresh.length} window${hydratedPrCycleRefreshPlan.prCycleWindowsToRefresh.length === 1 ? "" : "s"}; changelog cache hits ${prCycleBreakdown.changelogCacheHitCount}, writes ${prCycleBreakdown.changelogCacheWriteCount}${hydratedPrCycleRefreshPlan.reuseHistoricalPrCycleWindows ? `; refreshed ${hydratedPrCycleRefreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.key).join(", ")}, reused cached 6m and 1y windows` : hydratedPrCycleRefreshPlan.historicalPrCycleSnapshotFreshEnough ? "" : `; refreshed all windows because cached 6m and 1y data was older than ${PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS} days`}).`
+    `Computed PR cycle stage breakdown (${prCycleRows.length} issue histories across ${config.prCycleProjectKeys.join(", ")} for ${hydratedPrCycleRefreshPlan.prCycleWindowsToRefresh.length} window${hydratedPrCycleRefreshPlan.prCycleWindowsToRefresh.length === 1 ? "" : "s"}; changelog cache hits ${prCycleBreakdown.changelogCacheHitCount}, writes ${prCycleBreakdown.changelogCacheWriteCount}${hydratedPrCycleRefreshPlan.reuseHistoricalPrCycleWindows ? `; refreshed ${hydratedPrCycleRefreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.key).join(", ")}, reused cached 6m, 1y, and 2y windows` : hydratedPrCycleRefreshPlan.historicalPrCycleSnapshotFreshEnough ? "" : `; refreshed all windows because cached 6m, 1y, and 2y data was older than ${PR_CYCLE_HISTORICAL_REFRESH_MAX_AGE_DAYS} days`}).`
   );
   return attachPrCycleAvgInflow(
     prCycleSnapshotState.prCycleSnapshot,
@@ -3581,6 +3589,7 @@ export function resolvePrCycleRefreshPlan(prCycleWindows, existingPrCycleSnapsho
     existingPrCycleSnapshot.windows["90d"] &&
     existingPrCycleSnapshot.windows["6m"] &&
     existingPrCycleSnapshot.windows["1y"] &&
+    existingPrCycleSnapshot.windows["2y"] &&
     historicalPrCycleSnapshotFreshEnough
   );
   const reuseHistoricalPrCycleWindows =

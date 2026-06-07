@@ -990,8 +990,8 @@ async function main() {
     section: "bug",
     expectedVisiblePanels: BUG_ROUTE_VISIBLE_PANELS,
     name: "bug-trends-window",
-    value: "90d",
-    description: "Bug trends 90d window"
+    value: "2y",
+    description: "Bug trends 2y window"
   });
   await assertSectionControlSwitch({
     section: "uat",
@@ -1004,8 +1004,8 @@ async function main() {
     section: "dev-breakdown",
     expectedVisiblePanels: DEVELOPMENT_BREAKDOWN_ROUTE_VISIBLE_PANELS,
     name: "pr-cycle-window",
-    value: "1y",
-    description: "Workflow breakdown 1y window"
+    value: "2y",
+    description: "Workflow breakdown 2y window"
   });
   await assertSectionControlSwitch({
     section: "dev-ai",

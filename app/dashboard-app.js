@@ -55,9 +55,10 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     THIRTY_DAY_WINDOW_KEY,
     "90d",
     "6m",
-    "1y"
+    "1y",
+    "2y"
   ];
-  const PR_ACTIVITY_LEGACY_WINDOWS = [...DEVELOPMENT_WORKFLOW_WINDOWS, "2y"];
+  const PR_ACTIVITY_LEGACY_WINDOWS = DEVELOPMENT_WORKFLOW_WINDOWS;
   const SHARED_ROLLING_PERIOD_WINDOWS = DEVELOPMENT_WORKFLOW_WINDOWS;
   const SHARED_ROLLING_PERIOD_PARAM_NAMES = [
     "bug-trends-window",
@@ -989,6 +990,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       startDate = shiftChartIsoDate(latestDate, -29);
     else if (selectedWindowKey === "90d") startDate = shiftChartIsoDate(latestDate, -89);
     else if (selectedWindowKey === "6m") startDate = shiftChartIsoMonths(latestDate, -6);
+    else if (selectedWindowKey === "2y") startDate = shiftChartIsoMonths(latestDate, -24);
     else startDate = shiftChartIsoMonths(latestDate, -12);
     const filteredPoints = safePoints.filter(
       (point) => getPrActivityDisplayDate(point?.date || "") >= startDate
@@ -1018,6 +1020,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     else if (windowKey === THIRTY_DAY_WINDOW_KEY) startDate = shiftChartIsoDate(latestDate, -29);
     else if (windowKey === "90d") startDate = shiftChartIsoDate(latestDate, -89);
     else if (windowKey === "6m") startDate = shiftChartIsoMonths(latestDate, -6);
+    else if (windowKey === "2y") startDate = shiftChartIsoMonths(latestDate, -24);
     else startDate = shiftChartIsoMonths(latestDate, -12);
 
     const filteredPoints = safePoints.filter(

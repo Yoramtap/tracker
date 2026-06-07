@@ -100,6 +100,15 @@ function makePrCycleWindows() {
       windowStartIso: "2025-04-05T00:00:00.000Z",
       windowEndIso: "2026-04-05T00:00:00.000Z",
       scopedToBoardWork: true
+    },
+    {
+      key: "2y",
+      windowDays: 730,
+      windowLabel: "Last 2 years",
+      windowStartDate: "2024-04-05",
+      windowStartIso: "2024-04-05T00:00:00.000Z",
+      windowEndIso: "2026-04-05T00:00:00.000Z",
+      scopedToBoardWork: true
     }
   ];
 }
@@ -1499,7 +1508,8 @@ test("resolvePrCycleRefreshPlan reuses older cached windows when history is fres
         "30d": { id: "30d" },
         "90d": { id: "90d" },
         "6m": { id: "6m" },
-        "1y": { id: "1y" }
+        "1y": { id: "1y" },
+        "2y": { id: "2y" }
       }
     },
     {
@@ -1539,9 +1549,9 @@ test("resolvePrCycleRefreshPlan refreshes all windows when rebuilding or history
   assert.equal(refreshPlan.reuseHistoricalPrCycleWindows, false);
   assert.deepEqual(
     refreshPlan.prCycleWindowsToRefresh.map((windowConfig) => windowConfig.key),
-    ["14d", "30d", "90d", "6m", "1y"]
+    ["14d", "30d", "90d", "6m", "1y", "2y"]
   );
-  assert.equal(refreshPlan.prCycleRangeStartDate, "2025-04-05");
+  assert.equal(refreshPlan.prCycleRangeStartDate, "2024-04-05");
 });
 
 test("selectPrCycleScrumWindowSprints keeps only active or closed sprints that overlap the window", () => {
@@ -1689,7 +1699,8 @@ test("buildPrCycleSnapshotState preserves cached long windows when reuse is enab
       defaultWindow: "6m",
       windows: {
         "6m": { windowLabel: "Last 6 months", teams: [{ key: "api", marker: "cached-6m" }] },
-        "1y": { windowLabel: "Last year", teams: [{ key: "api", marker: "cached-1y" }] }
+        "1y": { windowLabel: "Last year", teams: [{ key: "api", marker: "cached-1y" }] },
+        "2y": { windowLabel: "Last 2 years", teams: [{ key: "api", marker: "cached-2y" }] }
       }
     },
     {
@@ -1703,12 +1714,14 @@ test("buildPrCycleSnapshotState preserves cached long windows when reuse is enab
   assert.deepEqual(Object.keys(snapshotState.prCycleSnapshot.windows), [
     "6m",
     "1y",
+    "2y",
     "14d",
     "30d",
     "90d"
   ]);
   assert.equal(snapshotState.prCycleSnapshot.windows["6m"].teams[0].marker, "cached-6m");
   assert.equal(snapshotState.prCycleSnapshot.windows["1y"].teams[0].marker, "cached-1y");
+  assert.equal(snapshotState.prCycleSnapshot.windows["2y"].teams[0].marker, "cached-2y");
   assert.equal(snapshotState.prCycleSnapshot.windows["14d"].windowLabel, "Last 14 days");
   assert.equal(snapshotState.prCycleSnapshot.windows["30d"].windowLabel, "Last 30 days");
   assert.equal(snapshotState.prCycleSnapshot.windows["90d"].windowLabel, "Last 90 days");
