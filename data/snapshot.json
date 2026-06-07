@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-06-07T07:29:08.069Z",
+  "updatedAt": "2026-06-07T13:12:51.236Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-06-07T07:29:08.068Z",
+    "syncedAt": "2026-06-07T13:12:51.236Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. PR activity is sourced from GitHub pull requests across discovered organization repos and attributed by Jira-derived contributor mapping with repo ownership and Unmapped fallbacks."
   },
   "prActivity": {
@@ -7067,25 +7067,727 @@
   },
   "combinedPoints": [
     {
-      "date": "2025-11-24",
+      "date": "2024-07-22",
       "api": {
-        "date": "2025-11-24",
         "highest": 0,
-        "high": 2,
-        "medium": 4,
-        "low": 5,
+        "high": 0,
+        "medium": 10,
+        "low": 0,
         "lowest": 0
       },
       "legacy": {
-        "date": "2025-11-24",
+        "highest": 0,
+        "high": 2,
+        "medium": 32,
+        "low": 65,
+        "lowest": 7
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 0,
+        "high": 30,
+        "medium": 70,
+        "low": 13,
+        "lowest": 4,
+        "longstanding_30d_plus": 98,
+        "longstanding_60d_plus": 84
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2024-08-05",
+      "api": {
+        "highest": 0,
+        "high": 0,
+        "medium": 10,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 37,
+        "low": 67,
+        "lowest": 7
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 4,
+        "high": 31,
+        "medium": 71,
+        "low": 13,
+        "lowest": 4,
+        "longstanding_30d_plus": 94,
+        "longstanding_60d_plus": 83
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2024-08-19",
+      "api": {
+        "highest": 0,
+        "high": 0,
+        "medium": 9,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 3,
+        "medium": 36,
+        "low": 69,
+        "lowest": 7
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 1,
+        "high": 31,
+        "medium": 72,
+        "low": 11,
+        "lowest": 4,
+        "longstanding_30d_plus": 100,
+        "longstanding_60d_plus": 85
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2024-09-02",
+      "api": {
+        "highest": 0,
+        "high": 0,
+        "medium": 10,
+        "low": 1,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 3,
+        "medium": 37,
+        "low": 63,
+        "lowest": 6
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 1,
+        "high": 26,
+        "medium": 72,
+        "low": 13,
+        "lowest": 4,
+        "longstanding_30d_plus": 104,
+        "longstanding_60d_plus": 85
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2024-09-16",
+      "api": {
+        "highest": 0,
+        "high": 0,
+        "medium": 10,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 3,
+        "medium": 36,
+        "low": 56,
+        "lowest": 6
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 7,
+        "high": 27,
+        "medium": 73,
+        "low": 13,
+        "lowest": 4,
+        "longstanding_30d_plus": 106,
+        "longstanding_60d_plus": 93
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2024-09-30",
+      "api": {
+        "highest": 0,
+        "high": 0,
+        "medium": 11,
+        "low": 1,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 1,
+        "high": 1,
+        "medium": 32,
+        "low": 58,
+        "lowest": 6
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 5,
+        "high": 25,
+        "medium": 79,
+        "low": 13,
+        "lowest": 4,
+        "longstanding_30d_plus": 110,
+        "longstanding_60d_plus": 100
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2024-10-14",
+      "api": {
+        "highest": 0,
+        "high": 1,
+        "medium": 10,
+        "low": 1,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 29,
+        "low": 58,
+        "lowest": 6
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 2,
+        "high": 23,
+        "medium": 74,
+        "low": 13,
+        "lowest": 4,
+        "longstanding_30d_plus": 99,
+        "longstanding_60d_plus": 91
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2024-10-28",
+      "api": {
+        "highest": 0,
+        "high": 0,
+        "medium": 10,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 2,
+        "medium": 24,
+        "low": 58,
+        "lowest": 6
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 2,
+        "high": 23,
+        "medium": 74,
+        "low": 13,
+        "lowest": 3,
+        "longstanding_30d_plus": 101,
+        "longstanding_60d_plus": 93
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2024-11-11",
+      "api": {
+        "highest": 0,
+        "high": 1,
+        "medium": 10,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 3,
+        "medium": 22,
+        "low": 56,
+        "lowest": 5
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 3,
+        "high": 22,
+        "medium": 79,
+        "low": 14,
+        "lowest": 3,
+        "longstanding_30d_plus": 105,
+        "longstanding_60d_plus": 95
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2024-11-25",
+      "api": {
+        "highest": 0,
+        "high": 1,
+        "medium": 7,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 2,
+        "medium": 24,
+        "low": 55,
+        "lowest": 4
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 2,
+        "high": 26,
+        "medium": 84,
+        "low": 14,
+        "lowest": 3,
+        "longstanding_30d_plus": 106,
+        "longstanding_60d_plus": 99
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2024-12-09",
+      "api": {
+        "highest": 0,
+        "high": 1,
+        "medium": 10,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 2,
+        "medium": 22,
+        "low": 54,
+        "lowest": 4
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 4,
+        "high": 29,
+        "medium": 88,
+        "low": 14,
+        "lowest": 3,
+        "longstanding_30d_plus": 115,
+        "longstanding_60d_plus": 104
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2024-12-23",
+      "api": {
+        "highest": 0,
+        "high": 1,
+        "medium": 10,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 2,
+        "medium": 23,
+        "low": 54,
+        "lowest": 4
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 3,
+        "high": 34,
+        "medium": 88,
+        "low": 14,
+        "lowest": 3,
+        "longstanding_30d_plus": 121,
+        "longstanding_60d_plus": 104
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-01-06",
+      "api": {
+        "highest": 0,
+        "high": 1,
+        "medium": 10,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 2,
+        "medium": 23,
+        "low": 54,
+        "lowest": 4
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 4,
+        "high": 37,
+        "medium": 92,
+        "low": 14,
+        "lowest": 3,
+        "longstanding_30d_plus": 134,
+        "longstanding_60d_plus": 109
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-01-20",
+      "api": {
+        "highest": 0,
+        "high": 1,
+        "medium": 7,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 2,
+        "medium": 23,
+        "low": 54,
+        "lowest": 4
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 4,
+        "high": 44,
+        "medium": 98,
+        "low": 14,
+        "lowest": 3,
+        "longstanding_30d_plus": 139,
+        "longstanding_60d_plus": 120
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-02-03",
+      "api": {
         "highest": 0,
         "high": 1,
         "medium": 9,
-        "low": 46,
-        "lowest": 2
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 2,
+        "medium": 24,
+        "low": 54,
+        "lowest": 4
       },
       "react": {
-        "date": "2025-11-24",
+        "highest": 0,
+        "high": 0,
+        "medium": 3,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 3,
+        "high": 54,
+        "medium": 106,
+        "low": 15,
+        "lowest": 3,
+        "longstanding_30d_plus": 144,
+        "longstanding_60d_plus": 129
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-02-17",
+      "api": {
+        "highest": 0,
+        "high": 3,
+        "medium": 10,
+        "low": 1,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 2,
+        "medium": 24,
+        "low": 54,
+        "lowest": 4
+      },
+      "react": {
         "highest": 0,
         "high": 0,
         "medium": 5,
@@ -7093,7 +7795,1040 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2025-11-24",
+        "highest": 4,
+        "high": 54,
+        "medium": 110,
+        "low": 15,
+        "lowest": 3,
+        "longstanding_30d_plus": 155,
+        "longstanding_60d_plus": 132
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-02-24",
+      "api": {
+        "highest": 0,
+        "high": 2,
+        "medium": 9,
+        "low": 2,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 1,
+        "high": 1,
+        "medium": 24,
+        "low": 54,
+        "lowest": 4
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 3,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 5,
+        "high": 61,
+        "medium": 113,
+        "low": 16,
+        "lowest": 3,
+        "longstanding_30d_plus": 158,
+        "longstanding_60d_plus": 136
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-03-03",
+      "api": {
+        "highest": 0,
+        "high": 2,
+        "medium": 9,
+        "low": 2,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 25,
+        "low": 54,
+        "lowest": 4
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 4,
+        "high": 58,
+        "medium": 133,
+        "low": 16,
+        "lowest": 3,
+        "longstanding_30d_plus": 169,
+        "longstanding_60d_plus": 141
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-03-10",
+      "api": {
+        "highest": 0,
+        "high": 2,
+        "medium": 7,
+        "low": 2,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 25,
+        "low": 54,
+        "lowest": 4
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 4,
+        "high": 58,
+        "medium": 123,
+        "low": 15,
+        "lowest": 3,
+        "longstanding_30d_plus": 161,
+        "longstanding_60d_plus": 131
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-03-17",
+      "api": {
+        "highest": 0,
+        "high": 2,
+        "medium": 6,
+        "low": 2,
+        "lowest": 1
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 26,
+        "low": 55,
+        "lowest": 4
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 5,
+        "high": 55,
+        "medium": 117,
+        "low": 15,
+        "lowest": 3,
+        "longstanding_30d_plus": 162,
+        "longstanding_60d_plus": 134
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-03-31",
+      "api": {
+        "highest": 0,
+        "high": 2,
+        "medium": 10,
+        "low": 3,
+        "lowest": 1
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 2,
+        "medium": 26,
+        "low": 56,
+        "lowest": 3
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 3,
+        "high": 39,
+        "medium": 99,
+        "low": 11,
+        "lowest": 1,
+        "longstanding_30d_plus": 136,
+        "longstanding_60d_plus": 113
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-04-14",
+      "api": {
+        "highest": 0,
+        "high": 2,
+        "medium": 11,
+        "low": 3,
+        "lowest": 1
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 3,
+        "medium": 28,
+        "low": 56,
+        "lowest": 3
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 1,
+        "high": 44,
+        "medium": 99,
+        "low": 12,
+        "lowest": 1,
+        "longstanding_30d_plus": 137,
+        "longstanding_60d_plus": 118
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-04-28",
+      "api": {
+        "highest": 0,
+        "high": 2,
+        "medium": 11,
+        "low": 3,
+        "lowest": 1
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 3,
+        "medium": 33,
+        "low": 56,
+        "lowest": 3
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 1,
+        "high": 41,
+        "medium": 93,
+        "low": 12,
+        "lowest": 1,
+        "longstanding_30d_plus": 135,
+        "longstanding_60d_plus": 123
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-05-12",
+      "api": {
+        "highest": 0,
+        "high": 2,
+        "medium": 12,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 34,
+        "low": 56,
+        "lowest": 3
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 0,
+        "high": 46,
+        "medium": 92,
+        "low": 11,
+        "lowest": 1,
+        "longstanding_30d_plus": 140,
+        "longstanding_60d_plus": 123
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-05-26",
+      "api": {
+        "highest": 0,
+        "high": 3,
+        "medium": 14,
+        "low": 4,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 2,
+        "medium": 32,
+        "low": 56,
+        "lowest": 3
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 1,
+        "high": 53,
+        "medium": 95,
+        "low": 11,
+        "lowest": 1,
+        "longstanding_30d_plus": 139,
+        "longstanding_60d_plus": 129
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-06-09",
+      "api": {
+        "highest": 0,
+        "high": 3,
+        "medium": 12,
+        "low": 4,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 1,
+        "high": 2,
+        "medium": 34,
+        "low": 56,
+        "lowest": 3
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 2,
+        "high": 49,
+        "medium": 95,
+        "low": 11,
+        "lowest": 1,
+        "longstanding_30d_plus": 144,
+        "longstanding_60d_plus": 135
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-06-23",
+      "api": {
+        "highest": 0,
+        "high": 3,
+        "medium": 9,
+        "low": 2,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 2,
+        "medium": 33,
+        "low": 56,
+        "lowest": 3
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 3,
+        "high": 51,
+        "medium": 94,
+        "low": 11,
+        "lowest": 1,
+        "longstanding_30d_plus": 145,
+        "longstanding_60d_plus": 131
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-07-07",
+      "api": {
+        "highest": 0,
+        "high": 3,
+        "medium": 7,
+        "low": 2,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 2,
+        "medium": 34,
+        "low": 56,
+        "lowest": 3
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 5,
+        "high": 53,
+        "medium": 95,
+        "low": 11,
+        "lowest": 1,
+        "longstanding_30d_plus": 143,
+        "longstanding_60d_plus": 133
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-07-21",
+      "api": {
+        "highest": 0,
+        "high": 3,
+        "medium": 6,
+        "low": 2,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 34,
+        "low": 56,
+        "lowest": 3
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 5,
+        "high": 51,
+        "medium": 90,
+        "low": 10,
+        "lowest": 1,
+        "longstanding_30d_plus": 134,
+        "longstanding_60d_plus": 128
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-08-04",
+      "api": {
+        "highest": 0,
+        "high": 4,
+        "medium": 5,
+        "low": 2,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 31,
+        "low": 55,
+        "lowest": 3
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 3,
+        "high": 50,
+        "medium": 89,
+        "low": 10,
+        "lowest": 1,
+        "longstanding_30d_plus": 134,
+        "longstanding_60d_plus": 125
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-08-18",
+      "api": {
+        "highest": 0,
+        "high": 4,
+        "medium": 8,
+        "low": 2,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 24,
+        "low": 57,
+        "lowest": 3
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 3,
+        "high": 51,
+        "medium": 91,
+        "low": 10,
+        "lowest": 1,
+        "longstanding_30d_plus": 139,
+        "longstanding_60d_plus": 126
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-09-01",
+      "api": {
+        "highest": 0,
+        "high": 4,
+        "medium": 8,
+        "low": 2,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 11,
+        "low": 48,
+        "lowest": 2
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 5,
+        "high": 50,
+        "medium": 91,
+        "low": 10,
+        "lowest": 1,
+        "longstanding_30d_plus": 141,
+        "longstanding_60d_plus": 126
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-09-15",
+      "api": {
+        "highest": 0,
+        "high": 5,
+        "medium": 6,
+        "low": 2,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 2,
+        "medium": 9,
+        "low": 46,
+        "lowest": 2
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 2,
+        "high": 51,
+        "medium": 92,
+        "low": 10,
+        "lowest": 0,
+        "longstanding_30d_plus": 142,
+        "longstanding_60d_plus": 131
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-09-29",
+      "api": {
+        "highest": 1,
+        "high": 4,
+        "medium": 7,
+        "low": 2,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 9,
+        "low": 45,
+        "lowest": 2
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 2,
+        "high": 52,
+        "medium": 94,
+        "low": 10,
+        "lowest": 0,
+        "longstanding_30d_plus": 146,
+        "longstanding_60d_plus": 136
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-10-13",
+      "api": {
+        "highest": 1,
+        "high": 4,
+        "medium": 4,
+        "low": 2,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 12,
+        "low": 45,
+        "lowest": 2
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 1,
+        "high": 56,
+        "medium": 95,
+        "low": 10,
+        "lowest": 0,
+        "longstanding_30d_plus": 146,
+        "longstanding_60d_plus": 138
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-10-27",
+      "api": {
+        "highest": 0,
+        "high": 4,
+        "medium": 4,
+        "low": 2,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 12,
+        "low": 45,
+        "lowest": 2
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 4,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 1,
+        "high": 55,
+        "medium": 99,
+        "low": 10,
+        "lowest": 0,
+        "longstanding_30d_plus": 146,
+        "longstanding_60d_plus": 139
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-11-10",
+      "api": {
+        "highest": 0,
+        "high": 2,
+        "medium": 4,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 12,
+        "low": 45,
+        "lowest": 2
+      },
+      "react": {
+        "highest": 0,
+        "high": 1,
+        "medium": 6,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 6,
+        "high": 58,
+        "medium": 102,
+        "low": 10,
+        "lowest": 0,
+        "longstanding_30d_plus": 153,
+        "longstanding_60d_plus": 140
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2025-11-24",
+      "api": {
+        "highest": 0,
+        "high": 2,
+        "medium": 4,
+        "low": 5,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 1,
+        "medium": 9,
+        "low": 46,
+        "lowest": 2
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 5,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
         "highest": 6,
         "high": 61,
         "medium": 104,
@@ -7103,7 +8838,6 @@
         "longstanding_60d_plus": 142
       },
       "workers": {
-        "date": "2025-11-24",
         "highest": 0,
         "high": 0,
         "medium": 0,
@@ -7111,7 +8845,6 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2025-11-24",
         "highest": 0,
         "high": 0,
         "medium": 0,
@@ -7122,7 +8855,6 @@
     {
       "date": "2025-12-08",
       "api": {
-        "date": "2025-12-08",
         "highest": 0,
         "high": 2,
         "medium": 5,
@@ -7130,7 +8862,6 @@
         "lowest": 0
       },
       "legacy": {
-        "date": "2025-12-08",
         "highest": 0,
         "high": 1,
         "medium": 8,
@@ -7138,7 +8869,6 @@
         "lowest": 2
       },
       "react": {
-        "date": "2025-12-08",
         "highest": 0,
         "high": 0,
         "medium": 8,
@@ -7146,7 +8876,6 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2025-12-08",
         "highest": 8,
         "high": 61,
         "medium": 111,
@@ -7156,7 +8885,6 @@
         "longstanding_60d_plus": 148
       },
       "workers": {
-        "date": "2025-12-08",
         "highest": 0,
         "high": 0,
         "medium": 0,
@@ -7164,7 +8892,6 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2025-12-08",
         "highest": 0,
         "high": 0,
         "medium": 0,
@@ -7175,7 +8902,6 @@
     {
       "date": "2025-12-22",
       "api": {
-        "date": "2025-12-22",
         "highest": 0,
         "high": 2,
         "medium": 5,
@@ -7183,7 +8909,6 @@
         "lowest": 0
       },
       "legacy": {
-        "date": "2025-12-22",
         "highest": 0,
         "high": 1,
         "medium": 8,
@@ -7191,7 +8916,6 @@
         "lowest": 2
       },
       "react": {
-        "date": "2025-12-22",
         "highest": 0,
         "high": 0,
         "medium": 5,
@@ -7199,7 +8923,6 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2025-12-22",
         "highest": 6,
         "high": 64,
         "medium": 106,
@@ -7209,7 +8932,6 @@
         "longstanding_60d_plus": 144
       },
       "workers": {
-        "date": "2025-12-22",
         "highest": 0,
         "high": 0,
         "medium": 0,
@@ -7217,7 +8939,6 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2025-12-22",
         "highest": 0,
         "high": 0,
         "medium": 0,
@@ -7228,7 +8949,6 @@
     {
       "date": "2026-01-05",
       "api": {
-        "date": "2026-01-05",
         "highest": 0,
         "high": 3,
         "medium": 4,
@@ -7236,7 +8956,6 @@
         "lowest": 0
       },
       "legacy": {
-        "date": "2026-01-05",
         "highest": 0,
         "high": 1,
         "medium": 6,
@@ -7244,7 +8963,6 @@
         "lowest": 2
       },
       "react": {
-        "date": "2026-01-05",
         "highest": 0,
         "high": 0,
         "medium": 3,
@@ -7252,7 +8970,6 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2026-01-05",
         "highest": 6,
         "high": 66,
         "medium": 108,
@@ -7262,7 +8979,6 @@
         "longstanding_60d_plus": 157
       },
       "workers": {
-        "date": "2026-01-05",
         "highest": 0,
         "high": 0,
         "medium": 0,
@@ -7270,7 +8986,6 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2026-01-05",
         "highest": 0,
         "high": 0,
         "medium": 0,
@@ -7281,7 +8996,6 @@
     {
       "date": "2026-01-19",
       "api": {
-        "date": "2026-01-19",
         "highest": 0,
         "high": 2,
         "medium": 6,
@@ -7289,7 +9003,6 @@
         "lowest": 0
       },
       "legacy": {
-        "date": "2026-01-19",
         "highest": 0,
         "high": 1,
         "medium": 6,
@@ -7297,7 +9010,6 @@
         "lowest": 2
       },
       "react": {
-        "date": "2026-01-19",
         "highest": 0,
         "high": 0,
         "medium": 3,
@@ -7305,7 +9017,6 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2026-01-19",
         "highest": 5,
         "high": 61,
         "medium": 105,
@@ -7315,7 +9026,6 @@
         "longstanding_60d_plus": 154
       },
       "workers": {
-        "date": "2026-01-19",
         "highest": 0,
         "high": 0,
         "medium": 0,
@@ -7323,7 +9033,6 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2026-01-19",
         "highest": 0,
         "high": 0,
         "medium": 0,
@@ -7334,7 +9043,6 @@
     {
       "date": "2026-02-02",
       "api": {
-        "date": "2026-02-02",
         "highest": 0,
         "high": 2,
         "medium": 6,
@@ -7342,7 +9050,6 @@
         "lowest": 0
       },
       "legacy": {
-        "date": "2026-02-02",
         "highest": 0,
         "high": 1,
         "medium": 4,
@@ -7350,7 +9057,6 @@
         "lowest": 0
       },
       "react": {
-        "date": "2026-02-02",
         "highest": 0,
         "high": 0,
         "medium": 3,
@@ -7358,7 +9064,6 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2026-02-02",
         "highest": 5,
         "high": 61,
         "medium": 103,
@@ -7368,7 +9073,6 @@
         "longstanding_60d_plus": 153
       },
       "workers": {
-        "date": "2026-02-02",
         "highest": 0,
         "high": 0,
         "medium": 0,
@@ -7376,7 +9080,6 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2026-02-02",
         "highest": 0,
         "high": 0,
         "medium": 0,
@@ -7387,7 +9090,6 @@
     {
       "date": "2026-02-16",
       "api": {
-        "date": "2026-02-16",
         "highest": 0,
         "high": 3,
         "medium": 7,
@@ -7395,7 +9097,6 @@
         "lowest": 0
       },
       "legacy": {
-        "date": "2026-02-16",
         "highest": 0,
         "high": 2,
         "medium": 5,
@@ -7403,7 +9104,6 @@
         "lowest": 0
       },
       "react": {
-        "date": "2026-02-16",
         "highest": 0,
         "high": 0,
         "medium": 6,
@@ -7411,7 +9111,6 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2026-02-16",
         "highest": 6,
         "high": 62,
         "medium": 104,
@@ -7421,7 +9120,6 @@
         "longstanding_60d_plus": 156
       },
       "workers": {
-        "date": "2026-02-16",
         "highest": 0,
         "high": 0,
         "medium": 0,
@@ -7429,7 +9127,6 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2026-02-16",
         "highest": 1,
         "high": 0,
         "medium": 0,
@@ -7440,7 +9137,6 @@
     {
       "date": "2026-03-02",
       "api": {
-        "date": "2026-03-02",
         "highest": 0,
         "high": 3,
         "medium": 9,
@@ -7448,7 +9144,6 @@
         "lowest": 0
       },
       "legacy": {
-        "date": "2026-03-02",
         "highest": 0,
         "high": 2,
         "medium": 5,
@@ -7456,7 +9151,6 @@
         "lowest": 0
       },
       "react": {
-        "date": "2026-03-02",
         "highest": 0,
         "high": 1,
         "medium": 6,
@@ -7464,7 +9158,6 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2026-03-02",
         "highest": 3,
         "high": 69,
         "medium": 105,
@@ -7474,7 +9167,6 @@
         "longstanding_60d_plus": 154
       },
       "workers": {
-        "date": "2026-03-02",
         "highest": 0,
         "high": 0,
         "medium": 1,
@@ -7482,7 +9174,6 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2026-03-02",
         "highest": 0,
         "high": 2,
         "medium": 0,
@@ -7493,7 +9184,6 @@
     {
       "date": "2026-03-16",
       "api": {
-        "date": "2026-03-16",
         "highest": 0,
         "high": 3,
         "medium": 9,
@@ -7501,7 +9191,6 @@
         "lowest": 0
       },
       "legacy": {
-        "date": "2026-03-16",
         "highest": 0,
         "high": 1,
         "medium": 4,
@@ -7509,7 +9198,6 @@
         "lowest": 0
       },
       "react": {
-        "date": "2026-03-16",
         "highest": 0,
         "high": 0,
         "medium": 6,
@@ -7517,7 +9205,6 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2026-03-16",
         "highest": 6,
         "high": 69,
         "medium": 110,
@@ -7527,7 +9214,6 @@
         "longstanding_60d_plus": 157
       },
       "workers": {
-        "date": "2026-03-16",
         "highest": 0,
         "high": 2,
         "medium": 0,
@@ -7535,7 +9221,6 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2026-03-16",
         "highest": 0,
         "high": 2,
         "medium": 0,
@@ -7546,7 +9231,6 @@
     {
       "date": "2026-03-30",
       "api": {
-        "date": "2026-03-30",
         "highest": 0,
         "high": 4,
         "medium": 9,
@@ -7554,7 +9238,6 @@
         "lowest": 0
       },
       "legacy": {
-        "date": "2026-03-30",
         "highest": 0,
         "high": 1,
         "medium": 6,
@@ -7562,7 +9245,6 @@
         "lowest": 0
       },
       "react": {
-        "date": "2026-03-30",
         "highest": 0,
         "high": 0,
         "medium": 6,
@@ -7570,7 +9252,6 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2026-03-30",
         "highest": 8,
         "high": 71,
         "medium": 111,
@@ -7580,7 +9261,6 @@
         "longstanding_60d_plus": 162
       },
       "workers": {
-        "date": "2026-03-30",
         "highest": 0,
         "high": 1,
         "medium": 1,
@@ -7588,7 +9268,6 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2026-03-30",
         "highest": 0,
         "high": 1,
         "medium": 0,
@@ -7599,7 +9278,6 @@
     {
       "date": "2026-04-13",
       "api": {
-        "date": "2026-04-13",
         "highest": 0,
         "high": 4,
         "medium": 9,
@@ -7607,7 +9285,6 @@
         "lowest": 0
       },
       "legacy": {
-        "date": "2026-04-13",
         "highest": 1,
         "high": 1,
         "medium": 8,
@@ -7615,7 +9292,6 @@
         "lowest": 0
       },
       "react": {
-        "date": "2026-04-13",
         "highest": 0,
         "high": 0,
         "medium": 2,
@@ -7623,7 +9299,6 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2026-04-13",
         "highest": 3,
         "high": 70,
         "medium": 117,
@@ -7633,7 +9308,6 @@
         "longstanding_60d_plus": 165
       },
       "workers": {
-        "date": "2026-04-13",
         "highest": 0,
         "high": 1,
         "medium": 1,
@@ -7641,7 +9315,6 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2026-04-13",
         "highest": 0,
         "high": 1,
         "medium": 0,
@@ -7652,7 +9325,6 @@
     {
       "date": "2026-04-27",
       "api": {
-        "date": "2026-04-27",
         "highest": 0,
         "high": 4,
         "medium": 11,
@@ -7660,7 +9332,6 @@
         "lowest": 2
       },
       "legacy": {
-        "date": "2026-04-27",
         "highest": 1,
         "high": 1,
         "medium": 7,
@@ -7668,7 +9339,6 @@
         "lowest": 0
       },
       "react": {
-        "date": "2026-04-27",
         "highest": 0,
         "high": 0,
         "medium": 2,
@@ -7676,7 +9346,6 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2026-04-27",
         "highest": 6,
         "high": 69,
         "medium": 116,
@@ -7686,7 +9355,6 @@
         "longstanding_60d_plus": 167
       },
       "workers": {
-        "date": "2026-04-27",
         "highest": 0,
         "high": 1,
         "medium": 1,
@@ -7694,7 +9362,6 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2026-04-27",
         "highest": 0,
         "high": 1,
         "medium": 0,
@@ -7705,7 +9372,6 @@
     {
       "date": "2026-05-11",
       "api": {
-        "date": "2026-05-11",
         "highest": 0,
         "high": 3,
         "medium": 12,
@@ -7713,7 +9379,6 @@
         "lowest": 2
       },
       "legacy": {
-        "date": "2026-05-11",
         "highest": 0,
         "high": 1,
         "medium": 6,
@@ -7721,7 +9386,6 @@
         "lowest": 0
       },
       "react": {
-        "date": "2026-05-11",
         "highest": 0,
         "high": 0,
         "medium": 2,
@@ -7729,7 +9393,6 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2026-05-11",
         "highest": 3,
         "high": 66,
         "medium": 107,
@@ -7739,7 +9402,6 @@
         "longstanding_60d_plus": 165
       },
       "workers": {
-        "date": "2026-05-11",
         "highest": 0,
         "high": 2,
         "medium": 5,
@@ -7747,7 +9409,6 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2026-05-11",
         "highest": 0,
         "high": 2,
         "medium": 0,
@@ -7758,7 +9419,6 @@
     {
       "date": "2026-05-25",
       "api": {
-        "date": "2026-05-25",
         "highest": 0,
         "high": 3,
         "medium": 12,
@@ -7766,7 +9426,6 @@
         "lowest": 2
       },
       "legacy": {
-        "date": "2026-05-25",
         "highest": 0,
         "high": 1,
         "medium": 6,
@@ -7774,7 +9433,6 @@
         "lowest": 0
       },
       "react": {
-        "date": "2026-05-25",
         "highest": 0,
         "high": 0,
         "medium": 3,
@@ -7782,7 +9440,6 @@
         "lowest": 0
       },
       "bc": {
-        "date": "2026-05-25",
         "highest": 6,
         "high": 64,
         "medium": 109,
@@ -7792,7 +9449,6 @@
         "longstanding_60d_plus": 166
       },
       "workers": {
-        "date": "2026-05-25",
         "highest": 0,
         "high": 2,
         "medium": 6,
@@ -7800,7 +9456,53 @@
         "lowest": 0
       },
       "titanium": {
-        "date": "2026-05-25",
+        "highest": 1,
+        "high": 1,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2026-06-07",
+      "api": {
+        "highest": 0,
+        "high": 3,
+        "medium": 13,
+        "low": 5,
+        "lowest": 2
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 0,
+        "medium": 3,
+        "low": 20,
+        "lowest": 0
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 4,
+        "high": 65,
+        "medium": 105,
+        "low": 8,
+        "lowest": 0,
+        "longstanding_30d_plus": 173,
+        "longstanding_60d_plus": 167
+      },
+      "workers": {
+        "highest": 0,
+        "high": 1,
+        "medium": 8,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
         "highest": 1,
         "high": 1,
         "medium": 0,

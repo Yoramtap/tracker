@@ -293,6 +293,19 @@ function asOfDateTime(date) {
   return `${date} 23:59`;
 }
 
+function isTodayOrLater(date) {
+  const dateText = String(date || "").trim();
+  if (!dateText) return false;
+  return dateText >= new Date().toISOString().slice(0, 10);
+}
+
+function buildBacklogStatusClause(board, date) {
+  if (isTodayOrLater(date)) {
+    return `AND status NOT IN ${board.doneStatuses}`;
+  }
+  return `AND status WAS NOT IN ${board.doneStatuses} ON "${date}"`;
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -3025,7 +3038,7 @@ async function countFor(board, date, site, email, token) {
   const baseJqlClauses = [
     board.baseJql,
     `AND created <= "${asOfDateTime(date)}"`,
-    `AND status WAS NOT IN ${board.doneStatuses} ON "${date}"`
+    buildBacklogStatusClause(board, date)
   ];
   const jql = baseJqlClauses.join(" ");
 
