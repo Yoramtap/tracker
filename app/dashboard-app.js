@@ -1,6 +1,6 @@
 import { resolveDashboardAppDeps } from "./dashboard-app/deps.js";
-import { createProductPanels } from "./dashboard-app/product-panels.js?v=local5";
-import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local18";
+import { createProductPanels } from "./dashboard-app/product-panels.js?v=local12";
+import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local22";
 
 (function initDashboardApp() {
   const {
@@ -58,6 +58,16 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     "1y"
   ];
   const PR_ACTIVITY_LEGACY_WINDOWS = [...DEVELOPMENT_WORKFLOW_WINDOWS, "2y"];
+  const SHARED_ROLLING_PERIOD_WINDOWS = DEVELOPMENT_WORKFLOW_WINDOWS;
+  const SHARED_ROLLING_PERIOD_PARAM_NAMES = [
+    "bug-trends-window",
+    "pr-cycle-window",
+    "pr-activity-legacy-window"
+  ];
+  const SHIPMENT_MONTH_SHORT_FORMATTER = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    timeZone: "UTC"
+  });
   const getSourcePath = (rootKey, relativePath) =>
     dashboardRuntimeContract.getSourcePath(rootKey, relativePath);
   const SECTION_FILTER_DEFAULT = dashboardRuntimeContract.defaultSection || "community";
@@ -65,15 +75,25 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     ? dashboardRuntimeContract.sectionFilterItems
     : [];
   const SECTION_FILTER_OPTIONS = SECTION_FILTER_ITEMS.map(({ value }) => value);
-  const SECTION_FILTER_ITEMS_BY_VALUE = new Map(
-    SECTION_FILTER_ITEMS.map((item) => [item.value, item])
-  );
   const SECTION_FILTER_PANEL_IDS = {
     shipped: ["product-cycle-shipments-panel"],
-    product: ["uat-acceptance-time-panel", "cycle-time-to-ship-panel"],
+    "product-delivery": ["cycle-time-to-ship-panel"],
+    uat: ["uat-acceptance-time-panel"],
     community: ["community-contributors-panel"],
-    development: ["development-workflow-breakdown-panel", "development-workflow-trends-panel"],
+    "dev-trends": ["development-workflow-trends-panel"],
+    "dev-ai": ["development-workflow-trends-panel"],
+    "dev-breakdown": ["development-workflow-breakdown-panel"],
     bug: ["bug-trends-panel"]
+  };
+  const SECTION_FRESHNESS_CONTEXT_IDS = {
+    community: "contributors-context",
+    shipped: "product-cycle-shipments-context",
+    "product-delivery": "product-cycle-context",
+    uat: "management-facility-context",
+    "dev-trends": "pr-activity-legacy-context",
+    "dev-ai": "pr-activity-legacy-context",
+    "dev-breakdown": "workflow-breakdown-context",
+    bug: "bug-trends-context"
   };
   const CHART_CONFIG = {
     trend: {
@@ -222,11 +242,15 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   }
 
   function bugTrendsWindowKey(value) {
-    return normalizeOption(value, DEVELOPMENT_WORKFLOW_WINDOWS, BUG_TRENDS_WINDOW_DEFAULT);
+    return sharedRollingPeriodKey(value, BUG_TRENDS_WINDOW_DEFAULT);
   }
 
   function prActivityLegacyWindowKey(value) {
     return normalizeOption(value, PR_ACTIVITY_LEGACY_WINDOWS, PR_ACTIVITY_LEGACY_WINDOW_DEFAULT);
+  }
+
+  function sharedRollingPeriodKey(value, fallback = BUG_TRENDS_WINDOW_DEFAULT) {
+    return normalizeOption(value, SHARED_ROLLING_PERIOD_WINDOWS, fallback);
   }
 
   function normalizeDashboardMode(mode) {
@@ -238,18 +262,23 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   }
 
   function sectionFilterKey(value) {
-    return normalizeOption(
-      String(value || "")
-        .trim()
-        .toLowerCase(),
-      SECTION_FILTER_OPTIONS,
-      SECTION_FILTER_DEFAULT
-    );
+    const rawSection = String(value || "")
+      .trim()
+      .toLowerCase();
+    if (rawSection === "product") return "product-delivery";
+    if (rawSection === "management" || rawSection === "management-facility") return "uat";
+    if (rawSection === "development" || rawSection === "pr-activity") return "dev-trends";
+    if (rawSection === "ai-use" || rawSection === "dev-ai" || rawSection === "pr-activity-ai") {
+      return "dev-ai";
+    }
+    if (rawSection === "workflow-breakdown" || rawSection === "pr-cycle") return "dev-breakdown";
+    return normalizeOption(rawSection, SECTION_FILTER_OPTIONS, SECTION_FILTER_DEFAULT);
   }
 
   function isPanelVisibleForSection(panelId, sectionKey = state.sectionFilter) {
     const activeSection = sectionFilterKey(sectionKey);
-    return (SECTION_FILTER_PANEL_IDS[activeSection] || []).includes(String(panelId || "").trim());
+    const normalizedPanelId = String(panelId || "").trim();
+    return (SECTION_FILTER_PANEL_IDS[activeSection] || []).includes(normalizedPanelId);
   }
 
   function renderSectionFilteredPanels() {
@@ -257,6 +286,33 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     ensurePanelBackToTopControls();
     ensureActiveSourcesLoaded();
     renderVisibleCharts();
+    renderActivePanelFreshnessFooter();
+  }
+
+  function getActiveSectionFreshnessTimestamp(
+    activeSection = sectionFilterKey(state.sectionFilter)
+  ) {
+    if (activeSection === "community") return state.contributors?.updatedAt;
+    if (activeSection === "shipped") return state.productCycleShipments?.generatedAt;
+    if (activeSection === "product-delivery") return state.productCycle?.generatedAt;
+    if (activeSection === "uat") return state.managementFacilitySnapshot?.updatedAt;
+    if (activeSection === "dev-trends" || activeSection === "dev-ai") {
+      return state.prActivitySnapshot?.updatedAt;
+    }
+    if (activeSection === "dev-breakdown") return state.prCycle?.updatedAt;
+    if (activeSection === "bug") return state.snapshot?.updatedAt;
+    return "";
+  }
+
+  function renderActivePanelFreshnessFooter() {
+    if (state.mode !== "all") return;
+    const activeSection = sectionFilterKey(state.sectionFilter);
+    const contextId = SECTION_FRESHNESS_CONTEXT_IDS[activeSection];
+    if (!contextId) return;
+    setPanelContext(
+      document.getElementById(contextId),
+      formatContextWithFreshness("", getActiveSectionFreshnessTimestamp(activeSection))
+    );
   }
 
   async function renderSectionFilteredPanelsAfterShell() {
@@ -289,15 +345,18 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     renderSectionFilteredPanels();
   }
 
-  function renderSectionFilterIcon(value) {
-    const src = SECTION_FILTER_ITEMS_BY_VALUE.get(String(value || "").trim())?.icon || "";
-    if (!src) {
-      return '<span class="report-intro__icon report-intro__icon--empty" aria-hidden="true"></span>';
-    }
-    return `<span class="report-intro__icon" aria-hidden="true"><img class="report-intro__icon-image" src="${escapeHtml(src)}" alt="" width="16" height="16" /></span>`;
+  async function renderSectionSelectionChange() {
+    renderActionsRequiredFrame();
+    await renderSectionFilteredPanelsAfterShell();
+    renderActionsRequiredFrame();
   }
 
   function renderSectionFilterRadios(name = "report-section", selectedValue = state.sectionFilter) {
+    const renderTitleMarkup = (value, label) => `
+      <span class="report-intro__title">${escapeHtml(label)}</span>${
+        value === "dev-ai" ? '<span class="report-intro__badge">Beta</span>' : ""
+      }
+    `;
     return SECTION_FILTER_ITEMS.map(
       ({ value, label }) => `
           <label class="report-intro__card report-intro__card--${escapeHtml(value)}">
@@ -305,12 +364,361 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
               value === selectedValue ? " checked" : ""
             } />
             <span class="report-intro__label">
-              ${renderSectionFilterIcon(value)}
-              <span class="report-intro__title">${escapeHtml(label)}</span>
+              ${renderTitleMarkup(value, label)}
             </span>
           </label>
         `
     ).join("");
+  }
+
+  function renderSegmentedRadioGroup(name, options, selectedValue, className = "") {
+    const classes = ["radio-group-card", "radio-group-card--segmented", className]
+      .filter(Boolean)
+      .join(" ");
+    return `
+      <fieldset class="${escapeHtml(classes)}">
+        <legend>${escapeHtml(name)}</legend>
+        ${(Array.isArray(options) ? options : [])
+          .map(
+            ({ value, label, srLabel }) => `
+              <label>
+                <input type="radio" name="${escapeHtml(name)}" value="${escapeHtml(value)}"${
+                  value === selectedValue ? " checked" : ""
+                } />
+                <span aria-hidden="${srLabel ? "true" : "false"}">${escapeHtml(label)}</span>${
+                  srLabel ? `<span class="sr-only">${escapeHtml(srLabel)}</span>` : ""
+                }
+              </label>
+            `
+          )
+          .join("")}
+      </fieldset>
+    `;
+  }
+
+  function renderPageToolbarShell({
+    title,
+    digest,
+    headerControlsMarkup = "",
+    controlsMarkup = "",
+    className = ""
+  }) {
+    const classes = ["development-page-toolbar", "page-context-toolbar", className]
+      .filter(Boolean)
+      .join(" ");
+    return `
+      <div class="${escapeHtml(classes)}" aria-label="${escapeHtml(title)} controls">
+        <div class="development-page-toolbar__header">
+          <div class="development-page-toolbar__copy">
+            <h3>${escapeHtml(title)}</h3>
+            <p class="development-page-toolbar__digest">${escapeHtml(digest)}</p>
+          </div>
+          ${
+            headerControlsMarkup
+              ? `<div class="development-page-toolbar__header-controls">${headerControlsMarkup}</div>`
+              : ""
+          }
+        </div>
+        ${
+          controlsMarkup
+            ? `<div class="development-page-toolbar__controls">${controlsMarkup}</div>`
+            : ""
+        }
+      </div>
+    `;
+  }
+
+  function renderLabeledControl(label, markup, className = "") {
+    const classes = ["development-page-toolbar__control", className].filter(Boolean).join(" ");
+    return `
+      <div class="${escapeHtml(classes)}">
+        <span class="development-page-toolbar__label">${escapeHtml(label)}</span>
+        ${markup}
+      </div>
+    `;
+  }
+
+  function windowOptions(values) {
+    return values.map((value) => ({
+      value,
+      label: value,
+      srLabel: getPrActivityWindowLabel(value)
+    }));
+  }
+
+  function renderPrCycleTeamSwitch() {
+    const selectedTeam = String(state.prCycleTeam || ALL_TEAM_SCOPE_KEY)
+      .trim()
+      .toLowerCase();
+    const teamOptions = [
+      { value: "all", label: "All" },
+      { value: "api", label: "API" },
+      { value: "legacy", label: "Legacy FE" },
+      { value: "react", label: "React FE" },
+      { value: "bc", label: "BC" },
+      { value: "workers", label: "Workers" },
+      { value: "titanium", label: "Titanium" }
+    ];
+    return `
+      <div class="pr-cycle-team-switch page-toolbar__team-switch" role="radiogroup" aria-label="Workflow breakdown team">
+        ${teamOptions
+          .map(
+            ({ value, label }) => `
+              <label class="pr-cycle-team-pill">
+                <input type="radio" name="pr-cycle-team" value="${escapeHtml(value)}"${
+                  value === selectedTeam ? " checked" : ""
+                } />
+                <span>${escapeHtml(label)}</span>
+              </label>
+            `
+          )
+          .join("")}
+      </div>
+    `;
+  }
+
+  function renderDevelopmentPageToolbar(activeSection = sectionFilterKey(state.sectionFilter)) {
+    if (
+      !["dev-trends", "dev-ai", "dev-breakdown"].includes(activeSection) ||
+      state.mode !== "all"
+    ) {
+      return "";
+    }
+    const isBreakdown = activeSection === "dev-breakdown";
+    const windowName = isBreakdown ? "pr-cycle-window" : "pr-activity-legacy-window";
+    const pageCopyBySection = {
+      "dev-trends": {
+        title: "PR Volume",
+        digest: "Opened PR volume by team for the selected period."
+      },
+      "dev-ai": {
+        title: "AI PRs",
+        digest: "Beta: share of opened PRs labeled as AI-assisted."
+      },
+      "dev-breakdown": {
+        title: "Dev Throughput",
+        digest: "How quickly teams move development work through tracked stages."
+      }
+    };
+    const selectedWindow = isBreakdown
+      ? sharedRollingPeriodKey(state.developmentWorkflowWindow, THIRTY_DAY_WINDOW_KEY)
+      : sharedRollingPeriodKey(state.prActivityLegacyWindow);
+    const controlsMarkup = [
+      isBreakdown
+        ? renderLabeledControl("Team", renderPrCycleTeamSwitch(), "page-toolbar__team-control")
+        : "",
+      renderLabeledControl(
+        "Period",
+        renderSegmentedRadioGroup(
+          windowName,
+          windowOptions(SHARED_ROLLING_PERIOD_WINDOWS),
+          selectedWindow,
+          "development-page-toolbar__group"
+        ),
+        "page-toolbar__range-control"
+      )
+    ]
+      .filter(Boolean)
+      .join("");
+
+    return renderPageToolbarShell({
+      ...pageCopyBySection[activeSection],
+      controlsMarkup,
+      className: "development-work-page-toolbar"
+    });
+  }
+
+  function formatShipmentMonthButton(dateText) {
+    const parsed = new Date(`${String(dateText || "").trim()}T00:00:00Z`);
+    if (!Number.isFinite(parsed.getTime())) return String(dateText || "").trim();
+    return SHIPMENT_MONTH_SHORT_FORMATTER.format(parsed);
+  }
+
+  function renderShippedNavIcon(direction) {
+    const isPrevious = direction === "previous";
+    const path = isPrevious ? "M9.5 3.5 5.5 8l4 4.5" : "M6.5 3.5 10.5 8l-4 4.5";
+    return `<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="${path}"></path></svg>`;
+  }
+
+  function renderShippedPageToolbar() {
+    const activeSection = sectionFilterKey(state.sectionFilter);
+    if (activeSection !== "shipped" || state.mode !== "all") return "";
+    const timelineSnapshot = state.productCycleShipments?.chartData?.shippedTimeline;
+    const selection = productPanels.resolveShipmentTimelineSelection(
+      timelineSnapshot,
+      state.productCycleShipmentsYear,
+      state.productCycleShipmentsMonthKey
+    );
+    const { availableYears, monthsInYear, selectedYear, selectedMonthKey } = selection;
+    if (availableYears.length > 0) {
+      state.productCycleShipmentsYear = selectedYear;
+      state.productCycleShipmentsMonthKey = selectedMonthKey;
+    }
+    const activeYearIndex = Math.max(0, availableYears.indexOf(selectedYear));
+    const previousYear = activeYearIndex > 0 ? availableYears[activeYearIndex - 1] : "";
+    const nextYear =
+      activeYearIndex < availableYears.length - 1 ? availableYears[activeYearIndex + 1] : "";
+    const monthMap = new Map(
+      monthsInYear.map((month) => [String(month?.monthKey || "").trim(), month])
+    );
+    const monthButtonsMarkup =
+      selectedYear && availableYears.length > 0
+        ? Array.from({ length: 12 }, (_, monthIndex) => {
+            const monthNumber = String(monthIndex + 1).padStart(2, "0");
+            const monthKey = `${selectedYear}-${monthNumber}`;
+            const monthSnapshot = monthMap.get(monthKey) || null;
+            const monthStart = monthSnapshot?.monthStart || `${monthKey}-01`;
+            const isActive = monthKey === selectedMonthKey;
+            const isDisabled = !monthSnapshot;
+            return `
+              <button
+                type="button"
+                class="shipped-month-picker__button${isActive ? " is-active" : ""}"
+                data-shipped-month-key="${escapeHtml(monthKey)}"
+                ${isDisabled ? "disabled" : ""}
+                aria-pressed="${isActive ? "true" : "false"}"
+              >
+                <span class="shipped-month-picker__label">${escapeHtml(
+                  formatShipmentMonthButton(monthStart)
+                )}</span>
+              </button>
+            `;
+          }).join("")
+        : "";
+
+    const controlsMarkup =
+      availableYears.length > 0
+        ? renderLabeledControl(
+            "Period",
+            `
+              <div class="shipped-timeline__selector shipped-page-toolbar__selector">
+                <div class="shipped-timeline__year-switch" aria-label="Shipment year">
+                  <button
+                    type="button"
+                    class="shipped-timeline__nav"
+                    ${previousYear ? `data-shipped-year-target="${escapeHtml(previousYear)}"` : ""}
+                    ${previousYear ? "" : "disabled"}
+                    aria-label="${previousYear ? `Show ${escapeHtml(previousYear)}` : "No previous year"}"
+                  >
+                    ${renderShippedNavIcon("previous")}
+                  </button>
+                  <div class="shipped-timeline__year-label">${escapeHtml(selectedYear)}</div>
+                  <button
+                    type="button"
+                    class="shipped-timeline__nav"
+                    ${nextYear ? `data-shipped-year-target="${escapeHtml(nextYear)}"` : ""}
+                    ${nextYear ? "" : "disabled"}
+                    aria-label="${nextYear ? `Show ${escapeHtml(nextYear)}` : "No next year"}"
+                  >
+                    ${renderShippedNavIcon("next")}
+                  </button>
+                </div>
+                <div class="shipped-month-picker" role="group" aria-label="Months in ${escapeHtml(
+                  selectedYear
+                )}">
+                  ${monthButtonsMarkup}
+                </div>
+              </div>
+            `,
+            "shipped-page-toolbar__control"
+          )
+        : "";
+
+    return renderPageToolbarShell({
+      title: "What we shipped",
+      digest: "See how many product ideas each team is shipping over time.",
+      controlsMarkup,
+      className: "shipped-page-toolbar"
+    });
+  }
+
+  function renderCommunityPageToolbar() {
+    return renderPageToolbarShell({
+      title: "Community contributions",
+      digest: "See how much technical work our community is contributing."
+    });
+  }
+
+  function renderProductDeliveryPageToolbar() {
+    const controlsMarkup = renderLabeledControl(
+      "Team",
+      `<div id="product-cycle-team-switch" class="pr-cycle-team-switch page-toolbar__team-switch" role="radiogroup" aria-label="Product delivery and workflow team"></div>`,
+      "page-toolbar__team-control"
+    );
+    return renderPageToolbarShell({
+      title: "Product delivery and workflow",
+      digest: "Compare how long ideas take to ship once they enter active development.",
+      controlsMarkup,
+      className: "product-delivery-page-toolbar"
+    });
+  }
+
+  function renderUatPageToolbar() {
+    return renderPageToolbarShell({
+      title: "User acceptance time by business unit",
+      digest: "Compare user approval time for pending and verified work."
+    });
+  }
+
+  function renderBugPageToolbar() {
+    const windowKey = bugTrendsWindowKey(state.bugTrendsWindow);
+    const controlsMarkup = renderLabeledControl(
+      "Period",
+      renderSegmentedRadioGroup(
+        "bug-trends-window",
+        windowOptions(DEVELOPMENT_WORKFLOW_WINDOWS),
+        windowKey,
+        "development-page-toolbar__group"
+      ),
+      "page-toolbar__range-control"
+    );
+    return renderPageToolbarShell({
+      title: "Bug trends",
+      digest: "Track backlog pressure by team across the selected range.",
+      controlsMarkup,
+      className: "development-work-page-toolbar"
+    });
+  }
+
+  function renderActivePageToolbar() {
+    if (state.mode !== "all") return "";
+    const activeSection = sectionFilterKey(state.sectionFilter);
+    if (activeSection === "community") return renderCommunityPageToolbar();
+    if (activeSection === "shipped") return renderShippedPageToolbar();
+    if (activeSection === "product-delivery") return renderProductDeliveryPageToolbar();
+    if (activeSection === "uat") return renderUatPageToolbar();
+    if (["dev-trends", "dev-ai", "dev-breakdown"].includes(activeSection)) {
+      return renderDevelopmentPageToolbar(activeSection);
+    }
+    if (activeSection === "bug") return renderBugPageToolbar();
+    return "";
+  }
+
+  function bindShippedPageToolbarNavigation(rootNode) {
+    const toolbar = rootNode?.querySelector?.(".shipped-page-toolbar");
+    if (!toolbar) return;
+    toolbar.onclick = (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target) return;
+      const yearButton = target.closest("[data-shipped-year-target]");
+      if (yearButton instanceof HTMLButtonElement && !yearButton.disabled) {
+        state.productCycleShipmentsYear =
+          String(yearButton.dataset.shippedYearTarget || "").trim() ||
+          state.productCycleShipmentsYear;
+        state.productCycleShipmentsMonthKey = "";
+        renderActionsRequiredFrame();
+        productPanels.renderProductCycleShipmentsTimeline();
+        return;
+      }
+      const monthButton = target.closest("[data-shipped-month-key]");
+      if (monthButton instanceof HTMLButtonElement && !monthButton.disabled) {
+        state.productCycleShipmentsMonthKey =
+          String(monthButton.dataset.shippedMonthKey || "").trim() ||
+          state.productCycleShipmentsMonthKey;
+        renderActionsRequiredFrame();
+        productPanels.renderProductCycleShipmentsTimeline();
+      }
+    };
   }
 
   let CONTROL_BINDINGS = [];
@@ -685,6 +1093,24 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     document.body.classList.toggle("embed-mode", embedMode);
     document.body.classList.toggle("single-chart-mode", embedMode && !showAll);
     document.body.classList.toggle("embedded-frame-mode", embedMode && showAll);
+    document.body.classList.toggle(
+      "development-section-mode",
+      showAll && ["dev-trends", "dev-ai", "dev-breakdown"].includes(selectedSection)
+    );
+    document.body.classList.toggle(
+      "shipped-section-mode",
+      showAll && selectedSection === "shipped"
+    );
+    document.body.classList.toggle(
+      "community-section-mode",
+      showAll && selectedSection === "community"
+    );
+    document.body.classList.toggle(
+      "product-delivery-section-mode",
+      showAll && selectedSection === "product-delivery"
+    );
+    document.body.classList.toggle("uat-section-mode", showAll && selectedSection === "uat");
+    document.body.classList.toggle("bug-section-mode", showAll && selectedSection === "bug");
     if (actionsPanel) actionsPanel.hidden = !showAll;
     for (const [mode, config] of Object.entries(CHART_CONFIG)) {
       const panel = document.getElementById(config.panelId);
@@ -708,10 +1134,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     }
 
     panel.hidden = false;
-    setPanelContext(
-      contextNode,
-      formatContextWithFreshness("", getSnapshotContextTimestamp(state))
-    );
+    setPanelContext(contextNode, "");
 
     statusNode.hidden = true;
     listNode.innerHTML = `
@@ -726,10 +1149,12 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
           ${renderSectionFilterRadios("report-section", state.sectionFilter)}
         </fieldset>
         </div>
+        ${renderActivePageToolbar()}
     </div>
   `;
     syncDashboardControlsFromState(CONTROL_BINDINGS, state);
     bindDashboardControlState(CONTROL_BINDINGS, state);
+    bindShippedPageToolbarNavigation(listNode);
   }
 
   function getPanelLeadMountId(panelId) {
@@ -847,6 +1272,52 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     if (changed) {
       window.history.replaceState({}, "", nextUrl);
     }
+  }
+
+  function getActiveSharedRollingPeriodParamName() {
+    const activeSection = sectionFilterKey(state.sectionFilter);
+    if (activeSection === "bug") return "bug-trends-window";
+    if (activeSection === "dev-breakdown") return "pr-cycle-window";
+    if (activeSection === "dev-trends" || activeSection === "dev-ai") {
+      return "pr-activity-legacy-window";
+    }
+    return "";
+  }
+
+  function getSharedRollingPeriodFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const preferredName = getActiveSharedRollingPeriodParamName();
+    const orderedNames = [
+      preferredName,
+      ...SHARED_ROLLING_PERIOD_PARAM_NAMES.filter((name) => name !== preferredName)
+    ].filter(Boolean);
+    for (const name of orderedNames) {
+      if (params.has(name)) return sharedRollingPeriodKey(params.get(name));
+    }
+    return BUG_TRENDS_WINDOW_DEFAULT;
+  }
+
+  function syncSharedRollingPeriodUrl(periodKey) {
+    if (typeof window === "undefined" || !window.location || !window.history) return;
+    const nextUrl = new URL(window.location.href);
+    SHARED_ROLLING_PERIOD_PARAM_NAMES.forEach((name) => {
+      nextUrl.searchParams.set(name, periodKey);
+    });
+    window.history.replaceState({}, "", nextUrl);
+  }
+
+  function applySharedRollingPeriod(period) {
+    const periodKey = sharedRollingPeriodKey(period);
+    state.bugTrendsWindow = periodKey;
+    state.developmentWorkflowWindow = periodKey;
+    state.prCycleWindow = periodKey;
+    state.prActivityLegacyWindow = periodKey;
+    return periodKey;
+  }
+
+  function handleSharedRollingPeriodStateChange({ value }) {
+    applySharedRollingPeriod(value);
+    return true;
   }
 
   function buildIssueItemsSearchUrl(
@@ -1131,7 +1602,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     const lastDisplayDate = getSnapshotDisplayDate(lastPoint?.date || "");
     renderDashboardChartState("trend", getConfig, () => ({
       contextText: isPretextLayoutActive()
-        ? ""
+        ? formatContextWithFreshness("", state.snapshot?.updatedAt)
         : formatContextWithFreshness(
             viewKey === "table"
               ? firstDisplayDate && lastDisplayDate
@@ -1620,10 +2091,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     const yTicks = buildLegacyPrActivityTicks(yUpper);
     const displayedYTicks = yTicks.filter(
       (tick, index) =>
-        tick === 0 ||
-        tick === yTicks[yTicks.length - 1] ||
-        compactViewport ||
-        index % 2 === 0
+        tick === 0 || tick === yTicks[yTicks.length - 1] || compactViewport || index % 2 === 0
     );
     const visibleDefs = lineDefs.filter((lineDef) => !hiddenKeys.has(lineDef.dataKey));
     const visibleReferenceMarkers =
@@ -2013,16 +2481,16 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
                   }),
                   h(
                     "span",
-	                    { className: "ai-use-chart__tooltip", role: "tooltip" },
-	                    h(
-	                      "span",
-	                      { className: "ai-use-chart__tooltip-title" },
-	                      `${team.name} · ${dateLabel || bucket.date}`
-	                    ),
-	                    h("span", null, `${bucket.total} opened`),
-	                    h("span", null, `${bucket.ai} AI / ${nonAiCount} not AI`),
-	                    h("span", null, `${share}% AI`)
-	                  )
+                    { className: "ai-use-chart__tooltip", role: "tooltip" },
+                    h(
+                      "span",
+                      { className: "ai-use-chart__tooltip-title" },
+                      `${team.name} · ${dateLabel || bucket.date}`
+                    ),
+                    h("span", null, `${bucket.total} opened`),
+                    h("span", null, `${bucket.ai} AI / ${nonAiCount} not AI`),
+                    h("span", null, `${share}% AI`)
+                  )
                 );
               })
             ),
@@ -2048,7 +2516,8 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       const config = getConfig("pr-activity-legacy");
       const prActivity = getPrActivitySnapshot()?.prActivity;
       const windowKey = prActivityLegacyWindowKey(state.prActivityLegacyWindow);
-      const viewKey = prActivityLegacyViewKey(state.prActivityLegacyView);
+      const activitySection = sectionFilterKey(state.sectionFilter);
+      const viewKey = activitySection === "dev-ai" ? "ai" : "activity";
       state.prActivityLegacyWindow = windowKey;
       state.prActivityLegacyView = viewKey;
       syncControlValue("pr-activity-legacy-window", windowKey);
@@ -2081,6 +2550,10 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
         countTitle.textContent =
           viewKey === "ai" ? "PRs opened split by AI label" : "PRs opened by team";
       }
+      const panelTitle = document.getElementById("pr-activity-legacy-panel-title");
+      if (panelTitle) {
+        panelTitle.textContent = viewKey === "ai" ? "AI PRs" : "PR Volume";
+      }
       const countSubtitle = document.getElementById("pr-activity-legacy-count-subtitle");
       if (countSubtitle) {
         countSubtitle.textContent = viewKey === "ai" ? "AI label tracking" : "Team trend over time";
@@ -2088,7 +2561,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       setPanelContext(
         context,
         isPretextLayoutActive()
-          ? ""
+          ? formatContextWithFreshness("", prActivity?.updatedAt)
           : formatContextWithFreshness(
               compactViewport
                 ? `${trendWindow.windowLabel} ${sourceLabel} ${
@@ -2292,7 +2765,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       stateKey: "sectionFilter",
       defaultValue: SECTION_FILTER_DEFAULT,
       normalizeValue: sectionFilterKey,
-      onChangeRender: renderSectionFilteredPanelsAfterShell
+      onChangeRender: renderSectionSelectionChange
     },
     {
       name: "bug-trends-view",
@@ -2306,6 +2779,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       stateKey: "bugTrendsWindow",
       defaultValue: BUG_TRENDS_WINDOW_DEFAULT,
       normalizeValue: bugTrendsWindowKey,
+      onStateChange: handleSharedRollingPeriodStateChange,
       onChangeRender: renderBugTrendsPanel
     },
     {
@@ -2329,8 +2803,8 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       name: "pr-cycle-window",
       stateKey: "developmentWorkflowWindow",
       defaultValue: THIRTY_DAY_WINDOW_KEY,
-      normalizeValue: (value) =>
-        normalizeOption(value, DEVELOPMENT_WORKFLOW_WINDOWS, THIRTY_DAY_WINDOW_KEY),
+      normalizeValue: (value) => sharedRollingPeriodKey(value, THIRTY_DAY_WINDOW_KEY),
+      onStateChange: handleSharedRollingPeriodStateChange,
       onChangeRender: workflowPanels.renderWorkflowBreakdown
     },
     {
@@ -2344,7 +2818,8 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       name: "pr-activity-legacy-window",
       stateKey: "prActivityLegacyWindow",
       defaultValue: PR_ACTIVITY_LEGACY_WINDOW_DEFAULT,
-      normalizeValue: prActivityLegacyWindowKey,
+      normalizeValue: sharedRollingPeriodKey,
+      onStateChange: handleSharedRollingPeriodStateChange,
       onChangeRender: renderLegacyPrActivityCharts
     },
     {
@@ -2429,6 +2904,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     if (isChartActive(mode) && isChartReady(mode)) {
       const renderChart = CHART_RENDERERS[mode];
       if (typeof renderChart === "function") renderChart();
+      renderActivePanelFreshnessFooter();
     }
 
     if (queuedChartModes.size > 0) scheduleChartRenderFlush();
@@ -2501,6 +2977,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     const rawMode = getModeFromUrl();
     state.mode = normalizeDashboardMode(rawMode);
     readDashboardControlStateFromUrl(CONTROL_BINDINGS, state);
+    syncSharedRollingPeriodUrl(applySharedRollingPeriod(getSharedRollingPeriodFromUrl()));
     removeObsoleteDashboardUrlParams(["pr-activity-legacy-metric"]);
     if (!hasUrlParam("bug-trends-view")) {
       state.bugTrendsView = defaultBugTrendsViewForMode(rawMode);

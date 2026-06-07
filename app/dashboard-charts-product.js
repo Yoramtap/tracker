@@ -72,7 +72,9 @@
   }
 
   function normalizeProductCycleTeamKey(value) {
-    const raw = String(value || "").trim().toLowerCase();
+    const raw = String(value || "")
+      .trim()
+      .toLowerCase();
     if (!raw) return "";
     if (raw === "orchestration" || raw === "workers") return "workers";
     if (raw === "multi team" || raw === "multi-team" || raw === "multiteam") {
@@ -279,7 +281,9 @@
     if (points.length === 1) return `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
     if (points.length === 2) {
       return points
-        .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
+        .map(
+          (point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`
+        )
         .join(" ");
     }
 
@@ -338,10 +342,10 @@
     const lineDefs = trendLineDefs(colors);
     const compactViewport = isCompactViewport();
     const width = compactViewport ? Math.max(300, Math.min(960, viewportWidthPx(1024) - 32)) : 960;
-    const height = compactViewport ? 258 : 340;
+    const height = compactViewport ? 258 : 430;
     const margin = compactViewport
       ? { top: 14, right: 12, bottom: 42, left: 40 }
-      : { top: 20, right: 18, bottom: 60, left: 54 };
+      : { top: 24, right: 18, bottom: 64, left: 54 };
     const plotLeft = margin.left;
     const plotRight = width - margin.right;
     const plotTop = margin.top;
@@ -461,7 +465,10 @@
           }),
           ...rows.flatMap((row, index) => {
             const shouldRenderLabel =
-              !compactViewport || rows.length <= 5 || index % xLabelStride === 0 || index === rows.length - 1;
+              !compactViewport ||
+              rows.length <= 5 ||
+              index % xLabelStride === 0 ||
+              index === rows.length - 1;
             if (!shouldRenderLabel) return [];
             const x =
               rows.length <= 1
@@ -565,7 +572,12 @@
   }
 
   function buildBugTeamSearchUrl(teamKey) {
-    const jql = TEAM_BUG_JQL[String(teamKey || "").trim().toLowerCase()];
+    const jql =
+      TEAM_BUG_JQL[
+        String(teamKey || "")
+          .trim()
+          .toLowerCase()
+      ];
     if (!jql) return "";
     return buildJiraSearchUrl(
       "https://nepgroup.atlassian.net",
@@ -632,7 +644,11 @@
                   }
                 },
                 h("span", { className: "composition-table__change-label" }, label),
-                h("span", { className: "composition-table__change-value" }, formatSignedCount(change.delta))
+                h(
+                  "span",
+                  { className: "composition-table__change-value" },
+                  formatSignedCount(change.delta)
+                )
               )
             )
           )
@@ -652,7 +668,11 @@
             }`
           },
           h("span", { className: "composition-table__change-label" }, label),
-          h("span", { className: "composition-table__change-value" }, formatSignedCount(change.delta))
+          h(
+            "span",
+            { className: "composition-table__change-value" },
+            formatSignedCount(change.delta)
+          )
         )
       );
     }
@@ -676,24 +696,9 @@
             color: "rgba(31, 51, 71, 0.72)"
           }
         },
-        h(
-          "span",
-          null,
-          "Med ",
-          h("strong", null, formatPercent(mediumShare))
-        ),
-        h(
-          "span",
-          null,
-          "Low ",
-          h("strong", null, formatPercent(lowShare))
-        ),
-        h(
-          "span",
-          null,
-          "Lowest ",
-          h("strong", null, formatPercent(lowestShare))
-        )
+        h("span", null, "Med ", h("strong", null, formatPercent(mediumShare))),
+        h("span", null, "Low ", h("strong", null, formatPercent(lowShare))),
+        h("span", null, "Lowest ", h("strong", null, formatPercent(lowestShare)))
       );
     }
 
@@ -809,11 +814,7 @@
                 ...renderChangeItems(row)
               )
             ),
-            h(
-              "div",
-              { className: "composition-card__secondary" },
-              renderPrioritySummary(row)
-            )
+            h("div", { className: "composition-card__secondary" }, renderPrioritySummary(row))
           )
         )
       ),
@@ -831,18 +832,27 @@
               null,
               h(
                 "th",
-                { className: "composition-table__team-header composition-table__cell-divider", scope: "col" },
+                {
+                  className: "composition-table__team-header composition-table__cell-divider",
+                  scope: "col"
+                },
                 "Team"
               ),
               h(
                 "th",
-                { className: "composition-table__header composition-table__cell-divider", scope: "col" },
+                {
+                  className: "composition-table__header composition-table__cell-divider",
+                  scope: "col"
+                },
                 "Total"
               ),
               h("th", { className: "composition-table__header", scope: "col" }, "Highest"),
               h(
                 "th",
-                { className: "composition-table__header composition-table__cell-divider", scope: "col" },
+                {
+                  className: "composition-table__header composition-table__cell-divider",
+                  scope: "col"
+                },
                 "High"
               ),
               h("th", { className: "composition-table__header", scope: "col" }, "Change")
@@ -890,7 +900,8 @@
                 h(
                   "td",
                   {
-                    className: "composition-table__metric-cell composition-table__metric-cell--high composition-table__cell-divider",
+                    className:
+                      "composition-table__metric-cell composition-table__metric-cell--high composition-table__cell-divider",
                     "data-label": "High"
                   },
                   renderPriorityPrimary(row, "high")
@@ -944,10 +955,7 @@
       uatMonths: toNumber(row?.uatAvg) / 30.4375
     }));
     const maxMonths = Math.max(1, ...displayRows.map((row) => toNumber(row?.uatMonths)));
-    const totalSampleCount = displayRows.reduce(
-      (sum, row) => sum + toWhole(row?.sampleCount),
-      0
-    );
+    const totalSampleCount = displayRows.reduce((sum, row) => sum + toWhole(row?.sampleCount), 0);
     const safeSearchHref = sanitizeUtilityHref(searchHref);
 
     return h(
@@ -995,7 +1003,8 @@
               value: safeMonths === 0 ? "0" : safeMonths.toFixed(1),
               unit: Math.abs(safeMonths - 1) < 0.05 ? "month" : "months"
             };
-            const width = sampleCount > 0 ? Math.max(0, Math.round((uatMonths / maxMonths) * 100)) : 0;
+            const width =
+              sampleCount > 0 ? Math.max(0, Math.round((uatMonths / maxMonths) * 100)) : 0;
             return h(
               "div",
               {
@@ -1006,7 +1015,11 @@
               h(
                 "div",
                 { className: "pr-cycle-stage-row__label" },
-                h("span", { className: "pr-cycle-stage-row__label-text" }, String(row?.label || "")),
+                h(
+                  "span",
+                  { className: "pr-cycle-stage-row__label-text" },
+                  String(row?.label || "")
+                ),
                 h("span", { className: "pr-cycle-stage-row__sample" }, `n=${sampleCount}`)
               ),
               h(
@@ -1061,7 +1074,9 @@
       1,
       ...chartRows.map((row) => toNumber(row?.[primarySeries.key || primarySeries.dataKey]))
     );
-    const teamLabel = normalizeDisplayTeamName(primarySeries.team || primarySeries.name || "All teams");
+    const teamLabel = normalizeDisplayTeamName(
+      primarySeries.team || primarySeries.name || "All teams"
+    );
     const rowsMarkup = chartRows
       .map((row) => {
         const value = toNumber(row?.[primarySeries.key || primarySeries.dataKey]);
@@ -1073,7 +1088,9 @@
           rowClassName: "lifecycle-stage-row",
           trackClassName: "lifecycle-stage-row__track",
           fillClassName: "lifecycle-stage-row__fill",
-          stage: String(row?.phaseKey || row?.phaseLabel || "").trim().toLowerCase(),
+          stage: String(row?.phaseKey || row?.phaseLabel || "")
+            .trim()
+            .toLowerCase(),
           label: String(row?.phaseLabel || "").trim(),
           sampleMarkup:
             categorySecondaryLabels?.[String(row?.phaseLabel || "")] ||
@@ -1163,7 +1180,9 @@
       footerMarkup: `
         <div class="pr-cycle-stage-card__footer">
           <span><strong>${shippedCount} ${compactViewport ? "done" : "shipped"}</strong>${
-            ongoingCount > 0 ? ` • ${ongoingCount} ${compactViewport ? "open" : "still in cycle"}` : ""
+            ongoingCount > 0
+              ? ` • ${ongoingCount} ${compactViewport ? "open" : "still in cycle"}`
+              : ""
           }</span>
         </div>
       `
@@ -1188,7 +1207,9 @@
           width: cycleWidth,
           fillStyle: `background:${escapeHtml(teamColor)};`,
           valueMarkup: formatStackedCycleMonthsValueMarkup(row?.cycle),
-          valueFrameClassName: cycleAlertLevel ? `pr-cycle-stage-row__value-frame--${cycleAlertLevel}` : ""
+          valueFrameClassName: cycleAlertLevel
+            ? `pr-cycle-stage-row__value-frame--${cycleAlertLevel}`
+            : ""
         });
       })
       .join("");

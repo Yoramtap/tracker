@@ -158,6 +158,12 @@
       control.checked = Boolean(target) && control === target;
     });
     syncControlSelectionClasses(name, controlType);
+    if (name === "report-section" && target) {
+      const label = target.closest("label");
+      globalObject.requestAnimationFrame?.(() => {
+        label?.scrollIntoView({ block: "nearest", inline: "center" });
+      });
+    }
   }
 
   function syncRadioAvailability(name, allowedValues) {
@@ -230,20 +236,36 @@
 
   function bindDashboardControlState(bindings, state) {
     (Array.isArray(bindings) ? bindings : []).forEach(
-      ({ name, stateKey, normalizeValue, normalizeChecked, onChangeRender, controlType }) => {
+      ({
+        name,
+        stateKey,
+        normalizeValue,
+        normalizeChecked,
+        onStateChange,
+        onChangeRender,
+        controlType
+      }) => {
         const controls = getDashboardControlElements(name, controlType);
         if (controls.length === 0) return;
         controls.forEach((control) => {
           if (control.dataset.bound === "1") return;
           control.dataset.bound = "1";
           control.addEventListener("change", () => {
-            state[stateKey] = getBoundControlNextState({
+            const nextValue = getBoundControlNextState({
               control,
               controlType,
               normalizeValue,
               normalizeChecked
             });
-            syncControlSelectionClasses(name, controlType);
+            state[stateKey] = nextValue;
+            const shouldSyncAllControls =
+              typeof onStateChange === "function" &&
+              onStateChange({ control, name, state, stateKey, value: nextValue }) === true;
+            if (shouldSyncAllControls) {
+              syncDashboardControlsFromState(bindings, state);
+            } else {
+              syncControlSelectionClasses(name, controlType);
+            }
             syncDashboardUrlFromBindings(bindings, state);
             onChangeRender();
           });

@@ -18,14 +18,17 @@ const isLocalPreview = (() => {
 })();
 const DEVELOPMENT_ROUTE_VISIBLE_PANELS = [
   "actions-required-panel",
-  "development-workflow-breakdown-panel",
   "development-workflow-trends-panel"
 ];
-const PRODUCT_ROUTE_VISIBLE_PANELS = [
+const DEVELOPMENT_BREAKDOWN_ROUTE_VISIBLE_PANELS = [
   "actions-required-panel",
-  "uat-acceptance-time-panel",
+  "development-workflow-breakdown-panel"
+];
+const PRODUCT_DELIVERY_ROUTE_VISIBLE_PANELS = [
+  "actions-required-panel",
   "cycle-time-to-ship-panel"
 ];
+const UAT_ROUTE_VISIBLE_PANELS = ["actions-required-panel", "uat-acceptance-time-panel"];
 const BUG_ROUTE_VISIBLE_PANELS = ["actions-required-panel", "bug-trends-panel"];
 const DEFAULT_ROUTE_FORBIDDEN_RESOURCES = [
   "./app/dashboard-heavy-panels.html",
@@ -377,51 +380,43 @@ function assertDevelopmentRoute(snapshot) {
     `Development route visible panels changed: ${JSON.stringify(snapshot.visiblePanels)}`
   );
   assert(
-    snapshot.filledCharts >= 3,
-    `Development route should render at least 3 filled charts, saw ${snapshot.filledCharts}.`
+    snapshot.filledCharts >= 2,
+    `Development route should render at least 2 filled charts, saw ${snapshot.filledCharts}.`
   );
   assert(
     snapshot.statuses.length === 0,
     `Development route shows status errors: ${JSON.stringify(snapshot.statuses)}`
   );
   assert(snapshot.hasViewUtils === true, "Development route should load dashboard view utils.");
-  assertResourcesPresent(
-    snapshot,
-    ["./data/pr-activity-snapshot.json", "./data/pr-cycle-snapshot.json"],
-    "Development route"
-  );
+  assertResourcesPresent(snapshot, ["./data/pr-activity-snapshot.json"], "Development route");
   if (isLocalPreview) {
     assert(snapshot.hasAgentRoot === true, "Development route should mount localhost Agentation.");
   }
 }
 
-function assertProductRoute(snapshot) {
+function assertFocusedPanelRoute(snapshot, expectedVisiblePanels, expectedResources, label) {
   assert(
-    sameList(snapshot.visiblePanels, PRODUCT_ROUTE_VISIBLE_PANELS),
-    `Product route visible panels changed: ${JSON.stringify(snapshot.visiblePanels)}`
+    sameList(snapshot.visiblePanels, expectedVisiblePanels),
+    `${label} route visible panels changed: ${JSON.stringify(snapshot.visiblePanels)}`
   );
   assert(
-    snapshot.filledCharts >= 2,
-    `Product route should render at least 2 filled charts, saw ${snapshot.filledCharts}.`
+    snapshot.filledCharts >= 1,
+    `${label} route should render at least 1 filled chart, saw ${snapshot.filledCharts}.`
   );
   assert(
     snapshot.statuses.length === 0,
-    `Product route shows status errors: ${JSON.stringify(snapshot.statuses)}`
+    `${label} route shows status errors: ${JSON.stringify(snapshot.statuses)}`
   );
-  assert(snapshot.hasViewUtils === true, "Product route should load dashboard view utils.");
-  assertResourcesPresent(
-    snapshot,
-    ["./data/management-facility-snapshot.json", "./data/product-cycle-snapshot.json"],
-    "Product route"
-  );
+  assert(snapshot.hasViewUtils === true, `${label} route should load dashboard view utils.`);
+  assertResourcesPresent(snapshot, expectedResources, `${label} route`);
   const unexpectedResources = getResourceNameSet(snapshot);
   assert(
     !unexpectedResources.has("./vendor/prop-types.min.js") &&
       !unexpectedResources.has("./vendor/recharts.umd.js"),
-    `Product route should not fetch legacy Recharts assets: ${JSON.stringify(snapshot.resourceNames)}`
+    `${label} route should not fetch legacy Recharts assets: ${JSON.stringify(snapshot.resourceNames)}`
   );
   if (isLocalPreview) {
-    assert(snapshot.hasAgentRoot === true, "Product route should mount localhost Agentation.");
+    assert(snapshot.hasAgentRoot === true, `${label} route should mount localhost Agentation.`);
   }
 }
 
@@ -630,6 +625,9 @@ function readUtilityStats(selector) {
       primaryMetaCount: Array.from(
         root?.querySelectorAll(".dashboard-utility-layout__meta-bit--primary") || []
       ).length,
+      statLinkCount: Array.from(
+        root?.querySelectorAll(".dashboard-utility-layout__stat-link[href]") || []
+      ).length,
       metaLinkCount: Array.from(
         root?.querySelectorAll(
           ".dashboard-utility-layout__meta-bit--link[href], .dashboard-utility-layout__label-meta--link[href], .dashboard-utility-layout__value-meta--link[href]"
@@ -647,7 +645,9 @@ function assertUtilityStats({
   valuePattern,
   minRows = 1,
   minPrimaryMetaCount = 0,
-  minMetaLinkCount = 0
+  minMetaLinkCount = 0,
+  maxMetaLinkCount = null,
+  minStatLinkCount = 0
 }) {
   const state = readUtilityStats(selector);
   assert(state.hasRoot === true, `${description} utility stats root was not found.`);
@@ -679,6 +679,16 @@ function assertUtilityStats({
     state.metaLinkCount >= minMetaLinkCount,
     `${description} should link row metadata, saw ${state.metaLinkCount} metadata links.`
   );
+  if (maxMetaLinkCount !== null) {
+    assert(
+      state.metaLinkCount <= maxMetaLinkCount,
+      `${description} should not exceed ${maxMetaLinkCount} row metadata links, saw ${state.metaLinkCount}.`
+    );
+  }
+  assert(
+    state.statLinkCount >= minStatLinkCount,
+    `${description} should link utility stats, saw ${state.statLinkCount} stat links.`
+  );
   return state;
 }
 
@@ -700,11 +710,13 @@ async function assertSectionControlSwitch({
   expectedVisiblePanels,
   name,
   value,
-  description
+  description,
+  extraSearch = ""
 }) {
+  const extraQuery = String(extraSearch || "").trim();
   await captureRouteSnapshot({
     description: `${description} route`,
-    url: `${rootUrl}/?report-section=${section}`,
+    url: `${rootUrl}/?report-section=${section}${extraQuery ? `&${extraQuery}` : ""}`,
     predicate(snapshot) {
       return (
         sameList(snapshot.visiblePanels, expectedVisiblePanels) &&
@@ -767,49 +779,88 @@ async function main() {
     expectedLabels: ["Included issues", "Top contributor", "Active", "Done"],
     primaryLabel: "Done",
     valuePattern: /^\d+$/,
-    minMetaLinkCount: 1
+    maxMetaLinkCount: 0,
+    minStatLinkCount: 2
   });
 
   const developmentSnapshot = await enrichSnapshotWithLocalResourceStats(
     await captureRouteSnapshot({
       description: "Development section route",
-      url: `${rootUrl}/?report-section=development`,
+      url: `${rootUrl}/?report-section=dev-trends`,
       predicate(snapshot) {
         return (
-          snapshot.filledCharts >= 3 &&
+          snapshot.filledCharts >= 2 &&
           snapshot.statuses.length === 0 &&
           snapshot.hasViewUtils === true &&
           sameList(snapshot.visiblePanels, DEVELOPMENT_ROUTE_VISIBLE_PANELS) &&
           hasHeavyPanelShellResource(snapshot) &&
           hasResource(snapshot, "./data/pr-activity-snapshot.json") &&
-          hasResource(snapshot, "./data/pr-cycle-snapshot.json") &&
           (!isLocalPreview || snapshot.hasAgentRoot === true)
         );
       }
     })
   );
   assertDevelopmentRoute(developmentSnapshot);
-  const workflowBreakdownInflow = verifyWorkflowBreakdownInflowLabels();
-
-  const productSnapshot = await enrichSnapshotWithLocalResourceStats(
+  const developmentAiSnapshot = await enrichSnapshotWithLocalResourceStats(
     await captureRouteSnapshot({
-      description: "Product section route",
-      url: `${rootUrl}/?report-section=product`,
+      description: "Development AI use section route",
+      url: `${rootUrl}/?report-section=dev-ai`,
       predicate(snapshot) {
         return (
-          snapshot.filledCharts >= 2 &&
+          snapshot.filledCharts >= 1 &&
           snapshot.statuses.length === 0 &&
           snapshot.hasViewUtils === true &&
-          sameList(snapshot.visiblePanels, PRODUCT_ROUTE_VISIBLE_PANELS) &&
+          sameList(snapshot.visiblePanels, DEVELOPMENT_ROUTE_VISIBLE_PANELS) &&
           hasHeavyPanelShellResource(snapshot) &&
-          hasResource(snapshot, "./data/management-facility-snapshot.json") &&
-          hasResource(snapshot, "./data/product-cycle-snapshot.json") &&
+          hasResource(snapshot, "./data/pr-activity-snapshot.json") &&
           (!isLocalPreview || snapshot.hasAgentRoot === true)
         );
       }
     })
   );
-  assertProductRoute(productSnapshot);
+  assertFocusedPanelRoute(
+    developmentAiSnapshot,
+    DEVELOPMENT_ROUTE_VISIBLE_PANELS,
+    ["./data/pr-activity-snapshot.json"],
+    "Development AI use"
+  );
+  await captureRouteSnapshot({
+    description: "Development breakdown panel route",
+    url: `${rootUrl}/?report-section=dev-breakdown`,
+    predicate(snapshot) {
+      return (
+        snapshot.filledCharts >= 1 &&
+        snapshot.statuses.length === 0 &&
+        sameList(snapshot.visiblePanels, DEVELOPMENT_BREAKDOWN_ROUTE_VISIBLE_PANELS) &&
+        hasHeavyPanelShellResource(snapshot)
+      );
+    }
+  });
+  const workflowBreakdownInflow = verifyWorkflowBreakdownInflowLabels();
+
+  const uatSnapshot = await enrichSnapshotWithLocalResourceStats(
+    await captureRouteSnapshot({
+      description: "UAT section route",
+      url: `${rootUrl}/?report-section=uat`,
+      predicate(snapshot) {
+        return (
+          snapshot.filledCharts >= 1 &&
+          snapshot.statuses.length === 0 &&
+          snapshot.hasViewUtils === true &&
+          sameList(snapshot.visiblePanels, UAT_ROUTE_VISIBLE_PANELS) &&
+          hasHeavyPanelShellResource(snapshot) &&
+          hasResource(snapshot, "./data/management-facility-snapshot.json") &&
+          (!isLocalPreview || snapshot.hasAgentRoot === true)
+        );
+      }
+    })
+  );
+  assertFocusedPanelRoute(
+    uatSnapshot,
+    UAT_ROUTE_VISIBLE_PANELS,
+    ["./data/management-facility-snapshot.json"],
+    "UAT"
+  );
   assertUtilityStats({
     description: "UAT acceptance panel",
     selector: "#development-vs-uat-by-facility-chart",
@@ -817,6 +868,29 @@ async function main() {
     primaryLabel: "UAT average",
     valuePattern: /months?$/
   });
+  const productSnapshot = await enrichSnapshotWithLocalResourceStats(
+    await captureRouteSnapshot({
+      description: "Product delivery section route",
+      url: `${rootUrl}/?report-section=product-delivery`,
+      predicate(snapshot) {
+        return (
+          snapshot.filledCharts >= 1 &&
+          snapshot.statuses.length === 0 &&
+          snapshot.hasViewUtils === true &&
+          sameList(snapshot.visiblePanels, PRODUCT_DELIVERY_ROUTE_VISIBLE_PANELS) &&
+          hasHeavyPanelShellResource(snapshot) &&
+          hasResource(snapshot, "./data/product-cycle-snapshot.json") &&
+          (!isLocalPreview || snapshot.hasAgentRoot === true)
+        );
+      }
+    })
+  );
+  assertFocusedPanelRoute(
+    productSnapshot,
+    PRODUCT_DELIVERY_ROUTE_VISIBLE_PANELS,
+    ["./data/product-cycle-snapshot.json"],
+    "Product delivery"
+  );
   assertUtilityStats({
     description: "Product delivery panel",
     selector: "#cycle-time-parking-lot-to-done-chart",
@@ -828,22 +902,26 @@ async function main() {
   const productWorkflowSnapshot = await enrichSnapshotWithLocalResourceStats(
     await captureRouteSnapshot({
       description: "Product workflow section route",
-      url: `${rootUrl}/?report-section=product&product-delivery-workflow-view=workflow`,
+      url: `${rootUrl}/?report-section=product-delivery&product-delivery-workflow-view=workflow`,
       predicate(snapshot) {
         return (
-          snapshot.filledCharts >= 2 &&
+          snapshot.filledCharts >= 1 &&
           snapshot.statuses.length === 0 &&
           snapshot.hasViewUtils === true &&
-          sameList(snapshot.visiblePanels, PRODUCT_ROUTE_VISIBLE_PANELS) &&
+          sameList(snapshot.visiblePanels, PRODUCT_DELIVERY_ROUTE_VISIBLE_PANELS) &&
           hasHeavyPanelShellResource(snapshot) &&
-          hasResource(snapshot, "./data/management-facility-snapshot.json") &&
           hasResource(snapshot, "./data/product-cycle-snapshot.json") &&
           (!isLocalPreview || snapshot.hasAgentRoot === true)
         );
       }
     })
   );
-  assertProductRoute(productWorkflowSnapshot);
+  assertFocusedPanelRoute(
+    productWorkflowSnapshot,
+    PRODUCT_DELIVERY_ROUTE_VISIBLE_PANELS,
+    ["./data/product-cycle-snapshot.json"],
+    "Product workflow"
+  );
   assertUtilityStats({
     description: "Product workflow panel",
     selector: "#cycle-time-parking-lot-to-done-chart",
@@ -953,36 +1031,36 @@ async function main() {
     description: "Bug trends 90d window"
   });
   await assertSectionControlSwitch({
-    section: "product",
-    expectedVisiblePanels: PRODUCT_ROUTE_VISIBLE_PANELS,
+    section: "uat",
+    expectedVisiblePanels: UAT_ROUTE_VISIBLE_PANELS,
     name: "management-facility-flow-scope",
     value: "done",
     description: "Completed management-vs-UAT scope"
   });
   await assertSectionControlSwitch({
-    section: "development",
-    expectedVisiblePanels: DEVELOPMENT_ROUTE_VISIBLE_PANELS,
+    section: "dev-breakdown",
+    expectedVisiblePanels: DEVELOPMENT_BREAKDOWN_ROUTE_VISIBLE_PANELS,
     name: "pr-cycle-window",
     value: "1y",
     description: "Workflow breakdown 1y window"
   });
   await assertSectionControlSwitch({
-    section: "development",
-    expectedVisiblePanels: DEVELOPMENT_ROUTE_VISIBLE_PANELS,
-    name: "pr-activity-legacy-view",
-    value: "ai",
-    description: "Development PR activity AI split view"
-  });
-  await assertSectionControlSwitch({
-    section: "development",
+    section: "dev-ai",
     expectedVisiblePanels: DEVELOPMENT_ROUTE_VISIBLE_PANELS,
     name: "pr-activity-legacy-window",
-    value: "2y",
-    description: "Development PR activity 2y window"
+    value: "1y",
+    description: "Development AI use 1y window"
   });
   await assertSectionControlSwitch({
-    section: "product",
-    expectedVisiblePanels: PRODUCT_ROUTE_VISIBLE_PANELS,
+    section: "dev-trends",
+    expectedVisiblePanels: DEVELOPMENT_ROUTE_VISIBLE_PANELS,
+    name: "pr-activity-legacy-window",
+    value: "1y",
+    description: "Development PR activity 1y window"
+  });
+  await assertSectionControlSwitch({
+    section: "product-delivery",
+    expectedVisiblePanels: PRODUCT_DELIVERY_ROUTE_VISIBLE_PANELS,
     name: "product-delivery-workflow-view",
     value: "workflow",
     description: "Product delivery workflow view"
@@ -991,6 +1069,7 @@ async function main() {
   console.log("Dashboard smoke passed.");
   console.log(`- default: ${JSON.stringify(defaultSnapshot)}`);
   console.log(`- development: ${JSON.stringify(developmentSnapshot)}`);
+  console.log(`- uat: ${JSON.stringify(uatSnapshot)}`);
   console.log(`- product: ${JSON.stringify(productSnapshot)}`);
   console.log(`- bug: ${JSON.stringify(bugSnapshot)}`);
   console.log(`- pr: ${JSON.stringify(prSnapshot)}`);

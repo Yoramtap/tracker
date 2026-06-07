@@ -27,25 +27,33 @@
     [
       {
         value: "community",
-        label: "Community",
-        icon: getSourcePath("assets", "icons/share-3735079.png")
+        label: "Community"
       },
       {
         value: "shipped",
-        label: "Shipped",
-        icon: getSourcePath("assets", "icons/bookmark-3735089.png")
+        label: "Shipped"
       },
       {
-        value: "product",
-        label: "Product",
-        icon: getSourcePath("assets", "icons/chart-3735080.png")
+        value: "product-delivery",
+        label: "Delivery"
       },
       {
-        value: "development",
-        label: "Development",
-        icon: getSourcePath("assets", "icons/chart-3735080.png")
+        value: "uat",
+        label: "UAT"
       },
-      { value: "bug", label: "Bugs", icon: getSourcePath("assets", "icons/search-3735055.png") }
+      {
+        value: "dev-trends",
+        label: "PR Volume"
+      },
+      {
+        value: "dev-ai",
+        label: "AI PRs"
+      },
+      {
+        value: "dev-breakdown",
+        label: "Dev Throughput"
+      },
+      { value: "bug", label: "Bugs" }
     ].map((item) => Object.freeze(item))
   );
   const SECTION_FILTER_VALUES = new Set(SECTION_FILTER_ITEMS.map(({ value }) => value));
@@ -54,6 +62,13 @@
     const section = String(value || "")
       .trim()
       .toLowerCase();
+    if (section === "product") return "product-delivery";
+    if (section === "management" || section === "management-facility") return "uat";
+    if (section === "development" || section === "pr-activity") return "dev-trends";
+    if (section === "ai-use" || section === "dev-ai" || section === "pr-activity-ai") {
+      return "dev-ai";
+    }
+    if (section === "workflow-breakdown" || section === "pr-cycle") return "dev-breakdown";
     return SECTION_FILTER_VALUES.has(section) ? section : DEFAULT_SECTION;
   }
 
@@ -109,8 +124,11 @@
       const desiredSourceKeysBySection = {
         community: ["contributors"],
         shipped: ["productCycleShipments"],
-        product: ["managementFacility", "productCycle"],
-        development: ["prActivity", "prCycle"],
+        "product-delivery": ["productCycle"],
+        uat: ["managementFacility"],
+        "dev-trends": ["prActivity"],
+        "dev-ai": ["prActivity"],
+        "dev-breakdown": ["prCycle"],
         bug: ["snapshot"]
       };
       const desiredSourceKeys =

@@ -28,7 +28,9 @@
   });
 
   function normalizeProductCycleTeamKey(value) {
-    const raw = String(value || "").trim().toLowerCase();
+    const raw = String(value || "")
+      .trim()
+      .toLowerCase();
     if (!raw) return "";
     if (raw === "orchestration" || raw === "workers") return "workers";
     if (raw === "multi team" || raw === "multi-team" || raw === "multiteam") {
@@ -124,7 +126,8 @@
     containerId,
     timelineSnapshot,
     selectedYear,
-    selectedMonthKey
+    selectedMonthKey,
+    showControls = true
   }) {
     const container = document.getElementById(containerId);
     if (!container) return false;
@@ -137,7 +140,11 @@
     const years = Array.from(
       new Set(
         months
-          .map((month) => String(month?.monthKey || "").trim().slice(0, 4))
+          .map((month) =>
+            String(month?.monthKey || "")
+              .trim()
+              .slice(0, 4)
+          )
           .filter((year) => /^\d{4}$/.test(year))
       )
     ).sort((left, right) => left.localeCompare(right));
@@ -145,8 +152,14 @@
       ? String(selectedYear || "").trim()
       : years[years.length - 1];
     const monthsInYear = months
-      .filter((month) => String(month?.monthKey || "").trim().startsWith(`${activeYear}-`))
-      .sort((left, right) => String(left?.monthKey || "").localeCompare(String(right?.monthKey || "")));
+      .filter((month) =>
+        String(month?.monthKey || "")
+          .trim()
+          .startsWith(`${activeYear}-`)
+      )
+      .sort((left, right) =>
+        String(left?.monthKey || "").localeCompare(String(right?.monthKey || ""))
+      );
     const selectedMonth =
       monthsInYear.find(
         (month) => String(month?.monthKey || "").trim() === String(selectedMonthKey || "").trim()
@@ -240,10 +253,8 @@
         <span>This month is on the timeline, but nothing hit Done in the tracked product cycle.</span>
       </div>
     `;
-
-    container.innerHTML = `
-      <div class="product-cycle-shipments">
-        <div class="shipped-timeline">
+    const controlsMarkup = showControls
+      ? `
           <div class="shipped-timeline__controls">
             <div class="shipped-timeline__selector">
               <div class="shipped-timeline__year-switch" aria-label="Shipment year">
@@ -272,6 +283,13 @@
               </div>
             </div>
           </div>
+        `
+      : "";
+
+    container.innerHTML = `
+      <div class="product-cycle-shipments">
+        <div class="shipped-timeline">
+          ${controlsMarkup}
           <section class="shipped-timeline__detail" aria-label="${escapeHtml(
             formatShipmentMonthLabel(String(selectedMonth?.monthStart || "").trim())
           )} shipped ideas">

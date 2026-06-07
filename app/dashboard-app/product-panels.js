@@ -10,10 +10,7 @@ export function createProductPanels(deps) {
       LIFECYCLE_TEAM_SCOPE_DEFAULT
     },
     accessors: { getConfig },
-    ui: {
-      getDashboardPretextLayout,
-      isPretextLayoutActive
-    },
+    ui: { getDashboardPretextLayout, isPretextLayoutActive },
     helpers: {
       buildTeamColorMap,
       buildTintMap,
@@ -372,7 +369,6 @@ export function createProductPanels(deps) {
       ],
       columnStartLabel: "Stage",
       columnEndLabel: "Avg time",
-      footerBits: ["Open ideas by stage"],
       rows: displayRows.map((row) => ({
         label: String(row?.phaseLabel || "").trim(),
         metaBits: [],
@@ -408,10 +404,7 @@ export function createProductPanels(deps) {
       return String(left?.team || "").localeCompare(String(right?.team || ""));
     });
     const shippedCount = rankedRows.reduce((sum, row) => sum + toCount(row?.cycleDoneCount), 0);
-    const ongoingCount = rankedRows.reduce(
-      (sum, row) => sum + toCount(row?.cycleOngoingCount),
-      0
-    );
+    const ongoingCount = rankedRows.reduce((sum, row) => sum + toCount(row?.cycleOngoingCount), 0);
 
     return {
       teamKey: ALL_TEAM_SCOPE_KEY,
@@ -440,7 +433,8 @@ export function createProductPanels(deps) {
           labelMeta: [],
           metaBits: [],
           valueText: formatCycleMonthsText(row?.cycle, { short: true }),
-          valueMetaText: doneCount > 0 ? `${doneCount} ${doneCount === 1 ? "idea" : "ideas"} shipped` : "",
+          valueMetaText:
+            doneCount > 0 ? `${doneCount} ${doneCount === 1 ? "idea" : "ideas"} shipped` : "",
           width: Math.max(12, Math.round((toNumber(row?.cycle) / maxCycleDays) * 100)),
           color: getPrCycleTeamColor(row?.team)
         };
@@ -481,7 +475,6 @@ export function createProductPanels(deps) {
           label: "Delivery time",
           metaBits: [],
           valueText: formatCycleMonthsText(row?.cycle, { short: true }),
-          valueMetaText: formatCountLabel(cycleSample, "idea"),
           width: getPretextFillWidth(row?.cycle, maxCycleDays),
           color: teamColor
         },
@@ -489,7 +482,6 @@ export function createProductPanels(deps) {
           label: "Shipped",
           metaBits: [],
           valueText: String(shippedCount),
-          valueMetaText: "completed ideas",
           width: getPretextFillWidth(shippedCount, maxShipped),
           color: teamColor
         },
@@ -497,7 +489,6 @@ export function createProductPanels(deps) {
           label: "Ongoing",
           metaBits: [],
           valueText: String(ongoingCount),
-          valueMetaText: "ongoing ideas",
           width: getPretextFillWidth(ongoingCount, maxOngoing),
           color: teamColor
         }
@@ -576,7 +567,7 @@ export function createProductPanels(deps) {
         normalizeValue: normalizeTeamValue,
         onChangeRender,
         contextText: isPretextLayoutActive()
-          ? ""
+          ? formatContextWithFreshness("", state.productCycleShipments?.generatedAt)
           : formatContextWithFreshness(
               `${filteredView.selectionLabel} • ${formatCountLabel(
                 sampleSize,
@@ -689,7 +680,7 @@ export function createProductPanels(deps) {
           value: key,
           label:
             key === "all"
-              ? formatCompactTeamTabLabel("all")
+              ? "All"
               : formatCompactTeamTabLabel(
                   teams.find((team) => productCycleTeamKey(team) === key) || key
                 )
@@ -699,7 +690,7 @@ export function createProductPanels(deps) {
         normalizeValue: productCycleTeamKey,
         onChangeRender,
         contextText: isPretextLayoutActive()
-          ? ""
+          ? formatContextWithFreshness("", state.productCycle?.generatedAt)
           : formatContextWithFreshness(
               selectedTeamKey === "all"
                 ? fetchedCount > 0
@@ -788,6 +779,40 @@ export function createProductPanels(deps) {
     return monthsByYear;
   }
 
+  function resolveShipmentTimelineSelection(timelineSnapshot, selectedYear, selectedMonthKey) {
+    const monthsByYear = getShipmentMonthsByYear(timelineSnapshot);
+    const availableYears = Array.from(monthsByYear.keys()).sort((left, right) =>
+      left.localeCompare(right)
+    );
+    if (availableYears.length === 0) {
+      return {
+        availableYears,
+        monthsByYear,
+        selectedYear: "",
+        monthsInYear: [],
+        selectedMonthKey: ""
+      };
+    }
+    const resolvedYear = availableYears.includes(String(selectedYear || "").trim())
+      ? String(selectedYear || "").trim()
+      : availableYears[availableYears.length - 1];
+    const monthsInYear = monthsByYear.get(resolvedYear) || [];
+    const availableMonthKeys = new Set(
+      monthsInYear.map((month) => String(month?.monthKey || "").trim()).filter(Boolean)
+    );
+    const resolvedMonthKey = availableMonthKeys.has(String(selectedMonthKey || "").trim())
+      ? String(selectedMonthKey || "").trim()
+      : String(monthsInYear[monthsInYear.length - 1]?.monthKey || "").trim();
+
+    return {
+      availableYears,
+      monthsByYear,
+      selectedYear: resolvedYear,
+      monthsInYear,
+      selectedMonthKey: resolvedMonthKey
+    };
+  }
+
   function buildShipmentTimelineLeadModel(timelineSnapshot, selectedYear, selectedMonthKey) {
     const monthsByYear = getShipmentMonthsByYear(timelineSnapshot);
     const months = monthsByYear.get(selectedYear) || [];
@@ -859,9 +884,10 @@ export function createProductPanels(deps) {
   function renderProductCycleShipmentsTimeline() {
     renderDashboardChartState("product-cycle-shipments", getConfig, ({ config }) => {
       const timelineSnapshot = state.productCycleShipments?.chartData?.shippedTimeline;
-      const monthsByYear = getShipmentMonthsByYear(timelineSnapshot);
-      const availableYears = Array.from(monthsByYear.keys()).sort((left, right) =>
-        left.localeCompare(right)
+      const { availableYears, selectedYear, selectedMonthKey } = resolveShipmentTimelineSelection(
+        timelineSnapshot,
+        state.productCycleShipmentsYear,
+        state.productCycleShipmentsMonthKey
       );
       if (availableYears.length === 0) {
         clearPanelLead(config.panelId);
@@ -872,23 +898,12 @@ export function createProductPanels(deps) {
         };
       }
 
-      const selectedYear = availableYears.includes(state.productCycleShipmentsYear)
-        ? state.productCycleShipmentsYear
-        : availableYears[availableYears.length - 1];
-      const monthsInYear = monthsByYear.get(selectedYear) || [];
-      const availableMonthKeys = new Set(
-        monthsInYear.map((month) => String(month?.monthKey || "").trim()).filter(Boolean)
-      );
-      const selectedMonthKey = availableMonthKeys.has(state.productCycleShipmentsMonthKey)
-        ? state.productCycleShipmentsMonthKey
-        : String(monthsInYear[monthsInYear.length - 1]?.monthKey || "").trim();
-
       state.productCycleShipmentsYear = selectedYear;
       state.productCycleShipmentsMonthKey = selectedMonthKey;
 
       return {
         contextText: isPretextLayoutActive()
-          ? ""
+          ? formatContextWithFreshness("", state.productCycle?.generatedAt)
           : formatContextWithFreshness(
               `Shipment history • ${toCount(timelineSnapshot?.totalShipped)} shipped total • ${availableYears.join(", ")}`,
               state.productCycleShipments?.generatedAt,
@@ -912,7 +927,8 @@ export function createProductPanels(deps) {
             containerId: config.containerId,
             timelineSnapshot,
             selectedYear,
-            selectedMonthKey
+            selectedMonthKey,
+            showControls: false
           });
           const container = document.getElementById(config.containerId);
           if (container) {
@@ -949,6 +965,11 @@ export function createProductPanels(deps) {
     const viewKey = state.productDeliveryWorkflowView === "workflow" ? "workflow" : "delivery";
     state.productDeliveryWorkflowView = viewKey;
     syncControlValue("product-delivery-workflow-view", viewKey);
+    const teamSwitchContainerId =
+      document.getElementById("product-cycle-team-switch") ||
+      !document.getElementById("product-cycle-team-switch-panel")
+        ? "product-cycle-team-switch"
+        : "product-cycle-team-switch-panel";
 
     const chartDataValue = state.productCycle?.chartData;
     const chartData = chartDataValue && typeof chartDataValue === "object" ? chartDataValue : null;
@@ -971,7 +992,7 @@ export function createProductPanels(deps) {
       }
       renderLifecycleTimeSpentPerStageChartFromChartData(chartSnapshotData, {
         configKey: "product-cycle",
-        teamSwitchContainerId: "product-cycle-team-switch",
+        teamSwitchContainerId,
         teamControlName: "product-cycle-team",
         teamStateKey: "productCycleTeam",
         normalizeTeamValue: productCycleTeamKey,
@@ -991,7 +1012,7 @@ export function createProductPanels(deps) {
 
     renderLeadAndCycleTimeByTeamChartFromChartData(chartScopeData, {
       configKey: "product-cycle",
-      teamSwitchContainerId: "product-cycle-team-switch",
+      teamSwitchContainerId,
       teamControlName: "product-cycle-team",
       teamStateKey: "productCycleTeam",
       onChangeRender: renderLeadAndCycleTimeByTeamChart
@@ -1002,6 +1023,7 @@ export function createProductPanels(deps) {
     orderProductCycleTeamsForDisplay,
     productCycleTeamKey,
     renderLeadAndCycleTimeByTeamChart,
-    renderProductCycleShipmentsTimeline
+    renderProductCycleShipmentsTimeline,
+    resolveShipmentTimelineSelection
   };
 }

@@ -27,7 +27,7 @@
   const getVersionedSourcePath = (rootKey, relativePath, version) =>
     dashboardRuntimeContract.getVersionedSourcePath(rootKey, relativePath, version);
   const BASE_HEAVY_SCRIPT_SOURCES = [
-    getVersionedSourcePath("runtime", "dashboard-view-utils.js", "local2"),
+    getVersionedSourcePath("runtime", "dashboard-view-utils.js", "local4"),
     getSourcePath("vendor", "react.production.min.js"),
     getSourcePath("vendor", "react-dom.production.min.js"),
     getSourcePath("runtime", "dashboard-chart-core.js"),
@@ -36,22 +36,22 @@
   const DASHBOARD_APP_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-app.js",
-    "local93"
+    "local122"
   );
   const SHIPPED_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-charts-shipped.js",
-    "local2"
+    "local3"
   );
   const PRODUCT_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-charts-product.js",
-    "local11"
+    "local12"
   );
   const FULL_HEAVY_PANEL_SHELL_SRC = getVersionedSourcePath(
     "app",
     "dashboard-heavy-panels.html",
-    "local33"
+    "local38"
   );
   const LOCAL_AGENTATION_LOADER_SRC = getVersionedSourcePath(
     "dev",
@@ -225,23 +225,20 @@
     );
   }
 
-  function renderSectionFilterIcon(iconPath) {
-    if (!iconPath) {
-      return '<span class="report-intro__icon report-intro__icon--empty" aria-hidden="true"></span>';
-    }
-    return `<span class="report-intro__icon" aria-hidden="true"><img class="report-intro__icon-image" src="${escapeHtml(iconPath)}" alt="" width="16" height="16" /></span>`;
-  }
-
   function renderSectionFilterMarkup(selectedValue) {
+    const renderTitleMarkup = (value, label) => `
+      <span class="report-intro__title">${escapeHtml(label)}</span>${
+        value === "dev-ai" ? '<span class="report-intro__badge">Beta</span>' : ""
+      }
+    `;
     return SECTION_FILTER_ITEMS.map(
-      ({ value, label, icon }) => `
+      ({ value, label }) => `
         <label class="report-intro__card report-intro__card--${escapeHtml(value)}">
           <input type="radio" name="report-section" value="${escapeHtml(value)}"${
             value === selectedValue ? " checked" : ""
           } />
           <span class="report-intro__label">
-            ${renderSectionFilterIcon(icon)}
-            <span class="report-intro__title">${escapeHtml(label)}</span>
+            ${renderTitleMarkup(value, label)}
           </span>
         </label>
       `
@@ -266,18 +263,20 @@
             ${renderSectionFilterMarkup(bootstrapState.sectionFilter)}
           </fieldset>
         </div>
+        <div class="development-page-toolbar page-context-toolbar" aria-label="Community contributions controls">
+          <div class="development-page-toolbar__header">
+            <div class="development-page-toolbar__copy">
+              <h3>Community contributions</h3>
+              <p class="development-page-toolbar__digest">
+                See how much technical work our community is contributing.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     `;
     syncControlValue("report-section", bootstrapState.sectionFilter);
-    setPanelContext(
-      contextNode,
-      formatContextWithFreshness(
-        "",
-        bootstrapState.primarySnapshot?.updatedAt ||
-          bootstrapState.contributorsSnapshot?.updatedAt ||
-          ""
-      )
-    );
+    setPanelContext(contextNode, "");
     statusNode.hidden = true;
   }
 
@@ -330,12 +329,6 @@
     }
   }
 
-  function quoteJqlValue(value) {
-    return `"${String(value || "")
-      .replace(/\\/g, "\\\\")
-      .replace(/"/g, '\\"')}"`;
-  }
-
   function buildJiraSearchUrl(jql) {
     const url = new URL("https://nepgroup.atlassian.net/issues/");
     url.searchParams.set("jql", jql);
@@ -346,16 +339,14 @@
     return String(source?.jql || "").trim() || 'project = "TFC" AND labels = "Contributors"';
   }
 
-  function buildContributorActiveHref(contributor, source) {
-    const contributorName = String(contributor || "").trim();
-    if (!contributorName) return "";
-    const activeJql = [
-      getContributorsBaseJql(source),
-      `assignee = ${quoteJqlValue(contributorName)}`,
-      "statusCategory != Done",
-      'status != "Duplicate"'
-    ].join(" AND ");
-    return buildJiraSearchUrl(`${activeJql} ORDER BY updated DESC`);
+  function buildContributorsScopeHref(source, scope) {
+    const scopeJqlParts =
+      scope === "done"
+        ? ["statusCategory = Done", 'status != "Duplicate"']
+        : ["statusCategory != Done", 'status != "Duplicate"'];
+    return buildJiraSearchUrl(
+      `${getContributorsBaseJql(source)} AND ${scopeJqlParts.join(" AND ")} ORDER BY updated DESC`
+    );
   }
 
   function summarizeContributorRows(rows) {
@@ -385,25 +376,28 @@
           label: "Top contributor",
           value: String(topContributor?.contributor || "").trim() || "None"
         },
-        { label: "Active", value: `${toCount(summary?.activeIssues)}` },
+        {
+          label: "Active",
+          value: `${toCount(summary?.activeIssues)}`,
+          href: buildContributorsScopeHref(source, "active")
+        },
         {
           label: "Done",
           value: `${toCount(summary?.doneIssues)}`,
+          href: buildContributorsScopeHref(source, "done"),
           className: "dashboard-utility-layout__stat--primary"
         }
       ],
       rows: safeRows.map((row) => {
         const done = toCount(row?.doneIssues);
         const active = toCount(row?.activeIssues);
-        const activeHref = buildContributorActiveHref(row?.contributor, source);
         return {
           label: String(row?.contributor || "").trim(),
           labelMeta: [],
           valueMeta:
             active > 0
               ? {
-                  text: `${active} active`,
-                  href: activeHref
+                  text: `${active} active`
                 }
               : null,
           metaBits: [],
@@ -421,16 +415,22 @@
     const model = buildContributorsUtilityModel(rows, summary, source);
     if (!model) return;
     const statsMarkup = model.stats
-      .map(
-        (stat) => `
+      .map((stat) => {
+        const href = sanitizeUtilityHref(stat.href || stat.url);
+        const valueMarkup = href
+          ? `<a class="dashboard-utility-layout__stat-link" href="${escapeHtml(
+              href
+            )}" target="_blank" rel="noopener noreferrer">${escapeHtml(stat.value)}</a>`
+          : escapeHtml(stat.value);
+        return `
           <div class="dashboard-utility-layout__stat${
             stat.className ? ` ${escapeHtml(stat.className)}` : ""
           }">
             <dt>${escapeHtml(stat.label)}</dt>
-            <dd>${escapeHtml(stat.value)}</dd>
+            <dd>${valueMarkup}</dd>
           </div>
-        `
-      )
+        `;
+      })
       .join("");
     const rowsMarkup = model.rows
       .map((row) => {
@@ -532,7 +532,15 @@
 
     const summary = summarizeContributorRows(rows);
     renderTopContributorsCard(rows, summary, snapshot?.source);
-    setPanelContext(contextNode, "");
+    setPanelContext(
+      contextNode,
+      formatContextWithFreshness(
+        "",
+        bootstrapState.primarySnapshot?.updatedAt ||
+          bootstrapState.contributorsSnapshot?.updatedAt ||
+          ""
+      )
+    );
     setStatusMessage("contributors-status", "");
   }
 
@@ -727,6 +735,7 @@
   }
 
   async function bootstrapDefaultCommunity() {
+    document.body.classList.add("community-section-mode");
     applyDefaultCommunityVisibility();
     renderActionsPanel();
     bindSectionFilter();

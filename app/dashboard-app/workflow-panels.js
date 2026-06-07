@@ -100,10 +100,6 @@ export function createWorkflowPanels(deps) {
     return Math.max(12, Math.round((safeValue / safeUpper) * 100));
   }
 
-  function quoteJqlValue(value) {
-    return `"${String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
-  }
-
   function buildJiraSearchUrl(jql) {
     const url = new URL("https://nepgroup.atlassian.net/issues/");
     url.searchParams.set("jql", jql);
@@ -114,16 +110,14 @@ export function createWorkflowPanels(deps) {
     return String(source?.jql || "").trim() || 'project = "TFC" AND labels = "Contributors"';
   }
 
-  function buildContributorActiveHref(contributor, source) {
-    const contributorName = String(contributor || "").trim();
-    if (!contributorName) return "";
-    const activeJql = [
-      getContributorsBaseJql(source),
-      `assignee = ${quoteJqlValue(contributorName)}`,
-      "statusCategory != Done",
-      'status != "Duplicate"'
-    ].join(" AND ");
-    return buildJiraSearchUrl(`${activeJql} ORDER BY updated DESC`);
+  function buildContributorsScopeHref(source, scope) {
+    const scopeJqlParts =
+      scope === "done"
+        ? ["statusCategory = Done", 'status != "Duplicate"']
+        : ["statusCategory != Done", 'status != "Duplicate"'];
+    return buildJiraSearchUrl(
+      `${getContributorsBaseJql(source)} AND ${scopeJqlParts.join(" AND ")} ORDER BY updated DESC`
+    );
   }
 
   function buildManagementFacilityLeadModel(scopeLabel, rows, scopeSearchHref = "") {
@@ -399,17 +393,16 @@ export function createWorkflowPanels(deps) {
         }`;
         return {
           label: normalizeDisplayTeamName(row?.label || ""),
-          labelMeta: inflowText
+          labelMeta: issueText
             ? [
                 {
-                  text: inflowText,
-                  className: "dashboard-utility-layout__label-meta--workflow-rate"
+                  text: issueText
                 }
               ]
             : [],
           metaBits: [],
           valueText: formatWorkflowDaysText(row?.totalCycleDays),
-          valueMetaText: issueText,
+          valueMetaText: inflowText,
           width: Math.max(12, Math.round((toNumber(row?.totalCycleDays) / maxDays) * 100)),
           color: getPrCycleTeamColor(row?.key)
         };
@@ -785,7 +778,7 @@ export function createWorkflowPanels(deps) {
       setPanelContext(
         context,
         isPretextLayoutActive()
-          ? ""
+          ? formatContextWithFreshness("", state.prCycle?.updatedAt)
           : formatContextWithFreshness(
               `${selectedTeam?.label || ""} • ${selectedWindowSnapshot?.windowLabel || ""} • ${toCount(selectedTeam?.issueCount)} issues sampled`,
               state.prCycle?.updatedAt
@@ -819,7 +812,7 @@ export function createWorkflowPanels(deps) {
       if (titleNode) titleNode.textContent = "User acceptance time by business unit";
       return {
         contextText: isPretextLayoutActive()
-          ? ""
+          ? formatContextWithFreshness("", state.managementFacilitySnapshot?.updatedAt)
           : formatContextWithFreshness(
               `${scopeLabel} • ${rows.reduce((sum, row) => sum + row.sampleCount, 0)} issues sampled`,
               getSnapshotContextTimestamp(state, { preferChartData: true }),
@@ -894,10 +887,15 @@ export function createWorkflowPanels(deps) {
           label: "Top contributor",
           value: String(topContributor?.contributor || "").trim() || `${totalContributors} ranked`
         },
-        { label: "Active", value: `${toCount(summary?.activeIssues)}` },
+        {
+          label: "Active",
+          value: `${toCount(summary?.activeIssues)}`,
+          href: buildContributorsScopeHref(source, "active")
+        },
         {
           label: "Done",
           value: `${toCount(summary?.doneIssues)}`,
+          href: buildContributorsScopeHref(source, "done"),
           className: "dashboard-utility-layout__stat--primary"
         }
       ],
@@ -905,7 +903,6 @@ export function createWorkflowPanels(deps) {
       columnEndLabel: "Done",
       rows: safeRows.map((row) => {
         const active = toCount(row?.activeIssues);
-        const activeHref = buildContributorActiveHref(row?.contributor, source);
         return {
           label: String(row?.contributor || "").trim(),
           labelMeta: [],
@@ -914,7 +911,6 @@ export function createWorkflowPanels(deps) {
             active > 0
               ? {
                   text: `${active} active`,
-                  href: activeHref,
                   className: "dashboard-utility-layout__value-meta--active"
                 }
               : "",
@@ -949,10 +945,14 @@ export function createWorkflowPanels(deps) {
       }
 
       const displaySummary = summarizeContributorRows(rows);
-      setPanelContext(context, "");
+      setPanelContext(context, formatContextWithFreshness("", contributorsSnapshot?.updatedAt));
       const pretextLayout = getDashboardPretextLayout();
       clearPanelLead(config.panelId);
-      const model = buildPretextContributorsModel(rows, displaySummary, contributorsSnapshot?.source);
+      const model = buildPretextContributorsModel(
+        rows,
+        displaySummary,
+        contributorsSnapshot?.source
+      );
       const rendered =
         pretextLayout?.renderPretextCard?.(config.containerId, model) ||
         pretextLayout?.renderWorkflowBreakdownCard?.(config.containerId, model);

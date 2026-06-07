@@ -25,10 +25,10 @@
     </details>
   </div>
   <div id="product-cycle-shipments-summary" class="dashboard-chart-summary-slot" hidden></div>
-  <p id="product-cycle-shipments-context" class="panel-summary panel-summary--meta" hidden></p>
   <div class="chart">
     <div id="product-cycle-shipments-chart" class="chart-canvas chart-canvas--dense"></div>
   </div>
+  <p id="product-cycle-shipments-context" class="panel-summary panel-summary--meta" hidden></p>
   <p
     id="product-cycle-shipments-status"
     class="panel-status"
@@ -73,7 +73,6 @@
       </div>
     </details>
   </div>
-  <p id="management-facility-context" class="panel-summary panel-summary--meta" hidden></p>
   <div class="panel-mode-controls" aria-label="User testing view">
     <fieldset class="panel-mode-tabs">
       <legend>View</legend>
@@ -93,6 +92,7 @@
       class="chart-canvas chart-canvas--standard"
     ></div>
   </div>
+  <p id="management-facility-context" class="panel-summary panel-summary--meta" hidden></p>
   <p
     id="management-facility-status"
     class="panel-status"
@@ -105,20 +105,20 @@
 <section
   id="development-workflow-breakdown-panel"
   class="panel panel--editorial panel--width-standard"
-  aria-label="Development workflow breakdown"
+  aria-label="Dev Throughput"
   hidden
 >
   <div class="panel-title-row">
     <div class="panel-title-copy">
       <p class="panel-kicker">Development</p>
-      <h2>Development workflow breakdown</h2>
+      <h2>Dev Throughput</h2>
     </div>
     <details class="help-wrap">
-      <summary class="help-tip" aria-label="Development workflow breakdown explainer">i</summary>
+      <summary class="help-tip" aria-label="Dev Throughput explainer">i</summary>
       <div class="help-popover" role="tooltip">
         <p>
-          <strong>Development workflow breakdown</strong> shows average time spent in the tracked
-          Jira workflow stages for each team across the selected rolling window.
+          <strong>Dev Throughput</strong> shows how quickly teams move development work through
+          tracked Jira workflow stages across the selected rolling window.
         </p>
         <ul>
           <li>This shows average days spent in each tracked Jira workflow stage.</li>
@@ -134,9 +134,11 @@
       </div>
     </details>
   </div>
-  <p id="workflow-breakdown-context" class="panel-summary panel-summary--meta" hidden></p>
   <div class="panel-inline-controls">
-    <div class="radio-control-groups" aria-label="Workflow breakdown time range">
+    <div
+      class="radio-control-groups development-local-controls development-local-controls--breakdown-range"
+      aria-label="Workflow breakdown time range"
+    >
       <fieldset class="radio-group-card radio-group-card--primary radio-group-card--segmented">
         <legend>Time range</legend>
         <label
@@ -198,6 +200,7 @@
       class="chart-canvas chart-canvas--dense workflow-breakdown-canvas"
     ></div>
   </div>
+  <p id="workflow-breakdown-context" class="panel-summary panel-summary--meta" hidden></p>
   <p
     id="workflow-breakdown-status"
     class="panel-status"
@@ -210,20 +213,20 @@
 <section
   id="development-workflow-trends-panel"
   class="panel panel--editorial panel--width-wide"
-  aria-label="Development workflow trends"
+  aria-label="PR Volume"
   hidden
 >
   <div class="panel-title-row">
     <div class="panel-title-copy">
       <p class="panel-kicker">Development</p>
-      <h2>Development workflow trends</h2>
+      <h2 id="pr-activity-legacy-panel-title">PR Volume</h2>
     </div>
     <details class="help-wrap">
-      <summary class="help-tip" aria-label="Development workflow trends explainer">i</summary>
+      <summary class="help-tip" aria-label="PR Volume explainer">i</summary>
       <div class="help-popover" role="tooltip">
         <p>
-          <strong>Development workflow trends</strong> shows PR activity across the selected time
-          range, with either a team trend or an AI-label view.
+          <strong>PR Volume</strong> shows opened PR activity across the selected time range, with
+          either a team trend or an AI-label view.
         </p>
         <ul>
           <li>Team trend shows one line per team.</li>
@@ -240,8 +243,10 @@
       </div>
     </details>
   </div>
-  <p id="pr-activity-legacy-context" class="panel-summary panel-summary--meta" hidden></p>
-  <div class="radio-control-groups" aria-label="PR activity time range">
+  <div
+    class="radio-control-groups development-local-controls development-local-controls--trends-range"
+    aria-label="PR activity time range"
+  >
     <fieldset class="radio-group-card radio-group-card--segmented">
       <legend>Time range</legend>
       <label
@@ -270,7 +275,10 @@
       >
     </fieldset>
   </div>
-  <div class="panel-mode-controls" aria-label="PR activity view">
+  <div
+    class="panel-mode-controls development-local-controls development-local-controls--trends-view"
+    aria-label="PR activity view"
+  >
     <fieldset class="panel-mode-tabs">
       <legend>View</legend>
       <label
@@ -288,7 +296,9 @@
     <div class="chart-block">
       <div class="chart-block__header">
         <div class="chart-title-copy">
-          <p id="pr-activity-legacy-count-title" class="chart-section-subtitle">PRs opened by team</p>
+          <p id="pr-activity-legacy-count-title" class="chart-section-subtitle">
+            PRs opened by team
+          </p>
           <p id="pr-activity-legacy-count-subtitle" class="chart-section-subtitle sr-only">
             Team trend over time
           </p>
@@ -312,6 +322,7 @@
       </div>
     </div>
   </div>
+  <p id="pr-activity-legacy-context" class="panel-summary panel-summary--meta" hidden></p>
   <p
     id="pr-activity-legacy-status"
     class="panel-status"
@@ -353,10 +364,9 @@
       </div>
     </details>
   </div>
-  <p id="product-cycle-context" class="panel-summary panel-summary--meta" hidden></p>
   <div class="panel-inline-controls">
     <div
-      id="product-cycle-team-switch"
+      id="product-cycle-team-switch-panel"
       class="pr-cycle-team-switch"
       role="radiogroup"
       aria-label="Product delivery and workflow team"
@@ -378,6 +388,7 @@
   <div class="chart">
     <div id="cycle-time-parking-lot-to-done-chart" class="chart-canvas chart-canvas--dense"></div>
   </div>
+  <p id="product-cycle-context" class="panel-summary panel-summary--meta" hidden></p>
   <p id="product-cycle-status" class="panel-status" aria-live="polite" role="status" hidden></p>
 </section>
 
