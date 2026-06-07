@@ -64,6 +64,41 @@
     return `${month} ${day} '${year}`;
   }
 
+  function formatTrendLongRangeTickLabel(dateText) {
+    const timestamp = new Date(`${String(dateText || "")}T00:00:00Z`).getTime();
+    if (!Number.isFinite(timestamp) || timestamp <= 0) return "";
+    const date = new Date(timestamp);
+    const month = date.toLocaleDateString("en-US", {
+      month: "short",
+      timeZone: "UTC"
+    });
+    const year = date.toLocaleDateString("en-US", {
+      year: "2-digit",
+      timeZone: "UTC"
+    });
+    return `${month} '${year}`;
+  }
+
+  function buildTrendDisplayedXTickIndexes(rows, compactViewport) {
+    const safeRows = Array.isArray(rows) ? rows : [];
+    if (safeRows.length === 0) return new Set();
+    const maxTickCount = compactViewport ? 5 : safeRows.length > 26 ? 8 : 10;
+    const tickInterval = Math.max(1, Math.ceil(safeRows.length / maxTickCount));
+    const indexes = new Set([0]);
+    safeRows.forEach((_row, index) => {
+      if (index % tickInterval === 0) indexes.add(index);
+    });
+    const lastIndex = safeRows.length - 1;
+    const minimumLastTickGap = Math.max(2, Math.floor(tickInterval * 0.7));
+    const sortedIndexes = [...indexes].sort((left, right) => left - right);
+    const lastPlottedIndex = sortedIndexes[sortedIndexes.length - 1] ?? 0;
+    if (lastIndex - lastPlottedIndex < minimumLastTickGap && lastPlottedIndex !== 0) {
+      indexes.delete(lastPlottedIndex);
+    }
+    indexes.add(lastIndex);
+    return indexes;
+  }
+
   function getCycleFillWidth(value, upperBound) {
     const safeUpper = Math.max(1, toNumber(upperBound));
     const safeValue = Math.max(0, toNumber(value));
@@ -353,7 +388,8 @@
     const yAxis = buildTrendAxis(yUpper);
     const safeUpper = yAxis.upper;
     const yTicks = yAxis.ticks;
-    const xLabelStride = compactViewport && rows.length > 5 ? 2 : 1;
+    const displayedXTickIndexes = buildTrendDisplayedXTickIndexes(rows, compactViewport);
+    const useLongRangeLabels = rows.length > 18;
     const legendItems = lineDefs.map((lineDef) => ({
       key: lineDef.dataKey,
       label: lineDef.name,
@@ -464,12 +500,7 @@
             );
           }),
           ...rows.flatMap((row, index) => {
-            const shouldRenderLabel =
-              !compactViewport ||
-              rows.length <= 5 ||
-              index % xLabelStride === 0 ||
-              index === rows.length - 1;
-            if (!shouldRenderLabel) return [];
+            if (!displayedXTickIndexes.has(index)) return [];
             const x =
               rows.length <= 1
                 ? (plotLeft + plotRight) / 2
@@ -485,7 +516,11 @@
                 fontWeight: 600,
                 textAnchor: "middle"
               },
-              formatTrendTickLabel(row.date) || row.dateShort || ""
+              (useLongRangeLabels
+                ? formatTrendLongRangeTickLabel(row.date)
+                : formatTrendTickLabel(row.date)) ||
+                row.dateShort ||
+                ""
             );
           }),
           ...seriesRows.flatMap((series) => [

@@ -12,11 +12,13 @@ const SPRINT_WINDOW_DAYS = {
   "30d": 29,
   "90d": 89
 };
+const PR_CYCLE_INFLOW_CONSISTENCY_WINDOWS = new Set(Object.keys(SPRINT_WINDOW_DAYS));
 const MONTHLY_WINDOW_MONTHS = {
   "6m": 6,
   "1y": 12,
   "2y": 24
 };
+const PR_CYCLE_INFLOW_TOLERANCE = 0.51;
 
 function parseArgs(argv = process.argv.slice(2)) {
   const options = {
@@ -73,10 +75,11 @@ async function readJsonFromUrl(url) {
 async function readSnapshotPair(options) {
   const localPath = path.join(options.localDir, "pr-activity-snapshot.json");
   const local = await readJsonFromFile(localPath);
+  const localPrCycle = await readJsonFromFile(path.join(options.localDir, "pr-cycle-snapshot.json"));
   const baseline = options.baselineDir
     ? await readJsonFromFile(path.join(options.baselineDir, "pr-activity-snapshot.json"))
     : await readJsonFromUrl(`${options.liveBaseUrl.replace(/\/$/, "")}/pr-activity-snapshot.json`);
-  return { local, baseline };
+  return { local, baseline, localPrCycle };
 }
 
 function timestampMs(value) {
@@ -207,6 +210,37 @@ function buildPrActivityQualityReport(local, baseline, options = {}) {
   };
 }
 
+function buildPrCycleInflowConsistencyFindings(prActivitySnapshot, prCycleSnapshot) {
+  const findings = [];
+  const windows = prCycleSnapshot?.windows && typeof prCycleSnapshot.windows === "object"
+    ? prCycleSnapshot.windows
+    : {};
+  for (const windowKey of Object.keys(windows)) {
+    if (!PR_CYCLE_INFLOW_CONSISTENCY_WINDOWS.has(windowKey)) continue;
+    const activitySummary = summarizePrActivityWindow(prActivitySnapshot, windowKey);
+    if (activitySummary.bucketCount <= 0) continue;
+    const teams = Array.isArray(windows[windowKey]?.teams) ? windows[windowKey].teams : [];
+    for (const teamSnapshot of teams) {
+      const team = String(teamSnapshot?.key || "")
+        .trim()
+        .toLowerCase();
+      if (!PR_ACTIVITY_TEAM_KEYS.includes(team)) continue;
+      const actual = Number(teamSnapshot?.avgPrInflow);
+      if (!Number.isFinite(actual)) continue;
+      const expected = activitySummary.teams[team] / activitySummary.bucketCount;
+      if (Math.abs(actual - expected) <= PR_CYCLE_INFLOW_TOLERANCE) continue;
+      findings.push({
+        severity: "error",
+        type: "pr-cycle-inflow-mismatch",
+        windowKey,
+        team,
+        message: `${windowKey} ${team} PR cycle inflow is ${actual.toFixed(1)} PRs/sprint, but PR activity averages ${expected.toFixed(1)} across ${activitySummary.bucketCount} buckets.`
+      });
+    }
+  }
+  return findings;
+}
+
 function printReport(report, options = {}) {
   if (report.findings.length === 0) {
     console.log("Dashboard data quality preflight passed.");
@@ -228,14 +262,16 @@ function printReport(report, options = {}) {
 
 export {
   buildPrActivityQualityReport,
+  buildPrCycleInflowConsistencyFindings,
   getWindowedPrActivityPoints,
   summarizePrActivityWindow
 };
 
 async function main() {
   const options = parseArgs();
-  const { local, baseline } = await readSnapshotPair(options);
+  const { local, baseline, localPrCycle } = await readSnapshotPair(options);
   const report = buildPrActivityQualityReport(local, baseline, options);
+  report.findings.push(...buildPrCycleInflowConsistencyFindings(local, localPrCycle));
   printReport(report, options);
   if (report.findings.length > 0 && !String(options.allowReason || "").trim()) {
     process.exit(1);

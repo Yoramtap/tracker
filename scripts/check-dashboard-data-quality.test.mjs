@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   buildPrActivityQualityReport,
+  buildPrCycleInflowConsistencyFindings,
   summarizePrActivityWindow
 } from "./check-dashboard-data-quality.mjs";
 
@@ -101,4 +102,24 @@ test("PR activity monthly windows ignore the current partial month", () => {
   assert.equal(summary.lastDate, "2026-05-01");
   assert.equal(summary.bucketCount, 13);
   assert.equal(summary.teams.api, 390);
+});
+
+test("PR cycle inflow consistency flags derived values that drift from PR activity", () => {
+  const findings = buildPrCycleInflowConsistencyFindings(snapshot(), {
+    windows: {
+      "90d": {
+        teams: [
+          {
+            key: "api",
+            avgPrInflow: 99
+          }
+        ]
+      }
+    }
+  });
+
+  assert.equal(findings.length, 1);
+  assert.equal(findings[0].type, "pr-cycle-inflow-mismatch");
+  assert.equal(findings[0].windowKey, "90d");
+  assert.equal(findings[0].team, "api");
 });
