@@ -7,6 +7,8 @@ const DEFAULT_LIVE_BASE_URL = "https://yoramtap.github.io/tracker/data";
 const DEFAULT_TOTAL_DELTA_THRESHOLD = 0.35;
 const DEFAULT_TEAM_DELTA_THRESHOLD = 0.75;
 const PR_ACTIVITY_TEAM_KEYS = ["api", "legacy", "react", "bc", "workers", "titanium"];
+const BUG_TEAM_KEYS = PR_ACTIVITY_TEAM_KEYS;
+const BUG_PRIORITY_KEYS = ["highest", "high", "medium", "low", "lowest"];
 const SPRINT_WINDOW_DAYS = {
   "14d": 13,
   "30d": 29,
@@ -76,10 +78,14 @@ async function readSnapshotPair(options) {
   const localPath = path.join(options.localDir, "pr-activity-snapshot.json");
   const local = await readJsonFromFile(localPath);
   const localPrCycle = await readJsonFromFile(path.join(options.localDir, "pr-cycle-snapshot.json"));
+  const localBacklog = await readJsonFromFile(path.join(options.localDir, "backlog-snapshot.json"));
   const baseline = options.baselineDir
     ? await readJsonFromFile(path.join(options.baselineDir, "pr-activity-snapshot.json"))
     : await readJsonFromUrl(`${options.liveBaseUrl.replace(/\/$/, "")}/pr-activity-snapshot.json`);
-  return { local, baseline, localPrCycle };
+  const baselineBacklog = options.baselineDir
+    ? await readJsonFromFile(path.join(options.baselineDir, "backlog-snapshot.json"))
+    : await readJsonFromUrl(`${options.liveBaseUrl.replace(/\/$/, "")}/backlog-snapshot.json`);
+  return { local, baseline, localPrCycle, localBacklog, baselineBacklog };
 }
 
 function timestampMs(value) {
@@ -241,6 +247,58 @@ function buildPrCycleInflowConsistencyFindings(prActivitySnapshot, prCycleSnapsh
   return findings;
 }
 
+function summarizeLatestBugBacklog(snapshot) {
+  const points = Array.isArray(snapshot?.combinedPoints) ? snapshot.combinedPoints.filter(Boolean) : [];
+  const latestPoint = points.at(-1) || {};
+  const teams = {};
+  for (const team of BUG_TEAM_KEYS) {
+    const teamPoint = latestPoint?.[team] || {};
+    teams[team] = BUG_PRIORITY_KEYS.reduce(
+      (sum, priority) => sum + Math.max(0, Number(teamPoint?.[priority]) || 0),
+      0
+    );
+  }
+  const total = Object.values(teams).reduce((sum, value) => sum + value, 0);
+  return {
+    date: String(latestPoint?.date || ""),
+    teams,
+    total
+  };
+}
+
+function buildBugBacklogQualityFindings(localBacklog, baselineBacklog, options = {}) {
+  const findings = [];
+  const localSummary = summarizeLatestBugBacklog(localBacklog);
+  const baselineSummary = summarizeLatestBugBacklog(baselineBacklog);
+  if (localSummary.date && baselineSummary.date && localSummary.date < baselineSummary.date) {
+    findings.push({
+      severity: "error",
+      type: "bug-backlog-live-newer-than-local",
+      message: `Live bug backlog snapshot is newer than local: local ${localSummary.date}, live ${baselineSummary.date}.`
+    });
+  }
+  const totalDelta = percentDelta(localSummary.total, baselineSummary.total);
+  if (Math.abs(totalDelta) > options.totalDeltaThreshold) {
+    findings.push({
+      severity: "error",
+      type: "bug-backlog-total-delta",
+      message: `Latest total open bugs changed from ${baselineSummary.total} to ${localSummary.total} (${formatPercent(totalDelta)}).`
+    });
+  }
+  for (const team of BUG_TEAM_KEYS) {
+    const teamDelta = percentDelta(localSummary.teams[team], baselineSummary.teams[team]);
+    if (Math.abs(teamDelta) > options.teamDeltaThreshold) {
+      findings.push({
+        severity: "error",
+        type: "bug-backlog-team-delta",
+        team,
+        message: `Latest ${team} open bugs changed from ${baselineSummary.teams[team]} to ${localSummary.teams[team]} (${formatPercent(teamDelta)}).`
+      });
+    }
+  }
+  return findings;
+}
+
 function printReport(report, options = {}) {
   if (report.findings.length === 0) {
     console.log("Dashboard data quality preflight passed.");
@@ -261,6 +319,7 @@ function printReport(report, options = {}) {
 }
 
 export {
+  buildBugBacklogQualityFindings,
   buildPrActivityQualityReport,
   buildPrCycleInflowConsistencyFindings,
   getWindowedPrActivityPoints,
@@ -269,9 +328,11 @@ export {
 
 async function main() {
   const options = parseArgs();
-  const { local, baseline, localPrCycle } = await readSnapshotPair(options);
+  const { local, baseline, localPrCycle, localBacklog, baselineBacklog } =
+    await readSnapshotPair(options);
   const report = buildPrActivityQualityReport(local, baseline, options);
   report.findings.push(...buildPrCycleInflowConsistencyFindings(local, localPrCycle));
+  report.findings.push(...buildBugBacklogQualityFindings(localBacklog, baselineBacklog, options));
   printReport(report, options);
   if (report.findings.length > 0 && !String(options.allowReason || "").trim()) {
     process.exit(1);

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  buildBugBacklogQualityFindings,
   buildPrActivityQualityReport,
   buildPrCycleInflowConsistencyFindings,
   summarizePrActivityWindow
@@ -55,6 +56,29 @@ function snapshot({ updatedAt = "2026-06-07T07:29:08.069Z", apiScale = 1 } = {})
         point("2026-06-01", { api: 999 * apiScale, react: 999, bc: 999 })
       ]
     }
+  };
+}
+
+function backlogSnapshot(overrides = {}) {
+  const teamPoint = (count) => ({
+    highest: 0,
+    high: Number(count || 0),
+    medium: 0,
+    low: 0,
+    lowest: 0
+  });
+  return {
+    combinedPoints: [
+      {
+        date: "2026-06-07",
+        api: teamPoint(overrides.api ?? 10),
+        legacy: teamPoint(overrides.legacy ?? 20),
+        react: teamPoint(overrides.react ?? 5),
+        bc: teamPoint(overrides.bc ?? 182),
+        workers: teamPoint(overrides.workers ?? 9),
+        titanium: teamPoint(overrides.titanium ?? 2)
+      }
+    ]
   };
 }
 
@@ -122,4 +146,27 @@ test("PR cycle inflow consistency flags derived values that drift from PR activi
   assert.equal(findings[0].type, "pr-cycle-inflow-mismatch");
   assert.equal(findings[0].windowKey, "90d");
   assert.equal(findings[0].team, "api");
+});
+
+test("bug backlog quality flags large latest team count deltas", () => {
+  const findings = buildBugBacklogQualityFindings(
+    backlogSnapshot({ bc: 340 }),
+    backlogSnapshot({ bc: 182 }),
+    { totalDeltaThreshold: 0.35, teamDeltaThreshold: 0.75 }
+  );
+
+  assert.equal(
+    findings.some((finding) => finding.type === "bug-backlog-team-delta" && finding.team === "bc"),
+    true
+  );
+});
+
+test("bug backlog quality allows small latest count drift", () => {
+  const findings = buildBugBacklogQualityFindings(
+    backlogSnapshot({ bc: 182 }),
+    backlogSnapshot({ bc: 184 }),
+    { totalDeltaThreshold: 0.35, teamDeltaThreshold: 0.75 }
+  );
+
+  assert.deepEqual(findings, []);
 });
