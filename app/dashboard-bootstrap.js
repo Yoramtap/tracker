@@ -46,7 +46,7 @@
   const PRODUCT_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-charts-product.js",
-    "local14"
+    "local15"
   );
   const FULL_HEAVY_PANEL_SHELL_SRC = getVersionedSourcePath(
     "app",

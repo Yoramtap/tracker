@@ -301,7 +301,7 @@
       dataKey,
       name,
       stroke: colors.teams[colorKey],
-      strokeWidth: 2.5,
+      strokeWidth: 2,
       dot: true
     }));
   }
@@ -545,10 +545,11 @@
                     key: point.key,
                     cx: point.x,
                     cy: point.y,
-                    r: compactViewport ? 3.75 : 3.5,
+                    r: compactViewport ? 2 : 2.5,
                     fill: series.stroke,
                     stroke: "#ffffff",
-                    strokeWidth: compactViewport ? 1.4 : 1.25,
+                    strokeWidth: 0.9,
+                    opacity: 0.72,
                     onMouseEnter: () => showTooltip(point),
                     onMouseLeave: hideTooltip,
                     onClick: () => showTooltip(point),
