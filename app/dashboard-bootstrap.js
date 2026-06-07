@@ -53,11 +53,6 @@
     "dashboard-heavy-panels.html",
     "local38"
   );
-  const LOCAL_AGENTATION_LOADER_SRC = getVersionedSourcePath(
-    "dev",
-    "agentation-local-loader.js",
-    "local2"
-  );
   const DEFAULT_SECTION = dashboardRuntimeContract.defaultSection || "community";
   const SECTION_FILTER_ITEMS = Array.isArray(dashboardRuntimeContract.sectionFilterItems)
     ? dashboardRuntimeContract.sectionFilterItems
@@ -703,37 +698,6 @@
     return bootstrapState.heavyStackPromise;
   }
 
-  function scheduleLocalAgentationSupport() {
-    const host = String(window.location.hostname || "")
-      .trim()
-      .toLowerCase();
-    if (host !== "localhost" && host !== "127.0.0.1" && host !== "::1") return;
-
-    const loadSupport = () => {
-      const loadWhenVisible = () => {
-        if (document.visibilityState === "hidden") {
-          window.setTimeout(loadSupport, 1200);
-          return;
-        }
-        void loadScript(LOCAL_AGENTATION_LOADER_SRC);
-      };
-
-      if (typeof window.requestIdleCallback === "function") {
-        window.requestIdleCallback(loadWhenVisible, { timeout: 2500 });
-        return;
-      }
-
-      window.setTimeout(loadWhenVisible, 1200);
-    };
-
-    if (document.readyState === "complete") {
-      loadSupport();
-      return;
-    }
-
-    window.addEventListener("load", loadSupport, { once: true });
-  }
-
   async function bootstrapDefaultCommunity() {
     document.body.classList.add("community-section-mode");
     applyDefaultCommunityVisibility();
@@ -759,8 +723,6 @@
       );
     }
   }
-
-  scheduleLocalAgentationSupport();
 
   if (isDefaultCommunityPath()) {
     void bootstrapDefaultCommunity();

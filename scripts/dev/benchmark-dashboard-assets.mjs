@@ -181,7 +181,6 @@ async function main() {
     dataSourceStats.map((asset) => [asset.relativePath, asset.bytes])
   );
 
-  const localAgentationPath = path.join(rootDir, "node_modules/agentation/dist/index.js");
   const initialReferencedBytes = totals.styles + totals.scripts + totals.other;
   const optionalAssetBytesByPath = Object.fromEntries(
     [
@@ -196,13 +195,6 @@ async function main() {
       .filter(Boolean)
       .map((asset) => [asset.relativePath, asset.bytes])
   );
-  let localAgentationBytes = 0;
-  try {
-    localAgentationBytes = (await fs.stat(localAgentationPath)).size;
-  } catch {
-    // Agentation is optional outside local preview.
-  }
-
   console.log("Dashboard asset benchmark");
   console.log(`HTML entry: ${formatKiB((await fs.stat(indexPath)).size)}`);
   console.log(`Styles: ${formatKiB(totals.styles)}`);
@@ -232,9 +224,6 @@ async function main() {
   console.log(
     `Pretext layout module: ${formatKiB(sum(pretextLayoutAssets.map((asset) => asset.bytes)))}`
   );
-  if (localAgentationBytes > 0) {
-    console.log(`Localhost-only Agentation package: ${formatKiB(localAgentationBytes)}`);
-  }
   console.log("");
   console.log("Data source scenarios:");
   console.log(

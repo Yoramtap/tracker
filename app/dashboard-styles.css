@@ -420,7 +420,7 @@ body.embedded-frame-mode main {
 }
 
 .report-intro__card.is-selected {
-  background: rgba(31, 51, 71, 0.96);
+  background: #3f668f;
   box-shadow: none;
 }
 
@@ -434,7 +434,7 @@ body.embedded-frame-mode main {
 }
 
 .report-intro__card.is-selected:focus-within {
-  background: rgba(31, 51, 71, 0.96);
+  background: #3f668f;
   box-shadow: none;
 }
 

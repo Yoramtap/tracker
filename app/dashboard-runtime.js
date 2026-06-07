@@ -42,16 +42,16 @@
         label: "UAT"
       },
       {
+        value: "dev-breakdown",
+        label: "Dev Throughput"
+      },
+      {
         value: "dev-trends",
         label: "PR Volume"
       },
       {
         value: "dev-ai",
         label: "AI PRs"
-      },
-      {
-        value: "dev-breakdown",
-        label: "Dev Throughput"
       },
       { value: "bug", label: "Bugs" }
     ].map((item) => Object.freeze(item))

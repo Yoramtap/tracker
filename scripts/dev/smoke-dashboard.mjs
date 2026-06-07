@@ -8,14 +8,6 @@ const rootUrl = String(process.env.DASHBOARD_SMOKE_URL || "http://127.0.0.1:4173
   /\/+$/,
   ""
 );
-const isLocalPreview = (() => {
-  try {
-    const hostname = new URL(rootUrl).hostname.toLowerCase();
-    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
-  } catch {
-    return false;
-  }
-})();
 const DEVELOPMENT_ROUTE_VISIBLE_PANELS = [
   "actions-required-panel",
   "development-workflow-trends-panel"
@@ -52,15 +44,6 @@ const SHIPPED_ROUTE_FORBIDDEN_RESOURCES = [
   "./vendor/prop-types.min.js",
   "./vendor/recharts.umd.js"
 ];
-const LOCAL_ONLY_SUPPORT_RESOURCES = new Set([
-  "./dev/agentation-local-loader.js",
-  "./node_modules/agentation/dist/index.js"
-]);
-const DEFAULT_ROUTE_LOCAL_ONLY_RUNTIME_RESOURCES = new Set([
-  ...LOCAL_ONLY_SUPPORT_RESOURCES,
-  "./vendor/react.production.min.js",
-  "./vendor/react-dom.production.min.js"
-]);
 
 function runAgentBrowser(args) {
   const result = spawnSync("agent-browser", args, {
@@ -160,7 +143,6 @@ function routeSnapshotExpression() {
     uptimeMs: Math.round(performance.now()),
     hasRecharts: Boolean(window.Recharts),
     hasViewUtils: !!window.DashboardViewUtils,
-    hasAgentRoot: !!document.getElementById("agentation-local-root"),
     hasHeavyPanelShellDom: Boolean(
       document.getElementById("bug-trends-panel") &&
         document.getElementById("development-workflow-breakdown-panel")
@@ -168,6 +150,8 @@ function routeSnapshotExpression() {
     visiblePanels: Array.from(document.querySelectorAll("main .panel"))
       .filter((node) => !node.hidden)
       .map((node) => node.id),
+    sectionLabels: Array.from(document.querySelectorAll(".report-intro__title"))
+      .map((node) => node.textContent.trim()),
     filledCharts: Array.from(document.querySelectorAll(".chart-canvas"))
       .filter((node) => node.innerHTML.trim().length > 0)
       .length,
@@ -206,8 +190,7 @@ function findUnexpectedDefaultRouteResources(snapshot) {
   const loaded = getResourceNameSet(snapshot);
   return normalizeExpectedResources(DEFAULT_ROUTE_FORBIDDEN_RESOURCES).filter(
     (resource) =>
-      loaded.has(resource) &&
-      (!isLocalPreview || !DEFAULT_ROUTE_LOCAL_ONLY_RUNTIME_RESOURCES.has(resource))
+      loaded.has(resource)
   );
 }
 
@@ -267,14 +250,7 @@ async function enrichSnapshotWithLocalResourceStats(snapshot) {
     )
   ).filter(Boolean);
 
-  const liveEquivalentResources = resourcesWithBytes.filter(({ resourceName }) => {
-    const normalizedResourceName = normalizeResourceName(resourceName);
-    if (!isLocalPreview) return true;
-    if (snapshot.hasViewUtils) {
-      return !LOCAL_ONLY_SUPPORT_RESOURCES.has(normalizedResourceName);
-    }
-    return !DEFAULT_ROUTE_LOCAL_ONLY_RUNTIME_RESOURCES.has(normalizedResourceName);
-  });
+  const liveEquivalentResources = resourcesWithBytes;
 
   return {
     ...snapshot,
@@ -338,6 +314,19 @@ async function captureRouteSnapshot({
 
 function assertDefaultRoute(snapshot) {
   assert(
+    sameList(snapshot.sectionLabels, [
+      "Community",
+      "Shipped",
+      "Delivery",
+      "UAT",
+      "Dev Throughput",
+      "PR Volume",
+      "AI PRs",
+      "Bugs"
+    ]),
+    `Report section order changed: ${JSON.stringify(snapshot.sectionLabels)}`
+  );
+  assert(
     sameList(snapshot.visiblePanels, ["actions-required-panel", "community-contributors-panel"]),
     `Default route visible panels changed: ${JSON.stringify(snapshot.visiblePanels)}`
   );
@@ -362,12 +351,6 @@ function assertDefaultRoute(snapshot) {
     unexpectedResources.length === 0,
     `Default route should not preload heavy dashboard assets: ${JSON.stringify(unexpectedResources)}`
   );
-  if (isLocalPreview) {
-    assert(
-      snapshot.hasAgentRoot === true,
-      "Default route should restore the localhost Agentation mount."
-    );
-  }
 }
 
 function hasHeavyPanelShellResource(snapshot) {
@@ -389,9 +372,6 @@ function assertDevelopmentRoute(snapshot) {
   );
   assert(snapshot.hasViewUtils === true, "Development route should load dashboard view utils.");
   assertResourcesPresent(snapshot, ["./data/pr-activity-snapshot.json"], "Development route");
-  if (isLocalPreview) {
-    assert(snapshot.hasAgentRoot === true, "Development route should mount localhost Agentation.");
-  }
 }
 
 function assertFocusedPanelRoute(snapshot, expectedVisiblePanels, expectedResources, label) {
@@ -415,9 +395,6 @@ function assertFocusedPanelRoute(snapshot, expectedVisiblePanels, expectedResour
       !unexpectedResources.has("./vendor/recharts.umd.js"),
     `${label} route should not fetch legacy Recharts assets: ${JSON.stringify(snapshot.resourceNames)}`
   );
-  if (isLocalPreview) {
-    assert(snapshot.hasAgentRoot === true, `${label} route should mount localhost Agentation.`);
-  }
 }
 
 function assertBugRoute(snapshot) {
@@ -441,9 +418,6 @@ function assertBugRoute(snapshot) {
       !unexpectedResources.has("./vendor/recharts.umd.js"),
     `Bug route should not fetch legacy Recharts assets: ${JSON.stringify(snapshot.resourceNames)}`
   );
-  if (isLocalPreview) {
-    assert(snapshot.hasAgentRoot === true, "Bug route should mount localhost Agentation.");
-  }
 }
 
 function assertShippedRoute(snapshot) {
@@ -474,9 +448,6 @@ function assertShippedRoute(snapshot) {
     unexpectedResources.length === 0,
     `Shipped route should not fetch unrelated heavy assets: ${JSON.stringify(unexpectedResources)}`
   );
-  if (isLocalPreview) {
-    assert(snapshot.hasAgentRoot === true, "Shipped route should mount localhost Agentation.");
-  }
 }
 
 function assertPrRoute(snapshot) {
@@ -514,9 +485,6 @@ function assertPrRoute(snapshot) {
     unexpectedResources.length === 0,
     `PR route should not fetch unrelated heavy assets: ${JSON.stringify(unexpectedResources)}`
   );
-  if (isLocalPreview) {
-    assert(snapshot.hasAgentRoot === true, "PR route should mount localhost Agentation.");
-  }
 }
 
 function verifyWorkflowBreakdownInflowLabels() {
@@ -729,8 +697,7 @@ async function assertSectionControlSwitch({
         sameList(snapshot.visiblePanels, expectedVisiblePanels) &&
         snapshot.statuses.length === 0 &&
         snapshot.hasViewUtils === true &&
-        hasHeavyPanelShellResource(snapshot) &&
-        (!isLocalPreview || snapshot.hasAgentRoot === true)
+        hasHeavyPanelShellResource(snapshot)
       );
     }
   });
@@ -743,8 +710,7 @@ async function assertSectionControlSwitch({
         sameList(currentSnapshot.visiblePanels, expectedVisiblePanels) &&
         currentSnapshot.statuses.length === 0 &&
         currentSnapshot.hasViewUtils === true &&
-        hasHeavyPanelShellResource(currentSnapshot) &&
-        (!isLocalPreview || currentSnapshot.hasAgentRoot === true)
+        hasHeavyPanelShellResource(currentSnapshot)
       );
     }
   });
@@ -773,8 +739,7 @@ async function main() {
           ]) &&
           snapshot.hasViewUtils === false &&
           !hasHeavyPanelShellResource(snapshot) &&
-          findUnexpectedDefaultRouteResources(snapshot).length === 0 &&
-          (!isLocalPreview || snapshot.hasAgentRoot === true)
+          findUnexpectedDefaultRouteResources(snapshot).length === 0
         );
       }
     })
@@ -801,8 +766,7 @@ async function main() {
           snapshot.hasViewUtils === true &&
           sameList(snapshot.visiblePanels, DEVELOPMENT_ROUTE_VISIBLE_PANELS) &&
           hasHeavyPanelShellResource(snapshot) &&
-          hasResource(snapshot, "./data/pr-activity-snapshot.json") &&
-          (!isLocalPreview || snapshot.hasAgentRoot === true)
+          hasResource(snapshot, "./data/pr-activity-snapshot.json")
         );
       }
     })
@@ -819,8 +783,7 @@ async function main() {
           snapshot.hasViewUtils === true &&
           sameList(snapshot.visiblePanels, DEVELOPMENT_ROUTE_VISIBLE_PANELS) &&
           hasHeavyPanelShellResource(snapshot) &&
-          hasResource(snapshot, "./data/pr-activity-snapshot.json") &&
-          (!isLocalPreview || snapshot.hasAgentRoot === true)
+          hasResource(snapshot, "./data/pr-activity-snapshot.json")
         );
       }
     })
@@ -856,8 +819,7 @@ async function main() {
           snapshot.hasViewUtils === true &&
           sameList(snapshot.visiblePanels, UAT_ROUTE_VISIBLE_PANELS) &&
           hasHeavyPanelShellResource(snapshot) &&
-          hasResource(snapshot, "./data/management-facility-snapshot.json") &&
-          (!isLocalPreview || snapshot.hasAgentRoot === true)
+          hasResource(snapshot, "./data/management-facility-snapshot.json")
         );
       }
     })
@@ -886,8 +848,7 @@ async function main() {
           snapshot.hasViewUtils === true &&
           sameList(snapshot.visiblePanels, PRODUCT_DELIVERY_ROUTE_VISIBLE_PANELS) &&
           hasHeavyPanelShellResource(snapshot) &&
-          hasResource(snapshot, "./data/product-cycle-snapshot.json") &&
-          (!isLocalPreview || snapshot.hasAgentRoot === true)
+          hasResource(snapshot, "./data/product-cycle-snapshot.json")
         );
       }
     })
@@ -917,8 +878,7 @@ async function main() {
           snapshot.hasViewUtils === true &&
           sameList(snapshot.visiblePanels, PRODUCT_DELIVERY_ROUTE_VISIBLE_PANELS) &&
           hasHeavyPanelShellResource(snapshot) &&
-          hasResource(snapshot, "./data/product-cycle-snapshot.json") &&
-          (!isLocalPreview || snapshot.hasAgentRoot === true)
+          hasResource(snapshot, "./data/product-cycle-snapshot.json")
         );
       }
     })
@@ -947,8 +907,7 @@ async function main() {
           snapshot.hasViewUtils === true &&
           sameList(snapshot.visiblePanels, BUG_ROUTE_VISIBLE_PANELS) &&
           hasHeavyPanelShellResource(snapshot) &&
-          hasResource(snapshot, "./data/backlog-snapshot.json") &&
-          (!isLocalPreview || snapshot.hasAgentRoot === true)
+          hasResource(snapshot, "./data/backlog-snapshot.json")
         );
       }
     })
@@ -967,8 +926,7 @@ async function main() {
           hasHeavyPanelShellResource(snapshot) &&
           sameList(snapshot.visiblePanels, ["development-workflow-breakdown-panel"]) &&
           hasResource(snapshot, "./data/pr-cycle-snapshot.json") &&
-          findUnexpectedPrRouteResources(snapshot).length === 0 &&
-          (!isLocalPreview || snapshot.hasAgentRoot === true)
+          findUnexpectedPrRouteResources(snapshot).length === 0
         );
       }
     })
@@ -989,8 +947,7 @@ async function main() {
         ]) &&
         snapshot.hasViewUtils === false &&
         !hasHeavyPanelShellResource(snapshot) &&
-        findUnexpectedDefaultRouteResources(snapshot).length === 0 &&
-        (!isLocalPreview || snapshot.hasAgentRoot === true)
+        findUnexpectedDefaultRouteResources(snapshot).length === 0
       );
     }
   });
@@ -1009,8 +966,7 @@ async function main() {
             "product-cycle-shipments-panel"
           ]) &&
           hasHeavyPanelShellResource(snapshot) &&
-          findUnexpectedShippedRouteResources(snapshot).length === 0 &&
-          (!isLocalPreview || snapshot.hasAgentRoot === true)
+          findUnexpectedShippedRouteResources(snapshot).length === 0
         );
       }
     })
