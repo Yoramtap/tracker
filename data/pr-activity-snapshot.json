@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T07:29:31.343Z",
+  "updatedAt": "2026-06-09T07:30:18.724Z",
   "prActivity": {
     "since": "2024-01-08",
     "interval": "sprint",
@@ -7,7 +7,7 @@
     "monthlySince": "2024-01-01",
     "monthlyInterval": "month",
     "caveat": "Counts are sourced from GitHub pull requests across discovered organization repos and attributed by the Jira-derived contributor-to-team map, falling back to committed repo-to-team mapping. Unmapped discovered repos only count when a mapped contributor authored the PR. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the first submitted non-author GitHub review to mergedAt.",
-    "unmappedRepoCount": 7,
+    "unmappedRepoCount": 8,
     "unmappedContributorCount": 6,
     "mappingCoverage": {
       "mappedRepoCount": 227,
@@ -4763,50 +4763,50 @@
       {
         "date": "2026-06-08",
         "api": {
-          "offered": 91,
-          "merged": 34,
-          "aiOffered": 10,
-          "nonAiOffered": 81,
+          "offered": 100,
+          "merged": 37,
+          "aiOffered": 14,
+          "nonAiOffered": 86,
           "aiMerged": 11,
-          "nonAiMerged": 23,
+          "nonAiMerged": 26,
           "avgReviewToMergeDays": 13,
-          "avgReviewToMergeSampleCount": 26
+          "avgReviewToMergeSampleCount": 27
         },
         "legacy": {
-          "offered": 15,
+          "offered": 16,
           "merged": 5,
           "aiOffered": 0,
-          "nonAiOffered": 15,
+          "nonAiOffered": 16,
           "aiMerged": 0,
           "nonAiMerged": 5,
           "avgReviewToMergeDays": 4,
           "avgReviewToMergeSampleCount": 5
         },
         "react": {
-          "offered": 28,
+          "offered": 29,
           "merged": 24,
           "aiOffered": 0,
-          "nonAiOffered": 28,
+          "nonAiOffered": 29,
           "aiMerged": 0,
           "nonAiMerged": 24,
           "avgReviewToMergeDays": 2,
           "avgReviewToMergeSampleCount": 24
         },
         "bc": {
-          "offered": 64,
-          "merged": 57,
-          "aiOffered": 10,
+          "offered": 65,
+          "merged": 58,
+          "aiOffered": 11,
           "nonAiOffered": 54,
           "aiMerged": 9,
-          "nonAiMerged": 48,
+          "nonAiMerged": 49,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 50
+          "avgReviewToMergeSampleCount": 51
         },
         "workers": {
-          "offered": 20,
+          "offered": 22,
           "merged": 19,
           "aiOffered": 0,
-          "nonAiOffered": 20,
+          "nonAiOffered": 22,
           "aiMerged": 0,
           "nonAiMerged": 19,
           "avgReviewToMergeDays": 1,
@@ -6912,9 +6912,9 @@
           "avgReviewToMergeSampleCount": 48
         },
         "bc": {
-          "offered": 160,
+          "offered": 161,
           "merged": 149,
-          "aiOffered": 12,
+          "aiOffered": 13,
           "nonAiOffered": 148,
           "aiMerged": 9,
           "nonAiMerged": 140,
@@ -6955,60 +6955,60 @@
       {
         "date": "2026-06-01",
         "api": {
-          "offered": 57,
-          "merged": 25,
-          "aiOffered": 7,
-          "nonAiOffered": 50,
+          "offered": 66,
+          "merged": 28,
+          "aiOffered": 11,
+          "nonAiOffered": 55,
           "aiMerged": 11,
-          "nonAiMerged": 14,
+          "nonAiMerged": 17,
           "avgReviewToMergeDays": 4,
-          "avgReviewToMergeSampleCount": 18
+          "avgReviewToMergeSampleCount": 19
         },
         "legacy": {
-          "offered": 7,
-          "merged": 4,
-          "aiOffered": 0,
-          "nonAiOffered": 7,
-          "aiMerged": 0,
-          "nonAiMerged": 4,
-          "avgReviewToMergeDays": 4,
-          "avgReviewToMergeSampleCount": 4
-        },
-        "react": {
-          "offered": 18,
-          "merged": 13,
-          "aiOffered": 0,
-          "nonAiOffered": 18,
-          "aiMerged": 0,
-          "nonAiMerged": 13,
-          "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 13
-        },
-        "bc": {
-          "offered": 26,
-          "merged": 27,
-          "aiOffered": 2,
-          "nonAiOffered": 24,
-          "aiMerged": 5,
-          "nonAiMerged": 22,
-          "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 26
-        },
-        "workers": {
-          "offered": 16,
-          "merged": 17,
-          "aiOffered": 0,
-          "nonAiOffered": 16,
-          "aiMerged": 0,
-          "nonAiMerged": 17,
-          "avgReviewToMergeDays": 1,
-          "avgReviewToMergeSampleCount": 17
-        },
-        "titanium": {
-          "offered": 5,
+          "offered": 8,
           "merged": 5,
           "aiOffered": 0,
-          "nonAiOffered": 5,
+          "nonAiOffered": 8,
+          "aiMerged": 0,
+          "nonAiMerged": 5,
+          "avgReviewToMergeDays": 4,
+          "avgReviewToMergeSampleCount": 5
+        },
+        "react": {
+          "offered": 19,
+          "merged": 14,
+          "aiOffered": 0,
+          "nonAiOffered": 19,
+          "aiMerged": 0,
+          "nonAiMerged": 14,
+          "avgReviewToMergeDays": 2,
+          "avgReviewToMergeSampleCount": 14
+        },
+        "bc": {
+          "offered": 30,
+          "merged": 33,
+          "aiOffered": 3,
+          "nonAiOffered": 27,
+          "aiMerged": 8,
+          "nonAiMerged": 25,
+          "avgReviewToMergeDays": 2,
+          "avgReviewToMergeSampleCount": 32
+        },
+        "workers": {
+          "offered": 22,
+          "merged": 20,
+          "aiOffered": 0,
+          "nonAiOffered": 22,
+          "aiMerged": 0,
+          "nonAiMerged": 20,
+          "avgReviewToMergeDays": 1,
+          "avgReviewToMergeSampleCount": 20
+        },
+        "titanium": {
+          "offered": 6,
+          "merged": 5,
+          "aiOffered": 0,
+          "nonAiOffered": 6,
           "aiMerged": 0,
           "nonAiMerged": 5,
           "avgReviewToMergeDays": 1,

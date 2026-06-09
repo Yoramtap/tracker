@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-08T07:29:31.343Z",
+  "updatedAt": "2026-06-09T07:30:18.724Z",
   "combinedPoints": [
     {
       "date": "2024-07-22",
@@ -2309,7 +2309,7 @@
       "api": {
         "highest": 0,
         "high": 3,
-        "medium": 12,
+        "medium": 11,
         "low": 5,
         "lowest": 2
       },
@@ -2356,7 +2356,7 @@
       "api": {
         "highest": 0,
         "high": 3,
-        "medium": 12,
+        "medium": 11,
         "low": 5,
         "lowest": 2
       },
@@ -2403,15 +2403,15 @@
       "api": {
         "highest": 0,
         "high": 3,
-        "medium": 13,
+        "medium": 12,
         "low": 5,
         "lowest": 2
       },
       "legacy": {
         "highest": 0,
-        "high": 0,
-        "medium": 3,
-        "low": 20,
+        "high": 1,
+        "medium": 5,
+        "low": 21,
         "lowest": 0
       },
       "react": {
@@ -2423,12 +2423,12 @@
       },
       "bc": {
         "highest": 4,
-        "high": 65,
-        "medium": 105,
+        "high": 66,
+        "medium": 106,
         "low": 8,
         "lowest": 0,
-        "longstanding_30d_plus": 173,
-        "longstanding_60d_plus": 167
+        "longstanding_30d_plus": 175,
+        "longstanding_60d_plus": 169
       },
       "workers": {
         "highest": 0,
