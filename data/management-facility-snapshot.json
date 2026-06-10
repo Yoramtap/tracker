@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T07:30:18.724Z",
+  "updatedAt": "2026-06-10T07:30:15.523Z",
   "chartData": {
     "managementBusinessUnit": {
       "scopeLabel": "Broadcast",
@@ -13,15 +13,15 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 58.63
+              "uatAvg": 59.63
             },
             {
               "label": "Business unit unmapped",
-              "devAvg": 17.17,
-              "sampleCount": 2,
-              "devCount": 2,
-              "uatCount": 2,
-              "uatAvg": 11.29
+              "devAvg": 13.04,
+              "sampleCount": 3,
+              "devCount": 3,
+              "uatCount": 3,
+              "uatAvg": 8.35
             },
             {
               "label": "MEA",
@@ -29,15 +29,15 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 123.95
+              "uatAvg": 124.95
             },
             {
               "label": "US",
-              "devAvg": 0.55,
-              "sampleCount": 5,
-              "devCount": 5,
-              "uatCount": 5,
-              "uatAvg": 96.31
+              "devAvg": 0.68,
+              "sampleCount": 4,
+              "devCount": 4,
+              "uatCount": 4,
+              "uatAvg": 119.53
             },
             {
               "label": "Tech Debt",
@@ -45,7 +45,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 179.12
+              "uatAvg": 180.12
             }
           ]
         },
@@ -86,11 +86,11 @@
             },
             {
               "label": "US",
-              "devAvg": 5.32,
-              "sampleCount": 19,
-              "devCount": 19,
-              "uatCount": 19,
-              "uatAvg": 10.56
+              "devAvg": 4.82,
+              "sampleCount": 21,
+              "devCount": 21,
+              "uatCount": 21,
+              "uatAvg": 9.95
             },
             {
               "label": "Tech Debt",
