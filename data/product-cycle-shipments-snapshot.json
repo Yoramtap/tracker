@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-10T07:30:15.512Z",
+  "generatedAt": "2026-06-11T07:30:49.965Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-06-01",
-      "totalShipped": 201,
+      "totalShipped": 205,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -2338,8 +2338,8 @@
         {
           "monthStart": "2026-06-01",
           "monthKey": "2026-06",
-          "totalShipped": 12,
-          "teamCount": 3,
+          "totalShipped": 16,
+          "teamCount": 4,
           "teams": [
             {
               "team": "Multi team",
@@ -2374,8 +2374,32 @@
               ]
             },
             {
+              "team": "Orchestration",
+              "shippedCount": 2,
+              "ideas": [
+                {
+                  "issueKey": "TPS-354",
+                  "productAreaLabel": "NEP Platform",
+                  "teams": [
+                    "Orchestration"
+                  ],
+                  "summary": "Node controller v1.0 data plane deployment in NEP platform",
+                  "shippedAt": "2026-06-11T07:23:30.964Z"
+                },
+                {
+                  "issueKey": "TPS-457",
+                  "productAreaLabel": "NEP Platform",
+                  "teams": [
+                    "Orchestration"
+                  ],
+                  "summary": "Tech debt for Manifold",
+                  "shippedAt": "2026-06-11T06:43:22.517Z"
+                }
+              ]
+            },
+            {
               "team": "Titanium",
-              "shippedCount": 10,
+              "shippedCount": 12,
               "ideas": [
                 {
                   "issueKey": "TPS-388",
@@ -2414,6 +2438,15 @@
                   "shippedAt": "2026-06-08T03:17:51.548Z"
                 },
                 {
+                  "issueKey": "TPS-453",
+                  "productAreaLabel": "Titanium",
+                  "teams": [
+                    "Titanium"
+                  ],
+                  "summary": "encoder drastic Slice 3: port and refactor",
+                  "shippedAt": "2026-06-10T23:49:59.533Z"
+                },
+                {
                   "issueKey": "TPS-315",
                   "productAreaLabel": "Titanium",
                   "teams": [
@@ -2448,6 +2481,15 @@
                   ],
                   "summary": "Media Rx 2110 Rivermax Module v1.3.x",
                   "shippedAt": "2026-06-03T01:49:51.936Z"
+                },
+                {
+                  "issueKey": "TPS-448",
+                  "productAreaLabel": "Titanium",
+                  "teams": [
+                    "Titanium"
+                  ],
+                  "summary": "Media Rx 2110 Rivermax Slice 3: Payload Receiver",
+                  "shippedAt": "2026-06-10T23:49:34.086Z"
                 },
                 {
                   "issueKey": "TPS-374",

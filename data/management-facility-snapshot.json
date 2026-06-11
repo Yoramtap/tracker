@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-10T07:30:15.523Z",
+  "updatedAt": "2026-06-11T07:30:49.989Z",
   "chartData": {
     "managementBusinessUnit": {
       "scopeLabel": "Broadcast",
@@ -8,20 +8,12 @@
           "searchHref": "https://nepgroup.atlassian.net/issues/?jql=project+%3D+%22TFC%22+AND+labels+%3D+%22Broadcast%22+AND+status+IN+%28%22UAT%22%29+ORDER+BY+updated+DESC",
           "rows": [
             {
-              "label": "ANZJ",
-              "devAvg": 7.01,
-              "sampleCount": 1,
-              "devCount": 1,
-              "uatCount": 1,
-              "uatAvg": 59.63
-            },
-            {
               "label": "Business unit unmapped",
-              "devAvg": 13.04,
-              "sampleCount": 3,
-              "devCount": 3,
-              "uatCount": 3,
-              "uatAvg": 8.35
+              "devAvg": 2.92,
+              "sampleCount": 2,
+              "devCount": 2,
+              "uatCount": 2,
+              "uatAvg": 12.29
             },
             {
               "label": "MEA",
@@ -29,7 +21,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 124.95
+              "uatAvg": 125.95
             },
             {
               "label": "US",
@@ -37,7 +29,7 @@
               "sampleCount": 4,
               "devCount": 4,
               "uatCount": 4,
-              "uatAvg": 119.53
+              "uatAvg": 120.53
             },
             {
               "label": "Tech Debt",
@@ -45,7 +37,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 180.12
+              "uatAvg": 181.12
             }
           ]
         },
@@ -54,19 +46,19 @@
           "rows": [
             {
               "label": "ANZJ",
-              "devAvg": 28.41,
-              "sampleCount": 22,
-              "devCount": 22,
-              "uatCount": 22,
-              "uatAvg": 28.16
+              "devAvg": 27.48,
+              "sampleCount": 23,
+              "devCount": 23,
+              "uatCount": 23,
+              "uatAvg": 29.56
             },
             {
               "label": "Business unit unmapped",
-              "devAvg": 10.73,
-              "sampleCount": 12,
-              "devCount": 12,
-              "uatCount": 12,
-              "uatAvg": 5.37
+              "devAvg": 12.47,
+              "sampleCount": 13,
+              "devCount": 13,
+              "uatCount": 13,
+              "uatAvg": 5.21
             },
             {
               "label": "EU",
