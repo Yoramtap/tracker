@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-11T07:22:14.040Z",
+  "updatedAt": "2026-06-12T07:22:09.115Z",
   "defaultTeam": "bc",
   "defaultWindow": "30d",
   "windows": {
@@ -9,7 +9,7 @@
         {
           "key": "api",
           "label": "API",
-          "issueCount": 22,
+          "issueCount": 23,
           "totalCycleDays": 4.3,
           "avgPrInflow": 100,
           "bottleneckLabel": "In Progress",
@@ -17,20 +17,20 @@
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 1.9,
-              "sampleCount": 18
+              "days": 1.8,
+              "sampleCount": 19
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 1.2,
-              "sampleCount": 19
+              "days": 1.4,
+              "sampleCount": 18
             },
             {
               "key": "merge",
               "label": "QA",
-              "days": 1.2,
-              "sampleCount": 16
+              "days": 1.1,
+              "sampleCount": 17
             }
           ]
         },
@@ -38,14 +38,14 @@
           "key": "legacy",
           "label": "Legacy FE",
           "issueCount": 3,
-          "totalCycleDays": 4.3,
+          "totalCycleDays": 4,
           "avgPrInflow": 16,
           "bottleneckLabel": "In Progress",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 3.5,
+              "days": 3.2,
               "sampleCount": 3
             },
             {
@@ -65,78 +65,78 @@
         {
           "key": "react",
           "label": "React FE",
-          "issueCount": 18,
-          "totalCycleDays": 5.5,
+          "issueCount": 21,
+          "totalCycleDays": 5.4,
           "avgPrInflow": 29,
           "bottleneckLabel": "In Review",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 1.9,
+              "days": 1.8,
               "sampleCount": 17
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 2.7,
+              "days": 2.8,
               "sampleCount": 15
             },
             {
               "key": "merge",
               "label": "QA",
-              "days": 0.9,
-              "sampleCount": 11
+              "days": 0.8,
+              "sampleCount": 12
             }
           ]
         },
         {
           "key": "bc",
           "label": "BC",
-          "issueCount": 66,
-          "totalCycleDays": 5.3,
+          "issueCount": 62,
+          "totalCycleDays": 5.6,
           "avgPrInflow": 66,
           "bottleneckLabel": "In Progress",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 2.5,
-              "sampleCount": 50
+              "days": 2.7,
+              "sampleCount": 46
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 1.4,
-              "sampleCount": 42
+              "days": 1.5,
+              "sampleCount": 39
             },
             {
               "key": "merge",
               "label": "QA",
               "days": 1.4,
-              "sampleCount": 28
+              "sampleCount": 30
             }
           ]
         },
         {
           "key": "workers",
           "label": "Workers",
-          "issueCount": 34,
-          "totalCycleDays": 3.6,
+          "issueCount": 36,
+          "totalCycleDays": 3.5,
           "avgPrInflow": 22,
           "bottleneckLabel": "In Review",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 1.6,
+              "days": 1.7,
               "sampleCount": 28
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 2,
-              "sampleCount": 25
+              "days": 1.8,
+              "sampleCount": 28
             },
             {
               "key": "merge",
@@ -149,16 +149,16 @@
         {
           "key": "titanium",
           "label": "Titanium",
-          "issueCount": 37,
-          "totalCycleDays": 7.7,
+          "issueCount": 34,
+          "totalCycleDays": 9.3,
           "avgPrInflow": 7,
           "bottleneckLabel": "In Review",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 1.9,
-              "sampleCount": 31
+              "days": 2.5,
+              "sampleCount": 30
             },
             {
               "key": "review",
@@ -169,7 +169,7 @@
             {
               "key": "merge",
               "label": "QA",
-              "days": 1.3,
+              "days": 2.3,
               "sampleCount": 1
             }
           ]
@@ -183,7 +183,7 @@
           "key": "api",
           "label": "API",
           "issueCount": 43,
-          "totalCycleDays": 4.2,
+          "totalCycleDays": 4.3,
           "avgPrInflow": 64,
           "bottleneckLabel": "In Progress",
           "stages": [
@@ -191,13 +191,13 @@
               "key": "coding",
               "label": "In Progress",
               "days": 1.7,
-              "sampleCount": 40
+              "sampleCount": 39
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 1.4,
-              "sampleCount": 42
+              "days": 1.5,
+              "sampleCount": 40
             },
             {
               "key": "merge",
@@ -238,7 +238,7 @@
         {
           "key": "react",
           "label": "React FE",
-          "issueCount": 43,
+          "issueCount": 45,
           "totalCycleDays": 6.9,
           "avgPrInflow": 25.3,
           "bottleneckLabel": "In Review",
@@ -246,14 +246,14 @@
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 2.5,
-              "sampleCount": 34
+              "days": 2.4,
+              "sampleCount": 35
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 3.4,
-              "sampleCount": 38
+              "days": 3.5,
+              "sampleCount": 36
             },
             {
               "key": "merge",
@@ -266,7 +266,7 @@
         {
           "key": "bc",
           "label": "BC",
-          "issueCount": 121,
+          "issueCount": 120,
           "totalCycleDays": 6.5,
           "avgPrInflow": 62.7,
           "bottleneckLabel": "In Progress",
@@ -274,42 +274,42 @@
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 2.8,
-              "sampleCount": 103
+              "days": 2.9,
+              "sampleCount": 100
             },
             {
               "key": "review",
               "label": "In Review",
               "days": 1.4,
-              "sampleCount": 86
+              "sampleCount": 84
             },
             {
               "key": "merge",
               "label": "QA",
-              "days": 2.3,
-              "sampleCount": 53
+              "days": 2.2,
+              "sampleCount": 56
             }
           ]
         },
         {
           "key": "workers",
           "label": "Workers",
-          "issueCount": 49,
-          "totalCycleDays": 5.1,
+          "issueCount": 50,
+          "totalCycleDays": 4.9,
           "avgPrInflow": 15.3,
           "bottleneckLabel": "In Review",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 2.3,
-              "sampleCount": 38
+              "days": 2.2,
+              "sampleCount": 39
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 2.8,
-              "sampleCount": 34
+              "days": 2.7,
+              "sampleCount": 36
             },
             {
               "key": "merge",
@@ -322,27 +322,27 @@
         {
           "key": "titanium",
           "label": "Titanium",
-          "issueCount": 54,
-          "totalCycleDays": 9.1,
+          "issueCount": 52,
+          "totalCycleDays": 10.5,
           "avgPrInflow": 14.7,
           "bottleneckLabel": "In Review",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 3.1,
-              "sampleCount": 48
+              "days": 3.6,
+              "sampleCount": 45
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 4.7,
+              "days": 4.6,
               "sampleCount": 24
             },
             {
               "key": "merge",
               "label": "QA",
-              "days": 1.3,
+              "days": 2.3,
               "sampleCount": 1
             }
           ]
@@ -355,7 +355,7 @@
         {
           "key": "api",
           "label": "API",
-          "issueCount": 152,
+          "issueCount": 153,
           "totalCycleDays": 9.8,
           "avgPrInflow": 62.3,
           "bottleneckLabel": "In Review",
@@ -364,7 +364,7 @@
               "key": "coding",
               "label": "In Progress",
               "days": 1.7,
-              "sampleCount": 117
+              "sampleCount": 118
             },
             {
               "key": "review",
@@ -376,7 +376,7 @@
               "key": "merge",
               "label": "QA",
               "days": 2.1,
-              "sampleCount": 112
+              "sampleCount": 113
             }
           ]
         },
@@ -384,7 +384,7 @@
           "key": "legacy",
           "label": "Legacy FE",
           "issueCount": 31,
-          "totalCycleDays": 8.2,
+          "totalCycleDays": 8.1,
           "avgPrInflow": 9.6,
           "bottleneckLabel": "In Review",
           "stages": [
@@ -397,7 +397,7 @@
             {
               "key": "review",
               "label": "In Review",
-              "days": 5.5,
+              "days": 5.4,
               "sampleCount": 28
             },
             {
@@ -411,36 +411,36 @@
         {
           "key": "react",
           "label": "React FE",
-          "issueCount": 98,
-          "totalCycleDays": 7.2,
+          "issueCount": 101,
+          "totalCycleDays": 7,
           "avgPrInflow": 24.3,
           "bottleneckLabel": "In Review",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 2.9,
-              "sampleCount": 88
+              "days": 2.8,
+              "sampleCount": 91
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 3.3,
+              "days": 3.2,
               "sampleCount": 78
             },
             {
               "key": "merge",
               "label": "QA",
               "days": 1,
-              "sampleCount": 68
+              "sampleCount": 69
             }
           ]
         },
         {
           "key": "bc",
           "label": "BC",
-          "issueCount": 245,
-          "totalCycleDays": 9.7,
+          "issueCount": 246,
+          "totalCycleDays": 9.6,
           "avgPrInflow": 46.6,
           "bottleneckLabel": "QA",
           "stages": [
@@ -448,27 +448,27 @@
               "key": "coding",
               "label": "In Progress",
               "days": 3.8,
-              "sampleCount": 192
+              "sampleCount": 193
             },
             {
               "key": "review",
               "label": "In Review",
               "days": 1.8,
-              "sampleCount": 195
+              "sampleCount": 198
             },
             {
               "key": "merge",
               "label": "QA",
-              "days": 4.1,
-              "sampleCount": 107
+              "days": 4,
+              "sampleCount": 108
             }
           ]
         },
         {
           "key": "workers",
           "label": "Workers",
-          "issueCount": 112,
-          "totalCycleDays": 7,
+          "issueCount": 114,
+          "totalCycleDays": 6.8,
           "avgPrInflow": 18.1,
           "bottleneckLabel": "In Review",
           "stages": [
@@ -476,13 +476,13 @@
               "key": "coding",
               "label": "In Progress",
               "days": 2.8,
-              "sampleCount": 95
+              "sampleCount": 97
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 4.2,
-              "sampleCount": 85
+              "days": 4,
+              "sampleCount": 88
             },
             {
               "key": "merge",
@@ -496,21 +496,21 @@
           "key": "titanium",
           "label": "Titanium",
           "issueCount": 95,
-          "totalCycleDays": 12.1,
+          "totalCycleDays": 12,
           "avgPrInflow": 13.3,
-          "bottleneckLabel": "In Review",
+          "bottleneckLabel": "In Progress",
           "stages": [
             {
               "key": "coding",
               "label": "In Progress",
-              "days": 4.7,
+              "days": 4.8,
               "sampleCount": 88
             },
             {
               "key": "review",
               "label": "In Review",
-              "days": 4.8,
-              "sampleCount": 51
+              "days": 4.6,
+              "sampleCount": 53
             },
             {
               "key": "merge",
