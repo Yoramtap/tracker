@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   buildBugBacklogQualityFindings,
+  buildPrActivityMappingCoverageFindings,
   buildPrActivityQualityReport,
   buildPrCycleInflowConsistencyFindings,
   summarizePrActivityWindow
@@ -54,7 +55,12 @@ function snapshot({ updatedAt = "2026-06-07T07:29:08.069Z", apiScale = 1 } = {})
         point("2026-04-01", { api: 30 * apiScale, react: 20, bc: 10 }),
         point("2026-05-01", { api: 30 * apiScale, react: 20, bc: 10 }),
         point("2026-06-01", { api: 999 * apiScale, react: 999, bc: 999 })
-      ]
+      ],
+      mappingCoverage: {
+        mappedRepoCount: 227,
+        mappedContributorCount: 49,
+        coverageHash: "stable-coverage"
+      }
     }
   };
 }
@@ -116,6 +122,48 @@ test("PR activity quality report flags large team and total deltas", () => {
       (finding) => finding.type === "window-total-delta" && finding.windowKey === "1y"
     ),
     true
+  );
+});
+
+test("PR activity quality report fails when mapping coverage changes", () => {
+  const local = snapshot();
+  local.prActivity.mappingCoverage = {
+    mappedRepoCount: 275,
+    mappedContributorCount: 74,
+    coverageHash: "expanded-coverage"
+  };
+
+  const report = buildPrActivityQualityReport(local, snapshot(), {
+    totalDeltaThreshold: 0.35,
+    teamDeltaThreshold: 0.75
+  });
+
+  assert.equal(
+    report.findings.some((finding) => finding.type === "mapping-coverage-changed"),
+    true
+  );
+});
+
+test("PR activity mapping coverage changes require an explicit override reason", () => {
+  const local = snapshot();
+  local.prActivity.mappingCoverage = {
+    mappedRepoCount: 275,
+    mappedContributorCount: 74,
+    coverageHash: "expanded-coverage"
+  };
+
+  assert.equal(
+    buildPrActivityMappingCoverageFindings(local, snapshot(), {
+      allowMappingBaselineChange: true,
+      allowMappingBaselineChangeReason: "Intentional repo ownership refresh"
+    }).length,
+    0
+  );
+  assert.equal(
+    buildPrActivityMappingCoverageFindings(local, snapshot(), {
+      allowMappingBaselineChange: true
+    }).length,
+    1
   );
 });
 

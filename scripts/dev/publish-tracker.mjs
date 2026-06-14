@@ -511,6 +511,13 @@ async function validateSnapshots(repoDir) {
   });
 }
 
+async function runDataQualityPreflight(repoDir) {
+  console.log("\n=== Checking dashboard data quality ===");
+  await runNodeScript("scripts/check-dashboard-data-quality.mjs", [], {
+    cwd: repoDir
+  });
+}
+
 async function generateAnalysis(repoDir) {
   console.log("\n=== Generating analysis ===");
   await runNodeScript(
@@ -719,6 +726,8 @@ async function main() {
     }
 
     await validateSnapshots(publishRepoDir);
+
+    await runDataQualityPreflight(publishRepoDir);
 
     if (analyze) {
       await generateAnalysis(publishRepoDir);

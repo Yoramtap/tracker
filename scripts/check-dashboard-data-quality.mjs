@@ -33,7 +33,15 @@ function parseArgs(argv = process.argv.slice(2)) {
     teamDeltaThreshold: Number(
       process.env.PR_ACTIVITY_TEAM_DELTA_THRESHOLD || DEFAULT_TEAM_DELTA_THRESHOLD
     ),
-    allowReason: process.env.ALLOW_PR_ACTIVITY_ANOMALY_REASON || ""
+    allowReason: process.env.ALLOW_PR_ACTIVITY_ANOMALY_REASON || "",
+    allowMappingBaselineChange:
+      String(process.env.ALLOW_PR_MAPPING_BASELINE_CHANGE || "")
+        .trim()
+        .toLowerCase() === "true",
+    allowMappingBaselineChangeReason:
+      process.env.ALLOW_PR_MAPPING_BASELINE_CHANGE_REASON ||
+      process.env.ALLOW_PR_ACTIVITY_ANOMALY_REASON ||
+      ""
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -45,6 +53,10 @@ function parseArgs(argv = process.argv.slice(2)) {
     else if (arg === "--total-threshold") options.totalDeltaThreshold = Number(next());
     else if (arg === "--team-threshold") options.teamDeltaThreshold = Number(next());
     else if (arg === "--allow-pr-activity-anomaly") options.allowReason = next();
+    else if (arg === "--allow-pr-mapping-baseline-change") {
+      options.allowMappingBaselineChange = true;
+      options.allowMappingBaselineChangeReason = next();
+    }
     else if (arg === "--help" || arg === "-h") {
       console.log(`Usage: node scripts/check-dashboard-data-quality.mjs [options]
 
@@ -55,6 +67,8 @@ Options:
   --total-threshold <number>         Total window delta threshold. Default: ${DEFAULT_TOTAL_DELTA_THRESHOLD}
   --team-threshold <number>          Team window delta threshold. Default: ${DEFAULT_TEAM_DELTA_THRESHOLD}
   --allow-pr-activity-anomaly <why>  Allow anomaly failures with an explicit reason
+  --allow-pr-mapping-baseline-change <why>
+                                      Allow PR mapping coverage hash changes with an explicit reason
 `);
       process.exit(0);
     }
@@ -167,6 +181,33 @@ function formatPercent(value) {
   return `${Math.round(value * 100)}%`;
 }
 
+function normalizeMappingCoverage(snapshot) {
+  const coverage = snapshot?.prActivity?.mappingCoverage || {};
+  return {
+    mappedRepoCount: Number(coverage?.mappedRepoCount) || 0,
+    mappedContributorCount: Number(coverage?.mappedContributorCount) || 0,
+    coverageHash: String(coverage?.coverageHash || "").trim()
+  };
+}
+
+function buildPrActivityMappingCoverageFindings(local, baseline, options = {}) {
+  const localCoverage = normalizeMappingCoverage(local);
+  const baselineCoverage = normalizeMappingCoverage(baseline);
+  if (!localCoverage.coverageHash || !baselineCoverage.coverageHash) return [];
+  if (localCoverage.coverageHash === baselineCoverage.coverageHash) return [];
+
+  const allowReason = String(options.allowMappingBaselineChangeReason || "").trim();
+  if (options.allowMappingBaselineChange && allowReason) return [];
+
+  return [
+    {
+      severity: "error",
+      type: "mapping-coverage-changed",
+      message: `PR activity mapping coverage changed from ${baselineCoverage.mappedRepoCount} repos/${baselineCoverage.mappedContributorCount} contributors (${baselineCoverage.coverageHash}) to ${localCoverage.mappedRepoCount} repos/${localCoverage.mappedContributorCount} contributors (${localCoverage.coverageHash}). Set ALLOW_PR_MAPPING_BASELINE_CHANGE=true with ALLOW_PR_MAPPING_BASELINE_CHANGE_REASON to publish an intentional mapping rebaseline.`
+    }
+  ];
+}
+
 function buildPrActivityQualityReport(local, baseline, options = {}) {
   const findings = [];
   const localUpdatedAt = String(local?.updatedAt || "");
@@ -178,6 +219,7 @@ function buildPrActivityQualityReport(local, baseline, options = {}) {
       message: `Live PR activity snapshot is newer than local: local ${localUpdatedAt || "unknown"}, live ${baselineUpdatedAt || "unknown"}.`
     });
   }
+  findings.push(...buildPrActivityMappingCoverageFindings(local, baseline, options));
 
   const windows = ["14d", "30d", "90d", "6m", "1y", "2y"];
   const windowReports = {};
@@ -316,10 +358,15 @@ function printReport(report, options = {}) {
   if (allowReason) {
     console.error(`Override reason: ${allowReason}`);
   }
+  const mappingAllowReason = String(options.allowMappingBaselineChangeReason || "").trim();
+  if (options.allowMappingBaselineChange && mappingAllowReason) {
+    console.error(`Mapping baseline override reason: ${mappingAllowReason}`);
+  }
 }
 
 export {
   buildBugBacklogQualityFindings,
+  buildPrActivityMappingCoverageFindings,
   buildPrActivityQualityReport,
   buildPrCycleInflowConsistencyFindings,
   getWindowedPrActivityPoints,

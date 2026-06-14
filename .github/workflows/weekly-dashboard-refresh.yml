@@ -175,6 +175,10 @@ jobs:
         if: steps.freshness.outputs.should_refresh == 'true'
         run: npm run data:validate
 
+      - name: Check dashboard data quality
+        if: steps.freshness.outputs.should_refresh == 'true'
+        run: npm run data:preflight-live
+
       - name: Scan public files for sensitive markers
         if: steps.freshness.outputs.should_refresh == 'true'
         run: npm run security:scan-public
