@@ -739,6 +739,32 @@ function samePrActivityMappingCoverage(left, right) {
   return Boolean(leftHash && rightHash && leftHash === rightHash);
 }
 
+function formatPrActivityMappingCoverage(coverage = {}) {
+  return `${Number(coverage?.mappedRepoCount || 0)} repos/${Number(
+    coverage?.mappedContributorCount || 0
+  )} contributors (${String(coverage?.coverageHash || "").trim() || "no hash"})`;
+}
+
+export function assertPrActivityMappingCoverageCanWrite(
+  existingCoverage,
+  currentCoverage,
+  options = {}
+) {
+  if (options.noWrite || samePrActivityMappingCoverage(existingCoverage, currentCoverage)) return;
+
+  const allowBaselineChange = Boolean(options.allowMappingBaselineChange);
+  const reason = String(options.mappingBaselineChangeReason || "").trim();
+  if (allowBaselineChange && reason) return;
+
+  throw new Error(
+    `PR activity mapping coverage changed from ${formatPrActivityMappingCoverage(
+      existingCoverage
+    )} to ${formatPrActivityMappingCoverage(
+      currentCoverage
+    )}. Keep local mapping changes as private proposals, or set ALLOW_PR_MAPPING_BASELINE_CHANGE=true with ALLOW_PR_MAPPING_BASELINE_CHANGE_REASON to write an intentional rebaseline.`
+  );
+}
+
 async function fetchGitHubPullRequestReviews(repo, pullRequestNumber, options = {}) {
   const safeRepo = String(repo || "")
     .trim()
@@ -3430,6 +3456,8 @@ function buildRefreshConfig() {
     prCycleRebuildAll: envBool("PR_CYCLE_REBUILD_ALL", false),
     prActivityRebuildAll: envBool("PR_ACTIVITY_REBUILD_ALL", false),
     prActivitySkipReviewDetails: envBool("PR_ACTIVITY_SKIP_REVIEW_DETAILS", false),
+    allowPrMappingBaselineChange: envBool("ALLOW_PR_MAPPING_BASELINE_CHANGE", false),
+    prMappingBaselineChangeReason: env("ALLOW_PR_MAPPING_BASELINE_CHANGE_REASON", ""),
     trendCountConcurrency: envPositiveInt(
       "TREND_COUNT_CONCURRENCY",
       DEFAULT_TREND_COUNT_CONCURRENCY
@@ -3720,6 +3748,17 @@ async function buildPrActivityRefreshState(config, todayIso, resolvedDates, opti
       mergedPrActivity: prActivityHistoryPlan.existingPrActivityForMerge
     };
   }
+
+  assertPrActivityMappingCoverageCanWrite(
+    prActivityHistoryPlan.existingSnapshotForPrActivity?.prActivity?.mappingCoverage ||
+      prActivityHistoryPlan.existingPrActivityForMerge?.mappingCoverage,
+    currentMappingCoverage,
+    {
+      noWrite: config.noWrite,
+      allowMappingBaselineChange: config.allowPrMappingBaselineChange,
+      mappingBaselineChangeReason: config.prMappingBaselineChangeReason
+    }
+  );
 
   const prActivityWindowKey = prActivityHistoryPlan.reuseHistoricalPrActivity
     ? PR_ACTIVITY_REFRESH_WINDOW_DEFAULT_KEY

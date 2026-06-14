@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  assertPrActivityMappingCoverageCanWrite,
   attachPrCycleAvgInflow,
   buildPrCycleFetchRequest,
   buildScopedIssueKeysByWindowMap,
@@ -1496,6 +1497,48 @@ test("resolvePrActivityHistoryPlan rebuilds cached history when mapping coverage
   assert.equal(historyPlan.mappingCoverageCompatible, false);
   assert.equal(historyPlan.canReuseHistoricalPrActivity, false);
   assert.equal(historyPlan.reuseHistoricalPrActivity, false);
+});
+
+test("assertPrActivityMappingCoverageCanWrite blocks unapproved mapping baseline changes", () => {
+  assert.throws(
+    () =>
+      assertPrActivityMappingCoverageCanWrite(
+        {
+          mappedRepoCount: 227,
+          mappedContributorCount: 49,
+          coverageHash: "baseline"
+        },
+        {
+          mappedRepoCount: 275,
+          mappedContributorCount: 74,
+          coverageHash: "proposal"
+        }
+      ),
+    /ALLOW_PR_MAPPING_BASELINE_CHANGE/
+  );
+});
+
+test("assertPrActivityMappingCoverageCanWrite allows dry runs and explicit rebaselines", () => {
+  const baseline = {
+    mappedRepoCount: 227,
+    mappedContributorCount: 49,
+    coverageHash: "baseline"
+  };
+  const proposal = {
+    mappedRepoCount: 275,
+    mappedContributorCount: 74,
+    coverageHash: "proposal"
+  };
+
+  assert.doesNotThrow(() =>
+    assertPrActivityMappingCoverageCanWrite(baseline, proposal, { noWrite: true })
+  );
+  assert.doesNotThrow(() =>
+    assertPrActivityMappingCoverageCanWrite(baseline, proposal, {
+      allowMappingBaselineChange: true,
+      mappingBaselineChangeReason: "reviewed private mapping update"
+    })
+  );
 });
 
 test("resolvePrCycleRefreshPlan reuses older cached windows when history is fresh", () => {
