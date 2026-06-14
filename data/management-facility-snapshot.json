@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-13T07:30:02.303Z",
+  "updatedAt": "2026-06-14T07:30:10.267Z",
   "chartData": {
     "managementBusinessUnit": {
       "scopeLabel": "Broadcast",
@@ -13,7 +13,7 @@
               "sampleCount": 2,
               "devCount": 2,
               "uatCount": 2,
-              "uatAvg": 14.29
+              "uatAvg": 15.29
             },
             {
               "label": "MEA",
@@ -21,7 +21,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 127.95
+              "uatAvg": 128.95
             },
             {
               "label": "US",
@@ -29,7 +29,7 @@
               "sampleCount": 3,
               "devCount": 3,
               "uatCount": 3,
-              "uatAvg": 136.62
+              "uatAvg": 137.62
             },
             {
               "label": "Tech Debt",
@@ -37,7 +37,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 183.12
+              "uatAvg": 184.12
             }
           ]
         },

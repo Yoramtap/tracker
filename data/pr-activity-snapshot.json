@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-13T07:30:02.303Z",
+  "updatedAt": "2026-06-14T07:30:10.267Z",
   "prActivity": {
     "since": "2024-01-08",
     "interval": "sprint",
@@ -6985,12 +6985,12 @@
           "avgReviewToMergeSampleCount": 18
         },
         "bc": {
-          "offered": 50,
-          "merged": 51,
+          "offered": 51,
+          "merged": 52,
           "aiOffered": 5,
-          "nonAiOffered": 45,
+          "nonAiOffered": 46,
           "aiMerged": 9,
-          "nonAiMerged": 42,
+          "nonAiMerged": 43,
           "avgReviewToMergeDays": 5,
           "avgReviewToMergeSampleCount": 47
         },
