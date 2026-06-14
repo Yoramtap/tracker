@@ -130,6 +130,7 @@ const PR_ACTIVITY_TEAM_KEYS = [...TEAM_KEYS, PR_ACTIVITY_UNMAPPED_TEAM_KEY];
 const PR_ACTIVITY_REPO_DISCOVERY_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const PR_ACTIVITY_UNMAPPED_CONTRIBUTOR_LIMIT = 50;
 const PR_ACTIVITY_UNMAPPED_AUDIT_LIMIT = 100;
+const PR_ACTIVITY_REVIEW_TO_MERGE_STALE_DAYS = 50;
 const PR_ACTIVITY_AI_LABELS = new Set(["ai"]);
 const PR_TEAM_LABELS = {
   API: "api",
@@ -2711,7 +2712,7 @@ function buildPrActivityCaveat(source) {
     .trim()
     .toLowerCase();
   if (safeSource === "github_pull_requests") {
-    return "Counts are sourced from GitHub pull requests across discovered organization repos and attributed by the Jira-derived contributor-to-team map, falling back to committed repo-to-team mapping. Unmapped discovered repos only count when a mapped contributor authored the PR. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the first submitted non-author GitHub review to mergedAt.";
+    return "Counts are sourced from GitHub pull requests across discovered organization repos and attributed by the Jira-derived contributor-to-team map, falling back to committed repo-to-team mapping. Unmapped discovered repos only count when a mapped contributor authored the PR. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the first submitted non-author GitHub review to mergedAt, excluding stale samples of 50 days or more.";
   }
   return "Counts are sourced from GitHub pull requests.";
 }
@@ -2737,6 +2738,19 @@ function incrementPrActivityCount(point, team, isAi, metricKey) {
   } else if (metricKey === "merged") {
     point[team][isAi ? "aiMerged" : "nonAiMerged"] += 1;
   }
+}
+
+function includePrActivityReviewToMergeSample(row) {
+  const reviewToMergeDays = numberOrZero(row?.reviewToMergeDays);
+  return reviewToMergeDays < PR_ACTIVITY_REVIEW_TO_MERGE_STALE_DAYS;
+}
+
+function incrementPrActivityReviewToMerge(point, row) {
+  if (!includePrActivityReviewToMergeSample(row)) return;
+  const teamPoint = point?.[row.team];
+  if (!teamPoint) return;
+  teamPoint.reviewToMergeDaysTotal += row.reviewToMergeDays;
+  teamPoint.avgReviewToMergeSampleCount += 1;
 }
 
 function buildPrimarySnapshotSourceNote() {
@@ -2787,8 +2801,7 @@ function buildPrActivitySprintSnapshot(result, sinceDate, sprintDates) {
       const mergedBucketDate = resolveSprintBucketDate(mergedDate, dates);
       const mergedPoint = byDate.get(mergedBucketDate);
       if (mergedPoint) {
-        mergedPoint[row.team].reviewToMergeDaysTotal += row.reviewToMergeDays;
-        mergedPoint[row.team].avgReviewToMergeSampleCount += 1;
+        incrementPrActivityReviewToMerge(mergedPoint, row);
       }
     }
   }
@@ -2917,8 +2930,7 @@ function buildPrActivityMonthlySnapshot(result, sinceDate, options = {}) {
     }
     const mergedPoint = ensureMonthBucket(mergedBucketDate);
     if (mergedPoint) {
-      mergedPoint[row.team].reviewToMergeDaysTotal += row.reviewToMergeDays;
-      mergedPoint[row.team].avgReviewToMergeSampleCount += 1;
+      incrementPrActivityReviewToMerge(mergedPoint, row);
     }
   }
 

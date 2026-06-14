@@ -1354,7 +1354,7 @@ test("buildPrActivitySnapshotState preserves review metrics when review details 
   assert.equal(marchPoint.api.avgReviewToMergeSampleCount, 4);
 });
 
-test("buildPrActivitySnapshotState counts monthly merges even when the PR was opened before the refresh floor", () => {
+test("buildPrActivitySnapshotState excludes stale review-to-merge samples from public averages", () => {
   const prActivityState = buildPrActivitySnapshotState(
     "2026-04-05",
     {
@@ -1387,7 +1387,7 @@ test("buildPrActivitySnapshotState counts monthly merges even when the PR was op
         {
           team: "bc",
           mergedProxyDate: "2026-04-05",
-          reviewToMergeDays: 404
+          reviewToMergeDays: 50
         },
         {
           team: "bc",
@@ -1406,8 +1406,8 @@ test("buildPrActivitySnapshotState counts monthly merges even when the PR was op
   assert.equal(prActivityState.refreshedPrActivity.monthlyPoints.at(-1).date, "2026-04-01");
   assert.equal(aprilPoint.bc.offered, 1);
   assert.equal(aprilPoint.bc.merged, 2);
-  assert.equal(aprilPoint.bc.avgReviewToMergeSampleCount, 2);
-  assert.equal(aprilPoint.bc.avgReviewToMergeDays, 202);
+  assert.equal(aprilPoint.bc.avgReviewToMergeSampleCount, 1);
+  assert.equal(aprilPoint.bc.avgReviewToMergeDays, 0);
 });
 
 test("resolvePrActivityHistoryPlan reuses archived history when monthly buckets reach the history floor", () => {
