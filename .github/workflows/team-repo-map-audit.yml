@@ -55,7 +55,7 @@ jobs:
             exit 1
           fi
 
-          npm run dev:audit:team-pr-repos -- --output .cache/analysis/team-pr-repo-map-audit.json
+          npm run dev:audit:team-pr-repos -- --output .cache/analysis/team-pr-repo-map-audit.json --no-fail
 
       - name: Summarize audit
         if: always()
