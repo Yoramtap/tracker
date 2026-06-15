@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-14T07:30:10.255Z",
+  "generatedAt": "2026-06-15T07:30:23.896Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-06-01",
-      "totalShipped": 205,
+      "totalShipped": 206,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -2338,7 +2338,7 @@
         {
           "monthStart": "2026-06-01",
           "monthKey": "2026-06",
-          "totalShipped": 16,
+          "totalShipped": 17,
           "teamCount": 4,
           "teams": [
             {
@@ -2360,7 +2360,7 @@
             },
             {
               "team": "Frontend",
-              "shippedCount": 1,
+              "shippedCount": 2,
               "ideas": [
                 {
                   "issueKey": "TPS-436",
@@ -2370,6 +2370,15 @@
                   ],
                   "summary": "Panel Builder slice 4: Autosave, Take, Categories",
                   "shippedAt": "2026-06-03T08:39:15.027Z"
+                },
+                {
+                  "issueKey": "TPS-449",
+                  "productAreaLabel": "TFC",
+                  "teams": [
+                    "Frontend"
+                  ],
+                  "summary": "Panel Builder slice 6: Parameter slider, Element lib, Reserve, Lock",
+                  "shippedAt": "2026-06-15T07:26:38.820Z"
                 }
               ]
             },
