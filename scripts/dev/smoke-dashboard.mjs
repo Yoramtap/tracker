@@ -607,6 +607,14 @@ function readUtilityStats(selector) {
         root?.querySelectorAll(
           ".dashboard-utility-layout__meta-bit--link[href], .dashboard-utility-layout__label-meta--link[href], .dashboard-utility-layout__value-meta--link[href]"
         ) || []
+      ).length,
+      metaLinkHrefs: Array.from(
+        root?.querySelectorAll(
+          ".dashboard-utility-layout__meta-bit--link[href], .dashboard-utility-layout__label-meta--link[href], .dashboard-utility-layout__value-meta--link[href]"
+        ) || []
+      ).map((node) => node.getAttribute("href") || ""),
+      valueLinkCount: Array.from(
+        root?.querySelectorAll(".dashboard-utility-layout__value-link[href]") || []
       ).length
     };
   })())`);
@@ -623,7 +631,10 @@ function assertUtilityStats({
   minMetaLinkCount = 0,
   maxMetaLinkCount = null,
   minStatLinkCount = 0,
-  maxStatLinkCount = null
+  maxStatLinkCount = null,
+  minValueLinkCount = 0,
+  maxValueLinkCount = null,
+  metaHrefPattern = null
 }) {
   const state = readUtilityStats(selector);
   assert(state.hasRoot === true, `${description} utility stats root was not found.`);
@@ -661,6 +672,12 @@ function assertUtilityStats({
       `${description} should not exceed ${maxMetaLinkCount} row metadata links, saw ${state.metaLinkCount}.`
     );
   }
+  if (metaHrefPattern) {
+    assert(
+      state.metaLinkHrefs.every((href) => metaHrefPattern.test(href)),
+      `${description} metadata links should match ${metaHrefPattern}: ${JSON.stringify(state.metaLinkHrefs)}`
+    );
+  }
   assert(
     state.statLinkCount >= minStatLinkCount,
     `${description} should link utility stats, saw ${state.statLinkCount} stat links.`
@@ -669,6 +686,16 @@ function assertUtilityStats({
     assert(
       state.statLinkCount <= maxStatLinkCount,
       `${description} should not exceed ${maxStatLinkCount} stat links, saw ${state.statLinkCount}.`
+    );
+  }
+  assert(
+    state.valueLinkCount >= minValueLinkCount,
+    `${description} should link utility values, saw ${state.valueLinkCount} value links.`
+  );
+  if (maxValueLinkCount !== null) {
+    assert(
+      state.valueLinkCount <= maxValueLinkCount,
+      `${description} should not exceed ${maxValueLinkCount} value links, saw ${state.valueLinkCount}.`
     );
   }
   return state;
@@ -844,7 +871,9 @@ async function main() {
     primaryLabel: "UAT average",
     valuePattern: /months?$/,
     minMetaLinkCount: 1,
-    minStatLinkCount: 1
+    minStatLinkCount: 1,
+    maxValueLinkCount: 0,
+    metaHrefPattern: /cf%5B10451%5D|cf\[10451\]/
   });
   const productSnapshot = await enrichSnapshotWithLocalResourceStats(
     await captureRouteSnapshot({
@@ -1016,7 +1045,8 @@ async function main() {
     primaryLabel: "UAT average",
     valuePattern: /months?$/,
     maxMetaLinkCount: 0,
-    maxStatLinkCount: 0
+    maxStatLinkCount: 0,
+    maxValueLinkCount: 0
   });
   await assertSectionControlSwitch({
     section: "dev-breakdown",

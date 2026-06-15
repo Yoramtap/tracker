@@ -106,6 +106,39 @@ export function createWorkflowPanels(deps) {
     return url.href;
   }
 
+  function quoteJiraJqlValue(value) {
+    return `"${String(value || "")
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"')}"`;
+  }
+
+  function stripJiraOrderBy(jql) {
+    return String(jql || "")
+      .replace(/\s+ORDER\s+BY\s+.+$/i, "")
+      .trim();
+  }
+
+  function readJiraSearchJql(searchHref) {
+    try {
+      const url = new URL(String(searchHref || ""), window.location.origin);
+      return String(url.searchParams.get("jql") || "").trim();
+    } catch {
+      return "";
+    }
+  }
+
+  function buildBusinessUnitIssueSearchHref(scopeSearchHref, businessUnitLabel) {
+    const baseJql = stripJiraOrderBy(readJiraSearchJql(scopeSearchHref));
+    if (!baseJql) return "";
+    const label = String(businessUnitLabel || "").trim();
+    if (!label) return "";
+    const businessUnitClause =
+      label.toLowerCase() === "business unit unmapped"
+        ? "cf[10451] is EMPTY"
+        : `cf[10451] = ${quoteJiraJqlValue(label)}`;
+    return buildJiraSearchUrl(`${baseJql} AND ${businessUnitClause} ORDER BY updated DESC`);
+  }
+
   function getContributorsBaseJql(source) {
     return String(source?.jql || "").trim() || 'project = "TFC" AND labels = "Contributors"';
   }
@@ -207,20 +240,22 @@ export function createWorkflowPanels(deps) {
       ],
       columnStartLabel: "Business unit",
       columnEndLabel: "Avg time in UAT",
-      rows: sortedRows.map((row) => ({
-        label: String(row?.label || "").trim(),
-        metaBits: [],
-        valueText: formatCycleMonthsText(row?.uatAvg, { short: true }),
-        valueMetaText: {
-          text: `${toCount(row?.sampleCount)} ${
-            toCount(row?.sampleCount) === 1 ? "issue" : "issues"
-          }`,
-          href: pendingSearchHref
-        },
-        valueHref: pendingSearchHref,
-        width: getPretextFillWidth(row?.uatAvg, maxUatDays),
-        color: "var(--chart-active)"
-      }))
+      rows: sortedRows.map((row) => {
+        const label = String(row?.label || "").trim();
+        return {
+          label,
+          metaBits: [],
+          valueText: formatCycleMonthsText(row?.uatAvg, { short: true }),
+          valueMetaText: {
+            text: `${toCount(row?.sampleCount)} ${
+              toCount(row?.sampleCount) === 1 ? "issue" : "issues"
+            }`,
+            href: pendingSearchHref ? buildBusinessUnitIssueSearchHref(pendingSearchHref, label) : ""
+          },
+          width: getPretextFillWidth(row?.uatAvg, maxUatDays),
+          color: "var(--chart-active)"
+        };
+      })
     };
   }
 

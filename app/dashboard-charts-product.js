@@ -138,6 +138,42 @@
     }
   }
 
+  function quoteJiraJqlValue(value) {
+    return `"${String(value || "")
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"')}"`;
+  }
+
+  function stripJiraOrderBy(jql) {
+    return String(jql || "")
+      .replace(/\s+ORDER\s+BY\s+.+$/i, "")
+      .trim();
+  }
+
+  function readJiraSearchJql(searchHref) {
+    try {
+      const url = new URL(String(searchHref || ""), window.location.origin);
+      return String(url.searchParams.get("jql") || "").trim();
+    } catch {
+      return "";
+    }
+  }
+
+  function buildBusinessUnitIssueSearchHref(scopeSearchHref, businessUnitLabel) {
+    const baseJql = stripJiraOrderBy(readJiraSearchJql(scopeSearchHref));
+    if (!baseJql) return "";
+    const label = String(businessUnitLabel || "").trim();
+    if (!label) return "";
+    const businessUnitClause =
+      label.toLowerCase() === "business unit unmapped"
+        ? "cf[10451] is EMPTY"
+        : `cf[10451] = ${quoteJiraJqlValue(label)}`;
+    return buildJiraSearchUrl(
+      "https://nepgroup.atlassian.net",
+      `${baseJql} AND ${businessUnitClause} ORDER BY updated DESC`
+    );
+  }
+
   function normalizeDisplayTeamName(name) {
     const raw = String(name || "").trim();
     const key = normalizeProductCycleTeamKey(raw);
@@ -1046,6 +1082,9 @@
             };
             const width =
               sampleCount > 0 ? Math.max(0, Math.round((uatMonths / maxMonths) * 100)) : 0;
+            const rowSearchHref = safeSearchHref
+              ? sanitizeUtilityHref(buildBusinessUnitIssueSearchHref(safeSearchHref, row?.label))
+              : "";
             const valueContent = [
               h(
                 "span",
@@ -1059,26 +1098,25 @@
                 key: "spacer"
               })
             ];
-            const valueBaseClassName = safeSearchHref
-              ? "management-uat-row__action management-uat-row__action--inline"
-              : "management-uat-row__plain-value";
+            const valueBaseClassName = "management-uat-row__plain-value";
             const valueAlertClassName = alertLevel
-              ? ` management-uat-row__${safeSearchHref ? "action" : "plain-value"}--${alertLevel}`
+              ? ` management-uat-row__plain-value--${alertLevel}`
               : "";
             const valueClassName = `${valueBaseClassName}${valueAlertClassName}`;
-            const valueNode = safeSearchHref
+            const valueNode = h("span", { className: valueClassName }, ...valueContent);
+            const sampleNode = rowSearchHref
               ? h(
                   "a",
                   {
-                    className: valueClassName,
-                    href: safeSearchHref,
+                    className: "pr-cycle-stage-row__sample management-uat-row__sample-link",
+                    href: rowSearchHref,
                     target: "_blank",
                     rel: "noopener noreferrer",
                     title: "Open pending UAT tickets in Jira"
                   },
-                  ...valueContent
+                  `n=${sampleCount}`
                 )
-              : h("span", { className: valueClassName }, ...valueContent);
+              : h("span", { className: "pr-cycle-stage-row__sample" }, `n=${sampleCount}`);
             return h(
               "div",
               {
@@ -1094,7 +1132,7 @@
                   { className: "pr-cycle-stage-row__label-text" },
                   String(row?.label || "")
                 ),
-                h("span", { className: "pr-cycle-stage-row__sample" }, `n=${sampleCount}`)
+                sampleNode
               ),
               h(
                 "div",
