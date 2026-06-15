@@ -103,12 +103,21 @@ function authHeader(email, token) {
 async function jiraRequest(site, auth, endpoint) {
   const url = endpoint.startsWith("http") ? endpoint : `https://${site}${endpoint}`;
   for (let attempt = 0; attempt < 4; attempt += 1) {
-    const response = await fetch(url, {
-      headers: {
-        Authorization: auth,
-        Accept: "application/json"
+    let response;
+    try {
+      response = await fetch(url, {
+        headers: {
+          Authorization: auth,
+          Accept: "application/json"
+        }
+      });
+    } catch (error) {
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, 800 * 2 ** attempt));
+        continue;
       }
-    });
+      throw error;
+    }
     if (response.ok) return response.json();
     if ((response.status === 429 || response.status >= 500) && attempt < 3) {
       await new Promise((resolve) => setTimeout(resolve, 800 * 2 ** attempt));
@@ -217,14 +226,27 @@ function resolveGitHubToken() {
 async function githubRequest(token, endpoint) {
   const url = endpoint.startsWith("http") ? endpoint : `https://api.github.com/${endpoint}`;
   for (let attempt = 0; attempt < 4; attempt += 1) {
-    const response = await fetch(url, {
-      headers: {
-        Accept: "application/vnd.github+json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        "User-Agent": "tracker-team-repo-map-audit",
-        "X-GitHub-Api-Version": "2022-11-28"
+    let response;
+    try {
+      response = await fetch(url, {
+        headers: {
+          Accept: "application/vnd.github+json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "User-Agent": "tracker-team-repo-map-audit",
+          "X-GitHub-Api-Version": "2022-11-28"
+        }
+      });
+    } catch (error) {
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, 800 * 2 ** attempt));
+        continue;
       }
-    });
+      return {
+        __error: true,
+        status: 0,
+        message: error?.message || "GitHub request failed."
+      };
+    }
     if (response.ok) return response.json();
     if ((response.status === 403 || response.status === 429 || response.status >= 500) && attempt < 3) {
       const retryAfter = Number(response.headers.get("retry-after") || 0);
