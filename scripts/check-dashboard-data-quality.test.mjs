@@ -76,7 +76,7 @@ function backlogSnapshot(overrides = {}) {
   return {
     combinedPoints: [
       {
-        date: "2026-06-07",
+        date: overrides.date || "2026-06-07",
         api: teamPoint(overrides.api ?? 10),
         legacy: teamPoint(overrides.legacy ?? 20),
         react: teamPoint(overrides.react ?? 5),
@@ -216,5 +216,27 @@ test("bug backlog quality allows small latest count drift", () => {
     { totalDeltaThreshold: 0.35, teamDeltaThreshold: 0.75 }
   );
 
+  assert.deepEqual(findings, []);
+});
+
+test("bug backlog quality allows intentionally older local latest point", () => {
+  const findings = buildBugBacklogQualityFindings(
+    backlogSnapshot({ date: "2026-06-08" }),
+    backlogSnapshot({ date: "2026-06-15" }),
+    {
+      totalDeltaThreshold: 0.35,
+      teamDeltaThreshold: 0.75,
+      allowBugBacklogLiveNewerReason: "Refresh excludes active sprint"
+    }
+  );
+
+  assert.equal(
+    buildBugBacklogQualityFindings(
+      backlogSnapshot({ date: "2026-06-08" }),
+      backlogSnapshot({ date: "2026-06-15" }),
+      { totalDeltaThreshold: 0.35, teamDeltaThreshold: 0.75 }
+    ).some((finding) => finding.type === "bug-backlog-live-newer-than-local"),
+    true
+  );
   assert.deepEqual(findings, []);
 });

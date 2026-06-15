@@ -177,6 +177,8 @@ jobs:
 
       - name: Check dashboard data quality
         if: steps.freshness.outputs.should_refresh == 'true'
+        env:
+          ALLOW_BUG_BACKLOG_LIVE_NEWER_REASON: "Daily refresh intentionally excludes active sprint points."
         run: npm run data:preflight-live
 
       - name: Scan public files for sensitive markers

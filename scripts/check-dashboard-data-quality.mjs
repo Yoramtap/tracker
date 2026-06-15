@@ -41,7 +41,8 @@ function parseArgs(argv = process.argv.slice(2)) {
     allowMappingBaselineChangeReason:
       process.env.ALLOW_PR_MAPPING_BASELINE_CHANGE_REASON ||
       process.env.ALLOW_PR_ACTIVITY_ANOMALY_REASON ||
-      ""
+      "",
+    allowBugBacklogLiveNewerReason: process.env.ALLOW_BUG_BACKLOG_LIVE_NEWER_REASON || ""
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -69,6 +70,8 @@ Options:
   --allow-pr-activity-anomaly <why>  Allow anomaly failures with an explicit reason
   --allow-pr-mapping-baseline-change <why>
                                       Allow PR mapping coverage hash changes with an explicit reason
+  ALLOW_BUG_BACKLOG_LIVE_NEWER_REASON
+                                      Allow live bug backlog to have a newer latest point
 `);
       process.exit(0);
     }
@@ -312,7 +315,12 @@ function buildBugBacklogQualityFindings(localBacklog, baselineBacklog, options =
   const findings = [];
   const localSummary = summarizeLatestBugBacklog(localBacklog);
   const baselineSummary = summarizeLatestBugBacklog(baselineBacklog);
-  if (localSummary.date && baselineSummary.date && localSummary.date < baselineSummary.date) {
+  if (
+    localSummary.date &&
+    baselineSummary.date &&
+    localSummary.date < baselineSummary.date &&
+    !String(options.allowBugBacklogLiveNewerReason || "").trim()
+  ) {
     findings.push({
       severity: "error",
       type: "bug-backlog-live-newer-than-local",
