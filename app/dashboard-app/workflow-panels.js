@@ -179,6 +179,7 @@ export function createWorkflowPanels(deps) {
     const maxUatDays = Math.max(1, ...sortedRows.map((row) => toNumber(row?.uatAvg)));
 
     const sampleText = `${sampleCount} ${sampleCount === 1 ? "issue" : "issues"}`;
+    const pendingSearchHref = scopeKey === "done" ? "" : String(scopeSearchHref || "").trim();
     return {
       teamKey: "uat",
       teamColor: "var(--chart-active)",
@@ -201,7 +202,7 @@ export function createWorkflowPanels(deps) {
         {
           label: "Sample",
           value: sampleText,
-          href: String(scopeSearchHref || "").trim()
+          href: pendingSearchHref
         }
       ],
       columnStartLabel: "Business unit",
@@ -213,8 +214,10 @@ export function createWorkflowPanels(deps) {
         valueMetaText: {
           text: `${toCount(row?.sampleCount)} ${
             toCount(row?.sampleCount) === 1 ? "issue" : "issues"
-          }`
+          }`,
+          href: pendingSearchHref
         },
+        valueHref: pendingSearchHref,
         width: getPretextFillWidth(row?.uatAvg, maxUatDays),
         color: "var(--chart-active)"
       }))

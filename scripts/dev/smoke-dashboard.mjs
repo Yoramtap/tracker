@@ -622,7 +622,8 @@ function assertUtilityStats({
   minPrimaryMetaCount = 0,
   minMetaLinkCount = 0,
   maxMetaLinkCount = null,
-  minStatLinkCount = 0
+  minStatLinkCount = 0,
+  maxStatLinkCount = null
 }) {
   const state = readUtilityStats(selector);
   assert(state.hasRoot === true, `${description} utility stats root was not found.`);
@@ -664,6 +665,12 @@ function assertUtilityStats({
     state.statLinkCount >= minStatLinkCount,
     `${description} should link utility stats, saw ${state.statLinkCount} stat links.`
   );
+  if (maxStatLinkCount !== null) {
+    assert(
+      state.statLinkCount <= maxStatLinkCount,
+      `${description} should not exceed ${maxStatLinkCount} stat links, saw ${state.statLinkCount}.`
+    );
+  }
   return state;
 }
 
@@ -835,7 +842,9 @@ async function main() {
     selector: "#development-vs-uat-by-facility-chart",
     expectedLabels: ["UAT average", "Action needed", "Slowest avg", "Sample"],
     primaryLabel: "UAT average",
-    valuePattern: /months?$/
+    valuePattern: /months?$/,
+    minMetaLinkCount: 1,
+    minStatLinkCount: 1
   });
   const productSnapshot = await enrichSnapshotWithLocalResourceStats(
     await captureRouteSnapshot({
@@ -999,6 +1008,15 @@ async function main() {
     name: "management-facility-flow-scope",
     value: "done",
     description: "Completed management-vs-UAT scope"
+  });
+  assertUtilityStats({
+    description: "Completed management-vs-UAT scope",
+    selector: "#development-vs-uat-by-facility-chart",
+    expectedLabels: ["UAT average", "Slowest avg", "Sample"],
+    primaryLabel: "UAT average",
+    valuePattern: /months?$/,
+    maxMetaLinkCount: 0,
+    maxStatLinkCount: 0
   });
   await assertSectionControlSwitch({
     section: "dev-breakdown",

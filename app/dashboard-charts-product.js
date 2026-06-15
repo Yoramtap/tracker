@@ -989,14 +989,15 @@
     return `${done}/${total} done`;
   }
 
-  function FacilityUatListCard({ rows, groupingLabel, searchHref }) {
+  function FacilityUatListCard({ rows, groupingLabel, searchHref, scope = "ongoing" }) {
     const displayRows = (Array.isArray(rows) ? rows : []).map((row) => ({
       ...row,
       uatMonths: toNumber(row?.uatAvg) / 30.4375
     }));
     const maxMonths = Math.max(1, ...displayRows.map((row) => toNumber(row?.uatMonths)));
     const totalSampleCount = displayRows.reduce((sum, row) => sum + toWhole(row?.sampleCount), 0);
-    const safeSearchHref = sanitizeUtilityHref(searchHref);
+    const allowIssueLinks = scope !== "done";
+    const safeSearchHref = allowIssueLinks ? sanitizeUtilityHref(searchHref) : "";
 
     return h(
       "div",
@@ -1045,6 +1046,39 @@
             };
             const width =
               sampleCount > 0 ? Math.max(0, Math.round((uatMonths / maxMonths) * 100)) : 0;
+            const valueContent = [
+              h(
+                "span",
+                { className: "management-uat-row__action-value", key: "value" },
+                h("span", { className: "management-uat-row__value-text" }, monthParts.value),
+                h("span", { className: "management-uat-row__value-unit" }, monthParts.unit)
+              ),
+              h("span", {
+                className: "management-uat-row__icon-spacer",
+                "aria-hidden": "true",
+                key: "spacer"
+              })
+            ];
+            const valueBaseClassName = safeSearchHref
+              ? "management-uat-row__action management-uat-row__action--inline"
+              : "management-uat-row__plain-value";
+            const valueAlertClassName = alertLevel
+              ? ` management-uat-row__${safeSearchHref ? "action" : "plain-value"}--${alertLevel}`
+              : "";
+            const valueClassName = `${valueBaseClassName}${valueAlertClassName}`;
+            const valueNode = safeSearchHref
+              ? h(
+                  "a",
+                  {
+                    className: valueClassName,
+                    href: safeSearchHref,
+                    target: "_blank",
+                    rel: "noopener noreferrer",
+                    title: "Open pending UAT tickets in Jira"
+                  },
+                  ...valueContent
+                )
+              : h("span", { className: valueClassName }, ...valueContent);
             return h(
               "div",
               {
@@ -1076,21 +1110,7 @@
               h(
                 "div",
                 { className: "pr-cycle-stage-row__value management-uat-row__value" },
-                h(
-                  "span",
-                  {
-                    className: `management-uat-row__plain-value${
-                      alertLevel ? ` management-uat-row__plain-value--${alertLevel}` : ""
-                    }`
-                  },
-                  h(
-                    "span",
-                    { className: "management-uat-row__action-value" },
-                    h("span", { className: "management-uat-row__value-text" }, monthParts.value),
-                    h("span", { className: "management-uat-row__value-unit" }, monthParts.unit)
-                  ),
-                  h("span", { className: "management-uat-row__icon-spacer", "aria-hidden": "true" })
-                )
+                valueNode
               )
             );
           })
@@ -1159,14 +1179,16 @@
     containerId,
     rows,
     groupingLabel = "facility",
-    searchHref = ""
+    searchHref = "",
+    scope = "ongoing"
   }) {
     const chartRows = Array.isArray(rows) ? rows.slice() : [];
     renderSvgChart(containerId, chartRows.length > 0, () =>
       h(FacilityUatListCard, {
         rows: chartRows,
         groupingLabel,
-        searchHref
+        searchHref,
+        scope
       })
     );
   }
