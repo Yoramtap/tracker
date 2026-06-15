@@ -1,6 +1,6 @@
 import { resolveDashboardAppDeps } from "./dashboard-app/deps.js";
 import { createProductPanels } from "./dashboard-app/product-panels.js?v=local12";
-import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local22";
+import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local23";
 
 (function initDashboardApp() {
   const {
