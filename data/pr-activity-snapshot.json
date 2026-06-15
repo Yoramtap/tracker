@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-15T10:41:24.419Z",
+  "updatedAt": "2026-06-15T13:43:23.055Z",
   "prActivity": {
     "since": "2024-01-08",
     "interval": "sprint",
@@ -6955,34 +6955,34 @@
       {
         "date": "2026-06-01",
         "api": {
-          "offered": 88,
-          "merged": 45,
+          "offered": 90,
+          "merged": 48,
           "aiOffered": 15,
-          "nonAiOffered": 73,
-          "aiMerged": 13,
-          "nonAiMerged": 32,
+          "nonAiOffered": 75,
+          "aiMerged": 15,
+          "nonAiMerged": 33,
           "avgReviewToMergeDays": 3,
-          "avgReviewToMergeSampleCount": 31
+          "avgReviewToMergeSampleCount": 34
         },
         "legacy": {
-          "offered": 13,
-          "merged": 9,
+          "offered": 14,
+          "merged": 10,
           "aiOffered": 0,
-          "nonAiOffered": 13,
+          "nonAiOffered": 14,
           "aiMerged": 0,
-          "nonAiMerged": 9,
+          "nonAiMerged": 10,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 9
+          "avgReviewToMergeSampleCount": 10
         },
         "react": {
-          "offered": 30,
-          "merged": 18,
+          "offered": 31,
+          "merged": 19,
           "aiOffered": 0,
-          "nonAiOffered": 30,
+          "nonAiOffered": 31,
           "aiMerged": 0,
-          "nonAiMerged": 18,
+          "nonAiMerged": 19,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 18
+          "avgReviewToMergeSampleCount": 19
         },
         "bc": {
           "offered": 62,

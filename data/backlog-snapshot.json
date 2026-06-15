@@ -1,6 +1,53 @@
 {
-  "updatedAt": "2026-06-15T10:41:24.419Z",
+  "updatedAt": "2026-06-15T13:43:23.055Z",
   "combinedPoints": [
+    {
+      "date": "2024-07-22",
+      "api": {
+        "highest": 0,
+        "high": 0,
+        "medium": 10,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "highest": 0,
+        "high": 2,
+        "medium": 32,
+        "low": 65,
+        "lowest": 7
+      },
+      "react": {
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "highest": 0,
+        "high": 30,
+        "medium": 70,
+        "low": 13,
+        "lowest": 4,
+        "longstanding_30d_plus": 98,
+        "longstanding_60d_plus": 84
+      },
+      "workers": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
     {
       "date": "2024-08-05",
       "api": {
@@ -2394,53 +2441,6 @@
         "highest": 1,
         "high": 1,
         "medium": 0,
-        "low": 0,
-        "lowest": 0
-      }
-    },
-    {
-      "date": "2026-06-15",
-      "api": {
-        "highest": 0,
-        "high": 3,
-        "medium": 11,
-        "low": 6,
-        "lowest": 2
-      },
-      "legacy": {
-        "highest": 0,
-        "high": 1,
-        "medium": 4,
-        "low": 20,
-        "lowest": 0
-      },
-      "react": {
-        "highest": 0,
-        "high": 0,
-        "medium": 2,
-        "low": 0,
-        "lowest": 0
-      },
-      "bc": {
-        "highest": 5,
-        "high": 64,
-        "medium": 107,
-        "low": 9,
-        "lowest": 0,
-        "longstanding_30d_plus": 171,
-        "longstanding_60d_plus": 168
-      },
-      "workers": {
-        "highest": 0,
-        "high": 1,
-        "medium": 8,
-        "low": 0,
-        "lowest": 0
-      },
-      "titanium": {
-        "highest": 1,
-        "high": 1,
-        "medium": 1,
         "low": 0,
         "lowest": 0
       }

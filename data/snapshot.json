@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-06-15T10:41:24.419Z",
+  "updatedAt": "2026-06-15T13:43:23.055Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-06-15T10:41:24.418Z",
+    "syncedAt": "2026-06-15T13:43:23.055Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. PR activity is sourced from GitHub pull requests across discovered organization repos and attributed by Jira-derived contributor mapping with repo ownership and Unmapped fallbacks."
   },
   "prActivity": {
@@ -6961,34 +6961,34 @@
       {
         "date": "2026-06-01",
         "api": {
-          "offered": 88,
-          "merged": 45,
+          "offered": 90,
+          "merged": 48,
           "aiOffered": 15,
-          "nonAiOffered": 73,
-          "aiMerged": 13,
-          "nonAiMerged": 32,
+          "nonAiOffered": 75,
+          "aiMerged": 15,
+          "nonAiMerged": 33,
           "avgReviewToMergeDays": 3,
-          "avgReviewToMergeSampleCount": 31
+          "avgReviewToMergeSampleCount": 34
         },
         "legacy": {
-          "offered": 13,
-          "merged": 9,
+          "offered": 14,
+          "merged": 10,
           "aiOffered": 0,
-          "nonAiOffered": 13,
+          "nonAiOffered": 14,
           "aiMerged": 0,
-          "nonAiMerged": 9,
+          "nonAiMerged": 10,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 9
+          "avgReviewToMergeSampleCount": 10
         },
         "react": {
-          "offered": 30,
-          "merged": 18,
+          "offered": 31,
+          "merged": 19,
           "aiOffered": 0,
-          "nonAiOffered": 30,
+          "nonAiOffered": 31,
           "aiMerged": 0,
-          "nonAiMerged": 18,
+          "nonAiMerged": 19,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 18
+          "avgReviewToMergeSampleCount": 19
         },
         "bc": {
           "offered": 62,
@@ -7046,7 +7046,7 @@
               "sampleCount": 2,
               "devCount": 2,
               "uatCount": 2,
-              "uatAvg": 16.43
+              "uatAvg": 16.55
             },
             {
               "label": "MEA",
@@ -7054,7 +7054,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 130.09
+              "uatAvg": 130.21
             },
             {
               "label": "US",
@@ -7062,7 +7062,7 @@
               "sampleCount": 3,
               "devCount": 3,
               "uatCount": 3,
-              "uatAvg": 138.75
+              "uatAvg": 138.88
             },
             {
               "label": "Tech Debt",
@@ -7070,7 +7070,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 185.25
+              "uatAvg": 185.38
             }
           ]
         },
@@ -7131,6 +7131,59 @@
     }
   },
   "combinedPoints": [
+    {
+      "date": "2024-07-22",
+      "api": {
+        "date": "2024-07-22",
+        "highest": 0,
+        "high": 0,
+        "medium": 10,
+        "low": 0,
+        "lowest": 0
+      },
+      "legacy": {
+        "date": "2024-07-22",
+        "highest": 0,
+        "high": 2,
+        "medium": 32,
+        "low": 65,
+        "lowest": 7
+      },
+      "react": {
+        "date": "2024-07-22",
+        "highest": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2024-07-22",
+        "highest": 0,
+        "high": 30,
+        "medium": 70,
+        "low": 13,
+        "lowest": 4,
+        "longstanding_30d_plus": 98,
+        "longstanding_60d_plus": 84
+      },
+      "workers": {
+        "date": "2024-07-22",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2024-07-22",
+        "highest": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
     {
       "date": "2024-08-05",
       "api": {
@@ -9830,59 +9883,6 @@
         "highest": 1,
         "high": 1,
         "medium": 0,
-        "low": 0,
-        "lowest": 0
-      }
-    },
-    {
-      "date": "2026-06-15",
-      "api": {
-        "date": "2026-06-15",
-        "highest": 0,
-        "high": 3,
-        "medium": 11,
-        "low": 6,
-        "lowest": 2
-      },
-      "legacy": {
-        "date": "2026-06-15",
-        "highest": 0,
-        "high": 1,
-        "medium": 4,
-        "low": 20,
-        "lowest": 0
-      },
-      "react": {
-        "date": "2026-06-15",
-        "highest": 0,
-        "high": 0,
-        "medium": 2,
-        "low": 0,
-        "lowest": 0
-      },
-      "bc": {
-        "date": "2026-06-15",
-        "highest": 5,
-        "high": 64,
-        "medium": 107,
-        "low": 9,
-        "lowest": 0,
-        "longstanding_30d_plus": 171,
-        "longstanding_60d_plus": 168
-      },
-      "workers": {
-        "date": "2026-06-15",
-        "highest": 0,
-        "high": 1,
-        "medium": 8,
-        "low": 0,
-        "lowest": 0
-      },
-      "titanium": {
-        "date": "2026-06-15",
-        "highest": 1,
-        "high": 1,
-        "medium": 1,
         "low": 0,
         "lowest": 0
       }
