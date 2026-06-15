@@ -60,6 +60,38 @@ function readRepoTeamMap() {
   return payload?.repos && typeof payload.repos === "object" ? payload.repos : {};
 }
 
+function readReviewedUnmappedRepoRows() {
+  const envJson = String(process.env.REVIEWED_UNMAPPED_REPOS_JSON || "").trim();
+  const privatePath = path.join(REPO_ROOT, ".private/reviewed-unmapped-repos.json");
+  if (!envJson && !fs.existsSync(privatePath)) return [];
+  const payload = envJson ? JSON.parse(envJson) : JSON.parse(fs.readFileSync(privatePath, "utf8"));
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.reviewedUnmappedRepos)) return payload.reviewedUnmappedRepos;
+  if (Array.isArray(payload?.repos)) return payload.repos;
+  return [];
+}
+
+function buildReviewedUnmappedRepoSet(rows) {
+  const reviewed = new Set();
+  for (const row of rows || []) {
+    const repo = normalizeRepo(row?.repo);
+    const team = String(row?.team || "*").trim().toLowerCase();
+    const reason = String(row?.reason || row?.note || "").trim();
+    if (!repo || !team || !reason) continue;
+    reviewed.add(`${team}:${repo}`);
+  }
+  return reviewed;
+}
+
+function isReviewedUnmappedRepo(reviewedUnmappedRepos, team, repo) {
+  const normalizedTeam = String(team || "").trim().toLowerCase();
+  const normalizedRepo = normalizeRepo(repo);
+  return (
+    reviewedUnmappedRepos.has(`${normalizedTeam}:${normalizedRepo}`) ||
+    reviewedUnmappedRepos.has(`*:${normalizedRepo}`)
+  );
+}
+
 function readJsonIfPresent(filePath, fallback) {
   try {
     return JSON.parse(fs.readFileSync(filePath, "utf8"));
@@ -430,7 +462,7 @@ function summarizeRepos(issueResults, repoTeamMap) {
     );
 }
 
-async function auditScope(site, auth, repoTeamMap, scope, cache, concurrency) {
+async function auditScope(site, auth, repoTeamMap, reviewedUnmappedRepos, scope, cache, concurrency) {
   const issues = await fetchBoardIssues(site, auth, scope.boardId);
   const issueResults = await mapWithConcurrency(issues, concurrency, async (issue) => ({
     issue,
@@ -441,7 +473,15 @@ async function auditScope(site, auth, repoTeamMap, scope, cache, concurrency) {
   ).length;
   const repos = summarizeRepos(issueResults, repoTeamMap);
   const mismatches = repos.filter((repo) => repo.mappedTeam !== scope.team);
-  const unmappedMismatches = mismatches.filter((repo) => repo.mappedTeam === "(unmapped)");
+  const annotatedMismatches = mismatches.map((repo) => ({
+    ...repo,
+    reviewedUnmapped:
+      repo.mappedTeam === "(unmapped)" &&
+      isReviewedUnmappedRepo(reviewedUnmappedRepos, scope.team, repo.repo)
+  }));
+  const unmappedMismatches = annotatedMismatches.filter((repo) => repo.mappedTeam === "(unmapped)");
+  const reviewedUnmappedMismatches = unmappedMismatches.filter((repo) => repo.reviewedUnmapped);
+  const unreviewedUnmappedMismatches = unmappedMismatches.filter((repo) => !repo.reviewedUnmapped);
   return {
     summary: {
       boardId: scope.boardId,
@@ -459,10 +499,22 @@ async function auditScope(site, auth, repoTeamMap, scope, cache, concurrency) {
       unmappedMergedPrCount: unmappedMismatches.reduce(
         (sum, row) => sum + row.mergedPrCount,
         0
+      ),
+      reviewedUnmappedRepoCount: reviewedUnmappedMismatches.length,
+      reviewedUnmappedPrCount: reviewedUnmappedMismatches.reduce((sum, row) => sum + row.prCount, 0),
+      reviewedUnmappedMergedPrCount: reviewedUnmappedMismatches.reduce(
+        (sum, row) => sum + row.mergedPrCount,
+        0
+      ),
+      unreviewedUnmappedRepoCount: unreviewedUnmappedMismatches.length,
+      unreviewedUnmappedPrCount: unreviewedUnmappedMismatches.reduce((sum, row) => sum + row.prCount, 0),
+      unreviewedUnmappedMergedPrCount: unreviewedUnmappedMismatches.reduce(
+        (sum, row) => sum + row.mergedPrCount,
+        0
       )
     },
     repos,
-    mismatches
+    mismatches: annotatedMismatches
   };
 }
 
@@ -538,10 +590,11 @@ async function main() {
   }
 
   const repoTeamMap = readRepoTeamMap();
+  const reviewedUnmappedRepos = buildReviewedUnmappedRepoSet(readReviewedUnmappedRepoRows());
   const auth = authHeader(email, token);
   const teams = [];
   for (const scope of scopes) {
-    teams.push(await auditScope(site, auth, repoTeamMap, scope, cache, concurrency));
+    teams.push(await auditScope(site, auth, repoTeamMap, reviewedUnmappedRepos, scope, cache, concurrency));
   }
   const allBoardRepos = new Set(
     teams.flatMap((team) => (team.repos || []).map((repo) => repo.repo))
@@ -571,6 +624,30 @@ async function main() {
       (sum, team) => sum + team.summary.unmappedMergedPrCount,
       0
     ),
+    reviewedUnmappedRepoCount: teams.reduce(
+      (sum, team) => sum + team.summary.reviewedUnmappedRepoCount,
+      0
+    ),
+    reviewedUnmappedPrCount: teams.reduce(
+      (sum, team) => sum + team.summary.reviewedUnmappedPrCount,
+      0
+    ),
+    reviewedUnmappedMergedPrCount: teams.reduce(
+      (sum, team) => sum + team.summary.reviewedUnmappedMergedPrCount,
+      0
+    ),
+    unreviewedUnmappedRepoCount: teams.reduce(
+      (sum, team) => sum + team.summary.unreviewedUnmappedRepoCount,
+      0
+    ),
+    unreviewedUnmappedPrCount: teams.reduce(
+      (sum, team) => sum + team.summary.unreviewedUnmappedPrCount,
+      0
+    ),
+    unreviewedUnmappedMergedPrCount: teams.reduce(
+      (sum, team) => sum + team.summary.unreviewedUnmappedMergedPrCount,
+      0
+    ),
     sharedRepoCandidateCount: sharedRepoCandidates.length,
     duplicateCanonicalRepoGroupCount: canonicalRepoAudit?.duplicateCanonicalRepoGroupCount || 0,
     excessAliasCount: canonicalRepoAudit?.excessAliasCount || 0
@@ -589,7 +666,7 @@ async function main() {
   if (cache.enabled && cache.dirty) writeJson(cachePath, cache.rows);
 
   console.log(JSON.stringify(report, null, 2));
-  if (aggregate.unmappedRepoCount > 0 && !hasFlag("no-fail")) process.exitCode = 1;
+  if (aggregate.unreviewedUnmappedRepoCount > 0 && !hasFlag("no-fail")) process.exitCode = 1;
 }
 
 main().catch((error) => {

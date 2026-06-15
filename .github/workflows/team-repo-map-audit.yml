@@ -49,13 +49,14 @@ jobs:
           ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           REPO_TEAM_MAP_JSON: ${{ secrets.REPO_TEAM_MAP_JSON }}
+          REVIEWED_UNMAPPED_REPOS_JSON: ${{ secrets.REVIEWED_UNMAPPED_REPOS_JSON }}
         run: |
           if [ -z "$ATLASSIAN_SITE" ] || [ -z "$ATLASSIAN_EMAIL" ] || [ -z "$ATLASSIAN_API_TOKEN" ] || [ -z "$GH_TOKEN" ] || [ -z "$REPO_TEAM_MAP_JSON" ]; then
             echo "Missing one or more required secrets: ATLASSIAN_SITE, ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN, GH_TOKEN, REPO_TEAM_MAP_JSON." >&2
             exit 1
           fi
 
-          npm run dev:audit:team-pr-repos -- --output .cache/analysis/team-pr-repo-map-audit.json --no-fail
+          npm run dev:audit:team-pr-repos -- --output .cache/analysis/team-pr-repo-map-audit.json
 
       - name: Summarize audit
         if: always()
@@ -75,6 +76,8 @@ jobs:
           console.log("|---|---:|");
           console.log(`| Unmapped repos | ${aggregate.unmappedRepoCount || 0} |`);
           console.log(`| Unmapped merged PRs | ${aggregate.unmappedMergedPrCount || 0} |`);
+          console.log(`| Reviewed unmapped repos | ${aggregate.reviewedUnmappedRepoCount || 0} |`);
+          console.log(`| Unreviewed unmapped repos | ${aggregate.unreviewedUnmappedRepoCount || 0} |`);
           console.log(`| Repo/team mismatch repos | ${aggregate.mismatchRepoCount || 0} |`);
           console.log(`| Mismatched merged PRs | ${aggregate.mismatchedMergedPrCount || 0} |`);
           console.log(`| Canonical duplicate repo groups | ${aggregate.duplicateCanonicalRepoGroupCount || 0} |`);
