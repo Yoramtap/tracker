@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-15T13:43:23.043Z",
+  "generatedAt": "2026-06-16T07:30:44.780Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-06-01",
-      "totalShipped": 206,
+      "totalShipped": 207,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -2159,7 +2159,7 @@
         {
           "monthStart": "2026-05-01",
           "monthKey": "2026-05",
-          "totalShipped": 16,
+          "totalShipped": 17,
           "teamCount": 4,
           "teams": [
             {
@@ -2200,8 +2200,17 @@
             },
             {
               "team": "Frontend",
-              "shippedCount": 10,
+              "shippedCount": 11,
               "ideas": [
+                {
+                  "issueKey": "TPS-440",
+                  "productAreaLabel": "TFC",
+                  "teams": [
+                    "Frontend"
+                  ],
+                  "summary": "Extract Mothership FE integration from EP",
+                  "shippedAt": "2026-05-26T08:53:42.948Z"
+                },
                 {
                   "issueKey": "TPS-430",
                   "productAreaLabel": "TFC",
