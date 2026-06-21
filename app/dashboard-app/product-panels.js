@@ -384,7 +384,8 @@ export function createProductPanels(deps) {
     rows,
     scopeLabel,
     cycleSampleCount,
-    fetchedCount
+    fetchedCount,
+    { includeOngoing = true } = {}
   ) {
     const safeRows = (Array.isArray(rows) ? rows : []).filter(
       (row) => toCount(row?.meta_cycle?.n) > 0
@@ -405,21 +406,22 @@ export function createProductPanels(deps) {
     });
     const shippedCount = rankedRows.reduce((sum, row) => sum + toCount(row?.cycleDoneCount), 0);
     const ongoingCount = rankedRows.reduce((sum, row) => sum + toCount(row?.cycleOngoingCount), 0);
+    const stats = [
+      {
+        label: "Avg delivery",
+        value: formatCycleMonthsText(weightedCycleDays, { short: true }),
+        className: "dashboard-utility-layout__stat--primary"
+      },
+      { label: "Shipped", value: formatCountLabel(shippedCount, "idea") },
+      ...(includeOngoing ? [{ label: "Ongoing", value: formatCountLabel(ongoingCount, "idea") }] : []),
+      { label: "Sample", value: formatCountLabel(cycleSampleCount, "idea") }
+    ];
 
     return {
       teamKey: ALL_TEAM_SCOPE_KEY,
       teamColor: getPrCycleTeamColor(ALL_TEAM_SCOPE_KEY),
       accentColor: "var(--product-cycle-cycle)",
-      stats: [
-        {
-          label: "Avg delivery",
-          value: formatCycleMonthsText(weightedCycleDays, { short: true }),
-          className: "dashboard-utility-layout__stat--primary"
-        },
-        { label: "Shipped", value: formatCountLabel(shippedCount, "idea") },
-        { label: "Ongoing", value: formatCountLabel(ongoingCount, "idea") },
-        { label: "Sample", value: formatCountLabel(cycleSampleCount, "idea") }
-      ],
+      stats,
       columnStartLabel: "Team",
       columnEndLabel: "Avg delivery",
       footerBits: [
@@ -442,7 +444,7 @@ export function createProductPanels(deps) {
     };
   }
 
-  function buildPretextProductCycleSingleTeamModel(row, allRows, scopeLabel) {
+  function buildPretextProductCycleSingleTeamModel(row, allRows, scopeLabel, { includeOngoing = true } = {}) {
     const cycleSample = toCount(row?.meta_cycle?.n);
     const shippedCount = toCount(row?.cycleDoneCount);
     const ongoingCount = toCount(row?.cycleOngoingCount);
@@ -465,7 +467,7 @@ export function createProductPanels(deps) {
         { label: "Delivery time", value: formatCycleMonthsText(row?.cycle, { short: true }) },
         { label: "Sample", value: formatCountLabel(cycleSample, "idea") },
         { label: "Shipped", value: `${shippedCount}` },
-        { label: "Ongoing", value: `${ongoingCount}` }
+        ...(includeOngoing ? [{ label: "Ongoing", value: `${ongoingCount}` }] : [])
       ],
       columnStartLabel: "Measure",
       columnEndLabel: "Current",
@@ -485,13 +487,17 @@ export function createProductPanels(deps) {
           width: getPretextFillWidth(shippedCount, maxShipped),
           color: teamColor
         },
-        {
-          label: "Ongoing",
-          metaBits: [],
-          valueText: String(ongoingCount),
-          width: getPretextFillWidth(ongoingCount, maxOngoing),
-          color: teamColor
-        }
+        ...(includeOngoing
+          ? [
+              {
+                label: "Ongoing",
+                metaBits: [],
+                valueText: String(ongoingCount),
+                width: getPretextFillWidth(ongoingCount, maxOngoing),
+                color: teamColor
+              }
+            ]
+          : [])
       ]
     };
   }
@@ -656,6 +662,7 @@ export function createProductPanels(deps) {
         toCount(state.productCycle?.fetchedCount)
       );
       const scopeLabel = String(chartScopeData.scopeLabel || PRODUCT_CYCLE_SCOPE_LABEL);
+      const includeOngoing = !String(chartScopeData?.shippedYear || "").trim();
 
       if (sampleCount === 0) {
         return {
@@ -728,7 +735,8 @@ export function createProductPanels(deps) {
                 rows,
                 scopeLabel,
                 cycleSampleCount,
-                fetchedCount
+                fetchedCount,
+                { includeOngoing }
               );
               const rendered =
                 pretextLayout.renderPretextCard?.(config.containerId, model) ||
@@ -744,7 +752,9 @@ export function createProductPanels(deps) {
           }
 
           if (isPretextLayoutActive() && pretextLayout) {
-            const model = buildPretextProductCycleSingleTeamModel(selectedRow, rows, scopeLabel);
+            const model = buildPretextProductCycleSingleTeamModel(selectedRow, rows, scopeLabel, {
+              includeOngoing
+            });
             const rendered =
               pretextLayout.renderPretextCard?.(config.containerId, model) ||
               pretextLayout.renderWorkflowBreakdownCard?.(config.containerId, model);
@@ -810,6 +820,39 @@ export function createProductPanels(deps) {
       selectedYear: resolvedYear,
       monthsInYear,
       selectedMonthKey: resolvedMonthKey
+    };
+  }
+
+  function getProductCycleShippedYearScopes(chartData) {
+    const scopes =
+      chartData?.leadCycleByShippedYear && typeof chartData.leadCycleByShippedYear === "object"
+        ? chartData.leadCycleByShippedYear
+        : {};
+    return Object.fromEntries(
+      Object.entries(scopes)
+        .filter(([year, scope]) => /^\d{4}$/.test(String(year || "").trim()) && scope)
+        .sort(([leftYear], [rightYear]) => leftYear.localeCompare(rightYear))
+    );
+  }
+
+  function resolveProductCycleShippedYearSelection(chartData, selectedYear) {
+    const scopes = getProductCycleShippedYearScopes(chartData);
+    const availableYears = Object.keys(scopes);
+    if (availableYears.length === 0) {
+      return {
+        availableYears,
+        selectedYear: "",
+        selectedScope: null
+      };
+    }
+    const selectedValue = String(selectedYear || "").trim();
+    const resolvedYear = availableYears.includes(selectedValue)
+      ? selectedValue
+      : availableYears[availableYears.length - 1];
+    return {
+      availableYears,
+      selectedYear: resolvedYear,
+      selectedScope: scopes[resolvedYear] || null
     };
   }
 
@@ -1001,7 +1044,15 @@ export function createProductPanels(deps) {
       return;
     }
 
-    const chartScopeData = chartData.leadCycleByScope?.[PRODUCT_CYCLE_SCOPE];
+    const shippedYearSelection = resolveProductCycleShippedYearSelection(
+      chartData,
+      state.productCycleShippedYear
+    );
+    if (shippedYearSelection.selectedYear) {
+      state.productCycleShippedYear = shippedYearSelection.selectedYear;
+    }
+    const chartScopeData =
+      shippedYearSelection.selectedScope || chartData.leadCycleByScope?.[PRODUCT_CYCLE_SCOPE];
     if (!chartScopeData) {
       renderDashboardChartState("product-cycle", getConfig, () => ({
         error: `No product cycle chart data found for ${PRODUCT_CYCLE_SCOPE_LABEL}.`,
@@ -1024,6 +1075,7 @@ export function createProductPanels(deps) {
     productCycleTeamKey,
     renderLeadAndCycleTimeByTeamChart,
     renderProductCycleShipmentsTimeline,
+    resolveProductCycleShippedYearSelection,
     resolveShipmentTimelineSelection
   };
 }

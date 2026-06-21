@@ -358,6 +358,20 @@ export function sanitizeProductCycleSnapshot(snapshot) {
     chartData.leadCycleByScope && typeof chartData.leadCycleByScope === "object"
       ? chartData.leadCycleByScope
       : {};
+  const leadCycleByShippedYear =
+    chartData.leadCycleByShippedYear && typeof chartData.leadCycleByShippedYear === "object"
+      ? Object.fromEntries(
+          Object.entries(chartData.leadCycleByShippedYear)
+            .filter(([year]) => /^\d{4}$/.test(String(year || "").trim()))
+            .map(([year, scopeSnapshot]) => [
+              sanitizeText(year),
+              {
+                ...sanitizeLeadCycleScope(scopeSnapshot),
+                shippedYear: sanitizeText(scopeSnapshot?.shippedYear || year)
+              }
+            ])
+        )
+      : {};
 
   return {
     generatedAt: sanitizeText(snapshot?.generatedAt),
@@ -366,6 +380,7 @@ export function sanitizeProductCycleSnapshot(snapshot) {
       leadCycleByScope: {
         [PRODUCT_CYCLE_SCOPE_KEY]: sanitizeLeadCycleScope(leadCycleScopes[PRODUCT_CYCLE_SCOPE_KEY])
       },
+      leadCycleByShippedYear,
       currentStageSnapshot: sanitizeCurrentStageSnapshot(chartData?.currentStageSnapshot)
     }
   };

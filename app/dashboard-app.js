@@ -669,14 +669,59 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   }
 
   function renderProductDeliveryPageToolbar() {
-    const controlsMarkup = renderLabeledControl(
+    const chartData = state.productCycle?.chartData;
+    const yearSelection = productPanels.resolveProductCycleShippedYearSelection(
+      chartData,
+      state.productCycleShippedYear
+    );
+    const { availableYears, selectedYear } = yearSelection;
+    if (selectedYear) state.productCycleShippedYear = selectedYear;
+    const activeYearIndex = Math.max(0, availableYears.indexOf(selectedYear));
+    const previousYear = activeYearIndex > 0 ? availableYears[activeYearIndex - 1] : "";
+    const nextYear =
+      activeYearIndex < availableYears.length - 1 ? availableYears[activeYearIndex + 1] : "";
+    const isWorkflowView = state.productDeliveryWorkflowView === "workflow";
+    const periodControlMarkup =
+      availableYears.length > 0
+        ? renderLabeledControl(
+            "Period",
+            `
+              <div class="shipped-timeline__selector shipped-page-toolbar__selector product-delivery-year-selector${isWorkflowView ? " is-disabled" : ""}">
+                <div class="shipped-timeline__year-switch" aria-label="Delivery shipped year">
+                  <button
+                    type="button"
+                    class="shipped-timeline__nav"
+                    ${!isWorkflowView && previousYear ? `data-product-cycle-shipped-year-target="${escapeHtml(previousYear)}"` : ""}
+                    ${!isWorkflowView && previousYear ? "" : "disabled"}
+                    aria-label="${previousYear ? `Show ideas shipped in ${escapeHtml(previousYear)}` : "No previous shipped year"}"
+                  >
+                    ${renderShippedNavIcon("previous")}
+                  </button>
+                  <div class="shipped-timeline__year-label">${escapeHtml(selectedYear)}</div>
+                  <button
+                    type="button"
+                    class="shipped-timeline__nav"
+                    ${!isWorkflowView && nextYear ? `data-product-cycle-shipped-year-target="${escapeHtml(nextYear)}"` : ""}
+                    ${!isWorkflowView && nextYear ? "" : "disabled"}
+                    aria-label="${nextYear ? `Show ideas shipped in ${escapeHtml(nextYear)}` : "No next shipped year"}"
+                  >
+                    ${renderShippedNavIcon("next")}
+                  </button>
+                </div>
+              </div>
+            `,
+            "shipped-page-toolbar__control product-delivery-page-toolbar__year-control"
+          )
+        : "";
+    const teamControlMarkup = renderLabeledControl(
       "Team",
       `<div id="product-cycle-team-switch" class="pr-cycle-team-switch page-toolbar__team-switch" role="radiogroup" aria-label="Product delivery and workflow team"></div>`,
       "page-toolbar__team-control"
     );
+    const controlsMarkup = [periodControlMarkup, teamControlMarkup].filter(Boolean).join("");
     return renderPageToolbarShell({
       title: "Product delivery and workflow",
-      digest: "Compare how long ideas take to ship once they enter active development.",
+      digest: "Delivery time uses shipped year; open ideas show what is still in progress.",
       controlsMarkup,
       className: "product-delivery-page-toolbar"
     });
@@ -750,6 +795,24 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     };
   }
 
+  function bindProductDeliveryPageToolbarNavigation(rootNode) {
+    const toolbar = rootNode?.querySelector?.(".product-delivery-page-toolbar");
+    if (!toolbar) return;
+    toolbar.onclick = (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target) return;
+      if (state.productDeliveryWorkflowView === "workflow") return;
+      const yearButton = target.closest("[data-product-cycle-shipped-year-target]");
+      if (yearButton instanceof HTMLButtonElement && !yearButton.disabled) {
+        state.productCycleShippedYear =
+          String(yearButton.dataset.productCycleShippedYearTarget || "").trim() ||
+          state.productCycleShippedYear;
+        renderActionsRequiredFrame();
+        productPanels.renderLeadAndCycleTimeByTeamChart();
+      }
+    };
+  }
+
   let CONTROL_BINDINGS = [];
 
   const state = {
@@ -772,6 +835,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     prActivityLegacyWindow: PR_ACTIVITY_LEGACY_WINDOW_DEFAULT,
     productDeliveryWorkflowView: PRODUCT_DELIVERY_WORKFLOW_VIEW_DEFAULT,
     productCycleTeam: PRODUCT_CYCLE_TEAM_DEFAULT,
+    productCycleShippedYear: "",
     productCycleShipmentsYear: "",
     productCycleShipmentsMonthKey: "",
     managementFlowScope: "ongoing",
@@ -1186,6 +1250,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     syncDashboardControlsFromState(CONTROL_BINDINGS, state);
     bindDashboardControlState(CONTROL_BINDINGS, state);
     bindShippedPageToolbarNavigation(listNode);
+    bindProductDeliveryPageToolbarNavigation(listNode);
   }
 
   function getPanelLeadMountId(panelId) {
@@ -2889,7 +2954,10 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
       stateKey: "productDeliveryWorkflowView",
       defaultValue: PRODUCT_DELIVERY_WORKFLOW_VIEW_DEFAULT,
       normalizeValue: productDeliveryWorkflowViewKey,
-      onChangeRender: productPanels.renderLeadAndCycleTimeByTeamChart
+      onChangeRender: () => {
+        renderActionsRequiredFrame();
+        productPanels.renderLeadAndCycleTimeByTeamChart();
+      }
     },
     {
       name: "product-cycle-team",

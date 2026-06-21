@@ -221,6 +221,13 @@ function validateSnapshotSemantics(snapshot, fileName) {
       assertNonEmptyString(snapshot.generatedAt, fileName, "generatedAt");
       assertObject(snapshot.chartData, fileName, "chartData");
       assertObject(snapshot.chartData.leadCycleByScope, fileName, "chartData.leadCycleByScope");
+      if ("leadCycleByShippedYear" in snapshot.chartData) {
+        assertObject(
+          snapshot.chartData.leadCycleByShippedYear,
+          fileName,
+          "chartData.leadCycleByShippedYear"
+        );
+      }
       assertObject(
         snapshot.chartData.currentStageSnapshot,
         fileName,
