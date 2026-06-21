@@ -518,15 +518,15 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     const pageCopyBySection = {
       "dev-trends": {
         title: "PR Volume",
-        digest: "Opened PR volume by team for the selected period."
+        digest: "Measures how many PRs teams open in the selected period."
       },
       "dev-ai": {
         title: "AI PRs",
-        digest: "Beta: share of opened PRs labeled as AI-assisted."
+        digest: "Measures the share of opened PRs labeled as AI-assisted."
       },
       "dev-breakdown": {
         title: "Dev throughput",
-        digest: "How quickly teams move development work through tracked stages."
+        digest: "Measures how fast in-progress work moves through review and QA by team."
       }
     };
     const selectedWindow = isBreakdown
@@ -655,7 +655,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
 
     return renderPageToolbarShell({
       title: "What we shipped",
-      digest: "See how many product ideas each team is shipping over time.",
+      digest: "Measures how many product ideas each team ships over time.",
       controlsMarkup,
       className: "shipped-page-toolbar"
     });
@@ -664,7 +664,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   function renderCommunityPageToolbar() {
     return renderPageToolbarShell({
       title: "Community contributions",
-      digest: "See how much technical work our community is contributing."
+      digest: "Measures how much technical work the community contributes."
     });
   }
 
@@ -721,7 +721,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     const controlsMarkup = [periodControlMarkup, teamControlMarkup].filter(Boolean).join("");
     return renderPageToolbarShell({
       title: "Product delivery and workflow",
-      digest: "Delivery time uses shipped year; open ideas show what is still in progress.",
+      digest: "Measures how long ideas take to ship once teams start work.",
       controlsMarkup,
       className: "product-delivery-page-toolbar"
     });
@@ -730,7 +730,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
   function renderUatPageToolbar() {
     return renderPageToolbarShell({
       title: "User acceptance time by business unit",
-      digest: "Compare user approval time for pending and verified work."
+      digest: "Measures how long work spends in UAT after teams hand it over for approval."
     });
   }
 
@@ -748,7 +748,7 @@ import { createWorkflowPanels } from "./dashboard-app/workflow-panels.js?v=local
     );
     return renderPageToolbarShell({
       title: "Bug trends",
-      digest: "Track backlog pressure by team across the selected range.",
+      digest: "Measures open bugs by team across the selected period.",
       controlsMarkup,
       className: "development-work-page-toolbar"
     });

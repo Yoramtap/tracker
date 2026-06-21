@@ -36,7 +36,7 @@
   const DASHBOARD_APP_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
     "dashboard-app.js",
-    "local128"
+    "local130"
   );
   const SHIPPED_CHART_SCRIPT_SOURCE = getVersionedSourcePath(
     "runtime",
@@ -51,7 +51,7 @@
   const FULL_HEAVY_PANEL_SHELL_SRC = getVersionedSourcePath(
     "app",
     "dashboard-heavy-panels.html",
-    "local39"
+    "local41"
   );
   const DEFAULT_SECTION = dashboardRuntimeContract.defaultSection || "community";
   const SECTION_FILTER_ITEMS = Array.isArray(dashboardRuntimeContract.sectionFilterItems)
@@ -263,7 +263,7 @@
             <div class="development-page-toolbar__copy">
               <h3>Community contributions</h3>
               <p class="development-page-toolbar__digest">
-                See how much technical work our community is contributing.
+                Measures how much technical work the community contributes.
               </p>
             </div>
           </div>
