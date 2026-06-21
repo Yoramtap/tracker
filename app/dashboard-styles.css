@@ -2043,6 +2043,41 @@ main {
   width: 100%;
 }
 
+.product-delivery-page-toolbar .product-delivery-page-toolbar__year-control {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  justify-content: stretch;
+  width: 100%;
+}
+
+.product-delivery-page-toolbar .product-delivery-year-selector.shipped-timeline__selector {
+  width: 100%;
+}
+
+.product-delivery-page-toolbar .product-delivery-year-selector.is-disabled {
+  opacity: 0.46;
+}
+
+.product-delivery-page-toolbar .development-page-toolbar__controls {
+  display: grid;
+  grid-template-columns: 64px max-content 64px minmax(0, 1fr);
+  align-items: center;
+  justify-content: stretch;
+  gap: 7px;
+  width: 100%;
+}
+
+.product-delivery-page-toolbar .page-toolbar__team-control,
+.product-delivery-page-toolbar .product-delivery-page-toolbar__year-control {
+  display: contents;
+}
+
+.product-delivery-page-toolbar .product-delivery-year-selector.shipped-timeline__selector {
+  width: auto;
+}
+
 .product-delivery-page-toolbar .page-toolbar__team-switch.pr-cycle-team-switch {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
@@ -2944,9 +2979,19 @@ body.product-delivery-section-mode #cycle-time-to-ship-panel .panel-mode-control
 
   .development-work-page-toolbar .page-toolbar__team-control,
   .product-delivery-page-toolbar .page-toolbar__team-control,
+  .product-delivery-page-toolbar .product-delivery-page-toolbar__year-control,
   .development-work-page-toolbar .page-toolbar__range-control {
+    display: grid;
     grid-template-columns: 1fr;
     gap: 6px;
+  }
+
+  .product-delivery-page-toolbar .development-page-toolbar__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    justify-content: stretch;
+    gap: 7px;
   }
 
   .development-work-page-toolbar .page-toolbar__team-switch.pr-cycle-team-switch,

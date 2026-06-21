@@ -1644,6 +1644,37 @@ function buildProductCycleScopeSnapshot(ideas, teams, nowIso) {
   };
 }
 
+function productCycleShippedYear(idea) {
+  const enteredDoneAt = String(idea?.entered_done || "").trim();
+  if (!enteredDoneAt) return "";
+  const parsedAt = new Date(enteredDoneAt).getTime();
+  if (!Number.isFinite(parsedAt)) return "";
+  return new Date(parsedAt).getUTCFullYear().toString();
+}
+
+function buildProductCycleShippedYearSnapshots(ideas, teams, nowIso) {
+  const buckets = new Map();
+  for (const idea of Array.isArray(ideas) ? ideas : []) {
+    const year = productCycleShippedYear(idea);
+    if (!year) continue;
+    if (!buckets.has(year)) buckets.set(year, []);
+    buckets.get(year).push(idea);
+  }
+
+  return Object.fromEntries(
+    Array.from(buckets.entries())
+      .sort(([leftYear], [rightYear]) => leftYear.localeCompare(rightYear))
+      .map(([year, yearIdeas]) => [
+        year,
+        {
+          ...buildProductCycleScopeSnapshot(yearIdeas, teams, nowIso),
+          scopeLabel: `Shipped ${year}`,
+          shippedYear: year
+        }
+      ])
+  );
+}
+
 function startOfIsoMonth(value) {
   const safeValue = String(value || "").trim();
   if (!safeValue) return "";
@@ -1974,6 +2005,11 @@ export async function refreshProductCycleSnapshot(options = {}) {
   const teams = resolveOrderedProductCycleTeams(trackedIdeaRows);
   const nowIso = new Date().toISOString();
   const leadCycleScope = buildProductCycleScopeSnapshot(trackedIdeaRows, teams, nowIso);
+  const leadCycleByShippedYear = buildProductCycleShippedYearSnapshots(
+    trackedIdeaRows,
+    teams,
+    nowIso
+  );
   const currentStageSnapshot = buildCurrentStageSnapshot(trackedIdeaRows, teams, nowIso);
   const shippedTimeline = buildProductCycleShippedTimelineSnapshot(trackedIdeaRows, teams, nowIso);
 
@@ -2001,6 +2037,7 @@ export async function refreshProductCycleSnapshot(options = {}) {
       leadCycleByScope: {
         [PRODUCT_CYCLE_SCOPE_KEY]: leadCycleScope
       },
+      leadCycleByShippedYear,
       currentStageSnapshot
     },
     detailData: {
