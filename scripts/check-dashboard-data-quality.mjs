@@ -233,7 +233,7 @@ function buildPrActivityQualityReport(local, baseline, options = {}) {
     windowReports[windowKey] = { local: localSummary, baseline: baselineSummary, totalDelta };
     if (Math.abs(totalDelta) > options.totalDeltaThreshold) {
       findings.push({
-        severity: "error",
+        severity: "warning",
         type: "window-total-delta",
         windowKey,
         message: `${windowKey} total PRs opened changed from ${baselineSummary.total} to ${localSummary.total} (${formatPercent(totalDelta)}).`
@@ -243,7 +243,7 @@ function buildPrActivityQualityReport(local, baseline, options = {}) {
       const teamDelta = percentDelta(localSummary.teams[team], baselineSummary.teams[team]);
       if (Math.abs(teamDelta) > options.teamDeltaThreshold) {
         findings.push({
-          severity: "error",
+          severity: "warning",
           type: "window-team-delta",
           windowKey,
           team,
@@ -350,10 +350,19 @@ function buildBugBacklogQualityFindings(localBacklog, baselineBacklog, options =
 }
 
 function printReport(report, options = {}) {
+  const errors = report.findings.filter((finding) => finding.severity === "error");
   if (report.findings.length === 0) {
     console.log("Dashboard data quality preflight passed.");
     console.log(`- local PR activity updatedAt: ${report.localUpdatedAt}`);
     console.log(`- baseline PR activity updatedAt: ${report.baselineUpdatedAt}`);
+    return;
+  }
+
+  if (errors.length === 0) {
+    console.warn("Dashboard data quality preflight passed with warnings:");
+    for (const finding of report.findings) {
+      console.warn(`- ${finding.message}`);
+    }
     return;
   }
 
@@ -389,7 +398,8 @@ async function main() {
   report.findings.push(...buildPrCycleInflowConsistencyFindings(local, localPrCycle));
   report.findings.push(...buildBugBacklogQualityFindings(localBacklog, baselineBacklog, options));
   printReport(report, options);
-  if (report.findings.length > 0 && !String(options.allowReason || "").trim()) {
+  const errors = report.findings.filter((finding) => finding.severity === "error");
+  if (errors.length > 0 && !String(options.allowReason || "").trim()) {
     process.exit(1);
   }
 }

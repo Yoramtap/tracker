@@ -125,6 +125,22 @@ test("PR activity quality report flags large team and total deltas", () => {
   );
 });
 
+test("PR activity quality report reports PR deltas as warnings", () => {
+  const report = buildPrActivityQualityReport(
+    snapshot({ apiScale: 4 }),
+    snapshot({ apiScale: 1 }),
+    { totalDeltaThreshold: 0.35, teamDeltaThreshold: 0.75 }
+  );
+
+  assert.ok(
+    report.findings.every(
+      (finding) =>
+        !["window-team-delta", "window-total-delta"].includes(finding.type) ||
+        finding.severity === "warning"
+    )
+  );
+});
+
 test("PR activity quality report fails when mapping coverage changes", () => {
   const local = snapshot();
   local.prActivity.mappingCoverage = {

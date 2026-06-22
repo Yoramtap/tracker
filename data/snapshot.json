@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-06-21T07:29:49.404Z",
+  "updatedAt": "2026-06-22T08:17:37.853Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-06-21T07:29:49.404Z",
+    "syncedAt": "2026-06-22T08:17:37.852Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. PR activity is sourced from GitHub pull requests across discovered organization repos and attributed by Jira-derived contributor mapping with repo ownership and Unmapped fallbacks."
   },
   "prActivity": {
@@ -7042,11 +7042,11 @@
           "rows": [
             {
               "label": "Business unit unmapped",
-              "devAvg": 2.92,
+              "devAvg": 2.98,
               "sampleCount": 2,
               "devCount": 2,
               "uatCount": 2,
-              "uatAvg": 22.3
+              "uatAvg": 17.48
             },
             {
               "label": "MEA",
@@ -7054,7 +7054,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 135.95
+              "uatAvg": 136.99
             },
             {
               "label": "US",
@@ -7062,7 +7062,7 @@
               "sampleCount": 3,
               "devCount": 3,
               "uatCount": 3,
-              "uatAvg": 144.56
+              "uatAvg": 145.59
             },
             {
               "label": "Tech Debt",
@@ -7070,7 +7070,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 191.12
+              "uatAvg": 192.15
             }
           ]
         },
@@ -7131,59 +7131,6 @@
     }
   },
   "combinedPoints": [
-    {
-      "date": "2024-07-22",
-      "api": {
-        "date": "2024-07-22",
-        "highest": 0,
-        "high": 0,
-        "medium": 10,
-        "low": 0,
-        "lowest": 0
-      },
-      "legacy": {
-        "date": "2024-07-22",
-        "highest": 0,
-        "high": 2,
-        "medium": 32,
-        "low": 65,
-        "lowest": 7
-      },
-      "react": {
-        "date": "2024-07-22",
-        "highest": 0,
-        "high": 0,
-        "medium": 2,
-        "low": 0,
-        "lowest": 0
-      },
-      "bc": {
-        "date": "2024-07-22",
-        "highest": 0,
-        "high": 30,
-        "medium": 70,
-        "low": 13,
-        "lowest": 4,
-        "longstanding_30d_plus": 98,
-        "longstanding_60d_plus": 84
-      },
-      "workers": {
-        "date": "2024-07-22",
-        "highest": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "lowest": 0
-      },
-      "titanium": {
-        "date": "2024-07-22",
-        "highest": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "lowest": 0
-      }
-    },
     {
       "date": "2024-08-05",
       "api": {
@@ -9880,6 +9827,59 @@
       },
       "titanium": {
         "date": "2026-06-08",
+        "highest": 1,
+        "high": 1,
+        "medium": 0,
+        "low": 0,
+        "lowest": 0
+      }
+    },
+    {
+      "date": "2026-06-22",
+      "api": {
+        "date": "2026-06-22",
+        "highest": 0,
+        "high": 5,
+        "medium": 11,
+        "low": 6,
+        "lowest": 2
+      },
+      "legacy": {
+        "date": "2026-06-22",
+        "highest": 0,
+        "high": 1,
+        "medium": 3,
+        "low": 20,
+        "lowest": 0
+      },
+      "react": {
+        "date": "2026-06-22",
+        "highest": 0,
+        "high": 0,
+        "medium": 3,
+        "low": 0,
+        "lowest": 0
+      },
+      "bc": {
+        "date": "2026-06-22",
+        "highest": 5,
+        "high": 63,
+        "medium": 109,
+        "low": 8,
+        "lowest": 0,
+        "longstanding_30d_plus": 172,
+        "longstanding_60d_plus": 169
+      },
+      "workers": {
+        "date": "2026-06-22",
+        "highest": 0,
+        "high": 1,
+        "medium": 9,
+        "low": 0,
+        "lowest": 0
+      },
+      "titanium": {
+        "date": "2026-06-22",
         "highest": 1,
         "high": 1,
         "medium": 0,

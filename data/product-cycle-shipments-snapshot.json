@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-21T10:54:53.440Z",
+  "generatedAt": "2026-06-22T08:17:37.829Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-06-01",
-      "totalShipped": 207,
+      "totalShipped": 209,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -2347,12 +2347,12 @@
         {
           "monthStart": "2026-06-01",
           "monthKey": "2026-06",
-          "totalShipped": 17,
+          "totalShipped": 19,
           "teamCount": 4,
           "teams": [
             {
               "team": "Multi team",
-              "shippedCount": 1,
+              "shippedCount": 2,
               "ideas": [
                 {
                   "issueKey": "TPS-383",
@@ -2364,12 +2364,23 @@
                   ],
                   "summary": "Ephemeral: multiviewer head cloning",
                   "shippedAt": "2026-06-01T16:51:22.019Z"
+                },
+                {
+                  "issueKey": "TPS-360",
+                  "productAreaLabel": "TFC",
+                  "teams": [
+                    "API",
+                    "Frontend",
+                    "Broadcast"
+                  ],
+                  "summary": "Unicast Routing in TFC",
+                  "shippedAt": "2026-06-21T11:53:43.949Z"
                 }
               ]
             },
             {
               "team": "Frontend",
-              "shippedCount": 2,
+              "shippedCount": 3,
               "ideas": [
                 {
                   "issueKey": "TPS-436",
@@ -2388,6 +2399,15 @@
                   ],
                   "summary": "Panel Builder slice 6: Parameter slider, Element lib, Reserve, Lock",
                   "shippedAt": "2026-06-15T07:26:38.820Z"
+                },
+                {
+                  "issueKey": "TPS-458",
+                  "productAreaLabel": "TFC",
+                  "teams": [
+                    "Frontend"
+                  ],
+                  "summary": "Panel Builder slice 7: Parameter slider; design knob + switch; lock/reserve",
+                  "shippedAt": "2026-06-22T07:29:09.508Z"
                 }
               ]
             },
