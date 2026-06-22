@@ -8,6 +8,11 @@ on:
         required: false
         default: false
         type: boolean
+      pr_activity_anomaly_reason:
+        description: "Allow a known PR activity quality-gate anomaly for this manual run"
+        required: false
+        default: ""
+        type: string
   schedule:
     - cron: "13 7 * * *"
     - cron: "43 7 * * *"
@@ -179,6 +184,7 @@ jobs:
         if: steps.freshness.outputs.should_refresh == 'true'
         env:
           ALLOW_BUG_BACKLOG_LIVE_NEWER_REASON: "Daily refresh intentionally excludes active sprint points."
+          ALLOW_PR_ACTIVITY_ANOMALY_REASON: ${{ inputs.pr_activity_anomaly_reason || '' }}
         run: npm run data:preflight-live
 
       - name: Scan public files for sensitive markers
