@@ -1,9 +1,9 @@
 {
-  "updatedAt": "2026-06-22T08:17:37.853Z",
+  "updatedAt": "2026-06-23T07:30:54.138Z",
   "prActivity": {
     "since": "2024-01-08",
     "interval": "sprint",
-    "latestClosedSprintDate": "2026-06-08",
+    "latestClosedSprintDate": "2026-06-22",
     "monthlySince": "2024-01-01",
     "monthlyInterval": "month",
     "caveat": "Counts are sourced from GitHub pull requests across discovered organization repos and attributed by the Jira-derived contributor-to-team map, falling back to committed repo-to-team mapping. Unmapped discovered repos only count when a mapped contributor authored the PR. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the first submitted non-author GitHub review to mergedAt, excluding stale samples of 50 days or more.",
@@ -4765,8 +4765,8 @@
         "api": {
           "offered": 101,
           "merged": 37,
-          "aiOffered": 14,
-          "nonAiOffered": 87,
+          "aiOffered": 15,
+          "nonAiOffered": 86,
           "aiMerged": 11,
           "nonAiMerged": 26,
           "avgReviewToMergeDays": 4,
@@ -4821,6 +4821,79 @@
           "nonAiMerged": 6,
           "avgReviewToMergeDays": 1,
           "avgReviewToMergeSampleCount": 6
+        },
+        "unmapped": {
+          "offered": 0,
+          "merged": 0,
+          "aiOffered": 0,
+          "nonAiOffered": 0,
+          "aiMerged": 0,
+          "nonAiMerged": 0,
+          "avgReviewToMergeDays": 0,
+          "avgReviewToMergeSampleCount": 0
+        }
+      },
+      {
+        "date": "2026-06-22",
+        "api": {
+          "offered": 86,
+          "merged": 54,
+          "aiOffered": 30,
+          "nonAiOffered": 56,
+          "aiMerged": 25,
+          "nonAiMerged": 29,
+          "avgReviewToMergeDays": 3,
+          "avgReviewToMergeSampleCount": 49
+        },
+        "legacy": {
+          "offered": 9,
+          "merged": 9,
+          "aiOffered": 0,
+          "nonAiOffered": 9,
+          "aiMerged": 0,
+          "nonAiMerged": 9,
+          "avgReviewToMergeDays": 1,
+          "avgReviewToMergeSampleCount": 9
+        },
+        "react": {
+          "offered": 25,
+          "merged": 19,
+          "aiOffered": 0,
+          "nonAiOffered": 25,
+          "aiMerged": 0,
+          "nonAiMerged": 19,
+          "avgReviewToMergeDays": 2,
+          "avgReviewToMergeSampleCount": 18
+        },
+        "bc": {
+          "offered": 68,
+          "merged": 64,
+          "aiOffered": 6,
+          "nonAiOffered": 62,
+          "aiMerged": 8,
+          "nonAiMerged": 56,
+          "avgReviewToMergeDays": 3,
+          "avgReviewToMergeSampleCount": 52
+        },
+        "workers": {
+          "offered": 32,
+          "merged": 32,
+          "aiOffered": 0,
+          "nonAiOffered": 32,
+          "aiMerged": 0,
+          "nonAiMerged": 32,
+          "avgReviewToMergeDays": 2,
+          "avgReviewToMergeSampleCount": 32
+        },
+        "titanium": {
+          "offered": 16,
+          "merged": 14,
+          "aiOffered": 0,
+          "nonAiOffered": 16,
+          "aiMerged": 0,
+          "nonAiMerged": 14,
+          "avgReviewToMergeDays": 2,
+          "avgReviewToMergeSampleCount": 14
         },
         "unmapped": {
           "offered": 0,
@@ -6955,64 +7028,64 @@
       {
         "date": "2026-06-01",
         "api": {
-          "offered": 146,
-          "merged": 76,
-          "aiOffered": 40,
-          "nonAiOffered": 106,
-          "aiMerged": 35,
-          "nonAiMerged": 41,
+          "offered": 153,
+          "merged": 82,
+          "aiOffered": 42,
+          "nonAiOffered": 111,
+          "aiMerged": 36,
+          "nonAiMerged": 46,
           "avgReviewToMergeDays": 3,
-          "avgReviewToMergeSampleCount": 62
+          "avgReviewToMergeSampleCount": 68
         },
         "legacy": {
-          "offered": 16,
-          "merged": 12,
+          "offered": 18,
+          "merged": 13,
           "aiOffered": 0,
-          "nonAiOffered": 16,
+          "nonAiOffered": 18,
           "aiMerged": 0,
-          "nonAiMerged": 12,
+          "nonAiMerged": 13,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 12
+          "avgReviewToMergeSampleCount": 13
         },
         "react": {
-          "offered": 42,
-          "merged": 30,
+          "offered": 45,
+          "merged": 34,
           "aiOffered": 0,
-          "nonAiOffered": 42,
+          "nonAiOffered": 45,
           "aiMerged": 0,
-          "nonAiMerged": 30,
+          "nonAiMerged": 34,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 29
+          "avgReviewToMergeSampleCount": 33
         },
         "bc": {
-          "offered": 88,
-          "merged": 82,
+          "offered": 98,
+          "merged": 93,
           "aiOffered": 8,
-          "nonAiOffered": 80,
+          "nonAiOffered": 90,
           "aiMerged": 13,
-          "nonAiMerged": 69,
+          "nonAiMerged": 80,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 70
+          "avgReviewToMergeSampleCount": 79
         },
         "workers": {
-          "offered": 48,
-          "merged": 47,
+          "offered": 50,
+          "merged": 51,
           "aiOffered": 0,
-          "nonAiOffered": 48,
+          "nonAiOffered": 50,
           "aiMerged": 0,
-          "nonAiMerged": 47,
+          "nonAiMerged": 51,
           "avgReviewToMergeDays": 1,
-          "avgReviewToMergeSampleCount": 47
+          "avgReviewToMergeSampleCount": 51
         },
         "titanium": {
-          "offered": 20,
-          "merged": 18,
+          "offered": 21,
+          "merged": 19,
           "aiOffered": 0,
-          "nonAiOffered": 20,
+          "nonAiOffered": 21,
           "aiMerged": 0,
-          "nonAiMerged": 18,
+          "nonAiMerged": 19,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 18
+          "avgReviewToMergeSampleCount": 19
         },
         "unmapped": {
           "offered": 0,
