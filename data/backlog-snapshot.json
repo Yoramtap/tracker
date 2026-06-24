@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-23T07:30:54.138Z",
+  "updatedAt": "2026-06-24T07:30:56.519Z",
   "combinedPoints": [
     {
       "date": "2024-08-05",
@@ -2292,7 +2292,7 @@
       "workers": {
         "highest": 0,
         "high": 2,
-        "medium": 5,
+        "medium": 6,
         "low": 0,
         "lowest": 0
       },
@@ -2339,7 +2339,7 @@
       "workers": {
         "highest": 0,
         "high": 2,
-        "medium": 6,
+        "medium": 7,
         "low": 0,
         "lowest": 0
       },
@@ -2386,7 +2386,7 @@
       "workers": {
         "highest": 0,
         "high": 1,
-        "medium": 8,
+        "medium": 9,
         "low": 0,
         "lowest": 0
       },
@@ -2433,7 +2433,7 @@
       "workers": {
         "highest": 0,
         "high": 1,
-        "medium": 9,
+        "medium": 10,
         "low": 0,
         "lowest": 0
       },
