@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-24T07:30:56.505Z",
+  "generatedAt": "2026-06-25T07:29:40.764Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-06-01",
-      "totalShipped": 209,
+      "totalShipped": 210,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -2347,7 +2347,7 @@
         {
           "monthStart": "2026-06-01",
           "monthKey": "2026-06",
-          "totalShipped": 19,
+          "totalShipped": 20,
           "teamCount": 4,
           "teams": [
             {
@@ -2413,8 +2413,17 @@
             },
             {
               "team": "Orchestration",
-              "shippedCount": 2,
+              "shippedCount": 3,
               "ideas": [
+                {
+                  "issueKey": "TPS-444",
+                  "productAreaLabel": "NEP Platform",
+                  "teams": [
+                    "Orchestration"
+                  ],
+                  "summary": "Automate deployment of the Hawkeye data plane in NEP platform - v 1",
+                  "shippedAt": "2026-06-25T06:20:00.406Z"
+                },
                 {
                   "issueKey": "TPS-354",
                   "productAreaLabel": "NEP Platform",
