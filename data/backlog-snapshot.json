@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-25T07:29:40.779Z",
+  "updatedAt": "2026-06-26T07:30:45.558Z",
   "combinedPoints": [
     {
       "date": "2024-08-05",
@@ -2402,7 +2402,7 @@
       "date": "2026-06-22",
       "api": {
         "highest": 0,
-        "high": 5,
+        "high": 4,
         "medium": 12,
         "low": 6,
         "lowest": 2

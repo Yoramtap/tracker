@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "updatedAt": "2026-06-25T07:29:40.779Z",
+  "updatedAt": "2026-06-26T07:30:45.558Z",
   "source": {
     "mode": "mcp_snapshot",
-    "syncedAt": "2026-06-25T07:29:40.779Z",
+    "syncedAt": "2026-06-26T07:30:45.558Z",
     "note": "Backlog trends are generated from Jira historical JQL snapshots (status and priority as-of each date). Business Unit UAT flow is generated from Jira issue changelogs. PR activity is sourced from GitHub pull requests across discovered organization repos and attributed by Jira-derived contributor mapping with repo ownership and Unmapped fallbacks."
   },
   "prActivity": {
@@ -13,7 +13,7 @@
     "monthlySince": "2024-01-01",
     "monthlyInterval": "month",
     "caveat": "Counts are sourced from GitHub pull requests across discovered organization repos and attributed by the Jira-derived contributor-to-team map, falling back to committed repo-to-team mapping. Unmapped discovered repos only count when a mapped contributor authored the PR. Opened counts use non-draft PR createdAt, merged counts use mergedAt, sprint trend points render only closed sprints, and review-to-merge time uses the first submitted non-author GitHub review to mergedAt, excluding stale samples of 50 days or more.",
-    "unmappedRepoCount": 12,
+    "unmappedRepoCount": 13,
     "unmappedContributorCount": 10,
     "mappingCoverage": {
       "mappedRepoCount": 228,
@@ -4872,10 +4872,10 @@
           "avgReviewToMergeSampleCount": 18
         },
         "bc": {
-          "offered": 68,
+          "offered": 69,
           "merged": 64,
           "aiOffered": 6,
-          "nonAiOffered": 62,
+          "nonAiOffered": 63,
           "aiMerged": 8,
           "nonAiMerged": 56,
           "avgReviewToMergeDays": 3,
@@ -7045,53 +7045,53 @@
         },
         "legacy": {
           "offered": 18,
-          "merged": 13,
+          "merged": 15,
           "aiOffered": 0,
           "nonAiOffered": 18,
           "aiMerged": 0,
-          "nonAiMerged": 13,
+          "nonAiMerged": 15,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 13
+          "avgReviewToMergeSampleCount": 15
         },
         "react": {
-          "offered": 50,
-          "merged": 38,
+          "offered": 52,
+          "merged": 39,
           "aiOffered": 0,
-          "nonAiOffered": 50,
+          "nonAiOffered": 52,
           "aiMerged": 0,
-          "nonAiMerged": 38,
+          "nonAiMerged": 39,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 37
+          "avgReviewToMergeSampleCount": 38
         },
         "bc": {
-          "offered": 119,
-          "merged": 111,
+          "offered": 124,
+          "merged": 117,
           "aiOffered": 8,
-          "nonAiOffered": 111,
+          "nonAiOffered": 116,
           "aiMerged": 13,
-          "nonAiMerged": 98,
+          "nonAiMerged": 104,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 90
+          "avgReviewToMergeSampleCount": 96
         },
         "workers": {
-          "offered": 51,
+          "offered": 52,
           "merged": 53,
           "aiOffered": 0,
-          "nonAiOffered": 51,
+          "nonAiOffered": 52,
           "aiMerged": 0,
           "nonAiMerged": 53,
           "avgReviewToMergeDays": 1,
           "avgReviewToMergeSampleCount": 53
         },
         "titanium": {
-          "offered": 25,
-          "merged": 22,
+          "offered": 27,
+          "merged": 23,
           "aiOffered": 0,
-          "nonAiOffered": 25,
+          "nonAiOffered": 27,
           "aiMerged": 0,
-          "nonAiMerged": 22,
+          "nonAiMerged": 23,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 22
+          "avgReviewToMergeSampleCount": 23
         },
         "unmapped": {
           "offered": 0,
@@ -7115,11 +7115,11 @@
           "rows": [
             {
               "label": "Business unit unmapped",
-              "devAvg": 1.99,
-              "sampleCount": 3,
-              "devCount": 3,
-              "uatCount": 3,
-              "uatAvg": 13.73
+              "devAvg": 5.04,
+              "sampleCount": 4,
+              "devCount": 4,
+              "uatCount": 4,
+              "uatAvg": 11.12
             },
             {
               "label": "EU",
@@ -7127,7 +7127,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 0.32
+              "uatAvg": 1.32
             },
             {
               "label": "MEA",
@@ -7135,15 +7135,15 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 139.95
+              "uatAvg": 140.95
             },
             {
               "label": "US",
-              "devAvg": 0.91,
-              "sampleCount": 3,
-              "devCount": 3,
-              "uatCount": 3,
-              "uatAvg": 148.56
+              "devAvg": 0.68,
+              "sampleCount": 4,
+              "devCount": 4,
+              "uatCount": 4,
+              "uatAvg": 112.24
             },
             {
               "label": "Tech Debt",
@@ -7151,7 +7151,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 195.12
+              "uatAvg": 196.12
             }
           ]
         },
@@ -9920,7 +9920,7 @@
       "api": {
         "date": "2026-06-22",
         "highest": 0,
-        "high": 5,
+        "high": 4,
         "medium": 12,
         "low": 6,
         "lowest": 2
