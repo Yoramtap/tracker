@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-26T07:30:45.558Z",
+  "updatedAt": "2026-06-27T07:29:20.049Z",
   "prActivity": {
     "since": "2024-01-08",
     "interval": "sprint",
@@ -7028,34 +7028,34 @@
       {
         "date": "2026-06-01",
         "api": {
-          "offered": 160,
-          "merged": 87,
+          "offered": 164,
+          "merged": 89,
           "aiOffered": 47,
-          "nonAiOffered": 113,
-          "aiMerged": 39,
-          "nonAiMerged": 48,
+          "nonAiOffered": 117,
+          "aiMerged": 40,
+          "nonAiMerged": 49,
           "avgReviewToMergeDays": 3,
-          "avgReviewToMergeSampleCount": 73
+          "avgReviewToMergeSampleCount": 75
         },
         "legacy": {
-          "offered": 18,
+          "offered": 19,
           "merged": 15,
           "aiOffered": 0,
-          "nonAiOffered": 18,
+          "nonAiOffered": 19,
           "aiMerged": 0,
           "nonAiMerged": 15,
           "avgReviewToMergeDays": 2,
           "avgReviewToMergeSampleCount": 15
         },
         "react": {
-          "offered": 52,
-          "merged": 39,
+          "offered": 53,
+          "merged": 42,
           "aiOffered": 0,
-          "nonAiOffered": 52,
+          "nonAiOffered": 53,
           "aiMerged": 0,
-          "nonAiMerged": 39,
+          "nonAiMerged": 42,
           "avgReviewToMergeDays": 2,
-          "avgReviewToMergeSampleCount": 38
+          "avgReviewToMergeSampleCount": 41
         },
         "bc": {
           "offered": 124,
