@@ -50,6 +50,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           REPO_TEAM_MAP_JSON: ${{ secrets.REPO_TEAM_MAP_JSON }}
           REVIEWED_UNMAPPED_REPOS_JSON: ${{ secrets.REVIEWED_UNMAPPED_REPOS_JSON }}
+          REVIEWED_REPO_MISMATCHES_JSON: ${{ secrets.REVIEWED_REPO_MISMATCHES_JSON }}
         run: |
           if [ -z "$ATLASSIAN_SITE" ] || [ -z "$ATLASSIAN_EMAIL" ] || [ -z "$ATLASSIAN_API_TOKEN" ] || [ -z "$GH_TOKEN" ] || [ -z "$REPO_TEAM_MAP_JSON" ]; then
             echo "Missing one or more required secrets: ATLASSIAN_SITE, ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN, GH_TOKEN, REPO_TEAM_MAP_JSON." >&2
@@ -72,6 +73,15 @@ jobs:
           const aggregate = report.aggregate || {};
           console.log("## Team Repo Map Audit");
           console.log("");
+          if ((aggregate.unreviewedRepoMismatchCount || 0) > 0 || (aggregate.unreviewedUnmappedRepoCount || 0) > 0) {
+            console.log("**Status:** Failed because one or more repo mapping rows have not been reviewed.");
+            console.log("");
+            console.log("Resolve by adding private repo mappings to `REPO_TEAM_MAP_JSON` / `.private/repo-team-map.json`, or by adding deliberate exceptions to `REVIEWED_UNMAPPED_REPOS_JSON` / `.private/reviewed-unmapped-repos.json` and `REVIEWED_REPO_MISMATCHES_JSON` / `.private/reviewed-repo-mismatches.json`.");
+            console.log("");
+          } else {
+            console.log("**Status:** No unreviewed repo mapping rows found.");
+            console.log("");
+          }
           console.log("| Check | Count |");
           console.log("|---|---:|");
           console.log(`| Unmapped repos | ${aggregate.unmappedRepoCount || 0} |`);
@@ -80,7 +90,36 @@ jobs:
           console.log(`| Unreviewed unmapped repos | ${aggregate.unreviewedUnmappedRepoCount || 0} |`);
           console.log(`| Repo/team mismatch repos | ${aggregate.mismatchRepoCount || 0} |`);
           console.log(`| Mismatched merged PRs | ${aggregate.mismatchedMergedPrCount || 0} |`);
+          console.log(`| Reviewed repo/team mismatches | ${aggregate.reviewedRepoMismatchCount || 0} |`);
+          console.log(`| Unreviewed repo/team mismatches | ${aggregate.unreviewedRepoMismatchCount || 0} |`);
           console.log(`| Canonical duplicate repo groups | ${aggregate.duplicateCanonicalRepoGroupCount || 0} |`);
           console.log(`| Excess alias entries | ${aggregate.excessAliasCount || 0} |`);
           console.log(`| Shared repo candidates | ${aggregate.sharedRepoCandidateCount || 0} |`);
+          console.log("");
+          console.log("### Per-Team Signals");
+          console.log("");
+          console.log("| Team | Mismatches | Unreviewed mismatches | Unmapped | Unreviewed unmapped | Merged PRs in unreviewed unmapped |");
+          console.log("|---|---:|---:|---:|---:|---:|");
+          for (const team of report.teams || []) {
+            const summary = team.summary || {};
+            if (
+              !summary.mismatchRepoCount &&
+              !summary.unreviewedRepoMismatchCount &&
+              !summary.unmappedRepoCount &&
+              !summary.unreviewedUnmappedRepoCount
+            ) {
+              continue;
+            }
+            console.log(
+              `| ${summary.label || summary.expectedTeam || "Unknown"} | ${summary.mismatchRepoCount || 0} | ${summary.unreviewedRepoMismatchCount || 0} | ${summary.unmappedRepoCount || 0} | ${summary.unreviewedUnmappedRepoCount || 0} | ${summary.unreviewedUnmappedMergedPrCount || 0} |`
+            );
+          }
+          console.log("");
+          console.log("### Local Debug");
+          console.log("");
+          console.log("Run this from the repo with local private env/files to see the private repo names and examples:");
+          console.log("");
+          console.log("```bash");
+          console.log("npm run dev:audit:team-pr-repos -- --output .cache/analysis/team-pr-repo-map-audit-local.json");
+          console.log("```");
           NODE
