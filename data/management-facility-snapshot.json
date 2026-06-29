@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-28T07:29:22.742Z",
+  "updatedAt": "2026-06-29T07:29:59.649Z",
   "chartData": {
     "managementBusinessUnit": {
       "scopeLabel": "Broadcast",
@@ -9,19 +9,11 @@
           "rows": [
             {
               "label": "Business unit unmapped",
-              "devAvg": 5.04,
-              "sampleCount": 4,
-              "devCount": 4,
-              "uatCount": 4,
-              "uatAvg": 13.12
-            },
-            {
-              "label": "EU",
-              "devAvg": 6.09,
-              "sampleCount": 1,
-              "devCount": 1,
-              "uatCount": 1,
-              "uatAvg": 3.32
+              "devAvg": 2.98,
+              "sampleCount": 2,
+              "devCount": 2,
+              "uatCount": 2,
+              "uatAvg": 24.44
             },
             {
               "label": "MEA",
@@ -29,15 +21,15 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 142.95
+              "uatAvg": 143.95
             },
             {
               "label": "US",
-              "devAvg": 0.68,
-              "sampleCount": 4,
-              "devCount": 4,
-              "uatCount": 4,
-              "uatAvg": 114.24
+              "devAvg": 0.91,
+              "sampleCount": 3,
+              "devCount": 3,
+              "uatCount": 3,
+              "uatAvg": 152.56
             },
             {
               "label": "Tech Debt",
@@ -45,7 +37,7 @@
               "sampleCount": 1,
               "devCount": 1,
               "uatCount": 1,
-              "uatAvg": 198.12
+              "uatAvg": 199.12
             }
           ]
         },
@@ -62,19 +54,19 @@
             },
             {
               "label": "Business unit unmapped",
-              "devAvg": 12.47,
-              "sampleCount": 13,
-              "devCount": 13,
-              "uatCount": 13,
-              "uatAvg": 5.21
+              "devAvg": 11.06,
+              "sampleCount": 16,
+              "devCount": 16,
+              "uatCount": 16,
+              "uatAvg": 4.71
             },
             {
               "label": "EU",
-              "devAvg": 6.77,
-              "sampleCount": 20,
-              "devCount": 20,
-              "uatCount": 20,
-              "uatAvg": 19.7
+              "devAvg": 6.74,
+              "sampleCount": 21,
+              "devCount": 21,
+              "uatCount": 21,
+              "uatAvg": 18.97
             },
             {
               "label": "MEA",

@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-28T07:29:22.733Z",
+  "generatedAt": "2026-06-29T07:29:59.627Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-06-01",
-      "totalShipped": 210,
+      "totalShipped": 212,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -2347,8 +2347,8 @@
         {
           "monthStart": "2026-06-01",
           "monthKey": "2026-06",
-          "totalShipped": 20,
-          "teamCount": 4,
+          "totalShipped": 22,
+          "teamCount": 5,
           "teams": [
             {
               "team": "Multi team",
@@ -2380,7 +2380,7 @@
             },
             {
               "team": "Frontend",
-              "shippedCount": 3,
+              "shippedCount": 4,
               "ideas": [
                 {
                   "issueKey": "TPS-436",
@@ -2408,6 +2408,30 @@
                   ],
                   "summary": "Panel Builder slice 7: Parameter slider; design knob + switch; lock/reserve",
                   "shippedAt": "2026-06-22T07:29:09.508Z"
+                },
+                {
+                  "issueKey": "TPS-462",
+                  "productAreaLabel": "TFC",
+                  "teams": [
+                    "Frontend"
+                  ],
+                  "summary": "Panel Builder slice 8: Parameter interactions and context menu",
+                  "shippedAt": "2026-06-28T12:02:47.449Z"
+                }
+              ]
+            },
+            {
+              "team": "Broadcast",
+              "shippedCount": 1,
+              "ideas": [
+                {
+                  "issueKey": "TPS-47",
+                  "productAreaLabel": "TFC",
+                  "teams": [
+                    "Broadcast"
+                  ],
+                  "summary": "Tag Multiviewer",
+                  "shippedAt": "2026-06-29T06:51:52.814Z"
                 }
               ]
             },
