@@ -71,6 +71,17 @@ function readReviewedUnmappedRepoRows() {
   return [];
 }
 
+function readReviewedRepoMismatchRows() {
+  const envJson = String(process.env.REVIEWED_REPO_MISMATCHES_JSON || "").trim();
+  const privatePath = path.join(REPO_ROOT, ".private/reviewed-repo-mismatches.json");
+  if (!envJson && !fs.existsSync(privatePath)) return [];
+  const payload = envJson ? JSON.parse(envJson) : JSON.parse(fs.readFileSync(privatePath, "utf8"));
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.reviewedRepoMismatches)) return payload.reviewedRepoMismatches;
+  if (Array.isArray(payload?.repos)) return payload.repos;
+  return [];
+}
+
 function buildReviewedUnmappedRepoSet(rows) {
   const reviewed = new Set();
   for (const row of rows || []) {
@@ -83,12 +94,37 @@ function buildReviewedUnmappedRepoSet(rows) {
   return reviewed;
 }
 
+function buildReviewedRepoMismatchSet(rows) {
+  const reviewed = new Set();
+  for (const row of rows || []) {
+    const repo = normalizeRepo(row?.repo);
+    const team = String(row?.team || "*").trim().toLowerCase();
+    const mappedTeam = String(row?.mappedTeam || "*").trim().toLowerCase();
+    const reason = String(row?.reason || row?.note || "").trim();
+    if (!repo || !team || !mappedTeam || !reason) continue;
+    reviewed.add(`${team}:${repo}:${mappedTeam}`);
+  }
+  return reviewed;
+}
+
 function isReviewedUnmappedRepo(reviewedUnmappedRepos, team, repo) {
   const normalizedTeam = String(team || "").trim().toLowerCase();
   const normalizedRepo = normalizeRepo(repo);
   return (
     reviewedUnmappedRepos.has(`${normalizedTeam}:${normalizedRepo}`) ||
     reviewedUnmappedRepos.has(`*:${normalizedRepo}`)
+  );
+}
+
+function isReviewedRepoMismatch(reviewedRepoMismatches, team, repo, mappedTeam) {
+  const normalizedTeam = String(team || "").trim().toLowerCase();
+  const normalizedRepo = normalizeRepo(repo);
+  const normalizedMappedTeam = String(mappedTeam || "").trim().toLowerCase();
+  return (
+    reviewedRepoMismatches.has(`${normalizedTeam}:${normalizedRepo}:${normalizedMappedTeam}`) ||
+    reviewedRepoMismatches.has(`${normalizedTeam}:${normalizedRepo}:*`) ||
+    reviewedRepoMismatches.has(`*:${normalizedRepo}:${normalizedMappedTeam}`) ||
+    reviewedRepoMismatches.has(`*:${normalizedRepo}:*`)
   );
 }
 
@@ -103,6 +139,52 @@ function readJsonIfPresent(filePath, fallback) {
 function writeJson(filePath, value) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+function formatAuditConsoleSummary(report) {
+  const aggregate = report?.aggregate || {};
+  const lines = [
+    "Team repo map audit completed.",
+    `Teams audited: ${aggregate.teamCount || 0}`,
+    `Board repos found: ${aggregate.repoCount || 0}`,
+    `Repo/team mismatch rows: ${aggregate.mismatchRepoCount || 0} (${aggregate.mismatchedMergedPrCount || 0} merged PRs)`,
+    `Reviewed repo/team mismatch rows: ${aggregate.reviewedRepoMismatchCount || 0}`,
+    `Unreviewed repo/team mismatch rows: ${aggregate.unreviewedRepoMismatchCount || 0}`,
+    `Unmapped repo rows: ${aggregate.unmappedRepoCount || 0} (${aggregate.unmappedMergedPrCount || 0} merged PRs)`,
+    `Reviewed unmapped rows: ${aggregate.reviewedUnmappedRepoCount || 0}`,
+    `Unreviewed unmapped rows: ${aggregate.unreviewedUnmappedRepoCount || 0}`,
+    `Shared repo candidates: ${aggregate.sharedRepoCandidateCount || 0}`,
+    `Canonical duplicate repo groups: ${aggregate.duplicateCanonicalRepoGroupCount || 0}`,
+    `Excess alias entries: ${aggregate.excessAliasCount || 0}`
+  ];
+
+  const teamRows = (report?.teams || [])
+    .map((team) => team?.summary)
+    .filter(Boolean)
+    .filter(
+      (summary) =>
+        summary.mismatchRepoCount ||
+        summary.unmappedRepoCount ||
+        summary.unreviewedUnmappedRepoCount
+    );
+  if (teamRows.length > 0) {
+    lines.push("");
+    lines.push("Per-team attention:");
+    for (const summary of teamRows) {
+      lines.push(
+        `- ${summary.label || summary.expectedTeam}: ${summary.mismatchRepoCount || 0} mismatches, ${summary.unreviewedRepoMismatchCount || 0} unreviewed mismatches, ${summary.unmappedRepoCount || 0} unmapped, ${summary.unreviewedUnmappedRepoCount || 0} unreviewed unmapped`
+      );
+    }
+  }
+
+  if (aggregate.unreviewedRepoMismatchCount > 0 || aggregate.unreviewedUnmappedRepoCount > 0) {
+    lines.push("");
+    lines.push(
+      "Failure reason: unreviewed repo mapping rows require either a private mapping update or a reviewed exception."
+    );
+  }
+
+  return lines.join("\n");
 }
 
 function readDevStatusCache(cachePath) {
@@ -462,7 +544,16 @@ function summarizeRepos(issueResults, repoTeamMap) {
     );
 }
 
-async function auditScope(site, auth, repoTeamMap, reviewedUnmappedRepos, scope, cache, concurrency) {
+async function auditScope(
+  site,
+  auth,
+  repoTeamMap,
+  reviewedUnmappedRepos,
+  reviewedRepoMismatches,
+  scope,
+  cache,
+  concurrency
+) {
   const issues = await fetchBoardIssues(site, auth, scope.boardId);
   const issueResults = await mapWithConcurrency(issues, concurrency, async (issue) => ({
     issue,
@@ -477,11 +568,21 @@ async function auditScope(site, auth, repoTeamMap, reviewedUnmappedRepos, scope,
     ...repo,
     reviewedUnmapped:
       repo.mappedTeam === "(unmapped)" &&
-      isReviewedUnmappedRepo(reviewedUnmappedRepos, scope.team, repo.repo)
+      isReviewedUnmappedRepo(reviewedUnmappedRepos, scope.team, repo.repo),
+    reviewedRepoMismatch:
+      repo.mappedTeam !== "(unmapped)" &&
+      isReviewedRepoMismatch(reviewedRepoMismatches, scope.team, repo.repo, repo.mappedTeam)
   }));
   const unmappedMismatches = annotatedMismatches.filter((repo) => repo.mappedTeam === "(unmapped)");
+  const mappedMismatches = annotatedMismatches.filter((repo) => repo.mappedTeam !== "(unmapped)");
   const reviewedUnmappedMismatches = unmappedMismatches.filter((repo) => repo.reviewedUnmapped);
   const unreviewedUnmappedMismatches = unmappedMismatches.filter((repo) => !repo.reviewedUnmapped);
+  const reviewedRepoMismatchesForScope = mappedMismatches.filter(
+    (repo) => repo.reviewedRepoMismatch
+  );
+  const unreviewedRepoMismatches = mappedMismatches.filter(
+    (repo) => !repo.reviewedRepoMismatch
+  );
   return {
     summary: {
       boardId: scope.boardId,
@@ -494,6 +595,24 @@ async function auditScope(site, auth, repoTeamMap, reviewedUnmappedRepos, scope,
       mismatchRepoCount: mismatches.length,
       mismatchedPrCount: mismatches.reduce((sum, row) => sum + row.prCount, 0),
       mismatchedMergedPrCount: mismatches.reduce((sum, row) => sum + row.mergedPrCount, 0),
+      reviewedRepoMismatchCount: reviewedRepoMismatchesForScope.length,
+      reviewedRepoMismatchPrCount: reviewedRepoMismatchesForScope.reduce(
+        (sum, row) => sum + row.prCount,
+        0
+      ),
+      reviewedRepoMismatchMergedPrCount: reviewedRepoMismatchesForScope.reduce(
+        (sum, row) => sum + row.mergedPrCount,
+        0
+      ),
+      unreviewedRepoMismatchCount: unreviewedRepoMismatches.length,
+      unreviewedRepoMismatchPrCount: unreviewedRepoMismatches.reduce(
+        (sum, row) => sum + row.prCount,
+        0
+      ),
+      unreviewedRepoMismatchMergedPrCount: unreviewedRepoMismatches.reduce(
+        (sum, row) => sum + row.mergedPrCount,
+        0
+      ),
       unmappedRepoCount: unmappedMismatches.length,
       unmappedPrCount: unmappedMismatches.reduce((sum, row) => sum + row.prCount, 0),
       unmappedMergedPrCount: unmappedMismatches.reduce(
@@ -591,10 +710,22 @@ async function main() {
 
   const repoTeamMap = readRepoTeamMap();
   const reviewedUnmappedRepos = buildReviewedUnmappedRepoSet(readReviewedUnmappedRepoRows());
+  const reviewedRepoMismatches = buildReviewedRepoMismatchSet(readReviewedRepoMismatchRows());
   const auth = authHeader(email, token);
   const teams = [];
   for (const scope of scopes) {
-    teams.push(await auditScope(site, auth, repoTeamMap, reviewedUnmappedRepos, scope, cache, concurrency));
+    teams.push(
+      await auditScope(
+        site,
+        auth,
+        repoTeamMap,
+        reviewedUnmappedRepos,
+        reviewedRepoMismatches,
+        scope,
+        cache,
+        concurrency
+      )
+    );
   }
   const allBoardRepos = new Set(
     teams.flatMap((team) => (team.repos || []).map((repo) => repo.repo))
@@ -616,6 +747,30 @@ async function main() {
     mismatchedPrCount: teams.reduce((sum, team) => sum + team.summary.mismatchedPrCount, 0),
     mismatchedMergedPrCount: teams.reduce(
       (sum, team) => sum + team.summary.mismatchedMergedPrCount,
+      0
+    ),
+    reviewedRepoMismatchCount: teams.reduce(
+      (sum, team) => sum + team.summary.reviewedRepoMismatchCount,
+      0
+    ),
+    reviewedRepoMismatchPrCount: teams.reduce(
+      (sum, team) => sum + team.summary.reviewedRepoMismatchPrCount,
+      0
+    ),
+    reviewedRepoMismatchMergedPrCount: teams.reduce(
+      (sum, team) => sum + team.summary.reviewedRepoMismatchMergedPrCount,
+      0
+    ),
+    unreviewedRepoMismatchCount: teams.reduce(
+      (sum, team) => sum + team.summary.unreviewedRepoMismatchCount,
+      0
+    ),
+    unreviewedRepoMismatchPrCount: teams.reduce(
+      (sum, team) => sum + team.summary.unreviewedRepoMismatchPrCount,
+      0
+    ),
+    unreviewedRepoMismatchMergedPrCount: teams.reduce(
+      (sum, team) => sum + team.summary.unreviewedRepoMismatchMergedPrCount,
       0
     ),
     unmappedRepoCount: teams.reduce((sum, team) => sum + team.summary.unmappedRepoCount, 0),
@@ -665,8 +820,14 @@ async function main() {
   }
   if (cache.enabled && cache.dirty) writeJson(cachePath, cache.rows);
 
-  console.log(JSON.stringify(report, null, 2));
-  if (aggregate.unreviewedUnmappedRepoCount > 0 && !hasFlag("no-fail")) process.exitCode = 1;
+  console.log(formatAuditConsoleSummary(report));
+  if (outputPath) console.log(`Detailed private audit report written to ${outputPath}`);
+  if (
+    (aggregate.unreviewedRepoMismatchCount > 0 || aggregate.unreviewedUnmappedRepoCount > 0) &&
+    !hasFlag("no-fail")
+  ) {
+    process.exitCode = 1;
+  }
 }
 
 main().catch((error) => {
