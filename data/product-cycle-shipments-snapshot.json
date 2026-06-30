@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-29T07:29:59.627Z",
+  "generatedAt": "2026-06-30T07:29:34.052Z",
   "chartData": {
     "shippedTimeline": {
       "timelineStart": "2025-01-01",
       "timelineEnd": "2026-06-01",
-      "totalShipped": 212,
+      "totalShipped": 216,
       "months": [
         {
           "monthStart": "2025-01-01",
@@ -2347,12 +2347,12 @@
         {
           "monthStart": "2026-06-01",
           "monthKey": "2026-06",
-          "totalShipped": 22,
+          "totalShipped": 26,
           "teamCount": 5,
           "teams": [
             {
               "team": "Multi team",
-              "shippedCount": 2,
+              "shippedCount": 3,
               "ideas": [
                 {
                   "issueKey": "TPS-383",
@@ -2364,6 +2364,16 @@
                   ],
                   "summary": "Ephemeral: multiviewer head cloning",
                   "shippedAt": "2026-06-01T16:51:22.019Z"
+                },
+                {
+                  "issueKey": "TPS-427",
+                  "productAreaLabel": "TFC",
+                  "teams": [
+                    "API",
+                    "Frontend"
+                  ],
+                  "summary": "Parameter v2: Parameter Types Foundation",
+                  "shippedAt": "2026-06-29T11:36:01.007Z"
                 },
                 {
                   "issueKey": "TPS-360",
@@ -2422,8 +2432,26 @@
             },
             {
               "team": "Broadcast",
-              "shippedCount": 1,
+              "shippedCount": 3,
               "ideas": [
+                {
+                  "issueKey": "TPS-41",
+                  "productAreaLabel": "TFC",
+                  "teams": [
+                    "Broadcast"
+                  ],
+                  "summary": "Appear X Platform",
+                  "shippedAt": "2026-06-29T22:58:31.948Z"
+                },
+                {
+                  "issueKey": "TPS-116",
+                  "productAreaLabel": "TFC",
+                  "teams": [
+                    "Broadcast"
+                  ],
+                  "summary": "Cisco NDFC Integration",
+                  "shippedAt": "2026-06-29T23:01:25.273Z"
+                },
                 {
                   "issueKey": "TPS-47",
                   "productAreaLabel": "TFC",
@@ -2437,7 +2465,7 @@
             },
             {
               "team": "Orchestration",
-              "shippedCount": 3,
+              "shippedCount": 4,
               "ideas": [
                 {
                   "issueKey": "TPS-444",
@@ -2465,6 +2493,15 @@
                   ],
                   "summary": "Tech debt for Manifold",
                   "shippedAt": "2026-06-11T06:43:22.517Z"
+                },
+                {
+                  "issueKey": "TPS-465",
+                  "productAreaLabel": "NEP Platform",
+                  "teams": [
+                    "Orchestration"
+                  ],
+                  "summary": "Upgrade Panasonic to latest version (fix for PTP and Output)",
+                  "shippedAt": "2026-06-29T07:40:59.954Z"
                 }
               ]
             },
